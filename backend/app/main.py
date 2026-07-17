@@ -4,8 +4,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from .config import settings
 from .parser import parse_workbook
 from .publisher import Publisher
+from .services.ranking_service import build_ranking, get_rules
+from .services.stats_service import player_overview
+from supabase import create_client
 
-app = FastAPI(title="974 Darts AI Data API", version="0.8.0")
+app = FastAPI(title="974 Darts AI Data API", version="0.10.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[settings.allowed_origin],
@@ -20,7 +23,7 @@ def verify_token(token: str | None):
 
 @app.get("/health")
 def health():
-    return {"app": "974 Darts AI Data API", "version": "0.8.0", "status": "ok"}
+    return {"app": "974 Darts AI Data API", "version": "0.10.0", "status": "ok"}
 
 @app.post("/api/v1/import/analyze")
 async def analyze(
@@ -51,3 +54,19 @@ async def publish(
             status_code=500,
             detail=f"Publication failed: {type(exc).__name__}: {exc}"
         ) from exc
+
+
+def db_client():
+    return create_client(settings.supabase_url, settings.supabase_service_role_key)
+
+@app.get("/api/v1/ranking")
+def ranking(season_id: str | None = None):
+    return build_ranking(db_client(), season_id)
+
+@app.get("/api/v1/competition-rules")
+def competition_rules(season_id: str | None = None):
+    return get_rules(db_client(), season_id)
+
+@app.get("/api/v1/players")
+def players(season_id: str | None = None):
+    return {"players": player_overview(db_client(), season_id)}

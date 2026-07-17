@@ -1,4 +1,4 @@
-# 974 Darts AI Web — v0.8 / Sprint 3.1
+# 974 Darts AI Web — v0.10 / Sprint 3.1
 
 Cette version publie réellement le championnat dans Supabase via un backend Python FastAPI.
 

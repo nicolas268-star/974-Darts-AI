@@ -1,6 +1,6 @@
 {
   "name": "974-darts-ai-web",
-  "version": "0.8.0",
+  "version": "0.10.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
