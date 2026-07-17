@@ -1,0 +1,2 @@
+export type ImportAnomaly={code:string;severity:"CRITICAL"|"WARNING"|"INFO";row:number|null;field:string;message:string};
+export type ImportAnalysis={filename:string;rows:number;columns:number;players:string[];teams:string[];rounds:string[];seasons:string[];matchCount:number;legCount:number;validLegs:number;invalidLegs:number;excludedRows:number;status:"READY"|"CHECK"|"BLOCKED";anomalies:ImportAnomaly[]};
