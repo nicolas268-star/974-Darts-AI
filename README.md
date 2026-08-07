@@ -1,3 +1,13 @@
+**Continuous Improvement × Data × Automation × Artificial Intelligence**
+---
+
+# 🔧 Technical Documentation
+
+The original development documentation is maintained below in French, reflecting the project's development history.
+
+> The section below contains the original technical documentation of the 974Darts development environment.
+
+
 # 974 Darts AI Web — v0.10 / Sprint 3.1
 
 Cette version publie réellement le championnat dans Supabase via un backend Python FastAPI.
