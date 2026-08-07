@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/images/974darts-platform.png"
+  <img src="./docs/974darts-platform.png"
        alt="974Darts - Data Analytics Platform for traditional darts on Reunion Island"
        width="100%">
 </p>
