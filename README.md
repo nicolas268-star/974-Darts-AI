@@ -43,6 +43,62 @@ This provides players and teams with a shared and accessible view of the competi
 > **From raw competition data to accessible, measurable and actionable performance insights.**
 
 ---
+
+---
+
+## 🏗️ Platform Architecture
+
+974Darts progressively evolved from a Power BI reporting project into a complete data processing and publishing platform.
+
+The current architecture separates data collection, processing, validation, storage and presentation.
+
+```mermaid
+flowchart LR
+    A["Competition Data / Excel"]
+    B["Python / FastAPI"]
+    C["Validation and Processing"]
+    D["Supabase Database"]
+    E["Next.js / 974Darts"]
+    F["Players and Teams"]
+    G["AI Agents / Future Automation"]
+
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    E --> F
+
+    G -.-> B
+    G -.-> C
+    G -.-> E
+```
+### ⚙️ Current Workflow
+
+**Competition Data → Python / FastAPI → Validation & Processing → Supabase → Next.js / 974Darts → Players & Teams**
+
+The objective is to maintain a reliable and repeatable flow between raw competition data and the statistics published on the platform.
+
+### 🤖 Evolution Target
+
+The next stage is to progressively introduce automation and AI Agents across the workflow:
+
+**Collection → Control → Processing → Analysis → Publication**
+
+Automation is introduced where it creates measurable value: reducing repetitive manual operations, improving data reliability and focusing human intervention on analysis and decision-making.
+
+---
+
+## 💡 What This Project Demonstrates
+
+974Darts is both a functional product and a practical experimentation environment.
+
+It demonstrates how several disciplines can be combined around a real-world problem:
+
+**Continuous Improvement × Lean Six Sigma × Data Analytics × Python × Web Development × Automation × Artificial Intelligence**
+
+> **Understand the problem. Measure what matters. Improve the process. Control the result. Automate where it creates value.**
+
+---
 # 🔧 Technical Documentation
 
 The original development documentation is maintained below in French, reflecting the project's development history.
