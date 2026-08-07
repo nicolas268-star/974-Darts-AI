@@ -6,7 +6,43 @@
 
 **Continuous Improvement × Data × Automation × Artificial Intelligence**
 ---
+---
 
+## 📊 Platform in Action
+
+974Darts goes beyond a traditional reporting dashboard.
+
+The platform transforms competition data into accessible performance insights — from individual player analytics to championship-level performance monitoring.
+
+### 🎯 Player Analytics
+
+Detailed player performance analysis combining scoring, consistency, finishing, progression and match results.
+
+<p align="center">
+  <img src="./docs/974darts-player-analytics.png"
+       alt="974Darts Player Analytics Dashboard"
+       width="90%">
+</p>
+
+Player profiles bring together multiple performance dimensions to provide a structured view of strengths, progression and areas for improvement.
+
+---
+
+### 🏆 Championship Performance
+
+Competition data is consolidated into a central view covering championship progression, official rankings and collective team performance.
+
+<p align="center">
+  <img src="./docs/974darts-championship-ranking.png"
+       alt="974Darts Championship and Team Rankings"
+       width="90%">
+</p>
+
+This provides players and teams with a shared and accessible view of the competition based on verified match data.
+
+> **From raw competition data to accessible, measurable and actionable performance insights.**
+
+---
 # 🔧 Technical Documentation
 
 The original development documentation is maintained below in French, reflecting the project's development history.
