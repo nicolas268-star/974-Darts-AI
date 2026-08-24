@@ -1,0 +1,361 @@
+.match-hub-main {
+  min-width: 0;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(255, 122, 49, 0.1), transparent 26%),
+    #071426;
+}
+
+.hub-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.hub-topline a {
+  color: #ff9b52;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.hub-topline span {
+  color: #8fa6bf;
+  font-size: 0.8rem;
+}
+
+.match-hub-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 210px minmax(0, 1fr);
+  align-items: stretch;
+  gap: 12px;
+}
+
+.hub-team,
+.hub-score {
+  display: grid;
+  align-content: center;
+  min-height: 150px;
+  padding: 24px;
+  border: 1px solid rgba(148, 163, 184, 0.17);
+  border-radius: 22px;
+  background: linear-gradient(145deg, rgba(17, 38, 64, 0.98), rgba(9, 27, 47, 0.98));
+}
+
+.hub-team.away {
+  text-align: right;
+}
+
+.hub-team span,
+.hub-score span,
+.hub-section-title span,
+.hub-empty-detail > span {
+  color: #ff9b52;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.hub-team strong {
+  margin: 10px 0;
+  font-size: clamp(1.65rem, 3.2vw, 3.2rem);
+}
+
+.hub-team small,
+.hub-score small {
+  color: #8fa6bf;
+}
+
+.hub-score {
+  place-items: center;
+  text-align: center;
+  background: linear-gradient(145deg, rgba(57, 31, 24, 0.96), rgba(15, 28, 45, 0.98));
+}
+
+.hub-score strong {
+  margin: 8px 0;
+  color: #fff;
+  font-size: clamp(2.8rem, 5vw, 4.8rem);
+  line-height: 1;
+}
+
+.hub-quality {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-top: 14px;
+  padding: 14px 17px;
+  border: 1px solid rgba(96, 165, 250, 0.27);
+  border-radius: 14px;
+  background: rgba(30, 64, 175, 0.09);
+}
+
+.hub-quality.collective-only {
+  border-color: rgba(251, 191, 36, 0.33);
+  background: rgba(120, 53, 15, 0.16);
+}
+
+.hub-quality strong {
+  color: #fde68a;
+  white-space: nowrap;
+}
+
+.hub-quality span {
+  color: #c8d5e5;
+  line-height: 1.45;
+  text-align: right;
+}
+
+.hub-empty-detail {
+  display: grid;
+  justify-items: start;
+  max-width: 780px;
+  margin: 34px auto;
+  padding: 34px;
+  border: 1px solid rgba(251, 191, 36, 0.28);
+  border-radius: 22px;
+  background: rgba(10, 31, 54, 0.9);
+}
+
+.hub-empty-detail h1 {
+  margin: 12px 0;
+  font-size: clamp(2rem, 4vw, 3.5rem);
+}
+
+.hub-empty-detail p {
+  color: #aabdd2;
+  line-height: 1.7;
+}
+
+.hub-empty-detail a {
+  margin-top: 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  color: #071426;
+  background: linear-gradient(135deg, #ff7a31, #ffb13b);
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.hub-nav {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 9px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 14px;
+  background: rgba(7, 20, 38, 0.93);
+  backdrop-filter: blur(12px);
+}
+
+.hub-nav a {
+  padding: 8px 11px;
+  border-radius: 9px;
+  color: #b7c7d9;
+  text-decoration: none;
+}
+
+.hub-nav a:hover {
+  color: #071426;
+  background: #ff9b52;
+}
+
+.hub-kpis {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.hub-kpis article,
+.hub-panel {
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 16px;
+  background: rgba(10, 31, 54, 0.9);
+}
+
+.hub-kpis article {
+  display: grid;
+  gap: 5px;
+  padding: 15px;
+}
+
+.hub-kpis span {
+  color: #8fb0cf;
+  font-size: 0.66rem;
+  text-transform: uppercase;
+}
+
+.hub-kpis strong {
+  font-size: 1.35rem;
+}
+
+.hub-kpis small {
+  color: #8097b1;
+}
+
+.hub-overview-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.hub-panel {
+  padding: 20px;
+}
+
+.hub-section-title h2 {
+  margin: 7px 0 0;
+  font-size: 1.55rem;
+}
+
+.hub-analysis-copy {
+  margin-top: 16px;
+  color: #b7c7d9;
+  line-height: 1.6;
+}
+
+.hub-analysis-copy p {
+  margin: 8px 0;
+}
+
+.hub-pressure {
+  display: grid;
+  gap: 13px;
+  margin-top: 18px;
+}
+
+.hub-pressure > div {
+  display: grid;
+  grid-template-columns: 54px 1fr 28px;
+  align-items: center;
+  gap: 10px;
+}
+
+.hub-pressure span {
+  color: #9fb4cc;
+}
+
+.hub-pressure > div > div {
+  height: 9px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.12);
+}
+
+.hub-pressure i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #ff7a31, #ffb13b);
+}
+
+.hub-pressure strong {
+  text-align: right;
+}
+
+.hub-table-panel {
+  margin-top: 12px;
+  scroll-margin-top: 70px;
+}
+
+.hub-table-scroll {
+  margin-top: 15px;
+  overflow-x: auto;
+}
+
+.hub-table-scroll table {
+  width: 100%;
+  border-collapse: collapse;
+  white-space: nowrap;
+}
+
+.hub-table-scroll th,
+.hub-table-scroll td {
+  padding: 11px 12px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+  text-align: left;
+}
+
+.hub-table-scroll th {
+  color: #ffb13b;
+  font-size: 0.68rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.hub-table-scroll td {
+  color: #c8d5e5;
+  font-size: 0.82rem;
+}
+
+.hub-table-scroll tbody tr:hover {
+  background: rgba(59, 130, 246, 0.05);
+}
+
+.hub-player-link {
+  color: #fff;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.hub-player-link:hover {
+  color: #ff9b52;
+}
+
+@media (max-width: 1100px) {
+  .hub-kpis {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .hub-overview-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .hub-topline,
+  .hub-quality {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .hub-quality span {
+    text-align: left;
+  }
+
+  .match-hub-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .hub-team.away {
+    text-align: left;
+  }
+
+  .hub-score {
+    grid-row: 1;
+    min-height: 120px;
+  }
+
+  .hub-team {
+    min-height: 115px;
+  }
+
+  .hub-nav {
+    overflow-x: auto;
+  }
+
+  .hub-nav a {
+    white-space: nowrap;
+  }
+
+  .hub-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

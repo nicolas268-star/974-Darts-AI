@@ -1,4 +1,0 @@
-import { Sidebar } from "@/components/Sidebar";
-import type { RankingPayload } from "@/lib/types/sprint4";
-async function getData():Promise<RankingPayload|null>{const b=process.env.PYTHON_API_URL??"http://127.0.0.1:8000";try{const r=await fetch(`${b}/api/v1/ranking`,{cache:"no-store"});return r.ok?r.json():null}catch{return null}}
-export default async function TeamsPage(){const d=await getData();return <div className="dashboard"><Sidebar/><main className="main"><span className="badge">Équipes</span><h2 style={{marginTop:14}}>Les équipes</h2><div className="grid">{d?.standings.map(t=><article className="card" key={t.team_id}><div className="muted">#{t.rank}</div><h3>{t.name}</h3><div className="metric">{t.points} pts</div><p>{t.wins} victoire(s) · {t.draws} nul(s) · {t.losses} défaite(s)<br/>Différence de legs : {t.leg_difference}</p></article>)}</div>{!d&&<div className="notice">Démarre le backend pour afficher les équipes.</div>}</main></div>}

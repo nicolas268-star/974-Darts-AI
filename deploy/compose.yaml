@@ -1,0 +1,177 @@
+name: darts974
+
+x-default-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  backend:
+    build:
+      context: ../app/backend
+      dockerfile: Dockerfile
+    env_file:
+      - /etc/974darts/production.env
+    environment:
+      ALLOWED_ORIGIN: "https://${SITE_DOMAIN}"
+      PYTHONDONTWRITEBYTECODE: "1"
+      PYTHONUNBUFFERED: "1"
+    expose:
+      - "8000"
+    volumes:
+      - /var/lib/974darts/backend-data:/app/data
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=128m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3).read()"
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 20s
+    logging: *default-logging
+
+  frontend:
+    build:
+      context: ../app/frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_SUPABASE_URL: "${NEXT_PUBLIC_SUPABASE_URL:?NEXT_PUBLIC_SUPABASE_URL absent}"
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: "${NEXT_PUBLIC_SUPABASE_ANON_KEY:?NEXT_PUBLIC_SUPABASE_ANON_KEY absente}"
+        NEXT_PUBLIC_DEMO_MODE: "false"
+        NEXT_PUBLIC_SITE_URL: "https://${SITE_DOMAIN}"
+    env_file:
+      - /etc/974darts/production.env
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_DEMO_MODE: "false"
+      NEXT_PUBLIC_SITE_URL: "https://${SITE_DOMAIN}"
+      PYTHON_API_URL: "http://backend:8000"
+      BACKEND_API_URL: "http://backend:8000"
+    expose:
+      - "3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=128m
+      - /app/.next/cache:rw,noexec,nosuid,size=128m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 20s
+    logging: *default-logging
+
+  nakka-watcher:
+    build:
+      context: ../app/backend
+      dockerfile: Dockerfile
+    command: ["python", "-m", "app.services.nakka_watch_worker"]
+    env_file:
+      - /etc/974darts/production.env
+    environment:
+      PYTHONDONTWRITEBYTECODE: "1"
+      PYTHONUNBUFFERED: "1"
+      NAKKA_WATCH_INTERVAL_SECONDS: "300"
+    volumes:
+      - /var/lib/974darts/backend-data:/app/data
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    logging: *default-logging
+
+  tournament-watcher:
+    build:
+      context: ../app/backend
+      dockerfile: Dockerfile
+    command: ["python", "-m", "app.services.tournament_watch_worker"]
+    env_file:
+      - /etc/974darts/production.env
+    environment:
+      PYTHONDONTWRITEBYTECODE: "1"
+      PYTHONUNBUFFERED: "1"
+      TOURNAMENT_WATCH_INTERVAL_SECONDS: "3600"
+    volumes:
+      - /var/lib/974darts/backend-data:/app/data
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    logging: *default-logging
+
+  season-watcher:
+    build:
+      context: ../app/backend
+      dockerfile: Dockerfile
+    command: ["python", "-m", "app.services.season_registry_worker"]
+    env_file:
+      - /etc/974darts/production.env
+    environment:
+      PYTHONDONTWRITEBYTECODE: "1"
+      PYTHONUNBUFFERED: "1"
+      SEASON_REGISTRY_INTERVAL_SECONDS: "86400"
+    volumes:
+      - /var/lib/974darts/backend-data:/app/data
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    logging: *default-logging
+
+  caddy:
+    image: caddy:2-alpine
+    environment:
+      SITE_DOMAIN: "${SITE_DOMAIN}"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      frontend:
+        condition: service_healthy
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    logging: *default-logging
+
+volumes:
+  caddy_data:
+  caddy_config:

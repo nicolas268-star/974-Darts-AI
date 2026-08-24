@@ -1,0 +1,984 @@
+.home-page {
+  min-height: 100vh;
+  overflow: hidden;
+  color: #f8fbff;
+  background: #04101d;
+}
+
+.home-nav {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 76px;
+  padding: 0 clamp(24px, 5vw, 78px);
+  border-bottom: 1px solid rgba(160, 196, 226, 0.13);
+  background: rgba(4, 13, 24, 0.76);
+  backdrop-filter: blur(18px);
+}
+
+.home-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 850;
+  letter-spacing: -0.02em;
+  text-decoration: none;
+}
+
+.home-brand b { color: #ff7a31; }
+
+.brand-target {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 1px solid rgba(255, 177, 59, 0.4);
+  border-radius: 50%;
+  color: #ffb13b;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.home-nav nav {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.home-nav nav a {
+  color: #b8c7d6;
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.home-nav nav a:hover { color: #fff; }
+
+.home-nav .login-action {
+  padding: 12px 19px;
+  border-radius: 12px;
+  color: #07111c;
+  background: linear-gradient(135deg, #ff7a31, #ffb13b);
+  font-weight: 900;
+}
+
+.island-hero {
+  position: relative;
+  display: grid;
+  min-height: 100svh;
+  padding: 140px clamp(24px, 6vw, 92px) 72px;
+  isolation: isolate;
+}
+
+.hero-art,
+.hero-vignette {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+}
+
+.hero-art {
+  background:
+    radial-gradient(circle at 79% 46%, rgba(255, 122, 49, 0.42), transparent 13%),
+    linear-gradient(90deg, #04101d 0%, rgba(4, 16, 29, 0.9) 36%, rgba(4, 16, 29, 0.18) 78%),
+    url("/hero-reunion-darts.png") center / cover no-repeat;
+  transform: scale(1.015);
+}
+
+.hero-vignette {
+  z-index: -1;
+  background:
+    linear-gradient(180deg, rgba(4, 12, 23, 0.16) 45%, #04101d 100%),
+    radial-gradient(circle at 74% 54%, transparent 8%, rgba(4, 12, 23, 0.15) 42%, rgba(4, 12, 23, 0.65) 92%);
+}
+
+.hero-copy {
+  align-self: center;
+  width: min(760px, 58vw);
+}
+
+.hero-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: #ffc164;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.hero-kicker i {
+  width: 22px;
+  height: 2px;
+  background: #ff7a31;
+  box-shadow: 0 0 12px rgba(255, 122, 49, 0.9);
+}
+
+.hero-copy h1 {
+  margin: 22px 0 20px;
+  font-size: clamp(64px, 8vw, 124px);
+  line-height: 0.82;
+  letter-spacing: -0.075em;
+}
+
+.hero-copy h1 em {
+  color: #ff9a3e;
+  font-style: normal;
+  text-shadow: 0 0 42px rgba(255, 105, 28, 0.26);
+}
+
+.hero-copy > p {
+  max-width: 580px;
+  margin: 0;
+  color: #b9cbdd;
+  font-size: clamp(17px, 1.5vw, 21px);
+  line-height: 1.65;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 32px;
+}
+
+.hero-actions a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  min-height: 50px;
+  padding: 0 19px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.primary-action {
+  color: #07111c;
+  background: linear-gradient(135deg, #ff7930, #ffb13b);
+  box-shadow: 0 16px 34px rgba(255, 103, 25, 0.2);
+}
+
+.primary-action span { font-size: 18px; }
+
+.secondary-action {
+  border: 1px solid rgba(180, 208, 232, 0.25);
+  color: #f7fbff;
+  background: rgba(8, 26, 44, 0.66);
+  backdrop-filter: blur(12px);
+}
+
+.hero-domain-actions .game-action {
+  border-color: rgba(38, 226, 176, 0.32);
+  color: #dcfff5;
+  background: rgba(10, 43, 48, 0.64);
+}
+.hero-domain-actions .game-action span { color: #58e4bd; }
+.hero-domain-actions .map-action {
+  border-color: rgba(85, 184, 255, 0.30);
+  color: #dff3ff;
+  background: rgba(8, 37, 61, 0.70);
+}
+.hero-domain-actions .map-action span { color: #55b8ff; }
+.hero-domain-actions .committee-action {
+  border-color: rgba(242, 180, 59, 0.34);
+  color: #fff0c7;
+  background: rgba(50, 35, 10, 0.55);
+}
+.hero-domain-actions .committee-action span { color: #f2b43b; }
+.club-map-section { scroll-margin-top: 86px; }
+
+.data-trust {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 28px;
+  color: #d8e6f2;
+}
+
+.trust-icon {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 1px solid rgba(38, 226, 176, 0.35);
+  border-radius: 50%;
+  color: #26e2b0;
+  background: rgba(38, 226, 176, 0.08);
+  font-weight: 900;
+}
+
+.data-trust div { display: grid; gap: 2px; }
+.data-trust strong { font-size: 12px; }
+.data-trust small { color: #7f9ab3; font-size: 10px; }
+
+.hero-scroll {
+  position: absolute;
+  bottom: 28px;
+  left: 50%;
+  display: grid;
+  justify-items: center;
+  gap: 7px;
+  color: #6f8ba3;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.hero-scroll i {
+  display: block;
+  width: 1px;
+  height: 25px;
+  background: linear-gradient(#ff8b2b, transparent);
+}
+
+.home-section {
+  padding: 100px clamp(24px, 6vw, 92px);
+}
+
+.home-section-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 50px;
+  max-width: 1300px;
+  margin: 0 auto 38px;
+}
+
+.section-kicker,
+.home-card-heading > div > span,
+.island-card > div > span,
+.home-feature-card small {
+  color: #ff9a3e;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.home-section-heading h2 {
+  margin: 10px 0 0;
+  font-size: clamp(40px, 5vw, 70px);
+  line-height: 0.95;
+  letter-spacing: -0.055em;
+}
+
+.home-section-heading > p {
+  max-width: 470px;
+  margin: 0;
+  color: #8faac2;
+  line-height: 1.65;
+}
+
+.section-link {
+  color: #ffad4e;
+  font-size: 12px;
+  font-weight: 850;
+  text-decoration: none;
+}
+
+.championship-section {
+  background:
+    radial-gradient(circle at 90% 20%, rgba(255, 105, 28, 0.08), transparent 24rem),
+    #061526;
+}
+
+.championship-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(320px, 0.7fr);
+  gap: 16px;
+  max-width: 1300px;
+  margin: 0 auto;
+}
+
+.leaders-card,
+.island-card,
+.home-feature-card,
+.home-player-card {
+  border: 1px solid rgba(136, 177, 211, 0.17);
+  border-radius: 20px;
+  background: linear-gradient(145deg, rgba(12, 39, 64, 0.95), rgba(7, 26, 45, 0.95));
+}
+
+.leaders-card { padding: 24px; }
+
+.home-card-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.home-card-heading h3 {
+  margin: 7px 0 0;
+  font-size: 25px;
+}
+
+.home-card-heading > a {
+  color: #ffae52;
+  font-size: 11px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.leader-list { display: grid; gap: 8px; margin-top: 20px; }
+
+.leader-row {
+  display: grid;
+  grid-template-columns: 38px 1fr 80px 65px;
+  align-items: center;
+  gap: 12px;
+  padding: 13px;
+  border: 1px solid rgba(130, 173, 207, 0.11);
+  border-radius: 12px;
+  color: #fff;
+  background: rgba(4, 19, 33, 0.56);
+  text-decoration: none;
+}
+
+.leader-row:hover { border-color: rgba(255, 154, 62, 0.45); }
+
+.leader-rank {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border-radius: 50%;
+  color: #ffb13b;
+  background: rgba(255, 177, 59, 0.12);
+}
+
+.leader-team {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.leader-team > span {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: 9px;
+  color: #ffad4e;
+  background: rgba(255, 122, 49, 0.12);
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.leader-row > div:not(.leader-team) { display: grid; gap: 3px; }
+
+.leader-row > div:not(.leader-team) span {
+  color: #7192ae;
+  font-size: 8px;
+  text-transform: uppercase;
+}
+
+.island-card {
+  position: relative;
+  display: grid;
+  align-items: end;
+  min-height: 310px;
+  overflow: hidden;
+  padding: 26px;
+  isolation: isolate;
+}
+
+.island-card::before {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  content: "";
+  background:
+    linear-gradient(180deg, rgba(4, 16, 29, 0.08), rgba(4, 16, 29, 0.95)),
+    radial-gradient(circle at 50% 26%, rgba(255, 121, 31, 0.27), transparent 26%),
+    linear-gradient(135deg, #123c5d, #07192c 60%);
+}
+
+.island-outline {
+  position: absolute;
+  top: 30px;
+  right: 32px;
+  z-index: -1;
+  color: transparent;
+  font-size: 105px;
+  font-weight: 950;
+  -webkit-text-stroke: 1px rgba(255, 159, 65, 0.27);
+  transform: rotate(-8deg);
+}
+
+.island-card h3 {
+  margin: 8px 0;
+  font-size: 25px;
+  line-height: 1.12;
+}
+
+.island-card p { margin: 0; color: #91aac0; line-height: 1.55; }
+
+.player-section {
+  background:
+    radial-gradient(circle at 10% 80%, rgba(31, 106, 161, 0.12), transparent 25rem),
+    #04101d;
+}
+
+.club-map-section {
+  position: relative;
+  background:
+    radial-gradient(circle at 16% 40%, rgba(31, 126, 177, 0.16), transparent 30rem),
+    radial-gradient(circle at 82% 55%, rgba(255, 135, 46, 0.09), transparent 26rem),
+    #04101d;
+}
+
+.reunion-club-explorer {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(300px, .65fr);
+  gap: 18px;
+  max-width: 1300px;
+  margin: 0 auto;
+}
+
+.reunion-map-stage,
+.club-map-panel,
+.institutional-signature {
+  border: 1px solid rgba(136, 177, 211, 0.18);
+  border-radius: 24px;
+  background: linear-gradient(145deg, rgba(10, 35, 57, .96), rgba(5, 21, 37, .98));
+}
+
+.reunion-map-stage {
+  position: relative;
+  min-height: 620px;
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 55% 50%, rgba(42, 128, 171, .22), transparent 39%),
+    repeating-radial-gradient(circle at 50% 50%, transparent 0 66px, rgba(114, 184, 218, .035) 67px 68px),
+    linear-gradient(145deg, #06192a, #03101c);
+}
+
+.reunion-map-stage::before {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  content: "";
+  opacity: .25;
+  background-image: radial-gradient(circle, rgba(173, 220, 244, .45) .7px, transparent .8px);
+  background-size: 25px 25px;
+  mask-image: linear-gradient(120deg, #000, transparent 72%);
+}
+
+.reunion-island {
+  position: absolute;
+  inset: 4% auto auto 26%;
+  width: 51%;
+  height: 92%;
+  filter: drop-shadow(0 30px 45px rgba(0, 0, 0, .55));
+  transform: rotate(10deg);
+}
+
+.island-shadow { fill: rgba(0, 0, 0, .42); transform: translate(18px, 22px); }
+.island-land { stroke: rgba(119, 196, 224, .44); stroke-width: 3; }
+.island-contour { fill: none; stroke: rgba(98, 174, 204, .14); stroke-width: 4; }
+.contour-two { stroke: rgba(255, 167, 68, .09); }
+.volcano-line { fill: none; stroke: rgba(255, 155, 62, .32); stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; }
+.coast-highlight { fill: none; stroke: rgba(255, 185, 95, .55); stroke-width: 5; stroke-linecap: round; }
+
+.map-ocean-label {
+  position: absolute;
+  right: 25px;
+  top: 24px;
+  display: grid;
+  gap: 3px;
+  color: #6f93ad;
+  font-size: 9px;
+  letter-spacing: .13em;
+  text-align: right;
+  text-transform: uppercase;
+}
+.map-ocean-label b { color: #a8c4d8; font-size: 8px; }
+
+.club-map-marker {
+  position: absolute;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 6px 11px 6px 6px;
+  border: 1px solid color-mix(in srgb, var(--club-accent) 38%, transparent);
+  border-radius: 999px;
+  color: #fff;
+  background: rgba(3, 16, 28, .88);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, .34);
+  cursor: pointer;
+  transform: translate(-50%, -50%);
+  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+.club-map-marker:hover,
+.club-map-marker.is-active {
+  border-color: var(--club-accent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--club-accent) 12%, transparent), 0 15px 28px rgba(0,0,0,.44);
+  transform: translate(-50%, -50%) scale(1.04);
+}
+.club-map-marker::after {
+  position: absolute;
+  left: 26px;
+  top: calc(100% + 5px);
+  width: 2px;
+  height: 18px;
+  border-radius: 2px;
+  content: "";
+  background: linear-gradient(var(--club-accent), transparent);
+}
+.club-marker-logo,
+.club-panel-logo,
+.institutional-logo { position: relative; display: block; overflow: hidden; }
+.club-marker-logo {
+  width: 46px;
+  height: 46px;
+  flex: 0 0 46px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,.4);
+}
+.club-marker-logo img,
+.club-panel-logo img,
+.institutional-logo img { object-fit: contain; }
+.club-marker-label { display: grid; gap: 2px; text-align: left; white-space: nowrap; }
+.club-marker-label strong { font-size: 11px; }
+.club-marker-label small { color: #86a7c0; font-size: 8px; }
+
+.club-map-panel {
+  display: flex;
+  min-height: 620px;
+  flex-direction: column;
+  padding: 28px;
+  border-top: 3px solid var(--club-accent);
+  box-shadow: inset 0 20px 80px color-mix(in srgb, var(--club-accent) 6%, transparent);
+}
+.club-panel-head { display: flex; align-items: center; gap: 16px; }
+.club-panel-logo { width: 78px; height: 78px; flex: 0 0 78px; border-radius: 18px; background: #fff; }
+.club-panel-head small,
+.institutional-signature small { color: var(--club-accent); font-size: 9px; font-weight: 900; letter-spacing: .14em; }
+.club-panel-head h3 { margin: 6px 0 0; font-size: 27px; line-height: 1.05; }
+.club-map-panel dl { display: grid; gap: 0; margin: 28px 0; }
+.club-map-panel dl div { display: grid; gap: 5px; padding: 15px 0; border-bottom: 1px solid rgba(132, 174, 209, .13); }
+.club-map-panel dt { color: #7696b0; font-size: 9px; text-transform: uppercase; }
+.club-map-panel dd { margin: 0; font-size: 15px; font-weight: 800; }
+.club-team-links { display: grid; gap: 8px; }
+.club-team-links a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 14px;
+  border: 1px solid color-mix(in srgb, var(--club-accent) 32%, transparent);
+  border-radius: 11px;
+  color: #fff;
+  background: color-mix(in srgb, var(--club-accent) 8%, transparent);
+  font-size: 12px;
+  font-weight: 850;
+  text-decoration: none;
+}
+.club-team-links a:hover { background: color-mix(in srgb, var(--club-accent) 16%, transparent); }
+.club-team-links span { color: var(--club-accent); font-size: 17px; }
+.club-map-panel > p { margin: auto 0 0; padding-top: 28px; color: #7898b2; font-size: 11px; line-height: 1.6; }
+
+.institutional-signature {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  max-width: 1300px;
+  margin: 18px auto 0;
+  padding: 18px 24px;
+  background: linear-gradient(90deg, rgba(10, 35, 57, .96), rgba(9, 29, 48, .96));
+}
+.institutional-logo { width: 220px; height: 72px; flex: 0 0 220px; border-radius: 12px; background: #f5f6f7; }
+.institutional-signature small { color: #ffad4e; }
+.institutional-signature strong { display: block; margin-top: 5px; font-size: 17px; }
+.institutional-signature p { margin: 5px 0 0; color: #7898b2; font-size: 11px; }
+
+/* Carte des clubs — composition géographique inspirée de la maquette validée. */
+.reunion-club-explorer {
+  grid-template-columns: minmax(0, 1.7fr) minmax(360px, .9fr);
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid rgba(65, 145, 209, .28);
+  border-radius: 24px;
+  background: #03101d;
+  box-shadow: 0 28px 80px rgba(0, 0, 0, .26);
+}
+
+.reunion-map-stage,
+.club-map-panel {
+  border: 0;
+  border-radius: 0;
+}
+
+.reunion-map-stage {
+  min-height: 650px;
+  background:
+    radial-gradient(circle at 47% 50%, rgba(34, 115, 174, .25), transparent 33%),
+    repeating-radial-gradient(circle at 48% 52%, transparent 0 66px, rgba(79, 155, 216, .055) 67px 68px),
+    linear-gradient(145deg, #020c17, #03182a 62%, #020b14);
+}
+
+.reunion-map-stage::before {
+  opacity: .2;
+  background-image:
+    linear-gradient(115deg, transparent 0 49.8%, rgba(60, 130, 185, .12) 50%, transparent 50.2%),
+    radial-gradient(circle, rgba(173, 220, 244, .55) .65px, transparent .8px);
+  background-size: 100% 100%, 27px 27px;
+}
+
+.reunion-island-map {
+  z-index: 1;
+  object-fit: contain;
+  object-position: 50% 50%;
+  opacity: .92;
+  filter: saturate(.94) contrast(1.05) brightness(.82);
+  transform: scale(.94);
+}
+
+.reunion-map-stage::after {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  content: "";
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(2, 13, 24, .34), transparent 22% 78%, rgba(2, 13, 24, .34)),
+    linear-gradient(0deg, rgba(2, 13, 24, .3), transparent 18% 82%, rgba(2, 13, 24, .3));
+}
+
+.map-compass {
+  position: absolute;
+  z-index: 6;
+  right: 7%;
+  top: 8%;
+  color: #e8ad36;
+  font-size: 54px;
+  line-height: 1;
+  text-shadow: 0 0 18px rgba(232, 173, 54, .35);
+}
+.map-compass small { position: absolute; left: 22px; top: -13px; font-size: 11px; }
+
+.club-connector-layer { position: absolute; inset: 0; z-index: 3; width: 100%; height: 100%; pointer-events: none; }
+.connector { fill: none; stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.connector.blue { stroke: #51a9ff; }
+.connector.gold { stroke: #e4aa35; }
+
+.map-location-dot {
+  position: absolute;
+  z-index: 4;
+  width: 15px;
+  height: 15px;
+  border: 2px solid #d9f3ff;
+  border-radius: 50%;
+  background: var(--club-accent);
+  box-shadow: 0 0 0 7px color-mix(in srgb, var(--club-accent) 19%, transparent), 0 0 18px 5px var(--club-accent);
+  transform: translate(-50%, -50%);
+}
+
+.club-map-callout {
+  position: absolute;
+  z-index: 5;
+  display: flex;
+  width: 220px;
+  min-height: 72px;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 13px;
+  border: 1px solid color-mix(in srgb, var(--club-accent) 70%, #17324b);
+  border-radius: 11px;
+  color: #fff;
+  background: rgba(4, 22, 38, .95);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, .38);
+  text-decoration: none;
+  transition: border-color .18s ease, transform .18s ease, box-shadow .18s ease;
+}
+.club-map-callout:hover { transform: translateY(-3px); border-color: var(--club-accent); box-shadow: 0 0 24px color-mix(in srgb, var(--club-accent) 22%, transparent); }
+.club-callout-3bdc { left: 4%; top: 23%; }
+.club-callout-pdc { left: 2%; top: 49%; }
+.club-callout-tdc { right: 2%; top: 58%; }
+.club-callout-kazadarts { left: 23%; bottom: 4%; }
+
+.club-map-callout .club-marker-logo { width: 50px; height: 50px; flex-basis: 50px; }
+.club-map-callout .club-marker-label strong { font-size: 12px; }
+.club-map-callout .club-marker-label small { margin-top: 4px; color: #91abc0; font-size: 9px; }
+
+.club-map-panel {
+  min-height: 650px;
+  padding: 24px;
+  border-left: 1px solid rgba(69, 145, 204, .22);
+  background: linear-gradient(155deg, #061a2c, #03111e);
+  box-shadow: inset 30px 0 70px rgba(15, 70, 111, .08);
+}
+
+.club-panel-summary {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 5px 5px 21px;
+  border-bottom: 1px solid rgba(115, 172, 216, .16);
+}
+.club-summary-icon { color: #4caaff; font-size: 32px; }
+.club-panel-summary strong { color: #50aaff; font-size: 10px; letter-spacing: .15em; }
+.club-panel-summary p { margin: 7px 0 0; color: #8ba3b8; font-size: 11px; }
+.club-directory-list { display: grid; gap: 9px; padding: 16px 0; }
+.club-directory-row {
+  display: grid;
+  grid-template-columns: 50px 1fr auto;
+  align-items: center;
+  gap: 11px;
+  min-height: 69px;
+  padding: 8px 9px;
+  border: 1px solid rgba(101, 155, 198, .17);
+  border-radius: 11px;
+  background: rgba(8, 31, 51, .72);
+}
+.club-directory-logo { position: relative; display: block; width: 48px; height: 48px; overflow: hidden; border-radius: 50%; background: #fff; }
+.club-directory-logo img { object-fit: contain; }
+.club-directory-row > div { display: grid; gap: 5px; min-width: 0; }
+.club-directory-row > div strong { overflow: hidden; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.club-directory-row > div small { color: #8ba3b8; font-size: 9px; }
+.club-directory-row > a {
+  padding: 10px 11px;
+  border: 1px solid #2b82c8;
+  border-radius: 7px;
+  color: #55adf5;
+  font-size: 9px;
+  font-weight: 850;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.club-directory-row > a:hover { color: #fff; background: #1568a8; }
+.club-directory-row > a span { padding-left: 7px; font-size: 13px; }
+
+.all-clubs-action {
+  display: grid;
+  grid-template-columns: 35px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  margin-top: auto;
+  padding: 13px;
+  border: 1px solid rgba(230, 169, 48, .7);
+  border-radius: 10px;
+  color: #eab243;
+  background: linear-gradient(90deg, rgba(214, 143, 21, .08), rgba(214, 143, 21, .03));
+  text-decoration: none;
+}
+.all-clubs-action > span { font-size: 31px; }
+.all-clubs-action div { display: grid; gap: 3px; }
+.all-clubs-action strong { font-size: 10px; }
+.all-clubs-action small { color: #8499aa; font-size: 8px; }
+.all-clubs-action b { padding: 9px; border: 1px solid rgba(230, 169, 48, .55); border-radius: 6px; font-size: 8px; white-space: nowrap; }
+
+.institutional-signature { border-radius: 16px; }
+
+.player-leader-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  max-width: 1300px;
+  margin: 0 auto;
+}
+
+.home-player-card {
+  display: grid;
+  grid-template-columns: 38px 46px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 15px;
+  color: #fff;
+  text-decoration: none;
+}
+
+.home-player-card:hover { border-color: rgba(255, 154, 62, 0.45); }
+.player-rank { color: #ffad4e; font-weight: 900; }
+
+.home-player-avatar {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 12px;
+  color: #ffb13b;
+  background: rgba(255, 122, 49, 0.13);
+  font-weight: 900;
+}
+
+.home-player-card > div:nth-child(3) { display: grid; gap: 3px; }
+.home-player-card small { color: #7898b3; }
+.player-average { display: grid; gap: 3px; text-align: right; }
+.player-average span { color: #7898b3; font-size: 9px; text-transform: uppercase; }
+.player-average strong { font-size: 19px; }
+
+.home-offline {
+  margin: 20px 0 0;
+  padding: 18px;
+  border: 1px dashed rgba(136, 177, 211, 0.2);
+  border-radius: 12px;
+  color: #8fa8bd;
+}
+
+.feature-section { background: #061526; }
+.home-compact-heading { align-items: center; }
+
+.home-feature-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  max-width: 1300px;
+  margin: 0 auto;
+}
+
+.home-feature-card {
+  position: relative;
+  min-height: 290px;
+  padding: 26px;
+  color: #fff;
+  text-decoration: none;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.home-feature-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(255, 145, 53, 0.55);
+}
+
+.home-feature-number {
+  display: block;
+  margin-bottom: 55px;
+  color: rgba(255, 255, 255, 0.12);
+  font-size: 40px;
+  font-weight: 900;
+}
+
+.home-feature-card h3 { margin: 10px 0; font-size: 25px; }
+.home-feature-card p { color: #8fa8bd; line-height: 1.55; }
+
+.home-feature-card > strong {
+  position: absolute;
+  bottom: 24px;
+  color: #ffad4e;
+  font-size: 11px;
+}
+
+.home-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 30px clamp(24px, 6vw, 92px);
+  border-top: 1px solid rgba(145, 183, 214, 0.12);
+  color: #6f8ca5;
+  background: #030c16;
+  font-size: 11px;
+}
+
+.home-footer p { margin: 0; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero-copy {
+    animation: home-rise 700ms ease-out both;
+  }
+
+
+  @keyframes home-rise {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}
+
+@media (max-width: 980px) {
+  .home-nav nav a:not(.login-action) { display: none; }
+  .hero-copy { width: min(740px, 80vw); }
+
+
+  .championship-grid,
+  .home-feature-grid,
+  .reunion-club-explorer { grid-template-columns: 1fr; }
+  .club-map-panel { min-height: auto; border-top: 1px solid rgba(69, 145, 204, .22); border-left: 0; }
+  .home-feature-card { min-height: 240px; }
+  .home-feature-number { margin-bottom: 25px; }
+}
+
+@media (max-width: 640px) {
+  .home-nav { height: 66px; padding: 0 18px; }
+  .home-nav .login-action { padding: 10px 13px; }
+  .island-hero { min-height: auto; padding: 120px 18px 70px; }
+  .hero-copy { width: 100%; }
+  .hero-copy h1 { font-size: clamp(56px, 20vw, 82px); }
+  .hero-copy > p br { display: none; }
+  .hero-art { background-position: 63% center; opacity: 0.72; }
+  .hero-actions { align-items: stretch; flex-direction: column; }
+  .hero-actions a { width: 100%; }
+  .hero-scroll { display: none; }
+
+  .home-section-heading,
+  .home-card-heading,
+  .home-footer { align-items: flex-start; flex-direction: column; }
+
+  .home-section { padding: 72px 18px; }
+  .leader-row { grid-template-columns: 35px 1fr 58px; }
+  .leader-row > div:nth-last-child(2) { display: none; }
+  .player-leader-grid { grid-template-columns: 1fr; }
+  .home-player-card { grid-template-columns: 30px 42px 1fr; }
+  .player-average { grid-column: 2 / -1; text-align: left; }
+  .reunion-map-stage { min-height: 540px; overflow: hidden; margin-bottom: 0; }
+  .reunion-island { inset: 14% auto auto 7%; width: 88%; height: 72%; }
+  .map-compass { right: 4%; top: 4%; font-size: 40px; }
+  .club-map-callout { width: 58px; min-height: 58px; padding: 5px; border-radius: 50%; }
+  .club-map-callout .club-marker-label { display: none; }
+  .club-map-callout .club-marker-logo { width: 46px; height: 46px; flex-basis: 46px; }
+  .club-callout-3bdc { left: 3%; top: 24%; }
+  .club-callout-pdc { left: 3%; top: 50%; }
+  .club-callout-tdc { right: 3%; top: 59%; }
+  .club-callout-kazadarts { left: 24%; bottom: 5%; }
+  .club-directory-row { grid-template-columns: 46px 1fr; }
+  .club-directory-row > a { grid-column: 1 / -1; text-align: center; }
+  .all-clubs-action { grid-template-columns: 32px 1fr; }
+  .all-clubs-action b { grid-column: 1 / -1; text-align: center; }
+  .institutional-signature { align-items: flex-start; flex-direction: column; }
+  .institutional-logo { width: 100%; max-width: 250px; }
+}
+
+
+/* V21.0.1 — liens sociaux issus de Veille tournois */
+.club-social-logo-link{position:relative;display:inline-flex;border-radius:50%;text-decoration:none;transition:transform .18s ease,filter .18s ease}
+.club-social-logo-link:hover{transform:translateY(-2px) scale(1.04);filter:brightness(1.08)}
+.club-social-mark{position:absolute;right:-3px;bottom:-2px;display:grid;width:17px;height:17px;place-items:center;border:2px solid #061a2c;border-radius:50%;background:#1877f2;color:#fff;font:900 11px/1 Arial,sans-serif;box-shadow:0 3px 10px rgba(0,0,0,.35)}
+.club-marker-detail-link{color:#fff;text-decoration:none}
+.club-marker-detail-link:hover strong{color:var(--club-accent)}
+.club-directory-logo-wrap{display:flex;align-items:center;justify-content:center;width:50px}
+.club-directory-logo.is-institution{width:66px;height:44px;border-radius:8px;background:#f5f6f7}
+.club-directory-logo.is-institution img{object-fit:contain}
+.club-directory-committee{grid-template-columns:72px 1fr auto;background:linear-gradient(90deg,rgba(242,180,59,.08),rgba(8,31,51,.72))}
+.club-directory-committee .club-directory-logo-wrap{width:70px}
+.club-source-missing{padding:8px 9px;border:1px dashed rgba(242,180,59,.35);border-radius:7px;color:#a88e62;font-size:8px;white-space:nowrap}
+@media(max-width:640px){.club-directory-committee{grid-template-columns:70px 1fr}.club-directory-committee>a,.club-directory-committee>.club-source-missing{grid-column:1/-1;text-align:center}.club-map-callout .club-social-mark{right:-5px;bottom:-4px}}
+
+/* V21.0.2 — le clic sur le logo social reste prioritaire sur la fiche sportive */
+.club-social-logo-link{z-index:6;pointer-events:auto}
+.club-social-logo-link .club-marker-logo,.club-social-logo-link .club-directory-logo{pointer-events:none}
+
+/* V21.0.3 — action principale des clubs = source publique, stats en lien secondaire */
+.club-directory-name-link{color:#fff;text-decoration:none}
+.club-directory-name-link:hover strong{color:var(--club-accent)}
+.club-stats-inline{width:max-content;color:#6f9fc2!important;font-size:8px!important;font-weight:800;text-decoration:none!important}
+.club-stats-inline:hover{color:#fff!important}
+.club-directory-row>.club-social-action{border-color:#1877f2;color:#7bb3ff;background:rgba(24,119,242,.08)}
+.club-directory-row>.club-social-action:hover{color:#fff;background:#1877f2}
+
+/* V21.0.5 — communauté Darts974 Réunion Island */
+.club-directory-community{grid-template-columns:58px 1fr auto;background:linear-gradient(90deg,rgba(24,119,242,.10),rgba(8,31,51,.72));border-color:rgba(24,119,242,.28)}
+.club-directory-community .club-directory-logo-wrap{width:56px}
+.club-community-logo{position:relative;display:block;width:52px;height:52px;border:1px solid rgba(123,179,255,.28);border-radius:14px;overflow:hidden;background:#081a2c;box-shadow:0 8px 18px rgba(0,0,0,.18)}
+.club-community-logo img{object-fit:cover}
+@media(max-width:640px){.club-directory-community{grid-template-columns:56px 1fr}.club-directory-community>.club-social-action,.club-directory-community>.club-source-missing{grid-column:1/-1;text-align:center}}

@@ -1,0 +1,1541 @@
+{
+  "contract_version": "14.1",
+  "generated_at": "2026-07-27T23:40:23.812255+00:00",
+  "source": {
+    "filename": "Database_974_Darts_Dashboard_Classement_Stable.xlsx",
+    "sheet": "PvP"
+  },
+  "tournaments": [
+    {
+      "code": "T1",
+      "source_tournament_id": "t_lJst_9313",
+      "date": "2026-05-14",
+      "date_label": "14 mai 2026",
+      "event_name": "Tournoi Papangue Darts Club 974",
+      "name": "14 mai 2026",
+      "season": "2026",
+      "status": "AVAILABLE",
+      "summary": {
+        "source_rows": 174,
+        "matches": 23,
+        "legs": 68,
+        "pool_matches": 15,
+        "knockout_matches": 8,
+        "tracked_players": 8,
+        "tracked_duos": 4,
+        "complete_results": 23
+      },
+      "matches": [
+        {
+          "id": "fa638d6aff22f0fb",
+          "match_number": 12,
+          "encounter": "Win vs Mad Eo Finisher",
+          "mode": "Double",
+          "home": "Win",
+          "away": "Mad Eo Finisher",
+          "home_score": 0,
+          "away_score": 2,
+          "winner": "Mad Eo Finisher",
+          "legs": 2,
+          "unresolved_legs": 0,
+          "result_complete": true,
+          "tracked_teams": [
+            "Mad Eo Finisher"
+          ],
+          "tracked_players": [
+            "Ben",
+            "Yohan"
+          ],
+          "source_url": "https://n01darts.com/n01/tournament/n01_view.html?tmid=t_lJst_9313_rr_1_CEWF_ud9g",
+          "source_tournament_id": "t_lJst_9313",
+          "phase": "POOL",
+          "stage_code": "rr_1",
+          "stage_index": 1,
+          "stage_label": "Poule 1"
+        },
+        {
+          "id": "3ba9fd299a0a5c33",
+          "match_number": 16,
+          "encounter": "Mad Eo Finisher vs les Cupidons",
+          "mode": "Double",
+          "home": "Mad Eo Finisher",
+          "away": "les Cupidons",
+          "home_score": 2,
+          "away_score": 0,
+          "winner": "Mad Eo Finisher",
+          "legs": 2,
+          "unresolved_legs": 0,
+          "result_complete": true,
+          "tracked_teams": [
+            "Mad Eo Finisher"
+          ],
+          "tracked_players": [
+            "Ben",
+            "Yohan"
+          ],
+          "source_url": "https://n01darts.com/n01/tournament/n01_view.html?tmid=t_lJst_9313_rr_1_FrK8_ud9g",
+          "source_tournament_id": "t_lJst_9313",
+          "phase": "POOL",
+          "stage_code": "rr_1",
+          "stage_index": 1,
+          "stage_label": "Poule 1"
+        },
+        {
+          "id": "cc2ecb03da1c3690",
+          "match_number": 17,
+          "encounter": "Mad Eo Finisher vs Les 2 Cloches",
+          "mode": "Double",
+          "home": "Mad Eo Finisher",
+          "away": "Les 2 Cloches",
+          "home_score": 1,
+          "away_score": 2,
+          "winner": "Les 2 Cloches",
+          "legs": 3,
+          "unresolved_legs": 0,
+          "result_complete": true,
+          "tracked_teams": [
+            "Mad Eo Finisher"
+          ],
+          "tracked_players": [
+            "Ben",
+            "Yohan"
+          ],
+          "source_url": "https://n01darts.com/n01/tournament/n01_view.html?tmid=t_lJst_9313_rr_1_96gA_ud9g",
+          "source_tournament_id": "t_lJst_9313",
+          "phase": "POOL",
+          "stage_code": "rr_1",
+          "stage_index": 1,
+          "stage_label": "Poule 1"
+        },
+        {
+          "id": "f2a21cb7ae6a666e",
+          "match_number": 18,
+          "encounter": "Mad Eo Finisher vs Les Bra’ KC",
+          "mode": "Double",
+          "home": "Mad Eo Finisher",
+          "away": "Les Bra’ KC",
+          "home_score": 2,
+          "away_score": 0,
+          "winner": "Mad Eo Finisher",
+          "legs": 2,
+          "unresolved_legs": 0,
+          "result_complete": true,
+          "tracked_teams": [
+            "Mad Eo Finisher"
+          ],
+          "tracked_players": [
+            "Ben",
+            "Yohan"
+          ],
+          "source_url": "https://n01darts.com/n01/tournament/n01_view.html?tmid=t_lJst_9313_rr_1_H0jm_ud9g",
+          "source_tournament_id": "t_lJst_9313",
+          "phase": "POOL",
+          "stage_code": "rr_1",
+          "stage_index": 1,
+          "stage_label": "Poule 1"
+        },
+        {
+          "id": "f757dcd25b845140",
+          "match_number": 22,
+          "encounter": "Les Charognards vs Les Flèches Fatales",
+          "mode": "Double",
+          "home": "Les Charognards",
+          "away": "Les Flèches Fatales",
+          "home_score": 0,
+          "away_score": 2,
+          "winner": "Les Flèches Fatales",
+          "legs": 2,
+          "unresolved_legs": 0,
+          "result_complete": true,
+          "tracked_teams": [
+            "Charognard"
+          ],
+          "tracked_players": [
+            "Jacky",
+            "Nico"
+          ],
+          "source_url": "https://n01darts.com/n01/tournament/n01_view.html?tmid=t_lJst_9313_rr_2_KBBF_URGu",
+          "source_tournament_id": "t_lJst_9313",
+          "phase": "POOL",
+          "stage_code": "rr_2",
+          "stage_index": 2,
+          "stage_label": "Poule 2"
+        },
+        {
+          "id": "8c81d35decf88184",
+          "match_number": 23,
+          "encounter": "Les Charognards vs Game Ovaire",
+          "mode": "Double",
+          "home": "Les Charognards",
+          "away": "Game Ovaire",
+          "home_score": 2,
+          "away_score": 0,
+          "winner": "Les Charognards",
+          "legs": 2,
+          "unresolved_legs": 0,
+          "result_complete": true,
+          "tracked_teams": [
+            "Charognard"
+          ],
+          "tracked_players": [
+            "Jacky",
+            "Nico"
+          ],
+          "source_url": "https://n01darts.com/n01/tournament/n01_view.html?tmid=t_lJst_9313_rr_2_KBBF_RDle",
+          "source_tournament_id": "t_lJst_9313",
+          "phase": "POOL",
+          "stage_code": "rr_2",
+          "stage_index": 2,
+          "stage_label": "Poule 2"
+        },
+        {
+          "id": "c896114a14bf1d29",
+          "match_number": 24,
+          "encounter": "Les Charognards vs Soaly",
+          "mode": "Double",
+          "home": "Les Charognards",
+          "away": "Soaly",
+          "home_score": 2,
+          "away_score": 0,
+          "winner": "Les Charognards",
+          "legs": 2,
+          "unresolved_legs": 0,
+          "result_complete": true,
+          "tracked_teams": [
+            "Charognard"
+          ],
+          "tracked_players": [
+            "Jacky",
+            "Nico"
+          ],
+          "source_url": "https://n01darts.com/n01/tournament/n01_view.html?tmid=t_lJst_9313_rr_2_CRUz_KBBF",
+          "source_tournament_id": "t_lJst_9313",
+          "phase": "POOL",
+          "stage_code": "rr_2",
+          "stage_index": 2,
+          "stage_label": "Poule 2"
+        },
+        {
+          "id": "9c8df60c7cd3e31d",
+          "match_number": 25,
+          "encounter": "Les Charognards vs Double Impact",
+          "mode": "Double",
+          "home": "Les Charognards",
+          "away": "Double Impact",
+          "home_score": 2,
+          "away_score": 1,
+          "winner": "Les Charognards",
+          "legs": 3,
+          "unresolved_legs": 0,
+          "result_complete": true,
+          "tracked_teams": [
+            "Charognard",
+            "Double Impact"
+          ],
+          "tracked_players": [
+            "Jacky",
+            "Julien",
+            "Nico",
+            "Pierre"
+          ],
+          "source_url": "https://n01darts.com/n01/tournament/n01_view.html?tmid=t_lJst_9313_rr_2_KBBF_WRQX",
+          "source_tournament_id": "t_lJst_9313",
+          "phase": "POOL",
+          "stage_code": "rr_2",
+          "stage_index": 2,
+          "stage_label": "Poule 2"
+        },
+        {
+          "id": "f641805935cd77d0",
+          "match_number": 27,
+          "encounter": "Les Flèches Fatales vs Double Impact",
+          "mode": "Double",
+          "home": "Les Flèches Fatales",
+          "away": "Double Impact",
+          "home_score": 1,
+          "away_score": 2,
+          "winner": "Double Impact",
+          "legs": 3,
+          "unresolved_legs": 0,
+          "result_complete": true,
+          "tracked_teams": [
+            "Double Impact"
+          ],
+          "tracked_players": [
+            "Julien",
+            "Pierre"
+          ],
+          "source_url": "https://n01darts.com/n01/tournament/n01_view.html?tmid=t_lJst_9313_rr_2_URGu_WRQX",
+          "source_tournament_id": "t_lJst_9313",
+          "phase": "POOL",
+          "stage_code": "rr_2",
+          "stage_index": 2,
+          "stage_label": "Poule 2"
+        },
+        {
+          "id": "85db894bdb391ca7",
+          "match_number": 29,
+          "encounter": "Game Ovaire vs Double Impact",
+          "mode": "Double",
+          "home": "Game Ovaire",
+          "away": "Double Impact",
+          "home_score": 0,
+          "away_score": 2,
+          "winner": "Double Impact",
+          "legs": 2,
+          "unresolved_legs": 0,
+          "result_complete": true,
+          "tracked_teams": [
+            "Double Impact"
+          ],
+          "tracked_players": [
+            "Julien",
+            "Pierre"
+          ],
+          "source_url": "https://n01darts.com/n01/tournament/n01_view.html?tmid=t_lJst_9313_rr_2_RDle_WRQX",
+          "source_tournament_id": "t_lJst_9313",
+          "phase": "POOL",
+          "stage_code": "rr_2",
+          "stage_index": 2,
+          "stage_label": "Poule 2"
+        },
+        {
+          "id": "63ab3f2d9fa13e35",
+          "match_number": 31,
+          "encounter": "Double Impact vs Soaly",
+          "mode": "Double",
+          "home": "Double Impact",
+          "away": "Soaly",
+          "home_score": 2,
+          "away_score": 0,
+          "winner": "Double Impact",
+          "legs": 2,
+          "unresolved_legs": 0,
+          "result_complete": true,
+          "tracked_teams": [
+            "Double Impact"
+          ],
+          "tracked_players": [
+            "Julien",
+            "Pierre"
+          ],
+          "source_url": "https://n01darts.com/n01/tournament/n01_view.html?tmid=t_lJst_9313_rr_2_CRUz_WRQX",
+          "source_tournament_id": "t_lJst_9313",
+          "phase": "POOL",
+          "stage_code": "rr_2",
+          "stage_index": 2,
+          "stage_label": "Poule 2"
+        },
+        {
+          "id": "9a127c09308ce8d4",
+          "match_number": 34,
+          "encounter": "Les Dartatagnans vs Les Breaking Darts",
+          "mode": "Double",
+          "home": "Les Dartatagnans",
+          "away": "Les Breaking Darts",
+          "home_score": 0,
+          "away_score": 2,
+          "winner": "Les Breaking Darts",
+          "legs": 2,
+          "unresolved_legs": 0,
+          "result_complete": true,
+          "tracked_teams": [
+            "Breaking Darts"
+          ],
+          "tracked_players": [
+            "Alex",
+            "Corentin"
+          ],
+          "source_url": "https://n01darts.com/n01/tournament/n01_view.html?tmid=t_lJst_9313_rr_3_22l6_ZocU",
+          "source_tournament_id": "t_lJst_9313",
+          "phase": "POOL",
+          "stage_code": "rr_3",
+          "stage_index": 3,
+          "stage_label": "Poule 3"
+        },
+        {
+          "id": "423250bb77c8a272",
+          "match_number": 37,
+          "encounter": "450Alu vs Les Breaking Darts",
+          "mode": "Double",
+          "home": "450Alu",
+          "away": "Les Breaking Darts",
+          "home_score": 0,
+          "away_score": 2,
+          "winner": "Les Breaking Darts",
+          "legs": 2,
+          "unresolved_legs": 0,
+          "result_complete": true,
+          "tracked_teams": [
+            "Breaking Darts"
+          ],
+          "tracked_players": [
+            "Alex",
+            "Corentin"
+          ],
+          "source_url": "https://n01darts.com/n01/tournament/n01_view.html?tmid=t_lJst_9313_rr_3_ZocU_d8he",
+          "source_tournament_id": "t_lJst_9313",
+          "phase": "POOL",
+          "stage_code": "rr_3",
+          "stage_index": 3,
+          "stage_label": "Poule 3"
+        },
+        {
+          "id": "7704d75c788aa618",
+          "match_number": 39,
+          "encounter": "Les Breaking Darts vs Darts à la crème",
+          "mode": "Double",
+          "home": "Les Breaking Darts",
+          "away": "Darts à la crème",
+          "home_score": 2,
+          "away_score": 0,
+          "winner": "Les Breaking Darts",
+          "legs": 2,
+          "unresolved_legs": 0,
+          "result_complete": true,
+          "tracked_teams": [
+            "Breaking Darts"
+          ],
+          "tracked_players": [
+            "Alex",
+            "Corentin"
+          ],
+          "source_url": "https://n01darts.com/n01/tournament/n01_view.html?tmid=t_lJst_9313_rr_3_ZocU_gmpt",
+          "source_tournament_id": "t_lJst_9313",
+          "phase": "POOL",
+          "stage_code": "rr_3",
+          "stage_index": 3,
+          "stage_label": "Poule 3"
+        },
+        {
+          "id": "abceae21ffbbae2b",
+          "match_number": 40,
+          "encounter": "Les Breaking Darts vs Les Pio Pio",
+          "mode": "Double",
+          "home": "Les Breaking Darts",
+          "away": "Les Pio Pio",
+          "home_score": 2,
+          "away_score": 0,
+          "winner": "Les Breaking Darts",
+          "legs": 2,
+          "unresolved_legs": 0,
+          "result_complete": true,
+          "tracked_teams": [
+            "Breaking Darts"
+          ],
+          "tracked_players": [
+            "Alex",
+            "Corentin"
+          ],
+          "source_url": "https://n01darts.com/n01/tournament/n01_view.html?tmid=t_lJst_9313_rr_3_ZocU_oUGP",
+          "source_tournament_id": "t_lJst_9313",
+          "phase": "POOL",
+          "stage_code": "rr_3",
+          "stage_index": 3,
+          "stage_label": "Poule 3"
+        },
+        {
+          "id": "4fee43707e1fb5e3",
+          "match_number": 42,
+          "encounter": "Les 2 Cloches vs Les Charognards",
+          "mode": "Double",
+          "home": "Les 2 Cloches",
+          "away": "Les Charognards",
+          "home_score": 1,
+          "away_score": 3,
+          "winner": "Les Charognards",
+          "legs": 4,
+          "unresolved_legs": 0,
+          "result_complete": true,
+          "tracked_teams": [
+            "Charognard"
+          ],
+          "tracked_players": [
+            "Jacky",
+            "Nico"
+          ],
+          "source_url": "https://n01darts.com/n01/tournament/n01_view.html?tmid=t_lJst_9313_t_0_96gA_KBBF",
+          "source_tournament_id": "t_lJst_9313",
+          "phase": "KNOCKOUT",
+          "stage_code": "t_0",
+          "stage_index": 0,
+          "stage_label": "1/8 de finale"
+        },
+        {
+          "id": "1abd65a1c7c5f4a5",
+          "match_number": 45,
+          "encounter": "Domoun le O vs Double Impact",
+          "mode": "Double",
+          "home": "Domoun le O",
+          "away": "Double Impact",
+          "home_score": 0,
+          "away_score": 3,
+          "winner": "Double Impact",
+          "legs": 3,
+          "unresolved_legs": 0,
+          "result_complete": true,
+          "tracked_teams": [
+            "Double Impact"
+          ],
+          "tracked_players": [
+            "Julien",
+            "Pierre"
+          ],
+          "source_url": "https://n01darts.com/n01/tournament/n01_view.html?tmid=t_lJst_9313_t_0_FKqe_WRQX",
+          "source_tournament_id": "t_lJst_9313",
+          "phase": "KNOCKOUT",
+          "stage_code": "t_0",
+          "stage_index": 0,
+          "stage_label": "1/8 de finale"
+        },
+        {
+          "id": "b7886bf1bd8a06dd",
+          "match_number": 46,
+          "encounter": "Mac Pop’s vs Les Charognards",
+          "mode": "Double",
+          "home": "Mac Pop’s",
+          "away": "Les Charognards",
+          "home_score": 1,
+          "away_score": 3,
+          "winner": "Les Charognards",
+          "legs": 4,
+          "unresolved_legs": 0,
+          "result_complete": true,
+          "tracked_teams": [
+            "Charognard"
+          ],
+          "tracked_players": [
+            "Jacky",
+            "Nico"
+          ],
+          "source_url": "https://n01darts.com/n01/tournament/n01_view.html?tmid=t_lJst_9313_t_1_K8Bi_KBBF",
+          "source_tournament_id": "t_lJst_9313",
+          "phase": "KNOCKOUT",
+          "stage_code": "t_1",
+          "stage_index": 1,
+          "stage_label": "Quarts de finale"
+        },
+        {
+          "id": "a0ce2e3bbbbf1276",
+          "match_number": 48,
+          "encounter": "Yvain et Gauvin vs Mad Eo Finisher",
+          "mode": "Double",
+          "home": "Yvain et Gauvin",
+          "away": "Mad Eo Finisher",
+          "home_score": 1,
+          "away_score": 3,
+          "winner": "Mad Eo Finisher",
+          "legs": 4,
+          "unresolved_legs": 0,
+          "result_complete": true,
+          "tracked_teams": [
+            "Mad Eo Finisher"
+          ],
+          "tracked_players": [
+            "Ben",
+            "Yohan"
+          ],
+          "source_url": "https://n01darts.com/n01/tournament/n01_view.html?tmid=t_lJst_9313_t_1_OYsn_ud9g",
+          "source_tournament_id": "t_lJst_9313",
+          "phase": "KNOCKOUT",
+          "stage_code": "t_1",
+          "stage_index": 1,
+          "stage_label": "Quarts de finale"
+        },
+        {
+          "id": "34f4a7826b10a616",
+          "match_number": 49,
+          "encounter": "Double Impact vs Les Breaking Darts",
+          "mode": "Double",
+          "home": "Double Impact",
+          "away": "Les Breaking Darts",
+          "home_score": 2,
+          "away_score": 3,
+          "winner": "Les Breaking Darts",
+          "legs": 5,
+          "unresolved_legs": 0,
+          "result_complete": true,
+          "tracked_teams": [
+            "Breaking Darts",
+            "Double Impact"
+          ],
+          "tracked_players": [
+            "Alex",
+            "Corentin",
+            "Julien",
+            "Pierre"
+          ],
+          "source_url": "https://n01darts.com/n01/tournament/n01_view.html?tmid=t_lJst_9313_t_1_WRQX_ZocU",
+          "source_tournament_id": "t_lJst_9313",
+          "phase": "KNOCKOUT",
+          "stage_code": "t_1",
+          "stage_index": 1,
+          "stage_label": "Quarts de finale"
+        },
+        {
+          "id": "c906cab9467a67d7",
+          "match_number": 50,
+          "encounter": "Les Flèches Fatales vs Mad Eo Finisher",
+          "mode": "Double",
+          "home": "Les Flèches Fatales",
+          "away": "Mad Eo Finisher",
+          "home_score": 1,
+          "away_score": 3,
+          "winner": "Mad Eo Finisher",
+          "legs": 4,
+          "unresolved_legs": 0,
+          "result_complete": true,
+          "tracked_teams": [
+            "Mad Eo Finisher"
+          ],
+          "tracked_players": [
+            "Ben",
+            "Yohan"
+          ],
+          "source_url": "https://n01darts.com/n01/tournament/n01_view.html?tmid=t_lJst_9313_t_2_URGu_ud9g",
+          "source_tournament_id": "t_lJst_9313",
+          "phase": "KNOCKOUT",
+          "stage_code": "t_2",
+          "stage_index": 2,
+          "stage_label": "Demi-finales"
+        },
+        {
+          "id": "1642734edb058749",
+          "match_number": 51,
+          "encounter": "Les Charognards vs Les Breaking Darts",
+          "mode": "Double",
+          "home": "Les Charognards",
+          "away": "Les Breaking Darts",
+          "home_score": 1,
+          "away_score": 3,
+          "winner": "Les Breaking Darts",
+          "legs": 4,
+          "unresolved_legs": 0,
+          "result_complete": true,
+          "tracked_teams": [
+            "Breaking Darts",
+            "Charognard"
+          ],
+          "tracked_players": [
+            "Alex",
+            "Corentin",
+            "Jacky",
+            "Nico"
+          ],
+          "source_url": "https://n01darts.com/n01/tournament/n01_view.html?tmid=t_lJst_9313_t_2_KBBF_ZocU",
+          "source_tournament_id": "t_lJst_9313",
+          "phase": "KNOCKOUT",
+          "stage_code": "t_2",
+          "stage_index": 2,
+          "stage_label": "Demi-finales"
+        },
+        {
+          "id": "06fac849ad782b4e",
+          "match_number": 52,
+          "encounter": "Les Breaking Darts vs Mad Eo Finisher",
+          "mode": "Double",
+          "home": "Les Breaking Darts",
+          "away": "Mad Eo Finisher",
+          "home_score": 4,
+          "away_score": 3,
+          "winner": "Les Breaking Darts",
+          "legs": 7,
+          "unresolved_legs": 0,
+          "result_complete": true,
+          "tracked_teams": [
+            "Breaking Darts",
+            "Mad Eo Finisher"
+          ],
+          "tracked_players": [
+            "Alex",
+            "Ben",
+            "Corentin",
+            "Yohan"
+          ],
+          "source_url": "https://n01darts.com/n01/tournament/n01_view.html?tmid=t_lJst_9313_t_3_ZocU_ud9g",
+          "source_tournament_id": "t_lJst_9313",
+          "phase": "KNOCKOUT",
+          "stage_code": "t_3",
+          "stage_index": 3,
+          "stage_label": "Finale"
+        }
+      ],
+      "pools": [
+        {
+          "code": "rr_1",
+          "name": "Poule 1",
+          "order": 1,
+          "matches": [
+            {
+              "id": "fa638d6aff22f0fb",
+              "match_number": 12,
+              "encounter": "Win vs Mad Eo Finisher",
+              "mode": "Double",
+              "home": "Win",
+              "away": "Mad Eo Finisher",
+              "home_score": 0,
+              "away_score": 2,
+              "winner": "Mad Eo Finisher",
+              "legs": 2,
+              "unresolved_legs": 0,
+              "result_complete": true,
+              "tracked_teams": [
+                "Mad Eo Finisher"
+              ],
+              "tracked_players": [
+                "Ben",
+                "Yohan"
+              ],
+              "source_url": "https://n01darts.com/n01/tournament/n01_view.html?tmid=t_lJst_9313_rr_1_CEWF_ud9g",
+              "source_tournament_id": "t_lJst_9313",
+              "phase": "POOL",
+              "stage_code": "rr_1",
+              "stage_index": 1,
+              "stage_label": "Poule 1"
+            },
+            {
+              "id": "3ba9fd299a0a5c33",
+              "match_number": 16,
+              "encounter": "Mad Eo Finisher vs les Cupidons",
+              "mode": "Double",
+              "home": "Mad Eo Finisher",
+              "away": "les Cupidons",
+              "home_score": 2,
+              "away_score": 0,
+              "winner": "Mad Eo Finisher",
+              "legs": 2,
+              "unresolved_legs": 0,
+              "result_complete": true,
+              "tracked_teams": [
+                "Mad Eo Finisher"
+              ],
+              "tracked_players": [
+                "Ben",
+                "Yohan"
+              ],
+              "source_url": "https://n01darts.com/n01/tournament/n01_view.html?tmid=t_lJst_9313_rr_1_FrK8_ud9g",
+              "source_tournament_id": "t_lJst_9313",
+              "phase": "POOL",
+              "stage_code": "rr_1",
+              "stage_index": 1,
+              "stage_label": "Poule 1"
+            },
+            {
+              "id": "cc2ecb03da1c3690",
+              "match_number": 17,
+              "encounter": "Mad Eo Finisher vs Les 2 Cloches",
+              "mode": "Double",
+              "home": "Mad Eo Finisher",
+              "away": "Les 2 Cloches",
+              "home_score": 1,
+              "away_score": 2,
+              "winner": "Les 2 Cloches",
+              "legs": 3,
+              "unresolved_legs": 0,
+              "result_complete": true,
+              "tracked_teams": [
+                "Mad Eo Finisher"
+              ],
+              "tracked_players": [
+                "Ben",
+                "Yohan"
+              ],
+              "source_url": "https://n01darts.com/n01/tournament/n01_view.html?tmid=t_lJst_9313_rr_1_96gA_ud9g",
+              "source_tournament_id": "t_lJst_9313",
+              "phase": "POOL",
+              "stage_code": "rr_1",
+              "stage_index": 1,
+              "stage_label": "Poule 1"
+            },
+            {
+              "id": "f2a21cb7ae6a666e",
+              "match_number": 18,
+              "encounter": "Mad Eo Finisher vs Les Bra’ KC",
+              "mode": "Double",
+              "home": "Mad Eo Finisher",
+              "away": "Les Bra’ KC",
+              "home_score": 2,
+              "away_score": 0,
+              "winner": "Mad Eo Finisher",
+              "legs": 2,
+              "unresolved_legs": 0,
+              "result_complete": true,
+              "tracked_teams": [
+                "Mad Eo Finisher"
+              ],
+              "tracked_players": [
+                "Ben",
+                "Yohan"
+              ],
+              "source_url": "https://n01darts.com/n01/tournament/n01_view.html?tmid=t_lJst_9313_rr_1_H0jm_ud9g",
+              "source_tournament_id": "t_lJst_9313",
+              "phase": "POOL",
+              "stage_code": "rr_1",
+              "stage_index": 1,
+              "stage_label": "Poule 1"
+            }
+          ]
+        },
+        {
+          "code": "rr_2",
+          "name": "Poule 2",
+          "order": 2,
+          "matches": [
+            {
+              "id": "f757dcd25b845140",
+              "match_number": 22,
+              "encounter": "Les Charognards vs Les Flèches Fatales",
+              "mode": "Double",
+              "home": "Les Charognards",
+              "away": "Les Flèches Fatales",
+              "home_score": 0,
+              "away_score": 2,
+              "winner": "Les Flèches Fatales",
+              "legs": 2,
+              "unresolved_legs": 0,
+              "result_complete": true,
+              "tracked_teams": [
+                "Charognard"
+              ],
+              "tracked_players": [
+                "Jacky",
+                "Nico"
+              ],
+              "source_url": "https://n01darts.com/n01/tournament/n01_view.html?tmid=t_lJst_9313_rr_2_KBBF_URGu",
+              "source_tournament_id": "t_lJst_9313",
+              "phase": "POOL",
+              "stage_code": "rr_2",
+              "stage_index": 2,
+              "stage_label": "Poule 2"
+            },
+            {
+              "id": "8c81d35decf88184",
+              "match_number": 23,
+              "encounter": "Les Charognards vs Game Ovaire",
+              "mode": "Double",
+              "home": "Les Charognards",
+              "away": "Game Ovaire",
+              "home_score": 2,
+              "away_score": 0,
+              "winner": "Les Charognards",
+              "legs": 2,
+              "unresolved_legs": 0,
+              "result_complete": true,
+              "tracked_teams": [
+                "Charognard"
+              ],
+              "tracked_players": [
+                "Jacky",
+                "Nico"
+              ],
+              "source_url": "https://n01darts.com/n01/tournament/n01_view.html?tmid=t_lJst_9313_rr_2_KBBF_RDle",
+              "source_tournament_id": "t_lJst_9313",
+              "phase": "POOL",
+              "stage_code": "rr_2",
+              "stage_index": 2,
+              "stage_label": "Poule 2"
+            },
+            {
+              "id": "c896114a14bf1d29",
+              "match_number": 24,
+              "encounter": "Les Charognards vs Soaly",
+              "mode": "Double",
+              "home": "Les Charognards",
+              "away": "Soaly",
+              "home_score": 2,
+              "away_score": 0,
+              "winner": "Les Charognards",
+              "legs": 2,
+              "unresolved_legs": 0,
+              "result_complete": true,
+              "tracked_teams": [
+                "Charognard"
+              ],
+              "tracked_players": [
+                "Jacky",
+                "Nico"
+              ],
+              "source_url": "https://n01darts.com/n01/tournament/n01_view.html?tmid=t_lJst_9313_rr_2_CRUz_KBBF",
+              "source_tournament_id": "t_lJst_9313",
+              "phase": "POOL",
+              "stage_code": "rr_2",
+              "stage_index": 2,
+              "stage_label": "Poule 2"
+            },
+            {
+              "id": "9c8df60c7cd3e31d",
+              "match_number": 25,
+              "encounter": "Les Charognards vs Double Impact",
+              "mode": "Double",
+              "home": "Les Charognards",
+              "away": "Double Impact",
+              "home_score": 2,
+              "away_score": 1,
+              "winner": "Les Charognards",
+              "legs": 3,
+              "unresolved_legs": 0,
+              "result_complete": true,
+              "tracked_teams": [
+                "Charognard",
+                "Double Impact"
+              ],
+              "tracked_players": [
+                "Jacky",
+                "Julien",
+                "Nico",
+                "Pierre"
+              ],
+              "source_url": "https://n01darts.com/n01/tournament/n01_view.html?tmid=t_lJst_9313_rr_2_KBBF_WRQX",
+              "source_tournament_id": "t_lJst_9313",
+              "phase": "POOL",
+              "stage_code": "rr_2",
+              "stage_index": 2,
+              "stage_label": "Poule 2"
+            },
+            {
+              "id": "f641805935cd77d0",
+              "match_number": 27,
+              "encounter": "Les Flèches Fatales vs Double Impact",
+              "mode": "Double",
+              "home": "Les Flèches Fatales",
+              "away": "Double Impact",
+              "home_score": 1,
+              "away_score": 2,
+              "winner": "Double Impact",
+              "legs": 3,
+              "unresolved_legs": 0,
+              "result_complete": true,
+              "tracked_teams": [
+                "Double Impact"
+              ],
+              "tracked_players": [
+                "Julien",
+                "Pierre"
+              ],
+              "source_url": "https://n01darts.com/n01/tournament/n01_view.html?tmid=t_lJst_9313_rr_2_URGu_WRQX",
+              "source_tournament_id": "t_lJst_9313",
+              "phase": "POOL",
+              "stage_code": "rr_2",
+              "stage_index": 2,
+              "stage_label": "Poule 2"
+            },
+            {
+              "id": "85db894bdb391ca7",
+              "match_number": 29,
+              "encounter": "Game Ovaire vs Double Impact",
+              "mode": "Double",
+              "home": "Game Ovaire",
+              "away": "Double Impact",
+              "home_score": 0,
+              "away_score": 2,
+              "winner": "Double Impact",
+              "legs": 2,
+              "unresolved_legs": 0,
+              "result_complete": true,
+              "tracked_teams": [
+                "Double Impact"
+              ],
+              "tracked_players": [
+                "Julien",
+                "Pierre"
+              ],
+              "source_url": "https://n01darts.com/n01/tournament/n01_view.html?tmid=t_lJst_9313_rr_2_RDle_WRQX",
+              "source_tournament_id": "t_lJst_9313",
+              "phase": "POOL",
+              "stage_code": "rr_2",
+              "stage_index": 2,
+              "stage_label": "Poule 2"
+            },
+            {
+              "id": "63ab3f2d9fa13e35",
+              "match_number": 31,
+              "encounter": "Double Impact vs Soaly",
+              "mode": "Double",
+              "home": "Double Impact",
+              "away": "Soaly",
+              "home_score": 2,
+              "away_score": 0,
+              "winner": "Double Impact",
+              "legs": 2,
+              "unresolved_legs": 0,
+              "result_complete": true,
+              "tracked_teams": [
+                "Double Impact"
+              ],
+              "tracked_players": [
+                "Julien",
+                "Pierre"
+              ],
+              "source_url": "https://n01darts.com/n01/tournament/n01_view.html?tmid=t_lJst_9313_rr_2_CRUz_WRQX",
+              "source_tournament_id": "t_lJst_9313",
+              "phase": "POOL",
+              "stage_code": "rr_2",
+              "stage_index": 2,
+              "stage_label": "Poule 2"
+            }
+          ]
+        },
+        {
+          "code": "rr_3",
+          "name": "Poule 3",
+          "order": 3,
+          "matches": [
+            {
+              "id": "9a127c09308ce8d4",
+              "match_number": 34,
+              "encounter": "Les Dartatagnans vs Les Breaking Darts",
+              "mode": "Double",
+              "home": "Les Dartatagnans",
+              "away": "Les Breaking Darts",
+              "home_score": 0,
+              "away_score": 2,
+              "winner": "Les Breaking Darts",
+              "legs": 2,
+              "unresolved_legs": 0,
+              "result_complete": true,
+              "tracked_teams": [
+                "Breaking Darts"
+              ],
+              "tracked_players": [
+                "Alex",
+                "Corentin"
+              ],
+              "source_url": "https://n01darts.com/n01/tournament/n01_view.html?tmid=t_lJst_9313_rr_3_22l6_ZocU",
+              "source_tournament_id": "t_lJst_9313",
+              "phase": "POOL",
+              "stage_code": "rr_3",
+              "stage_index": 3,
+              "stage_label": "Poule 3"
+            },
+            {
+              "id": "423250bb77c8a272",
+              "match_number": 37,
+              "encounter": "450Alu vs Les Breaking Darts",
+              "mode": "Double",
+              "home": "450Alu",
+              "away": "Les Breaking Darts",
+              "home_score": 0,
+              "away_score": 2,
+              "winner": "Les Breaking Darts",
+              "legs": 2,
+              "unresolved_legs": 0,
+              "result_complete": true,
+              "tracked_teams": [
+                "Breaking Darts"
+              ],
+              "tracked_players": [
+                "Alex",
+                "Corentin"
+              ],
+              "source_url": "https://n01darts.com/n01/tournament/n01_view.html?tmid=t_lJst_9313_rr_3_ZocU_d8he",
+              "source_tournament_id": "t_lJst_9313",
+              "phase": "POOL",
+              "stage_code": "rr_3",
+              "stage_index": 3,
+              "stage_label": "Poule 3"
+            },
+            {
+              "id": "7704d75c788aa618",
+              "match_number": 39,
+              "encounter": "Les Breaking Darts vs Darts à la crème",
+              "mode": "Double",
+              "home": "Les Breaking Darts",
+              "away": "Darts à la crème",
+              "home_score": 2,
+              "away_score": 0,
+              "winner": "Les Breaking Darts",
+              "legs": 2,
+              "unresolved_legs": 0,
+              "result_complete": true,
+              "tracked_teams": [
+                "Breaking Darts"
+              ],
+              "tracked_players": [
+                "Alex",
+                "Corentin"
+              ],
+              "source_url": "https://n01darts.com/n01/tournament/n01_view.html?tmid=t_lJst_9313_rr_3_ZocU_gmpt",
+              "source_tournament_id": "t_lJst_9313",
+              "phase": "POOL",
+              "stage_code": "rr_3",
+              "stage_index": 3,
+              "stage_label": "Poule 3"
+            },
+            {
+              "id": "abceae21ffbbae2b",
+              "match_number": 40,
+              "encounter": "Les Breaking Darts vs Les Pio Pio",
+              "mode": "Double",
+              "home": "Les Breaking Darts",
+              "away": "Les Pio Pio",
+              "home_score": 2,
+              "away_score": 0,
+              "winner": "Les Breaking Darts",
+              "legs": 2,
+              "unresolved_legs": 0,
+              "result_complete": true,
+              "tracked_teams": [
+                "Breaking Darts"
+              ],
+              "tracked_players": [
+                "Alex",
+                "Corentin"
+              ],
+              "source_url": "https://n01darts.com/n01/tournament/n01_view.html?tmid=t_lJst_9313_rr_3_ZocU_oUGP",
+              "source_tournament_id": "t_lJst_9313",
+              "phase": "POOL",
+              "stage_code": "rr_3",
+              "stage_index": 3,
+              "stage_label": "Poule 3"
+            }
+          ]
+        }
+      ],
+      "bracket": [
+        {
+          "code": "t_0",
+          "name": "1/8 de finale",
+          "order": 0,
+          "matches": [
+            {
+              "id": "4fee43707e1fb5e3",
+              "match_number": 42,
+              "encounter": "Les 2 Cloches vs Les Charognards",
+              "mode": "Double",
+              "home": "Les 2 Cloches",
+              "away": "Les Charognards",
+              "home_score": 1,
+              "away_score": 3,
+              "winner": "Les Charognards",
+              "legs": 4,
+              "unresolved_legs": 0,
+              "result_complete": true,
+              "tracked_teams": [
+                "Charognard"
+              ],
+              "tracked_players": [
+                "Jacky",
+                "Nico"
+              ],
+              "source_url": "https://n01darts.com/n01/tournament/n01_view.html?tmid=t_lJst_9313_t_0_96gA_KBBF",
+              "source_tournament_id": "t_lJst_9313",
+              "phase": "KNOCKOUT",
+              "stage_code": "t_0",
+              "stage_index": 0,
+              "stage_label": "1/8 de finale"
+            },
+            {
+              "id": "1abd65a1c7c5f4a5",
+              "match_number": 45,
+              "encounter": "Domoun le O vs Double Impact",
+              "mode": "Double",
+              "home": "Domoun le O",
+              "away": "Double Impact",
+              "home_score": 0,
+              "away_score": 3,
+              "winner": "Double Impact",
+              "legs": 3,
+              "unresolved_legs": 0,
+              "result_complete": true,
+              "tracked_teams": [
+                "Double Impact"
+              ],
+              "tracked_players": [
+                "Julien",
+                "Pierre"
+              ],
+              "source_url": "https://n01darts.com/n01/tournament/n01_view.html?tmid=t_lJst_9313_t_0_FKqe_WRQX",
+              "source_tournament_id": "t_lJst_9313",
+              "phase": "KNOCKOUT",
+              "stage_code": "t_0",
+              "stage_index": 0,
+              "stage_label": "1/8 de finale"
+            }
+          ]
+        },
+        {
+          "code": "t_1",
+          "name": "Quarts de finale",
+          "order": 1,
+          "matches": [
+            {
+              "id": "b7886bf1bd8a06dd",
+              "match_number": 46,
+              "encounter": "Mac Pop’s vs Les Charognards",
+              "mode": "Double",
+              "home": "Mac Pop’s",
+              "away": "Les Charognards",
+              "home_score": 1,
+              "away_score": 3,
+              "winner": "Les Charognards",
+              "legs": 4,
+              "unresolved_legs": 0,
+              "result_complete": true,
+              "tracked_teams": [
+                "Charognard"
+              ],
+              "tracked_players": [
+                "Jacky",
+                "Nico"
+              ],
+              "source_url": "https://n01darts.com/n01/tournament/n01_view.html?tmid=t_lJst_9313_t_1_K8Bi_KBBF",
+              "source_tournament_id": "t_lJst_9313",
+              "phase": "KNOCKOUT",
+              "stage_code": "t_1",
+              "stage_index": 1,
+              "stage_label": "Quarts de finale"
+            },
+            {
+              "id": "a0ce2e3bbbbf1276",
+              "match_number": 48,
+              "encounter": "Yvain et Gauvin vs Mad Eo Finisher",
+              "mode": "Double",
+              "home": "Yvain et Gauvin",
+              "away": "Mad Eo Finisher",
+              "home_score": 1,
+              "away_score": 3,
+              "winner": "Mad Eo Finisher",
+              "legs": 4,
+              "unresolved_legs": 0,
+              "result_complete": true,
+              "tracked_teams": [
+                "Mad Eo Finisher"
+              ],
+              "tracked_players": [
+                "Ben",
+                "Yohan"
+              ],
+              "source_url": "https://n01darts.com/n01/tournament/n01_view.html?tmid=t_lJst_9313_t_1_OYsn_ud9g",
+              "source_tournament_id": "t_lJst_9313",
+              "phase": "KNOCKOUT",
+              "stage_code": "t_1",
+              "stage_index": 1,
+              "stage_label": "Quarts de finale"
+            },
+            {
+              "id": "34f4a7826b10a616",
+              "match_number": 49,
+              "encounter": "Double Impact vs Les Breaking Darts",
+              "mode": "Double",
+              "home": "Double Impact",
+              "away": "Les Breaking Darts",
+              "home_score": 2,
+              "away_score": 3,
+              "winner": "Les Breaking Darts",
+              "legs": 5,
+              "unresolved_legs": 0,
+              "result_complete": true,
+              "tracked_teams": [
+                "Breaking Darts",
+                "Double Impact"
+              ],
+              "tracked_players": [
+                "Alex",
+                "Corentin",
+                "Julien",
+                "Pierre"
+              ],
+              "source_url": "https://n01darts.com/n01/tournament/n01_view.html?tmid=t_lJst_9313_t_1_WRQX_ZocU",
+              "source_tournament_id": "t_lJst_9313",
+              "phase": "KNOCKOUT",
+              "stage_code": "t_1",
+              "stage_index": 1,
+              "stage_label": "Quarts de finale"
+            }
+          ]
+        },
+        {
+          "code": "t_2",
+          "name": "Demi-finales",
+          "order": 2,
+          "matches": [
+            {
+              "id": "c906cab9467a67d7",
+              "match_number": 50,
+              "encounter": "Les Flèches Fatales vs Mad Eo Finisher",
+              "mode": "Double",
+              "home": "Les Flèches Fatales",
+              "away": "Mad Eo Finisher",
+              "home_score": 1,
+              "away_score": 3,
+              "winner": "Mad Eo Finisher",
+              "legs": 4,
+              "unresolved_legs": 0,
+              "result_complete": true,
+              "tracked_teams": [
+                "Mad Eo Finisher"
+              ],
+              "tracked_players": [
+                "Ben",
+                "Yohan"
+              ],
+              "source_url": "https://n01darts.com/n01/tournament/n01_view.html?tmid=t_lJst_9313_t_2_URGu_ud9g",
+              "source_tournament_id": "t_lJst_9313",
+              "phase": "KNOCKOUT",
+              "stage_code": "t_2",
+              "stage_index": 2,
+              "stage_label": "Demi-finales"
+            },
+            {
+              "id": "1642734edb058749",
+              "match_number": 51,
+              "encounter": "Les Charognards vs Les Breaking Darts",
+              "mode": "Double",
+              "home": "Les Charognards",
+              "away": "Les Breaking Darts",
+              "home_score": 1,
+              "away_score": 3,
+              "winner": "Les Breaking Darts",
+              "legs": 4,
+              "unresolved_legs": 0,
+              "result_complete": true,
+              "tracked_teams": [
+                "Breaking Darts",
+                "Charognard"
+              ],
+              "tracked_players": [
+                "Alex",
+                "Corentin",
+                "Jacky",
+                "Nico"
+              ],
+              "source_url": "https://n01darts.com/n01/tournament/n01_view.html?tmid=t_lJst_9313_t_2_KBBF_ZocU",
+              "source_tournament_id": "t_lJst_9313",
+              "phase": "KNOCKOUT",
+              "stage_code": "t_2",
+              "stage_index": 2,
+              "stage_label": "Demi-finales"
+            }
+          ]
+        },
+        {
+          "code": "t_3",
+          "name": "Finale",
+          "order": 3,
+          "matches": [
+            {
+              "id": "06fac849ad782b4e",
+              "match_number": 52,
+              "encounter": "Les Breaking Darts vs Mad Eo Finisher",
+              "mode": "Double",
+              "home": "Les Breaking Darts",
+              "away": "Mad Eo Finisher",
+              "home_score": 4,
+              "away_score": 3,
+              "winner": "Les Breaking Darts",
+              "legs": 7,
+              "unresolved_legs": 0,
+              "result_complete": true,
+              "tracked_teams": [
+                "Breaking Darts",
+                "Mad Eo Finisher"
+              ],
+              "tracked_players": [
+                "Alex",
+                "Ben",
+                "Corentin",
+                "Yohan"
+              ],
+              "source_url": "https://n01darts.com/n01/tournament/n01_view.html?tmid=t_lJst_9313_t_3_ZocU_ud9g",
+              "source_tournament_id": "t_lJst_9313",
+              "phase": "KNOCKOUT",
+              "stage_code": "t_3",
+              "stage_index": 3,
+              "stage_label": "Finale"
+            }
+          ]
+        }
+      ],
+      "players": [
+        {
+          "name": "Corentin",
+          "legs_played": 24,
+          "legs_won": 18,
+          "average_3_darts": 50.06,
+          "best_finish": 64,
+          "scores_180": 0,
+          "scores_140": 4,
+          "scores_100": 7,
+          "no_score": 11,
+          "teams": [
+            "Breaking Darts"
+          ],
+          "team": "Breaking Darts"
+        },
+        {
+          "name": "Alex",
+          "legs_played": 24,
+          "legs_won": 18,
+          "average_3_darts": 48.69,
+          "best_finish": 80,
+          "scores_180": 0,
+          "scores_140": 0,
+          "scores_100": 7,
+          "no_score": 6,
+          "teams": [
+            "Breaking Darts"
+          ],
+          "team": "Breaking Darts"
+        },
+        {
+          "name": "Ben",
+          "legs_played": 24,
+          "legs_won": 16,
+          "average_3_darts": 50.39,
+          "best_finish": 40,
+          "scores_180": 0,
+          "scores_140": 2,
+          "scores_100": 12,
+          "no_score": 9,
+          "teams": [
+            "Mad Eo Finisher"
+          ],
+          "team": "Mad Eo Finisher"
+        },
+        {
+          "name": "Yohan",
+          "legs_played": 24,
+          "legs_won": 16,
+          "average_3_darts": 48.87,
+          "best_finish": 56,
+          "scores_180": 2,
+          "scores_140": 1,
+          "scores_100": 11,
+          "no_score": 11,
+          "teams": [
+            "Mad Eo Finisher"
+          ],
+          "team": "Mad Eo Finisher"
+        },
+        {
+          "name": "Nico",
+          "legs_played": 21,
+          "legs_won": 13,
+          "average_3_darts": 44.09,
+          "best_finish": 51,
+          "scores_180": 0,
+          "scores_140": 1,
+          "scores_100": 3,
+          "no_score": 11,
+          "teams": [
+            "Charognard"
+          ],
+          "team": "Charognard"
+        },
+        {
+          "name": "Jacky",
+          "legs_played": 21,
+          "legs_won": 13,
+          "average_3_darts": 42.62,
+          "best_finish": 40,
+          "scores_180": 0,
+          "scores_140": 2,
+          "scores_100": 2,
+          "no_score": 9,
+          "teams": [
+            "Charognard"
+          ],
+          "team": "Charognard"
+        },
+        {
+          "name": "Julien",
+          "legs_played": 18,
+          "legs_won": 12,
+          "average_3_darts": 50.37,
+          "best_finish": 40,
+          "scores_180": 0,
+          "scores_140": 2,
+          "scores_100": 4,
+          "no_score": 3,
+          "teams": [
+            "Double Impact"
+          ],
+          "team": "Double Impact"
+        },
+        {
+          "name": "Pierre",
+          "legs_played": 18,
+          "legs_won": 12,
+          "average_3_darts": 48.71,
+          "best_finish": 62,
+          "scores_180": 1,
+          "scores_140": 1,
+          "scores_100": 6,
+          "no_score": 5,
+          "teams": [
+            "Double Impact"
+          ],
+          "team": "Double Impact"
+        }
+      ],
+      "duos": [
+        {
+          "name": "Breaking Darts",
+          "legs_played": 24,
+          "legs_won": 18,
+          "average_3_darts": 49.4,
+          "best_finish": 80,
+          "scores_180": 0,
+          "scores_140": 4,
+          "scores_100": 14,
+          "no_score": 17,
+          "players": [
+            "Alex",
+            "Corentin"
+          ]
+        },
+        {
+          "name": "Mad Eo Finisher",
+          "legs_played": 24,
+          "legs_won": 16,
+          "average_3_darts": 49.6,
+          "best_finish": 56,
+          "scores_180": 2,
+          "scores_140": 3,
+          "scores_100": 23,
+          "no_score": 20,
+          "players": [
+            "Ben",
+            "Yohan"
+          ]
+        },
+        {
+          "name": "Charognard",
+          "legs_played": 21,
+          "legs_won": 13,
+          "average_3_darts": 43.33,
+          "best_finish": 51,
+          "scores_180": 0,
+          "scores_140": 3,
+          "scores_100": 5,
+          "no_score": 20,
+          "players": [
+            "Jacky",
+            "Nico"
+          ]
+        },
+        {
+          "name": "Double Impact",
+          "legs_played": 18,
+          "legs_won": 12,
+          "average_3_darts": 49.58,
+          "best_finish": 62,
+          "scores_180": 1,
+          "scores_140": 3,
+          "scores_100": 10,
+          "no_score": 8,
+          "players": [
+            "Julien",
+            "Pierre"
+          ]
+        }
+      ],
+      "data_quality_notes": [
+        "Les statistiques individuelles couvrent uniquement les joueurs présents dans la feuille PvP.",
+        "Les poules et l'arbre affichent uniquement les matchs présents dans la feuille PvP ; les branches concernant exclusivement des équipes non suivies restent absentes.",
+        "Le First 9 tournoi n'est pas inventé : la feuille PvP ne fournit pas cette statistique.",
+        "Les tournois restent exclus du classement et de l'ELO officiels du championnat."
+      ]
+    }
+  ]
+}

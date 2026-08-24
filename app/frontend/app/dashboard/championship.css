@@ -1,0 +1,326 @@
+.championship-shell {
+  min-height: 100vh;
+}
+
+.championship-main {
+  background:
+    radial-gradient(circle at 8% 0%, rgba(212, 175, 55, 0.14), transparent 27%),
+    linear-gradient(90deg, rgba(212, 175, 55, 0.025) 1px, transparent 1px),
+    #071426;
+  background-size: auto, 48px 48px, auto;
+}
+
+.championship-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 28px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 88% 0%, rgba(234, 179, 64, 0.17), transparent 28%),
+    linear-gradient(145deg, rgba(18, 41, 68, 0.98), rgba(7, 23, 40, 0.98));
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.24);
+}
+
+.championship-hero::after {
+  content: "974";
+  position: absolute;
+  right: 28px;
+  bottom: -38px;
+  z-index: -1;
+  color: rgba(234, 179, 64, 0.07);
+  font-size: clamp(7rem, 15vw, 13rem);
+  font-weight: 950;
+  letter-spacing: -0.08em;
+}
+
+.championship-kicker,
+.championship-section-heading span {
+  color: #eab340;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.13em;
+}
+
+.championship-hero h1 {
+  margin: 10px 0;
+  font-size: clamp(2.8rem, 5vw, 5rem);
+  line-height: 0.96;
+  letter-spacing: -0.05em;
+}
+
+.championship-hero p {
+  margin: 0;
+  color: #9fb4cc;
+}
+
+.championship-status {
+  display: grid;
+  align-content: end;
+  justify-items: end;
+  gap: 7px;
+}
+
+.championship-status span {
+  color: #6ee7b7;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.championship-status strong {
+  padding: 8px 11px;
+  border: 1px solid rgba(52, 211, 153, 0.25);
+  border-radius: 999px;
+  background: rgba(52, 211, 153, 0.08);
+}
+
+.championship-empty {
+  margin-top: 18px;
+  padding: 28px;
+  border: 1px dashed rgba(148, 163, 184, 0.25);
+  border-radius: 18px;
+  color: #9fb4cc;
+  text-align: center;
+}
+
+.championship-kpis {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 12px;
+  margin: 18px 0;
+}
+
+.championship-kpis article,
+.championship-panel {
+  border: 1px solid rgba(212, 175, 55, 0.17);
+  border-radius: 18px;
+  background: rgba(10, 31, 54, 0.88);
+}
+
+.championship-kpis article {
+  padding: 17px;
+}
+
+.championship-kpis span {
+  color: #8fa6bf;
+  font-size: 0.67rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.championship-kpis strong {
+  display: block;
+  overflow: hidden;
+  margin-top: 7px;
+  color: #fff;
+  font-size: 1.4rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.championship-quality {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.65fr) minmax(0, 1.35fr);
+  gap: 18px;
+  margin: 0 0 18px;
+  padding: 17px 20px;
+  border: 1px solid rgba(251, 191, 36, 0.28);
+  border-radius: 16px;
+  background: rgba(120, 53, 15, 0.14);
+}
+
+.championship-quality div {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+}
+
+.championship-quality strong {
+  color: #fde68a;
+}
+
+.championship-quality span,
+.championship-quality li {
+  color: #c8d5e5;
+  line-height: 1.55;
+}
+
+.championship-quality ul {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding-left: 20px;
+}
+
+.championship-grid {
+  display: grid;
+  grid-template-columns: 1.45fr 1fr;
+  gap: 14px;
+}
+
+.championship-panel {
+  padding: 20px;
+}
+
+.championship-panel-wide {
+  grid-column: 1 / -1;
+}
+
+.championship-section-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.championship-section-heading h2 {
+  margin: 7px 0 0;
+}
+
+.championship-section-heading small,
+.championship-section-heading a {
+  color: #8fa6bf;
+  text-decoration: none;
+}
+
+.championship-table-wrap {
+  overflow-x: auto;
+}
+
+.championship-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.championship-table th,
+.championship-table td {
+  padding: 14px 12px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+  text-align: left;
+}
+
+.championship-table th {
+  color: #8fbdf5;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+}
+
+.rank-badge {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(148, 163, 184, 0.12);
+  font-weight: 900;
+}
+
+.rank-1 { background: rgba(250, 204, 21, 0.18); color: #fde68a; }
+.rank-2 { background: rgba(203, 213, 225, 0.16); color: #e2e8f0; }
+.rank-3 { background: rgba(251, 146, 60, 0.16); color: #fdba74; }
+
+.team-link {
+  display: grid;
+  gap: 4px;
+  color: #fff;
+  text-decoration: none;
+}
+
+.team-link span {
+  color: #eab340;
+  font-size: 0.68rem;
+}
+
+.positive { color: #6ee7b7; }
+.negative { color: #fda4af; }
+
+.championship-leaders {
+  display: grid;
+  gap: 10px;
+}
+
+.championship-leaders div {
+  padding: 15px;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 14px;
+  background: rgba(7, 24, 43, 0.7);
+}
+
+.championship-leaders span,
+.championship-leaders small {
+  display: block;
+  color: #8fa6bf;
+}
+
+.championship-leaders strong {
+  display: block;
+  margin: 6px 0;
+  font-size: 1.15rem;
+}
+
+.championship-player-list {
+  display: grid;
+  gap: 8px;
+}
+
+.championship-player-list a {
+  display: grid;
+  grid-template-columns: 34px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.13);
+  border-radius: 13px;
+  color: #fff;
+  background: rgba(7, 24, 43, 0.7);
+  text-decoration: none;
+}
+
+.championship-player-list a > span {
+  color: #ff9b52;
+  font-weight: 900;
+}
+
+.championship-player-list div {
+  display: grid;
+  gap: 3px;
+}
+
+.championship-player-list small,
+.championship-muted {
+  color: #8fa6bf;
+}
+
+@media (max-width: 1100px) {
+  .championship-kpis {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .championship-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .championship-hero {
+    flex-direction: column;
+  }
+
+  .championship-status {
+    justify-items: start;
+  }
+
+  .championship-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .championship-quality {
+    grid-template-columns: 1fr;
+  }
+}
+.season-switcher{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 22px}.season-switcher a{display:grid;gap:3px;padding:11px 15px;border:1px solid #29415b;border-radius:12px;background:#0a1828;color:#c9d7e7;text-decoration:none}.season-switcher a.active{border-color:#31bdb2;background:#0d3537;color:#85e7df}.season-switcher small{font-size:.65rem;letter-spacing:.08em;opacity:.7}

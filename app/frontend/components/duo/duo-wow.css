@@ -1,0 +1,339 @@
+/* Sprint 6.1 — Premium UI */
+.duo-detail-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:stretch}.duo-detail-grid>.duo-panel-wide{grid-column:1/-1}.duo-detail-grid>.duo-panel{min-width:0}.duo-panel-compact{display:flex;flex-direction:column;min-height:340px}.duo-panel-compact .duo-chart-frame{flex:1 1 auto;min-height:220px}.duo-panel-compact .duo-finish-chart{min-height:180px}.duo-panel-compact .chart-note{margin-top:10px}.duo-panel-compact .finish-highlight{margin-bottom:12px}.duo-premium-radar{overflow:hidden}.duo-premium-radar-layout{display:grid;grid-template-columns:minmax(220px,.78fr) minmax(420px,1.7fr) minmax(210px,.72fr);gap:18px;align-items:stretch}.duo-radar-main{min-width:0}.duo-radar-premium-chart{min-height:430px}.duo-radar-explanation,.duo-radar-side-notes{min-width:0}.duo-evolution-frame{min-height:300px}.duo-history{margin-top:16px}.duo-history-table tbody tr{position:relative;transition:background-color 160ms ease,transform 160ms ease}.duo-history-table tbody tr:hover{background:rgba(148,163,184,.06)}.duo-history-table tbody tr.is-win{box-shadow:inset 3px 0 0 rgba(16,185,129,.85)}.duo-history-table tbody tr.is-draw{box-shadow:inset 3px 0 0 rgba(245,158,11,.85)}.duo-history-table tbody tr.is-loss{box-shadow:inset 3px 0 0 rgba(239,68,68,.72)}@media(max-width:1180px){.duo-premium-radar-layout{grid-template-columns:1fr 1.6fr}.duo-radar-side-notes{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}}@media(max-width:900px){.duo-detail-grid{grid-template-columns:1fr}.duo-detail-grid>.duo-panel-wide{grid-column:auto}.duo-premium-radar-layout{grid-template-columns:1fr}.duo-radar-side-notes{grid-column:auto;grid-template-columns:1fr}.duo-panel-compact{min-height:0}.duo-radar-premium-chart{min-height:360px}}
+
+/* Sprint 6.2 — WOW */
+.duo-wow-badges{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.duo-tier-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid rgba(251,146,60,.42);border-radius:999px;background:linear-gradient(135deg,rgba(251,146,60,.16),rgba(56,189,248,.08));font-size:.74rem;font-weight:800;color:#fed7aa;letter-spacing:.02em}
+.duo-wow-strip{display:grid;grid-template-columns:1.08fr repeat(4,minmax(0,1fr));gap:12px;margin:14px 0 16px}
+.duo-wow-index{position:relative;overflow:hidden;min-width:0;padding:16px 17px;display:flex;flex-direction:column;gap:5px}
+.duo-wow-index:after{content:"";position:absolute;right:-26px;bottom:-38px;width:100px;height:100px;border-radius:50%;background:rgba(56,189,248,.07)}
+.duo-wow-index-primary{background:linear-gradient(145deg,rgba(251,146,60,.18),rgba(56,189,248,.08)),var(--card-bg,#122036)}
+.duo-wow-index span{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:#94a3b8;font-weight:800}
+.duo-wow-index strong{font-size:1.85rem;line-height:1;color:#f8fafc}
+.duo-wow-index small{color:#94a3b8;font-size:.72rem}
+.duo-wow-meter{height:5px;border-radius:999px;background:#07111f;overflow:hidden;margin:2px 0}
+.duo-wow-meter i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#38bdf8,#34d399,#fb923c);box-shadow:0 0 12px rgba(56,189,248,.28)}
+.duo-wow-analysis{background:linear-gradient(135deg,rgba(56,189,248,.06),transparent 38%),linear-gradient(315deg,rgba(251,146,60,.06),transparent 34%),var(--card-bg,#122036)}
+.duo-wow-analysis-layout{display:grid;grid-template-columns:minmax(0,1fr) 210px;gap:20px;align-items:stretch}
+.duo-wow-insights{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:14px}
+.duo-wow-insights p{margin:0;padding:10px 12px;border:1px solid rgba(148,163,184,.16);border-radius:11px;background:rgba(7,17,31,.35);display:flex;gap:9px;align-items:flex-start;color:#cbd5e1;font-size:.78rem}
+.duo-wow-insights p span{flex:0 0 22px;width:22px;height:22px;border-radius:7px;display:grid;place-items:center;background:rgba(56,189,248,.14);color:#7dd3fc;font-weight:900}
+.duo-wow-score-card{border:1px solid rgba(251,146,60,.28);border-radius:15px;background:linear-gradient(145deg,rgba(251,146,60,.13),rgba(7,17,31,.55));padding:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.duo-wow-score-card>span{text-transform:uppercase;letter-spacing:.09em;color:#94a3b8;font-size:.66rem;font-weight:900}
+.duo-wow-score-card>strong{font-size:3.25rem;line-height:1.1;margin:10px 0 2px}
+.duo-wow-score-card h4{margin:0 0 8px;color:#fff;font-size:1rem}
+.duo-wow-score-card small{color:#94a3b8;line-height:1.45}
+.duo-score-heatmap{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-top:12px}
+.duo-score-heatmap>div{position:relative;overflow:hidden;padding:10px;border:1px solid rgba(56,189,248,.18);border-radius:10px;background:rgba(56,189,248,calc(var(--heat)*.24));display:flex;flex-direction:column;align-items:center}
+.duo-score-heatmap>div:after{content:"";position:absolute;inset:auto -15px -28px auto;width:60px;height:60px;border-radius:50%;background:rgba(251,146,60,calc(var(--heat)*.18))}
+.duo-score-heatmap span{font-size:.68rem;color:#94a3b8;font-weight:800}
+.duo-score-heatmap strong{font-size:1rem;color:#f8fafc}
+.duo-wow-method-note{margin-top:12px;padding:12px 14px;border:1px solid rgba(56,189,248,.18);border-radius:12px;background:rgba(56,189,248,.045);display:flex;gap:12px;align-items:flex-start}
+.duo-wow-method-note strong{white-space:nowrap;color:#7dd3fc;font-size:.78rem}
+.duo-wow-method-note span{color:#94a3b8;font-size:.74rem;line-height:1.5}
+@media(max-width:1180px){.duo-wow-strip{grid-template-columns:repeat(3,minmax(0,1fr))}.duo-wow-index-primary{grid-column:span 1}}
+@media(max-width:900px){.duo-wow-strip{grid-template-columns:repeat(2,minmax(0,1fr))}.duo-wow-analysis-layout{grid-template-columns:1fr}.duo-wow-score-card{min-height:180px}.duo-wow-insights{grid-template-columns:1fr}}
+@media(max-width:580px){.duo-wow-strip{grid-template-columns:1fr}.duo-score-heatmap{grid-template-columns:repeat(3,minmax(0,1fr))}.duo-wow-method-note{flex-direction:column;gap:5px}}
+
+
+/* Sprint 6.3 — Moteur d'évaluation orienté résultats */
+.duo-tier-danger{
+  color:#fecaca;
+  border-color:rgba(239,68,68,.5);
+  background:linear-gradient(135deg,rgba(239,68,68,.18),rgba(127,29,29,.12));
+}
+.duo-tier-good{
+  color:#bbf7d0;
+  border-color:rgba(34,197,94,.45);
+  background:linear-gradient(135deg,rgba(34,197,94,.16),rgba(6,78,59,.10));
+}
+.duo-tier-elite{
+  color:#fde68a;
+  border-color:rgba(234,179,8,.55);
+  background:linear-gradient(135deg,rgba(234,179,8,.18),rgba(120,53,15,.12));
+}
+.duo-tier-neutral{
+  color:#bfdbfe;
+  border-color:rgba(96,165,250,.4);
+  background:linear-gradient(135deg,rgba(59,130,246,.14),rgba(30,64,175,.08));
+}
+.duo-tier-card-danger{
+  border-color:rgba(239,68,68,.42);
+  background:linear-gradient(145deg,rgba(239,68,68,.14),rgba(7,17,31,.62));
+}
+.duo-tier-card-good{
+  border-color:rgba(34,197,94,.35);
+  background:linear-gradient(145deg,rgba(34,197,94,.12),rgba(7,17,31,.58));
+}
+.duo-tier-card-elite{
+  border-color:rgba(234,179,8,.42);
+  background:linear-gradient(145deg,rgba(234,179,8,.14),rgba(7,17,31,.58));
+}
+.duo-tier-card-neutral{
+  border-color:rgba(96,165,250,.32);
+  background:linear-gradient(145deg,rgba(59,130,246,.10),rgba(7,17,31,.58));
+}
+.duo-wow-strip{
+  grid-template-columns:repeat(4,minmax(0,1fr));
+}
+.duo-wow-index-primary{
+  grid-column:span 1;
+}
+@media(max-width:1180px){
+  .duo-wow-strip{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:780px){
+  .duo-wow-strip{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:520px){
+  .duo-wow-strip{grid-template-columns:1fr}
+}
+
+
+/* Sprint 6.4 — Smart Match History */
+.duo-smart-history th:first-child,
+.duo-smart-history td:first-child {
+  width: 118px;
+}
+
+.duo-smart-history th:nth-child(2),
+.duo-smart-history td:nth-child(2) {
+  width: 92px;
+}
+
+.duo-smart-history th:nth-child(3),
+.duo-smart-history td:nth-child(3) {
+  min-width: 270px;
+}
+
+.duo-result-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 86px;
+  padding: 6px 9px;
+  border-radius: 999px;
+  font-size: .72rem;
+  font-weight: 900;
+  border: 1px solid transparent;
+}
+
+.duo-result-badge i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.duo-result-badge.is-win {
+  color: #99f6e4;
+  border-color: rgba(20, 184, 166, .28);
+  background: rgba(20, 184, 166, .12);
+}
+
+.duo-result-badge.is-win i {
+  background: #2dd4bf;
+  box-shadow: 0 0 10px rgba(45, 212, 191, .55);
+}
+
+.duo-result-badge.is-draw {
+  color: #fde68a;
+  border-color: rgba(245, 158, 11, .3);
+  background: rgba(245, 158, 11, .12);
+}
+
+.duo-result-badge.is-draw i {
+  background: #fbbf24;
+}
+
+.duo-result-badge.is-loss {
+  color: #fecaca;
+  border-color: rgba(239, 68, 68, .3);
+  background: rgba(239, 68, 68, .11);
+}
+
+.duo-result-badge.is-loss i {
+  background: #f87171;
+}
+
+.duo-history-date {
+  display: block;
+  margin-top: 3px;
+  color: #64748b;
+  font-size: .66rem;
+  font-weight: 500;
+}
+
+.duo-opponent-link,
+.duo-opponent-static {
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.duo-opponent-link {
+  padding: 5px 7px 5px 3px;
+  border-radius: 11px;
+  transition: background-color 160ms ease, transform 160ms ease;
+}
+
+.duo-opponent-link:hover {
+  background: rgba(56, 189, 248, .075);
+  transform: translateX(2px);
+}
+
+.duo-opponent-link > span:last-child,
+.duo-opponent-static {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.duo-opponent-link strong,
+.duo-opponent-static strong {
+  color: #f8fafc;
+}
+
+.duo-opponent-link small,
+.duo-opponent-static small {
+  display: block;
+  margin-top: 3px;
+  color: #94a3b8;
+  font-size: .68rem;
+}
+
+.duo-opponent-link:hover small {
+  color: #7dd3fc;
+}
+
+.duo-opponent-avatars {
+  display: flex;
+  align-items: center;
+  min-width: 52px;
+}
+
+.duo-opponent-avatars i {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border: 2px solid #122036;
+  border-radius: 10px;
+  background: linear-gradient(145deg, #38bdf8, #6366f1);
+  color: #07111f;
+  font-size: .66rem;
+  font-style: normal;
+  font-weight: 950;
+}
+
+.duo-opponent-avatars i + i {
+  margin-left: -10px;
+  background: linear-gradient(145deg, #fb923c, #facc15);
+}
+
+.result-draw {
+  display: inline-flex;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: rgba(245, 158, 11, .13);
+  color: #fde68a;
+  font-weight: 900;
+}
+
+@media (max-width: 820px) {
+  .duo-smart-history th:nth-child(4),
+  .duo-smart-history td:nth-child(4),
+  .duo-smart-history th:nth-child(8),
+  .duo-smart-history td:nth-child(8) {
+    display: none;
+  }
+}
+
+
+/* Sprint 6.4.1 — Difficulté adverse & prestige */
+.duo-prestige-summary{
+  display:grid;
+  grid-template-columns:auto auto;
+  gap:1px 9px;
+  align-items:center;
+  padding:8px 12px;
+  border:1px solid rgba(234,179,8,.28);
+  border-radius:12px;
+  background:linear-gradient(145deg,rgba(234,179,8,.12),rgba(7,17,31,.45));
+}
+.duo-prestige-summary span{
+  grid-column:1;
+  color:#94a3b8;
+  font-size:.66rem;
+  font-weight:900;
+  letter-spacing:.07em;
+  text-transform:uppercase;
+}
+.duo-prestige-summary strong{
+  grid-column:2;
+  grid-row:1 / span 2;
+  color:#fde68a;
+  font-size:1.45rem;
+  line-height:1;
+}
+.duo-prestige-summary small{
+  color:#64748b;
+  font-size:.65rem;
+}
+.duo-difficulty-cell{
+  display:flex;
+  min-width:128px;
+  flex-direction:column;
+  gap:3px;
+}
+.duo-difficulty-cell strong{
+  color:#fbbf24;
+  font-size:.86rem;
+  letter-spacing:.06em;
+  white-space:nowrap;
+  text-shadow:0 0 10px rgba(251,191,36,.16);
+}
+.duo-difficulty-cell small{
+  color:#94a3b8;
+  font-size:.66rem;
+}
+.duo-performance-label{
+  display:flex;
+  min-width:126px;
+  flex-direction:column;
+  gap:3px;
+}
+.duo-performance-label strong{
+  font-size:.72rem;
+  line-height:1.25;
+}
+.duo-performance-label small{
+  font-size:.64rem;
+  color:#94a3b8;
+}
+.duo-performance-label.is-win strong{color:#5eead4}
+.duo-performance-label.is-draw strong{color:#fde68a}
+.duo-performance-label.is-loss strong{color:#fda4af}
+.duo-smart-history th:nth-child(3),
+.duo-smart-history td:nth-child(3){min-width:250px}
+.duo-smart-history th:nth-child(4),
+.duo-smart-history td:nth-child(4){min-width:138px}
+.duo-smart-history th:nth-child(5),
+.duo-smart-history td:nth-child(5){min-width:140px}
+@media(max-width:1100px){
+  .duo-smart-history th:nth-child(6),
+  .duo-smart-history td:nth-child(6),
+  .duo-smart-history th:nth-child(10),
+  .duo-smart-history td:nth-child(10){
+    display:none;
+  }
+}
+@media(max-width:820px){
+  .duo-smart-history th:nth-child(5),
+  .duo-smart-history td:nth-child(5),
+  .duo-smart-history th:nth-child(9),
+  .duo-smart-history td:nth-child(9){
+    display:none;
+  }
+  .duo-prestige-summary{display:none}
+}

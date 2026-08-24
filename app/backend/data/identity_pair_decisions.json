@@ -1,0 +1,62 @@
+{
+  "310ca949-5762-49f1-94e5-5172da03cbce::cdde0b6a-fcfb-4311-9580-b1fa06752d81": {
+    "actor_id": null,
+    "created_at": "2026-07-27T15:15:27.331358+00:00",
+    "decision": "DISTINCT",
+    "left_display_name": "Stephan",
+    "left_player_id": "310ca949-5762-49f1-94e5-5172da03cbce",
+    "left_team_id": "c16214bf-1ae3-48e2-a1d9-0bfd451f60a3",
+    "notes": "Validation administrateur Sprint 12.6 : Stephan et Stéphane A sont deux personnes différentes",
+    "right_display_name": "Stéphane A",
+    "right_player_id": "cdde0b6a-fcfb-4311-9580-b1fa06752d81",
+    "right_team_id": "7f8f200c-709c-4734-ba51-ffdc0c15563d"
+  },
+  "52faefda-3662-4aec-94ec-9bd7b4e014bc::a201787d-dc7b-4e42-b2b8-e13b6e7b38fb": {
+    "actor_id": null,
+    "created_at": "2026-07-27T15:15:33.135664+00:00",
+    "decision": "DISTINCT",
+    "left_display_name": "Ben",
+    "left_player_id": "52faefda-3662-4aec-94ec-9bd7b4e014bc",
+    "left_team_id": "4a3849c5-3096-4443-87e0-9ce5fd248a46",
+    "notes": "Validation administrateur Sprint 12.6 : Ben et Benjamin sont deux personnes différentes",
+    "right_display_name": "Benjamin",
+    "right_player_id": "a201787d-dc7b-4e42-b2b8-e13b6e7b38fb",
+    "right_team_id": "7f8f200c-709c-4734-ba51-ffdc0c15563d"
+  },
+  "52faefda-3662-4aec-94ec-9bd7b4e014bc::a9fded26-6e5a-489e-b15c-fb5568ee553d": {
+    "actor_id": null,
+    "created_at": "2026-07-27T15:15:31.088057+00:00",
+    "decision": "DISTINCT",
+    "left_display_name": "Ben",
+    "left_player_id": "52faefda-3662-4aec-94ec-9bd7b4e014bc",
+    "left_team_id": "4a3849c5-3096-4443-87e0-9ce5fd248a46",
+    "notes": "Validation administrateur Sprint 12.6 : Ben et Benoit sont deux personnes différentes",
+    "right_display_name": "Benoit",
+    "right_player_id": "a9fded26-6e5a-489e-b15c-fb5568ee553d",
+    "right_team_id": "c16214bf-1ae3-48e2-a1d9-0bfd451f60a3"
+  },
+  "59d3f357-26cd-4066-b72d-c8e5569beca1::df647997-1476-457f-82ed-2c9b04c631de": {
+    "actor_id": null,
+    "created_at": "2026-07-27T15:15:24.491722+00:00",
+    "decision": "DISTINCT",
+    "left_display_name": "Vincent",
+    "left_player_id": "59d3f357-26cd-4066-b72d-c8e5569beca1",
+    "left_team_id": "c16214bf-1ae3-48e2-a1d9-0bfd451f60a3",
+    "notes": "Validation administrateur Sprint 12.6 : Vincent et Vincent G sont deux personnes différentes",
+    "right_display_name": "Vincent G",
+    "right_player_id": "df647997-1476-457f-82ed-2c9b04c631de",
+    "right_team_id": "7f8f200c-709c-4734-ba51-ffdc0c15563d"
+  },
+  "b2e474af-4806-499e-9989-e5dc4e925728::d3ead8fc-b165-485f-ba16-84e7f9c4260a": {
+    "actor_id": null,
+    "created_at": "2026-07-27T15:15:42.450224+00:00",
+    "decision": "DISTINCT",
+    "left_display_name": "Ju",
+    "left_player_id": "b2e474af-4806-499e-9989-e5dc4e925728",
+    "left_team_id": "7f265d6f-7f40-4b83-b046-ace3663b5de4",
+    "notes": "Validation administrateur Sprint 12.6 : Ju et Julien sont deux personnes différentes",
+    "right_display_name": "Julien",
+    "right_player_id": "d3ead8fc-b165-485f-ba16-84e7f9c4260a",
+    "right_team_id": "4a3849c5-3096-4443-87e0-9ce5fd248a46"
+  }
+}

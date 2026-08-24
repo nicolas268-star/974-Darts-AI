@@ -1,0 +1,8 @@
+.next
+node_modules
+.env
+.env.*
+_backups
+*.zip
+*.log
+export_nakka.xlsx

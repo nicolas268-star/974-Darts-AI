@@ -1,0 +1,18 @@
+.stats-hub { min-height: calc(100vh - 72px); padding: 62px clamp(22px,5vw,72px) 90px; background: radial-gradient(circle at 84% 8%,rgba(255,122,49,.11),transparent 26rem),#061321; }
+.stats-hub-hero { display:flex; align-items:flex-end; justify-content:space-between; gap:30px; max-width:1280px; margin:0 auto 34px; }
+.stats-hub-kicker { color:#ffad4e; font-size:.72rem; font-weight:900; letter-spacing:.14em; }
+.stats-hub h1 { margin:12px 0 12px; font-size:clamp(3rem,7vw,6.5rem); }
+.stats-hub-hero p { max-width:720px; margin:0; font-size:1.02rem; }
+.stats-hub-switch { padding:12px 15px; border:1px solid rgba(255,173,78,.26); border-radius:12px; color:#ffb45c; white-space:nowrap; }
+.stats-hub-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; max-width:1280px; margin:0 auto; }
+.stats-hub-card { position:relative; min-height:390px; padding:26px; overflow:hidden; border:1px solid var(--border); border-radius:22px; background:linear-gradient(160deg,rgba(20,38,61,.95),rgba(8,23,39,.98)); }
+.stats-hub-number { position:absolute; right:18px; top:12px; color:rgba(255,255,255,.05); font-size:5rem; font-weight:950; }
+.stats-hub-card small { color:#ff9a3e; font-weight:900; letter-spacing:.12em; }
+.stats-hub-card h2 { margin:18px 0 10px; font-size:2rem; }
+.stats-hub-card p { min-height:92px; }
+.stats-hub-card nav { display:grid; gap:7px; margin-top:22px; }
+.stats-hub-card nav a { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 13px; border:1px solid rgba(255,255,255,.06); border-radius:11px; color:#c7d5e3; background:rgba(5,17,30,.46); }
+.stats-hub-card nav a:hover { border-color:rgba(255,154,62,.38); color:#fff; background:rgba(255,122,49,.07); }
+.stats-hub-card nav span { color:#ffad4e; }
+@media(max-width:980px){.stats-hub-grid{grid-template-columns:1fr}.stats-hub-card{min-height:auto}.stats-hub-card p{min-height:0}}
+@media(max-width:680px){.stats-hub{padding:38px 18px 70px}.stats-hub-hero{align-items:flex-start;flex-direction:column}.stats-hub-switch{width:100%;text-align:center}}

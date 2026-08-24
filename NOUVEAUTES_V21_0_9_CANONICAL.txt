@@ -1,0 +1,8 @@
+974 Darts AI — V21.0.9 CANONICAL
+
+Aucun changement fonctionnel par rapport à V21.0.9.
+- Version applicative normalisée à 21.0.9 côté backend.
+- Version health/auth normalisée à 21.0.9 côté frontend.
+- Ajout de public/release.json pour vérifier la version réellement servie.
+- Même code fonctionnel, même carte, mêmes clubs, mêmes liens et mêmes migrations Supabase que V21.0.9.
+- Cette archive devient la source de référence à synchroniser vers GitHub.
