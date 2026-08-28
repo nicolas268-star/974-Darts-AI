@@ -186,6 +186,9 @@ export default async function HomePage() {
               <Link className="secondary-action game-action" href="/play">
                 Jeux <span>→</span>
               </Link>
+              <Link className="secondary-action calendar-action" href="/calendar">
+                Calendrier <span>→</span>
+              </Link>
               <Link className="secondary-action map-action" href="/#carte-clubs">
                 Carte <span>↓</span>
               </Link>
