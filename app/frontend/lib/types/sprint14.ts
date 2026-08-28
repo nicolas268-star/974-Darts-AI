@@ -33,6 +33,10 @@ export type TournamentCard = {
   date: string | null;
   date_label: string | null;
   event_name: string;
+  format?: string | null;
+  format_label?: string | null;
+  winner?: string | null;
+  runner_up?: string | null;
   season: string | null;
   status: "AVAILABLE" | "WAITING_DATA";
   summary: CompetitionSummary;
@@ -195,6 +199,7 @@ export type TournamentParticipant = {
   legs_played: number;
   legs_won: number;
   average_3_darts: number | null;
+  first_9?: number | null;
   best_finish: number | null;
   scores_180: number;
   scores_140: number;
@@ -210,6 +215,12 @@ export type TournamentHub = {
   date: string | null;
   date_label: string | null;
   event_name: string;
+  format?: string | null;
+  format_label?: string | null;
+  winner?: string | null;
+  runner_up?: string | null;
+  editorial_summary?: string | null;
+  display_aliases?: Record<string, string>;
   season: string | null;
   status: "AVAILABLE" | "WAITING_DATA";
   summary: CompetitionSummary;
