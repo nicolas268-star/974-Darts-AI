@@ -32,6 +32,9 @@ const decimal = (value: number | null | undefined) =>
         maximumFractionDigits: 2,
       });
 
+const displayName = (data: TournamentHub, name: string) =>
+  data.display_aliases?.[name] ?? name;
+
 function MatchCard({
   match,
   compact = false,
@@ -62,10 +65,12 @@ function MatchCard({
 
 function ParticipantTable({
   participants,
+  aliases = {},
   duo,
   emptyMessage = "Aucune donnée disponible.",
 }: {
   participants: TournamentParticipant[];
+  aliases?: Record<string, string>;
   duo?: boolean;
   emptyMessage?: string;
 }) {
@@ -81,6 +86,7 @@ function ParticipantTable({
             <th>{duo ? "Joueurs suivis" : "Équipe / duo"}</th>
             <th>Legs G/J</th>
             <th>Moy. 3 fl.</th>
+            <th>First 9</th>
             <th>Finish</th>
             <th>180</th>
             <th>140+</th>
@@ -90,7 +96,7 @@ function ParticipantTable({
         <tbody>
           {participants.map((participant) => (
             <tr key={participant.name}>
-              <td><strong>{participant.name}</strong></td>
+              <td><strong>{aliases[participant.name] ?? participant.name}</strong></td>
               <td>
                 {duo
                   ? participant.players?.join(" / ") || "—"
@@ -100,6 +106,7 @@ function ParticipantTable({
                 {participant.legs_won}/{participant.legs_played}
               </td>
               <td>{decimal(participant.average_3_darts)}</td>
+              <td>{decimal(participant.first_9)}</td>
               <td>{participant.best_finish ?? "—"}</td>
               <td>{participant.scores_180}</td>
               <td>{participant.scores_140}</td>
@@ -225,6 +232,17 @@ export default async function TournamentPage({
 }) {
   const { code } = await params;
   const data = await loadTournament(code);
+  const bestAverage = data?.players
+    .filter((player) => player.average_3_darts != null)
+    .sort((a, b) => (b.average_3_darts ?? 0) - (a.average_3_darts ?? 0))[0];
+  const bestFirst9 = data?.players
+    .filter((player) => player.first_9 != null)
+    .sort((a, b) => (b.first_9 ?? 0) - (a.first_9 ?? 0))[0];
+  const bestFinish = data?.players
+    .filter((player) => player.best_finish != null)
+    .sort((a, b) => (b.best_finish ?? 0) - (a.best_finish ?? 0))[0];
+  const scorers180 = data?.players.filter((player) => player.scores_180 > 0) ?? [];
+  const total180 = scorers180.reduce((total, player) => total + player.scores_180, 0);
 
   return (
     <div className="dashboard">
@@ -247,8 +265,8 @@ export default async function TournamentPage({
                 </span>
                 <h1>{data.date_label ?? data.name}</h1>
                 <p>
-                  Phase de poules et tableau final · Analyse indépendante
-                  du championnat.
+                  {data.format_label ?? "Phase de poules et tableau final"} ·
+                  Analyse indépendante du championnat.
                 </p>
               </div>
               <span className="hub-status">
@@ -262,6 +280,40 @@ export default async function TournamentPage({
               Tournoi hors championnat : aucun résultat affiché ici ne
               modifie les points, le classement officiel ou l’ELO.
             </div>
+
+            {data.editorial_summary && (
+              <section className="hub-panel tournament-story-panel">
+                <div className="tournament-story-heading">
+                  <div>
+                    <span className="competition-eyebrow">RÉSUMÉ DU TOURNOI</span>
+                    <h2>Papangue Dart Cup nº1</h2>
+                  </div>
+                  <div className="tournament-podium">
+                    <span>🏆 <strong>{data.winner}</strong></span>
+                    <span>🥈 {data.runner_up}</span>
+                  </div>
+                </div>
+                <p>{data.editorial_summary}</p>
+              </section>
+            )}
+
+            {!!data.players.length && (
+              <section className="hub-panel tournament-highlights-panel">
+                <div className="tournament-panel-heading">
+                  <div>
+                    <span>PERFORMANCES DU TOURNOI</span>
+                    <h2>Les distinctions de T4</h2>
+                  </div>
+                  <p>Calculées à partir des statistiques validées du tournoi.</p>
+                </div>
+                <div className="tournament-highlights-grid">
+                  <article><span>🎯 Meilleure moyenne</span><strong>{bestAverage ? displayName(data, bestAverage.name) : "—"}</strong><b>{decimal(bestAverage?.average_3_darts)}</b></article>
+                  <article><span>⚡ Meilleur First 9</span><strong>{bestFirst9 ? displayName(data, bestFirst9.name) : "—"}</strong><b>{decimal(bestFirst9?.first_9)}</b></article>
+                  <article><span>🔥 Plus haute sortie</span><strong>{bestFinish ? displayName(data, bestFinish.name) : "—"}</strong><b>{bestFinish?.best_finish ?? "—"}</b></article>
+                  <article><span>💥 180 réalisés</span><strong>{total180} au total</strong><b>{scorers180.map((player) => `${displayName(data, player.name)} (${player.scores_180})`).join(" · ") || "—"}</b></article>
+                </div>
+              </section>
+            )}
 
             <section className="hub-kpis">
               <article>
@@ -358,6 +410,7 @@ export default async function TournamentPage({
                 <h2>Statistiques des joueurs</h2>
                 <ParticipantTable
                   participants={data.players}
+                  aliases={data.display_aliases}
                   emptyMessage="Aucune statistique joueur n’est disponible pour ce tournoi."
                 />
               </section>
@@ -366,6 +419,7 @@ export default async function TournamentPage({
                 <h2>Statistiques des duos</h2>
                 <ParticipantTable
                   participants={data.duos}
+                  aliases={data.display_aliases}
                   duo
                   emptyMessage="Les données Duos ne sont pas disponibles pour ce tournoi."
                 />
