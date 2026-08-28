@@ -39,8 +39,8 @@ export default async function TournamentsPage() {
             </span>
             <h1>Tournois amicaux</h1>
             <p>
-              Retrouvez T1 et T2 dans un espace d’analyse indépendant du
-              classement officiel.
+              Retrouvez chaque tournoi dans un espace d’analyse indépendant
+              du classement officiel.
             </p>
           </div>
           <div className="competition-hero-badge">
@@ -75,6 +75,11 @@ export default async function TournamentsPage() {
                 <p className="tournament-event-name">
                   {tournament.event_name}
                 </p>
+                {tournament.winner && (
+                  <p className="tournament-winner">
+                    🏆 Vainqueur : <strong>{tournament.winner}</strong>
+                  </p>
+                )}
                 <div className="mini-kpis">
                   <span>
                     <b>{tournament.summary.matches ?? 0}</b> matchs
