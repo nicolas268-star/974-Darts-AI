@@ -181,6 +181,12 @@
   background: rgba(10, 43, 48, 0.64);
 }
 .hero-domain-actions .game-action span { color: #58e4bd; }
+.hero-domain-actions .calendar-action {
+  border-color: rgba(194, 132, 255, 0.36);
+  color: #f2e5ff;
+  background: rgba(43, 24, 68, 0.62);
+}
+.hero-domain-actions .calendar-action span { color: #c995ff; }
 .hero-domain-actions .map-action {
   border-color: rgba(85, 184, 255, 0.30);
   color: #dff3ff;
