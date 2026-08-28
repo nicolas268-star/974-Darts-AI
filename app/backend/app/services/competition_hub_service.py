@@ -200,6 +200,14 @@ class CompetitionHubService:
                     if tournament
                     else f"Tournoi amical {code}"
                 ),
+                "format": tournament.get("format") if tournament else None,
+                "format_label": (
+                    tournament.get("format_label") if tournament else None
+                ),
+                "winner": tournament.get("winner") if tournament else None,
+                "runner_up": (
+                    tournament.get("runner_up") if tournament else None
+                ),
                 "season": (
                     tournament.get("season")
                     if tournament

@@ -156,6 +156,49 @@ class NakkaDirectImportTests(unittest.TestCase):
             {"Alex", "Pierre"},
         )
 
+    def test_double_elimination_reads_winner_loser_and_final_reset(self) -> None:
+        payload = deepcopy(EVENT)
+        payload.pop("rr_result")
+        payload.pop("t_result")
+        payload["d_setting"] = {"match_type": "01", "no_reset": 0}
+        payload["dw_result"] = [
+            {
+                "p1": {"p2": {"r": 3, "a": 54.0}},
+                "p2": {"p1": {"r": 1, "a": 48.0}},
+            },
+            {
+                "p1": {"p2": {"r": 1, "a": 49.0}},
+                "p2": {"p1": {"r": 3, "a": 55.0}},
+            },
+            {
+                "p1": {"p2": {"r": 1, "a": 50.0}},
+                "p2": {"p1": {"r": 3, "a": 56.0}},
+            },
+        ]
+        payload["dl_result"] = [{
+            "p1": {"p2": {"r": 2, "a": 52.0}},
+            "p2": {"p1": {"r": 0, "a": 45.0}},
+        }]
+
+        with patch.object(direct, "_request_json", side_effect=[payload, STATS]):
+            preview = direct.analyze_direct_event(
+                "https://n01darts.com/n01/league/season.php?id=t_direct_123",
+                2026,
+                [],
+            )["lastPreview"]
+
+        self.assertEqual(preview["format"], "DOUBLE_ELIMINATION")
+        self.assertEqual(preview["summary"]["matches"], 4)
+        self.assertEqual(
+            [match["stage_label"] for match in preview["matches"]],
+            [
+                "Winner Bracket · Finale",
+                "Loser Bracket · Finale",
+                "Grand Final",
+                "Grand Final Reset",
+            ],
+        )
+
     def test_import_requires_explicit_confirmation(self) -> None:
         preview = self._analyse()["lastPreview"]
         with self.assertRaises(ValueError):

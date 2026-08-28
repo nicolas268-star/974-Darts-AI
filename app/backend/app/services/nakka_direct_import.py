@@ -60,6 +60,23 @@ FRENCH_MONTHS = (
     "novembre",
     "décembre",
 )
+TOURNAMENT_EDITORIALS: dict[str, dict[str, Any]] = {
+    "t_M317_6772": {
+        "format": "DOUBLE_ELIMINATION",
+        "format_label": "Double élimination",
+        "winner": "Corentin",
+        "runner_up": "Alex",
+        "display_aliases": {"Coco": "Corentin"},
+        "editorial_summary": (
+            "Alex a traversé le Winner Bracket sans défaite et a envoyé "
+            "Corentin dans le Loser Bracket lors de leur premier duel. "
+            "Corentin a ensuite remonté tout le tableau pour retrouver Alex "
+            "en Grand Final. Il s’est imposé 3–1 une première fois pour "
+            "provoquer le reset, puis de nouveau 3–1 dans le match décisif "
+            "pour remporter la Papangue Dart Cup nº1."
+        ),
+    },
+}
 _STATE_LOCK = Lock()
 
 
@@ -479,6 +496,105 @@ def _knockout_matches(
     return matches
 
 
+def _double_elimination_matches(
+    payload: dict[str, Any],
+    participant_names: dict[str, str],
+    source_url: str,
+    source_id: str,
+) -> list[dict[str, Any]]:
+    """Read N01's Winner/Loser bracket payload, including a final reset."""
+    winner_groups = payload.get("dw_result") or []
+    loser_groups = payload.get("dl_result") or []
+    if not isinstance(winner_groups, list) or not isinstance(loser_groups, list):
+        return []
+    if not winner_groups and not loser_groups:
+        return []
+
+    setting = payload.get("d_setting") or {}
+    if not isinstance(setting, dict):
+        setting = {}
+    mode = (
+        "Cricket"
+        if str(setting.get("match_type") or "").lower() == "cricket"
+        else "Simple"
+    )
+    completed_winner_groups = [
+        group
+        for group in winner_groups
+        if isinstance(group, dict) and group
+    ]
+    completed_loser_groups = [
+        group
+        for group in loser_groups
+        if isinstance(group, dict) and group
+    ]
+    # With reset enabled, N01 appends Grand Final and Grand Final Reset to dw_result.
+    final_count = (
+        min(2, len(completed_winner_groups))
+        if _integer(setting.get("no_reset")) == 0
+        else min(1, len(completed_winner_groups))
+    )
+    winner_bracket_count = max(0, len(completed_winner_groups) - final_count)
+    matches: list[dict[str, Any]] = []
+
+    winner_labels = {
+        0: "Finale",
+        1: "Demi-finales",
+        2: "Quarts de finale",
+        3: "Huitièmes de finale",
+    }
+    for index, group in enumerate(
+        completed_winner_groups[:winner_bracket_count],
+        start=1,
+    ):
+        distance = winner_bracket_count - index
+        label = f"Winner Bracket · {winner_labels.get(distance, f'Tour {index}')}"
+        matches.extend(
+            _result_group_matches(
+                group,
+                participant_names,
+                source_url,
+                source_id,
+                f"winner_{index}",
+                index,
+                label,
+                mode,
+            )
+        )
+
+    for index, group in enumerate(completed_loser_groups, start=1):
+        suffix = "Finale" if index == len(completed_loser_groups) else f"Tour {index}"
+        matches.extend(
+            _result_group_matches(
+                group,
+                participant_names,
+                source_url,
+                source_id,
+                f"loser_{index}",
+                100 + index,
+                f"Loser Bracket · {suffix}",
+                mode,
+            )
+        )
+
+    finals = completed_winner_groups[winner_bracket_count:]
+    for index, group in enumerate(finals, start=1):
+        label = "Grand Final" if index == 1 else "Grand Final Reset"
+        matches.extend(
+            _result_group_matches(
+                group,
+                participant_names,
+                source_url,
+                source_id,
+                f"grand_final_{index}",
+                200 + index,
+                label,
+                mode,
+            )
+        )
+    return matches
+
+
 def _snapshot_hash(payload: dict[str, Any]) -> str:
     material = {
         "sourceId": payload.get("sourceId"),
@@ -530,11 +646,11 @@ def analyze_direct_event(
         canonical_url,
         source_id,
     )
-    knockout_matches = _knockout_matches(
-        event_payload,
-        names,
-        canonical_url,
-        source_id,
+    double_elimination_matches = _double_elimination_matches(
+        event_payload, names, canonical_url, source_id
+    )
+    knockout_matches = double_elimination_matches or _knockout_matches(
+        event_payload, names, canonical_url, source_id
     )
     matches = knockout_matches + pool_matches
     for match_number, match in enumerate(matches, start=1):
@@ -563,6 +679,15 @@ def analyze_direct_event(
         "date": event_date,
         "dateLabel": date_label,
         "sourceStatus": _integer(event_payload.get("status")),
+        "format": (
+            "DOUBLE_ELIMINATION"
+            if double_elimination_matches
+            else "POOLS_AND_KNOCKOUT"
+            if pool_matches and knockout_matches
+            else "POOLS"
+            if pool_matches
+            else "SINGLE_ELIMINATION"
+        ),
         "status": status,
         "blockingReasons": blocking_reasons,
         "requiresIdentityConfirmation": unresolved > 0,
@@ -590,6 +715,7 @@ def analyze_direct_event(
             "publicationExecuted": False,
         },
     }
+    preview.update(TOURNAMENT_EDITORIALS.get(source_id, {}))
     preview["snapshotHash"] = _snapshot_hash(preview)
     with _STATE_LOCK:
         state = load_direct_state()
@@ -729,6 +855,12 @@ def import_direct_event(
             "date": preview.get("date"),
             "date_label": preview.get("dateLabel"),
             "event_name": preview.get("title"),
+            "format": preview.get("format"),
+            "format_label": preview.get("format_label"),
+            "winner": preview.get("winner"),
+            "runner_up": preview.get("runner_up"),
+            "display_aliases": preview.get("display_aliases") or {},
+            "editorial_summary": preview.get("editorial_summary"),
             "season": str(preview.get("season")),
             "status": "AVAILABLE",
             "official_separation": True,
