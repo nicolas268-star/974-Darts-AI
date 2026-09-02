@@ -56,6 +56,7 @@ const playHub = await readFile("app/play/page.tsx", "utf8");
 const siteSignature = await readFile("components/SiteSignature.tsx", "utf8");
 const privacyPage = await readFile("app/confidentialite/page.tsx", "utf8");
 const audiencePrivacyControl = await readFile("components/legal/AudiencePrivacyControl.tsx", "utf8");
+const legalConfig = await readFile("lib/legal.ts", "utf8");
 for (const label of ["Stats & Données", "Jeux", "Admin"]) {
   if (!layout.includes(label) || !sidebar.includes(label)) {
     errors.push(`Domaine de navigation absent : ${label}`);
@@ -73,6 +74,9 @@ for (const expected of ["Nakka/N01", "Supabase", "12 mois maximum", "Mesure d’
   if (!`${privacyPage}\n${audiencePrivacyControl}`.includes(expected)) {
     errors.push(`Information de confidentialité absente : ${expected}`);
   }
+}
+if (!legalConfig.includes("contact@ndxperformancelab.com")) {
+  errors.push("Adresse de contact juridique NDX absente.");
 }
 
 if (errors.length) {

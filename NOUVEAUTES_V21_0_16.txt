@@ -1,0 +1,6 @@
+974 Darts AI — V21.0.16 CANONICAL
+
+- Remplacement de l’adresse de contact juridique par contact@ndxperformancelab.com.
+- Mise à jour des liens e-mail dans les mentions légales, la politique de confidentialité et les conditions d’utilisation.
+- Conservation de Nicolas Dupont comme éditeur à titre personnel dans cette version.
+- Harmonisation des marqueurs de version frontend et backend en 21.0.16.

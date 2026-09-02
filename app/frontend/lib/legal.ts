@@ -1,5 +1,5 @@
 export const legalContactEmail =
-  process.env.LEGAL_CONTACT_EMAIL?.trim() || "contact@974darts.re";
+  process.env.LEGAL_CONTACT_EMAIL?.trim() || "contact@ndxperformancelab.com";
 
 export const legalIdentity = {
   siteName: "974 Darts AI",
