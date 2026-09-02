@@ -8,6 +8,11 @@ export const metadata = {
   description: "Espace public du Comité de fléchettes de La Réunion : charte, règlement sportif et informations fédérales.",
 };
 
+const committeeDocuments = {
+  charter: "https://docs.google.com/document/d/e/2PACX-1vRmIYs1NwoP66XW85aG_qAgurguV0EKWHUgxMAv8mvbiv7XS3CsVhljbkD6Povbsg/pub",
+  sportingRules: "https://docs.google.com/document/d/e/2PACX-1vRXcsZh_RlxwSzArGtX_mJUvbRr9KWT3MZij-wvC3aybpIRcQPOsJHD9qIn9sTDJA/pub",
+};
+
 export default function ComitePage() {
   return (
     <main className="committee-page">
@@ -43,7 +48,7 @@ export default function ComitePage() {
       <section className="committee-section" id="documents">
         <div className="committee-section-heading">
           <div><span>DOCUMENTS OFFICIELS</span><h2>Le cadre de référence</h2></div>
-          <p>Les documents seront publiés ici dans leur version officielle afin qu’ils soient accessibles à tous les clubs et joueurs.</p>
+          <p>Consultez les documents de référence du Comité, accessibles à tous les clubs et joueurs.</p>
         </div>
 
         <div className="committee-document-grid">
@@ -52,22 +57,36 @@ export default function ComitePage() {
             <span className="committee-document-type">GOUVERNANCE</span>
             <h3>Charte du Comité</h3>
             <p>Principes, engagements et règles de fonctionnement communs aux acteurs des fléchettes fédérales à La Réunion.</p>
-            <div className="committee-document-status"><span/>Document à intégrer</div>
+            <a
+              className="committee-document-link"
+              href={committeeDocuments.charter}
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              Consulter la charte <span>↗</span>
+            </a>
           </article>
 
           <article className="committee-document-card">
             <div className="committee-document-icon"><Scale size={30}/></div>
             <span className="committee-document-type">COMPÉTITION</span>
-            <h3>Règlement sportif</h3>
+            <h3>Règlement sportif 2026–2027</h3>
             <p>Organisation sportive, déroulement des rencontres, règles de compétition et dispositions applicables à la saison.</p>
-            <div className="committee-document-status"><span/>Document à intégrer</div>
+            <a
+              className="committee-document-link"
+              href={committeeDocuments.sportingRules}
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              Consulter le règlement <span>↗</span>
+            </a>
           </article>
         </div>
       </section>
 
       <section className="committee-info-strip">
         <BookOpenCheck size={24}/>
-        <div><span>PROCHAINE ÉTAPE</span><strong>Ajouter les PDF officiels de la Charte et du Règlement sportif.</strong></div>
+        <div><span>DOCUMENTS DISPONIBLES</span><strong>Charte du Comité et règlement sportif de la saison 2026–2027.</strong></div>
         <Link href="/">Retour à l’accueil →</Link>
       </section>
     </main>

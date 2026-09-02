@@ -2,7 +2,7 @@
 export async function GET() {
   return Response.json({
     app: "974 Darts AI Web",
-    version: "21.0.11",
+    version: "21.0.12",
     status: "ok",
     demoMode: process.env.NEXT_PUBLIC_DEMO_MODE !== "false",
     supabaseUrlConfigured: Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL),

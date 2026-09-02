@@ -1,0 +1,6 @@
+974 Darts AI — V21.0.12 CANONICAL
+
+- Ajout du lien public vers la Charte du Comité sur la page Comité.
+- Ajout du lien public vers le Règlement sportif 2026–2027.
+- Remplacement des mentions « Document à intégrer » par des boutons accessibles.
+- Harmonisation des marqueurs de version du frontend et du backend en 21.0.12.

@@ -1,1 +1,1 @@
-V21.0.9 CANONICAL - Source de reference production / GitHub / Supabase
+V21.0.12 CANONICAL - Source de référence production / GitHub / Supabase
