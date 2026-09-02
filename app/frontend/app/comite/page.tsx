@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { BookOpenCheck, FileBadge2, Landmark, MapPinned, Maximize2, Scale, ShieldCheck, UsersRound } from "lucide-react";
+import { BookOpenCheck, FileBadge2, Landmark, MapPinned, Scale, ShieldCheck } from "lucide-react";
 import "./comite.css";
 
 export const metadata = {
@@ -33,7 +33,6 @@ export default function ComitePage() {
           <h1>Comité de fléchettes<br/><em>de La Réunion</em></h1>
           <p>Un espace public dédié aux documents de référence, au cadre sportif et à la vie fédérale des fléchettes réunionnaises.</p>
           <div className="committee-hero-actions">
-            <a href="#equipe">Découvrir l’équipe <span>↓</span></a>
             <a href="#documents">Consulter les documents <span>→</span></a>
           </div>
         </div>
@@ -42,45 +41,6 @@ export default function ComitePage() {
             <Image alt="Comité de fléchettes de La Réunion et Fédération Française de Darts" fill priority sizes="360px" src="/club-map/institutions.png"/>
           </span>
           <div><ShieldCheck size={22}/><span>Structure fédérale</span><strong>La Réunion · 974</strong></div>
-        </div>
-      </section>
-
-      <section className="committee-team-section" id="equipe" aria-labelledby="committee-team-title">
-        <div className="committee-section-heading">
-          <div>
-            <span>NOTRE ÉQUIPE</span>
-            <h2 id="committee-team-title">Les membres du Comité</h2>
-          </div>
-          <p>Une équipe réunie pour organiser, développer et faire rayonner les fléchettes à La Réunion.</p>
-        </div>
-
-        <a
-          className="committee-team-visual"
-          href="/comite/comite-equipe-v21-0-13.webp"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Agrandir la présentation des membres du Comité"
-        >
-          <Image
-            alt="Présentation des membres du Comité de fléchettes de La Réunion : Pierre, Jacky, Beverley, Corentin et Yvan"
-            src="/comite/comite-equipe-v21-0-13.webp"
-            width={1672}
-            height={941}
-            sizes="(max-width: 820px) 100vw, 92vw"
-          />
-        </a>
-        <a
-          className="committee-team-enlarge"
-          href="/comite/comite-equipe-v21-0-13.webp"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Maximize2 size={16}/>
-          Agrandir la présentation
-        </a>
-        <div className="committee-team-summary" aria-label="Composition du Comité">
-          <UsersRound size={22}/>
-          <p><strong>Pierre</strong> · Président <span>—</span> <strong>Jacky</strong> · Trésorier <span>—</span> <strong>Beverley</strong> · Secrétaire et représentante des féminines <span>—</span> <strong>Yvan</strong> · Vice-secrétaire <span>—</span> <strong>Corentin</strong> · Directeur sportif</p>
         </div>
       </section>
 

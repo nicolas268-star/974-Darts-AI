@@ -1,0 +1,7 @@
+974 Darts AI — V21.0.14 CANONICAL
+
+- Retrait de la présentation visuelle des cinq membres du Comité.
+- Suppression des noms et fonctions affichés dans cette présentation.
+- Retrait du bouton « Découvrir l’équipe » de l’en-tête de la page Comité.
+- Conservation de la charte du Comité et du règlement sportif 2026–2027.
+- Harmonisation des marqueurs de version frontend et backend en 21.0.14.
