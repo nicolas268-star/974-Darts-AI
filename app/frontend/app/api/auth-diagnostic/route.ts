@@ -8,7 +8,7 @@ export async function GET() {
 
   return Response.json({
     app: "974 Darts AI Web",
-    version: "21.0.12",
+    version: "21.0.13",
     demoMode: auth.demo,
     authenticated: Boolean(auth.user),
     user: auth.user
