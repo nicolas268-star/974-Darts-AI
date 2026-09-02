@@ -361,13 +361,22 @@ export default async function HomePage() {
       </main>
 
       <footer className="home-footer">
-        <Link className="home-brand" href="/">
-          <span className="brand-target">◎</span>
-          <span>974 Darts</span>
-          <b>AI</b>
-        </Link>
-        <p>La data au service des fléchettes réunionnaises.</p>
-        <span>Créé et développé à La Réunion par Nicolas Dupont</span>
+        <div className="home-footer-identity">
+          <Link className="home-brand" href="/">
+            <span className="brand-target">◎</span>
+            <span>974 Darts</span>
+            <b>AI</b>
+          </Link>
+          <p>La data au service des fléchettes réunionnaises.</p>
+        </div>
+        <div className="home-footer-legal">
+          <span>Créé et développé à La Réunion par Nicolas Dupont</span>
+          <nav aria-label="Informations juridiques">
+            <Link href="/mentions-legales">Mentions légales</Link>
+            <Link href="/confidentialite">Confidentialité & traceurs</Link>
+            <Link href="/conditions-utilisation">Conditions d’utilisation</Link>
+          </nav>
+        </div>
       </footer>
     </div>
   );

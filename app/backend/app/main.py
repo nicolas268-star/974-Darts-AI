@@ -21,7 +21,7 @@ from .services.ranking_service import build_ranking, get_rules
 from .services.stats_service import player_overview
 
 
-APP_VERSION = "21.0.14"
+APP_VERSION = "21.0.15"
 
 app = FastAPI(
     title="974 Darts AI Data API",

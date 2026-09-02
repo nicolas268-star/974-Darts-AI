@@ -1,0 +1,11 @@
+974 Darts AI — V21.0.15 CANONICAL
+
+- Ajout d’une page « Mentions légales » avec Nicolas Dupont comme éditeur personnel.
+- Ajout d’une politique « Confidentialité & traceurs » décrivant les données Nakka/N01, les comptes Supabase et la mesure d’audience interne.
+- Ajout de Conditions d’utilisation pour les comptes, les parties et les statistiques.
+- Ajout de liens juridiques accessibles dans le pied de page de toutes les pages publiques.
+- Identification d’OVHcloud et de Supabase, avec la région principale du projet à Paris.
+- Ajout d’un mécanisme d’opposition à la mesure d’audience, mémorisé dans le navigateur.
+- Limitation automatique de la conservation des événements d’audience à 12 mois.
+- Validation stricte des identifiants de session et des catégories d’appareil avant enregistrement.
+- Harmonisation des marqueurs de version frontend et backend en 21.0.15.

@@ -17,6 +17,9 @@ const requiredPages = [
   "app/play/tictactoe/page.tsx",
   "app/play/bob27/page.tsx",
   "app/play/clock/page.tsx",
+  "app/mentions-legales/page.tsx",
+  "app/confidentialite/page.tsx",
+  "app/conditions-utilisation/page.tsx",
 ];
 
 const missing = [];
@@ -50,6 +53,9 @@ if (/Version Cockpit/i.test(adminDashboard)) {
 const home = await readFile("app/page.tsx", "utf8");
 const sidebar = await readFile("components/Sidebar.tsx", "utf8");
 const playHub = await readFile("app/play/page.tsx", "utf8");
+const siteSignature = await readFile("components/SiteSignature.tsx", "utf8");
+const privacyPage = await readFile("app/confidentialite/page.tsx", "utf8");
+const audiencePrivacyControl = await readFile("components/legal/AudiencePrivacyControl.tsx", "utf8");
 for (const label of ["Stats & Données", "Jeux", "Admin"]) {
   if (!layout.includes(label) || !sidebar.includes(label)) {
     errors.push(`Domaine de navigation absent : ${label}`);
@@ -57,6 +63,16 @@ for (const label of ["Stats & Données", "Jeux", "Admin"]) {
 }
 for (const href of ["/play/501", "/play/cricket", "/play/tictactoe", "/play/bob27", "/play/clock"]) {
   if (!playHub.includes(href)) errors.push(`Jeu absent du hub : ${href}`);
+}
+for (const href of ["/mentions-legales", "/confidentialite", "/conditions-utilisation"]) {
+  if (!home.includes(href) || !siteSignature.includes(href)) {
+    errors.push(`Lien juridique absent du pied de page : ${href}`);
+  }
+}
+for (const expected of ["Nakka/N01", "Supabase", "12 mois maximum", "Mesure d’audience interne"]) {
+  if (!`${privacyPage}\n${audiencePrivacyControl}`.includes(expected)) {
+    errors.push(`Information de confidentialité absente : ${expected}`);
+  }
 }
 
 if (errors.length) {

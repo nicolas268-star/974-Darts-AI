@@ -7,6 +7,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "", "/flechettes-la-reunion", "/dashboard", "/competitions", "/calendar",
     "/teams", "/players", "/duos", "/tournaments", "/records/180",
     "/records/finishes", "/records/mvp", "/records/mvp/2026",
+    "/mentions-legales", "/confidentialite", "/conditions-utilisation",
   ];
   const now = new Date();
   return routes.map((route, index) => ({

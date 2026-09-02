@@ -54,8 +54,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
           "@context": "https://schema.org",
           "@graph": [
-            { "@type": "Organization", "@id": "https://974darts.re/#organization", name: "974 Darts AI", url: "https://974darts.re", logo: "https://974darts.re/hero-reunion-darts.png", areaServed: { "@type": "AdministrativeArea", name: "La Réunion" } },
-            { "@type": "WebSite", "@id": "https://974darts.re/#website", url: "https://974darts.re", name: "974 Darts AI", inLanguage: "fr-RE", publisher: { "@id": "https://974darts.re/#organization" } }
+            { "@type": "Person", "@id": "https://974darts.re/#publisher", name: "Nicolas Dupont", url: "https://974darts.re" },
+            { "@type": "WebSite", "@id": "https://974darts.re/#website", url: "https://974darts.re", name: "974 Darts AI", inLanguage: "fr-RE", publisher: { "@id": "https://974darts.re/#publisher" }, areaServed: { "@type": "AdministrativeArea", name: "La Réunion" } }
           ]
         }).replace(/</g, "\\u003c") }} />
         <AudienceTracker />
