@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CalendarDays, Clock3, MapPin, PartyPopper } from "lucide-react";
 import { Sidebar } from "@/components/Sidebar";
+import { BDC_URL, bdcCalendarRound } from "@/lib/bdc";
 import { calendarTypeLabels, type CalendarEvent, type CalendarPayload } from "@/lib/calendar/types";
 import "./calendar.css";
 
@@ -23,10 +24,11 @@ const dateFormatter = new Intl.DateTimeFormat("fr-FR", { weekday: "long", day: "
 
 function EventCard({ event }: { event: CalendarEvent }) {
   const date = new Date(`${event.start_date}T12:00:00+04:00`);
+  const bdcRound = bdcCalendarRound(event.title, event.start_date);
   return <article className={`calendar-event type-${event.event_type.toLowerCase()} ${event.status === "CANCELLED" ? "cancelled" : ""}`}>
     <div className="calendar-date"><strong>{String(date.getDate()).padStart(2, "0")}</strong><span>{date.toLocaleDateString("fr-FR", { month: "short", timeZone: "Indian/Reunion" })}</span></div>
     <div className="calendar-event-main"><div className="calendar-event-meta"><span>{calendarTypeLabels[event.event_type]}</span>{event.status === "CANCELLED" && <b>Annulé</b>}</div><h2>{event.title}</h2><p><CalendarDays size={16} /> {dateFormatter.format(date)}{event.end_date && event.end_date !== event.start_date ? ` au ${dateFormatter.format(new Date(`${event.end_date}T12:00:00+04:00`))}` : ""}</p><p><Clock3 size={16} /> {event.start_time || "Horaire à confirmer"}</p><p><MapPin size={16} /> {event.location}{event.address ? ` · ${event.address}` : ""}</p>{event.description && <small>{event.description}</small>}</div>
-    {event.source_url && <Link href={event.source_url} target="_blank" rel="noreferrer">Voir les détails →</Link>}
+    {bdcRound ? <div className="calendar-event-actions"><Link href={`${BDC_URL}#manche-${bdcRound.number}`}>Manche {bdcRound.number} et classement BDC →</Link>{event.source_url && <Link href={event.source_url} target="_blank" rel="noreferrer">Voir les détails →</Link>}</div> : event.source_url && <Link href={event.source_url} target="_blank" rel="noreferrer">Voir les détails →</Link>}
   </article>;
 }
 

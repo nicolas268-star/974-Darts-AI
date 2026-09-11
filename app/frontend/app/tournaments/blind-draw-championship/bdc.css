@@ -1,0 +1,41 @@
+.bdc-card { display:flex; align-items:center; justify-content:space-between; gap:2rem; padding:2rem; margin:0 0 1.75rem; border:1px solid #376476; border-left:4px solid #55ddc6; border-radius:1.25rem; background:linear-gradient(115deg,#103042,#101d35); color:#f4f9ff; }
+.bdc-card-copy { min-width:0; }
+.bdc-eyebrow { font-size:.875rem; color:#7ce8d4; font-weight:800; letter-spacing:.07em; }
+.bdc-card h1,.bdc-card h2 { color:#fff; line-height:1.12; margin:.8rem 0; font-size:clamp(1.8rem,3.5vw,3rem); overflow-wrap:anywhere; }
+.bdc-card p,.bdc-page p { font-size:1rem; line-height:1.65; color:#c1d4e3; }
+.bdc-tags,.bdc-links { display:flex; flex-wrap:wrap; gap:.65rem; margin:1.1rem 0; }
+.bdc-tags span,.bdc-status { padding:.35rem .7rem; border:1px solid #456274; border-radius:.5rem; color:#d5e9f4; font-size:.875rem; line-height:1.5; }
+.bdc-card-mark { color:#79e7d1; font-size:clamp(3rem,6vw,5rem); font-weight:900; letter-spacing:-.06em; text-align:center; }
+.bdc-card-mark span { display:block; font-size:.875rem; letter-spacing:.13em; color:#c1d4e3; white-space:nowrap; }
+.bdc-button { display:inline-block; background:#80e6d0; color:#071b2b!important; padding:.8rem 1rem; border-radius:.5rem; font-size:1rem; font-weight:800; text-decoration:none; }
+.bdc-links a,.bdc-heading a,.bdc-round a { color:#88efdb; font-size:1rem; line-height:1.5; text-decoration:underline; text-underline-offset:4px; }
+.bdc-links { gap:1.5rem; }
+.bdc-section { background:#0c2035; border:1px solid #29465e; border-radius:1.1rem; padding:1.5rem; margin-bottom:1.5rem; scroll-margin-top:6rem; min-width:0; }
+.bdc-heading { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:1rem; margin-bottom:1rem; }
+.bdc-heading h2 { font-size:1.5rem; color:#f4f9ff; margin:0; line-height:1.3; }
+.bdc-rounds { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1rem; }
+.bdc-round { display:flex; flex-direction:column; align-items:flex-start; gap:.55rem; padding:1.25rem; background:#102a40; border:1px solid #365368; border-radius:.75rem; scroll-margin-top:6rem; min-width:0; }
+.bdc-round h3 { color:#fff; font-size:1.15rem; line-height:1.4; margin:0; }
+.bdc-round p { margin:0; }
+.bdc-round small { font-size:.875rem; color:#b9cfdf; line-height:1.6; }
+.bdc-round .bdc-status { margin:.4rem 0; }
+.bdc-table-scroll { max-width:100%; overflow-x:auto; border:1px solid #365368; border-radius:.7rem; }
+.bdc-table { width:100%; border-collapse:collapse; color:#e1ecf4; font-size:.95rem; }
+.bdc-table caption { text-align:left; padding:1rem; color:#c1d4e3; font-size:.875rem; }
+.bdc-table th,.bdc-table td { padding:.85rem 1rem; text-align:left; border-bottom:1px solid #29465e; }
+.bdc-table thead { background:#17364b; color:#9ceedd; }
+.bdc-table thead th { white-space:nowrap; }
+.bdc-table tbody th { min-width:8rem; }
+.bdc-table tr:last-child td,.bdc-table tr:last-child th { border-bottom:0; }
+.bdc-table .bdc-empty { padding:2rem 1rem; text-align:center; color:#c1d4e3; line-height:1.7; }
+.bdc-page .bdc-note { font-size:.875rem; color:#b4c9d9; }
+.bdc-finale { padding:1.25rem; margin-top:1.25rem; border-left:3px solid #f5be67; background:#152c3d; border-radius:.4rem; }
+.bdc-finale strong { color:#f5cf8e; font-size:1.1rem; }
+.bdc-finale p { margin-bottom:0; }
+.bdc-scoring { display:grid; grid-template-columns:1.3fr 1fr; gap:1.5rem; margin:1rem 0; }
+.bdc-bonus { padding:1.25rem; background:#102f40; border-radius:.7rem; }
+.bdc-bonus>strong { display:block; font-size:2rem; margin:.5rem 0; color:#9aeedc; }
+.bdc-page a:focus-visible,.bdc-card a:focus-visible,.bdc-table-scroll:focus-visible { outline:3px solid #f5cf8e; outline-offset:4px; }
+.bdc-pairings { padding-left:1rem; line-height:1.7; color:#d5e9f4; font-size:.95rem; }
+@media(max-width:1100px) { .bdc-rounds { grid-template-columns:repeat(2,minmax(0,1fr)); } .bdc-card-mark { display:none; } }
+@media(max-width:650px) { .bdc-card { padding:1.25rem; } .bdc-section { padding:1rem; } .bdc-rounds,.bdc-scoring { grid-template-columns:minmax(0,1fr); } .bdc-heading { align-items:flex-start; } .bdc-button { display:block; text-align:center; } }
