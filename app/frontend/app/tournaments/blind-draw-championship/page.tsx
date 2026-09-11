@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Sidebar } from "@/components/Sidebar";
+import { BdcRoundOne } from "@/components/BdcRoundOne";
 import { BDC_ROUNDS, BDC_RESULTS, BDC_RULES_URL, bdcDate, bdcStandings } from "@/lib/bdc";
 import "../../competitions/competition-hub.css";
 import "./bdc.css";
@@ -20,9 +21,11 @@ export default function BdcPage() {
         <h1>Blind Draw Championship</h1>
         <p>Six manches en double. Un classement individuel.</p>
         <div className="bdc-tags"><span>Nouveau tirage à chaque manche</span><span>501 · Double Out</span><span>Sept. 2026 → fév. 2027</span></div>
-        <nav className="bdc-links" aria-label="Dans le BDC"><a href="#manches">Les manches</a><a href="#classement">Classement individuel</a><a href="#bareme">Barème</a></nav>
+        <nav className="bdc-links" aria-label="Dans le BDC"><a href="#resultats-manche-1">Résultats et statistiques M1</a><a href="#classement">Classement individuel</a><a href="#manches">Les manches</a><a href="#bareme">Barème</a></nav>
       </div><div className="bdc-card-mark" aria-hidden="true">BDC<span>2026 — 2027</span></div>
     </header>
+
+    <BdcRoundOne />
 
     <section id="manches" className="bdc-section">
       <div className="bdc-heading"><h2>Les six manches</h2><Link href="/calendar">Calendrier complet →</Link></div>
@@ -31,9 +34,9 @@ export default function BdcPage() {
         return <article id={`manche-${round.number}`} className="bdc-round" key={round.number}>
           <span className="bdc-eyebrow">MANCHE {round.number}</span><h3><time dateTime={round.date}>{bdcDate(round.date)}</time></h3>
           <p>19 h · heure de La Réunion</p><p>{round.location}</p>
-          <span className="bdc-status">{result ? "Résultats saisis" : "Résultats à venir"}</span>
+          <span className="bdc-status">{result ? "Terminée · classement corrigé" : "Résultats à venir"}</span>
           {round.sourceUrl ? <><a href={round.sourceUrl} target="_blank" rel="noopener noreferrer">Ouvrir la manche sur Nakka ↗</a>{!result && <small>Accès protégé : mot de passe communiqué lors du tirage au sort.</small>}</> : <small>Doublettes et lien de suivi à venir.</small>}
-          {result && <ul className="bdc-pairings">{result.teams.map((team) => <li key={team.id}>{team.players.map((player) => player.name).join(" / ")}</li>)}</ul>}
+          {result && <a href="#resultats-manche-1">Résultats et statistiques partielles →</a>}
         </article>;
       })}</div>
     </section>

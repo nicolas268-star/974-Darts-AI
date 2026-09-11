@@ -9,7 +9,8 @@ export function BdcCard() {
       <h2 id="bdc-card-title">Blind Draw Championship</h2>
       <p>Un nouveau partenaire à chaque manche. Vos points restent les vôtres.</p>
       <div className="bdc-tags"><span>6 manches en double</span><span>Classement individuel</span><span>3 participations minimum</span></div>
-      <p className="bdc-opening">Manche 1 · 11 septembre 2026 à 19 h · Bar Le Cham’Ô, Le Tampon</p>
+      <p className="bdc-opening">Manche 1 terminée · Super Mario / Pierre vainqueurs · Points individuels disponibles</p>
+      <p>Statistiques partielles — incident Nakka</p>
       <Link className="bdc-button" href={BDC_URL}>Voir les manches et le classement →</Link>
     </div>
     <div className="bdc-card-mark" aria-hidden="true">BDC<span>2026 — 2027</span></div>

@@ -1,6 +1,6 @@
 /** BDC Saison 1: rules published by Tampon Darts Club on AssoConnect.
  * Championship points belong to each player; they are never divided by two.
- * Nakka access and result import are deliberately pending the authorised draw.
+ * Round 1 results read from the completed public Nakka bracket on 2026-09-11.
  */
 export const BDC_URL = "/tournaments/blind-draw-championship";
 export const BDC_RULES_URL = "https://tampon-darts-club.assoconnect.com/collect/description/706462-n-blind-draw-championship-by-tdc-saison-1";
@@ -27,8 +27,19 @@ export type BdcRoundResult = {
   }[];
 };
 
-// No fabricated entrants, pairings or results before the draw.
-export const BDC_RESULTS: BdcRoundResult[] = [];
+export const BDC_RESULTS: BdcRoundResult[] = [{
+  round: 1, teamCount: 8,
+  teams: [
+    { id: "meYa", place: 1, poolWins: 4, players: [{ id: "super-mario-tdc", name: "Super Mario (TDC)" }, { id: "pierre-tdc", name: "Pierre (TDC)" }] },
+    { id: "kCe9", place: 2, poolWins: 4, players: [{ id: "abrousse-tdc", name: "Abrousse (TDC)" }, { id: "alexandre-pdc", name: "Alexandre (PDC)" }] },
+    { id: "bGDE", place: 3, poolWins: 4, players: [{ id: "vincent-tdc", name: "Vincent (TDC)" }, { id: "guillaume-tdc", name: "Guillaume (TDC)" }] },
+    { id: "wAHs", place: 4, poolWins: 5, players: [{ id: "kevin-tdc", name: "Kevin (TDC)" }, { id: "fabien-pdc", name: "Fabien (PDC)" }] },
+    { id: "Y9AH", place: 5, poolWins: 4, players: [{ id: "gary-tdc", name: "Gary (TDC)" }, { id: "yoann-kaz", name: "Yoann (KAZ)" }] },
+    { id: "r2c7", place: 6, poolWins: 3, players: [{ id: "beverley-tdc", name: "Beverley (TDC)" }, { id: "fran-pdc", name: "Fran (PDC)" }] },
+    { id: "8Htt", place: 7, poolWins: 2, players: [{ id: "benjamin-tdc", name: "Benjamin (TDC)" }, { id: "julien-kaz", name: "Julien (KAZ)" }] },
+    { id: "iTep", place: 8, poolWins: 2, players: [{ id: "nicolas-pdc", name: "Nicolas (PDC)" }, { id: "jeff-tdc", name: "Jeff (TDC)" }] },
+  ],
+}];
 
 export function bdcPoints(place: number, poolWins: number, teamCount: 8 | 12): number {
   if (![8, 12].includes(teamCount) || !Number.isInteger(place) || place < 1 || place > teamCount || !Number.isInteger(poolWins) || poolWins < 0) {

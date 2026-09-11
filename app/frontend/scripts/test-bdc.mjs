@@ -4,7 +4,7 @@ import ts from 'typescript';
 
 const source = readFileSync(new URL('../lib/bdc.ts', import.meta.url), 'utf8');
 const { outputText } = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2020 } });
-const { bdcPoints, bdcStandings, bdcCalendarRound } = await import(`data:text/javascript;base64,${Buffer.from(outputText).toString('base64')}`);
+const { BDC_RESULTS, bdcPoints, bdcStandings, bdcCalendarRound } = await import(`data:text/javascript;base64,${Buffer.from(outputText).toString('base64')}`);
 assert.equal(bdcPoints(1, 5, 8), 11, 'Pool bonus capped at three');
 assert.equal(bdcPoints(8, 0, 8), 2);
 assert.equal(bdcPoints(12, 1, 12), 2);
@@ -31,4 +31,22 @@ assert.throws(() => bdcStandings([round(7, [a, b])]), /Manche/);
 assert.equal(bdcCalendarRound('Blind Draw Championship by TDC - Manche 1', '2026-09-11').number, 1);
 assert.equal(bdcCalendarRound('Autre tournoi', '2026-09-11'), undefined);
 assert.deepEqual(bdcStandings([]), []);
+const finalRows = bdcStandings(BDC_RESULTS);
+assert.equal(finalRows.length, 16);
+assert.ok(finalRows.every(row => row.participations === 1 && !row.eligible && !row.pending));
+assert.equal(finalRows.find(row => row.id === 'nicolas-pdc').total, 4);
+assert.equal(finalRows.find(row => row.id === 'jeff-tdc').total, 4);
+assert.deepEqual(BDC_RESULTS[0].teams.map(team => bdcPoints(team.place, team.poolWins, 8)), [11, 9, 8, 7, 5, 5, 4, 4]);
+const snapshot = JSON.parse(readFileSync(new URL('../lib/bdc-round-one.json', import.meta.url), 'utf8'));
+const matches = JSON.parse(readFileSync(new URL('../lib/bdc-round-one-matches.json', import.meta.url), 'utf8'));
+assert.equal(matches.length, 32);
+assert.equal(new Set(matches.map(match => match.tmid)).size, 32);
+assert.equal(matches.filter(match => match.tmid.includes('_rr_')).length, 28);
+for (const team of BDC_RESULTS[0].teams) {
+  const wins = Object.entries(snapshot.pool[team.id]).filter(([other, result]) => result.r > snapshot.pool[other][team.id].r).length;
+  assert.equal(wins, team.poolWins, 'Use corrected bracket wins, not incomplete recorded legs');
+}
+const page = readFileSync(new URL('../components/BdcRoundOne.tsx', import.meta.url), 'utf8');
+assert.match(page, /Statistiques partielles — incident Nakka/);
+assert.match(page, /pool\[match.p1tpid\]\[match.p2tpid\].r/);
 console.log('BDC checks passed: individual points, partner changes, participation, bonus, ties and invalid inputs.');

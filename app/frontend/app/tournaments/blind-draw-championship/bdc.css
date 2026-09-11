@@ -37,5 +37,10 @@
 .bdc-bonus>strong { display:block; font-size:2rem; margin:.5rem 0; color:#9aeedc; }
 .bdc-page a:focus-visible,.bdc-card a:focus-visible,.bdc-table-scroll:focus-visible { outline:3px solid #f5cf8e; outline-offset:4px; }
 .bdc-pairings { padding-left:1rem; line-height:1.7; color:#d5e9f4; font-size:.95rem; }
+.bdc-section h3 { color:#f4f9ff; margin:1.75rem 0 1rem; font-size:1.15rem; }
+.bdc-match-details { margin-top:1.5rem; color:#d5e9f4; }
+.bdc-match-details summary { cursor:pointer; padding:1rem 0; font-size:1rem; font-weight:700; }
+.bdc-match-details a { color:#88efdb; }
+.bdc-match-details summary:focus-visible { outline:3px solid #f5cf8e; outline-offset:4px; }
 @media(max-width:1100px) { .bdc-rounds { grid-template-columns:repeat(2,minmax(0,1fr)); } .bdc-card-mark { display:none; } }
 @media(max-width:650px) { .bdc-card { padding:1.25rem; } .bdc-section { padding:1rem; } .bdc-rounds,.bdc-scoring { grid-template-columns:minmax(0,1fr); } .bdc-heading { align-items:flex-start; } .bdc-button { display:block; text-align:center; } }
