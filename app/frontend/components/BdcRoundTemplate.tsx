@@ -34,6 +34,54 @@ function BracketMatch({ match }: { match: RoundMatch }) {
   </div>;
 }
 
+function BdcRoundRobinMatrix({
+  matches,
+  standings,
+  entries,
+}: {
+  matches: RoundMatch[];
+  standings: RoundDetails["poolStandings"];
+  entries: RoundSource["entries"];
+}) {
+  const standingByTeam = new Map(standings.map((standing) => [standing.teamId, standing]));
+  const matchFor = (teamId: string, opponentId: string) => matches.find((match) =>
+    (match.teamA.teamId === teamId && match.teamB.teamId === opponentId)
+    || (match.teamA.teamId === opponentId && match.teamB.teamId === teamId),
+  );
+
+  return <article className="round-robin-card bdc-round-robin-card">
+    <div className="round-robin-heading">
+      <div><span>ROUND ROBIN</span><h3>Poule unique · 8 doublettes</h3><p>Score corrigé validé · moyenne 3 darts du duo sous chaque résultat</p></div>
+      <div className="round-robin-badges"><b>8 doublettes</b><b className="complete">28/28 matchs</b></div>
+    </div>
+    <div className="round-robin-scroll" role="region" aria-label="Diagramme Round Robin de la Manche 01" tabIndex={0}>
+      <table className="round-robin-table">
+        <thead><tr><th className="rr-rank-index">#</th><th className="rr-player-name">Doublette</th>{entries.map((entry, index) => <th className="rr-opponent" key={entry.tpid} title={entry.name}>{index + 1}</th>)}<th>MJ</th><th>V</th><th>D</th><th>+/-</th><th>Pts</th><th>Rang</th></tr></thead>
+        <tbody>{entries.map((entry, rowIndex) => {
+          const standing = standingByTeam.get(entry.tpid);
+          return <tr key={entry.tpid}>
+            <td className="rr-rank-index">{rowIndex + 1}</td>
+            <th className="rr-player-name" scope="row"><strong>{entry.name}</strong><small>{fmt(standing?.average3 ?? null)}</small></th>
+            {entries.map((opponent) => {
+              if (opponent.tpid === entry.tpid) return <td aria-label={`${entry.name}, même doublette`} className="rr-self" key={`${entry.tpid}-self`} />;
+              const match = matchFor(entry.tpid, opponent.tpid);
+              if (!match) return <td className="rr-result missing" key={`${entry.tpid}-${opponent.tpid}`}><span>—</span></td>;
+              const ownSide = match.teamA.teamId === entry.tpid ? match.teamA : match.teamB;
+              const opponentSide = ownSide === match.teamA ? match.teamB : match.teamA;
+              const won = ownSide.score > opponentSide.score;
+              return <td className={`rr-result ${won ? "won" : "lost"}`} key={`${entry.tpid}-${opponent.tpid}`} title={`${entry.name} contre ${opponent.name}`}><strong>{ownSide.score} – {opponentSide.score}</strong><small>{fmt(ownSide.average3)}</small></td>;
+            })}
+            <td>{standing?.played ?? 0}</td><td>{standing?.wins ?? 0}</td><td>{standing?.losses ?? 0}</td>
+            <td className={(standing?.legsDiff ?? 0) >= 0 ? "rr-positive" : "rr-negative"}>{(standing?.legsDiff ?? 0) > 0 ? "+" : ""}{standing?.legsDiff ?? 0}</td>
+            <td><strong>{standing?.points ?? 0}</strong></td><td><span className={`rr-final-rank rank-${standing?.rank ?? 0}`}>{standing?.rank ?? "—"}</span></td>
+          </tr>;
+        })}</tbody>
+      </table>
+    </div>
+    <footer className="round-robin-legend"><span><i className="rr-legend-win" /> Victoire</span><span><i className="rr-legend-loss" /> Défaite</span><span>Moyenne 3 darts affichée sous le score</span></footer>
+  </article>;
+}
+
 function Contribution({ side }: { side: MatchSide }) {
   if (!side.players) return <p className="bdc-unavailable">{UNAVAILABLE}</p>;
   const total = side.players.reduce((sum, player) => sum + player.score, 0);
@@ -110,7 +158,8 @@ export function BdcRoundTemplate({ details, source }: { details: RoundDetails; s
 
     <section id="m1-poule" className="bdc-report-block">
       <div className="bdc-report-title"><div><span>02</span><h3>Phase de poule · Round Robin</h3></div><small>28 rencontres · scores corrigés validés</small></div>
-      <details className="bdc-data-disclosure" open><summary>Tableau complet des rencontres</summary><div className="bdc-table-scroll" role="region" aria-label="Rencontres du Round Robin" tabIndex={0}><table className="bdc-table bdc-match-table"><thead><tr><th>#</th><th>Doublette A</th><th>Moy. A</th><th>Score</th><th>Doublette B</th><th>Moy. B</th></tr></thead><tbody>
+      <BdcRoundRobinMatrix matches={poolMatches} standings={details.poolStandings} entries={source.entries} />
+      <details className="bdc-data-disclosure"><summary>Afficher la liste chronologique des 28 rencontres</summary><div className="bdc-table-scroll" role="region" aria-label="Rencontres du Round Robin" tabIndex={0}><table className="bdc-table bdc-match-table"><thead><tr><th>#</th><th>Doublette A</th><th>Moy. A</th><th>Score</th><th>Doublette B</th><th>Moy. B</th></tr></thead><tbody>
         {poolMatches.map((match, index) => <tr key={match.id}><td>{index + 1}</td><th scope="row">{match.teamA.name}</th><td>{fmt(match.teamA.average3)}</td><td><strong>{match.teamA.score} – {match.teamB.score}</strong></td><td>{match.teamB.name}</td><td>{fmt(match.teamB.average3)}</td></tr>)}
       </tbody></table></div></details>
       <h4 className="bdc-subtitle">Classement final de la poule</h4><div className="bdc-table-scroll" role="region" aria-label="Classement final de la poule" tabIndex={0}><table className="bdc-table"><thead><tr><th>Rang</th><th>Doublette</th><th>J</th><th>V</th><th>D</th><th>Diff. sets</th><th>Legs</th><th>Diff. legs</th><th>Pts</th><th>Moy. 3 darts</th></tr></thead><tbody>

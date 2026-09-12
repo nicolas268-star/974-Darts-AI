@@ -67,6 +67,7 @@
 .bdc-podium .is-champion { min-height:6.5rem; border-color:#d8a949; background:linear-gradient(135deg,#233746,#172c3c); box-shadow:0 0 0 1px rgb(216 169 73 / 16%); }
 .bdc-podium .is-champion>span { background:#d8a949; color:#142435; }
 .bdc-data-disclosure { color:#d5e9f4; }
+.bdc-round-robin-card { margin-bottom:1rem; }
 .bdc-data-disclosure>summary { cursor:pointer; margin-bottom:.8rem; padding:.75rem 0; color:#9ceedd; font-weight:800; }
 .bdc-subtitle { margin:1.5rem 0 .8rem; color:#f4f9ff; font-size:1rem; }
 .bdc-match-table td:nth-child(4),.bdc-match-table th:nth-child(4) { text-align:center; }

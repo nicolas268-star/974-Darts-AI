@@ -57,6 +57,12 @@ assert.equal(rawDetail.matches.filter(match => match.dataStatus === 'unavailable
 assert.equal(rawDetail.poolStandings.length, 8);
 assert.equal(rawDetail.poolStandings[0].teamId, 'wAHs');
 assert.equal(rawDetail.poolStandings[7].teamId, 'iTep');
+const poolMatches = rawDetail.matches.filter(match => match.phase === 'Poule');
+assert.equal(poolMatches.length, 28);
+assert.equal(new Set(poolMatches.map(match => [match.teamA.teamId, match.teamB.teamId].sort().join(':'))).size, 28, 'Every Round Robin pairing appears once');
+for (const standing of rawDetail.poolStandings) {
+  assert.equal(poolMatches.filter(match => match.teamA.teamId === standing.teamId || match.teamB.teamId === standing.teamId).length, 7);
+}
 for (const match of rawDetail.matches.filter(match => match.dataStatus !== 'unavailable-individual')) {
   for (const side of [match.teamA, match.teamB]) {
     assert.equal(side.players.reduce((sum, player) => sum + player.darts, 0), side.recordedDarts, `Player darts match duo darts in ${match.id}`);
@@ -87,6 +93,9 @@ for (const global of rawDetail.playerStats) {
 }
 const page = readFileSync(new URL('../components/BdcRoundTemplate.tsx', import.meta.url), 'utf8');
 assert.match(page, /Donnée indisponible – incident Nakka/);
+assert.match(page, /BdcRoundRobinMatrix/);
+assert.match(page, /round-robin-table/);
+assert.match(page, /liste chronologique des 28 rencontres/);
 assert.doesNotMatch(page, /n01darts\.com|Feuille Nakka/);
 const profileSource = readFileSync(new URL('../lib/bdc-player-profile.ts', import.meta.url), 'utf8')
   .replace('import { bdcPoints, type BdcRoundResult } from "@/lib/bdc";', `const bdcPoints = ${bdcPoints.toString()}; type BdcRoundResult = any;`);
