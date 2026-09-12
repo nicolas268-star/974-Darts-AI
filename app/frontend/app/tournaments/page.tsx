@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Sidebar } from "@/components/Sidebar";
+import { BdcCard } from "@/components/BdcCard";
 import type { CompetitionCatalog } from "@/lib/types/sprint14";
 import "../competitions/competition-hub.css";
 
@@ -48,6 +49,8 @@ export default async function TournamentsPage() {
             <span>Tournois suivis</span>
           </div>
         </header>
+
+        <BdcCard />
 
         {!tournaments && (
           <div className="competition-notice danger">

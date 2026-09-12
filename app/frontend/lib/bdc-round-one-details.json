@@ -1,0 +1,2686 @@
+{
+  "round": 1,
+  "status": "Terminée",
+  "quality": {
+    "individualMatches": 16,
+    "totalMatches": 32
+  },
+  "poolStandings": [
+    {
+      "rank": 1,
+      "teamId": "wAHs",
+      "name": "Kevin (TDC) / Fabien (PDC)",
+      "played": 7,
+      "wins": 5,
+      "losses": 2,
+      "setsDiff": 3,
+      "legsFor": 12,
+      "legsAgainst": 8,
+      "legsDiff": 4,
+      "points": 17,
+      "average3": 46.28
+    },
+    {
+      "rank": 2,
+      "teamId": "bGDE",
+      "name": "Vincent (TDC) / Guillaume (TDC)",
+      "played": 7,
+      "wins": 4,
+      "losses": 3,
+      "setsDiff": 1,
+      "legsFor": 11,
+      "legsAgainst": 9,
+      "legsDiff": 2,
+      "points": 15,
+      "average3": 43.09
+    },
+    {
+      "rank": 3,
+      "teamId": "meYa",
+      "name": "Super Mario (TDC) / Pierre (TDC)",
+      "played": 7,
+      "wins": 4,
+      "losses": 3,
+      "setsDiff": 1,
+      "legsFor": 10,
+      "legsAgainst": 7,
+      "legsDiff": 3,
+      "points": 14,
+      "average3": 46.52
+    },
+    {
+      "rank": 4,
+      "teamId": "kCe9",
+      "name": "Abrousse (TDC) / Alexandre (PDC)",
+      "played": 7,
+      "wins": 4,
+      "losses": 3,
+      "setsDiff": 1,
+      "legsFor": 10,
+      "legsAgainst": 8,
+      "legsDiff": 2,
+      "points": 14,
+      "average3": 50.98
+    },
+    {
+      "rank": 5,
+      "teamId": "Y9AH",
+      "name": "Gary (TDC) / Yoann (KAZ)",
+      "played": 7,
+      "wins": 4,
+      "losses": 3,
+      "setsDiff": 1,
+      "legsFor": 10,
+      "legsAgainst": 9,
+      "legsDiff": 1,
+      "points": 14,
+      "average3": 48.79
+    },
+    {
+      "rank": 6,
+      "teamId": "r2c7",
+      "name": "Beverley (TDC) / Fran (PDC)",
+      "played": 7,
+      "wins": 3,
+      "losses": 4,
+      "setsDiff": -1,
+      "legsFor": 7,
+      "legsAgainst": 8,
+      "legsDiff": -1,
+      "points": 10,
+      "average3": 45.66
+    },
+    {
+      "rank": 7,
+      "teamId": "8Htt",
+      "name": "Benjamin (TDC) / Julien (KAZ)",
+      "played": 7,
+      "wins": 2,
+      "losses": 5,
+      "setsDiff": -3,
+      "legsFor": 8,
+      "legsAgainst": 12,
+      "legsDiff": -4,
+      "points": 10,
+      "average3": 40.82
+    },
+    {
+      "rank": 8,
+      "teamId": "iTep",
+      "name": "Nicolas (PDC) / Jeff (TDC)",
+      "played": 7,
+      "wins": 2,
+      "losses": 5,
+      "setsDiff": -3,
+      "legsFor": 5,
+      "legsAgainst": 12,
+      "legsDiff": -7,
+      "points": 7,
+      "average3": 40.16
+    }
+  ],
+  "matches": [
+    {
+      "id": "m1-t_1_kCe9_meYa",
+      "phase": "Finale",
+      "scoreUnit": "sets",
+      "recordedDarts": 226,
+      "dataStatus": "partial-individual",
+      "teamA": {
+        "teamId": "kCe9",
+        "name": "Abrousse (TDC) / Alexandre (PDC)",
+        "score": 0,
+        "average3": 51.53,
+        "recordedDarts": 114,
+        "players": [
+          {
+            "name": "Abrousse (TDC)",
+            "score": 1174,
+            "darts": 60,
+            "first9Score": 841,
+            "first9Darts": 36,
+            "visits100": 2,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [
+              {
+                "leg": 2,
+                "value": 39,
+                "darts": 3
+              }
+            ],
+            "average3": 58.7,
+            "first9": 70.08,
+            "bestFinish": 39
+          },
+          {
+            "name": "Alexandre (PDC)",
+            "score": 784,
+            "darts": 54,
+            "first9Score": 635,
+            "first9Darts": 36,
+            "visits100": 1,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [],
+            "average3": 43.56,
+            "first9": 52.92,
+            "bestFinish": null
+          }
+        ]
+      },
+      "teamB": {
+        "teamId": "meYa",
+        "name": "Super Mario (TDC) / Pierre (TDC)",
+        "score": 1,
+        "average3": 50.89,
+        "recordedDarts": 112,
+        "players": [
+          {
+            "name": "Super Mario (TDC)",
+            "score": 918,
+            "darts": 58,
+            "first9Score": 630,
+            "first9Darts": 36,
+            "visits100": 1,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [
+              {
+                "leg": 3,
+                "value": 40,
+                "darts": 1
+              }
+            ],
+            "average3": 47.48,
+            "first9": 52.5,
+            "bestFinish": 40
+          },
+          {
+            "name": "Pierre (TDC)",
+            "score": 982,
+            "darts": 54,
+            "first9Score": 786,
+            "first9Darts": 36,
+            "visits100": 1,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [
+              {
+                "leg": 1,
+                "value": 8,
+                "darts": 1
+              },
+              {
+                "leg": 4,
+                "value": 40,
+                "darts": 2
+              }
+            ],
+            "average3": 54.56,
+            "first9": 65.5,
+            "bestFinish": 40
+          }
+        ]
+      }
+    },
+    {
+      "id": "m1-t3_0_bGDE_wAHs",
+      "phase": "3e place",
+      "scoreUnit": "sets",
+      "recordedDarts": 183,
+      "dataStatus": "partial-individual",
+      "teamA": {
+        "teamId": "wAHs",
+        "name": "Kevin (TDC) / Fabien (PDC)",
+        "score": 0,
+        "average3": 41.53,
+        "recordedDarts": 90,
+        "players": [
+          {
+            "name": "Kevin (TDC)",
+            "score": 647,
+            "darts": 45,
+            "first9Score": 490,
+            "first9Darts": 27,
+            "visits100": 1,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [],
+            "average3": 43.13,
+            "first9": 54.44,
+            "bestFinish": null
+          },
+          {
+            "name": "Fabien (PDC)",
+            "score": 599,
+            "darts": 45,
+            "first9Score": 393,
+            "first9Darts": 27,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [],
+            "average3": 39.93,
+            "first9": 43.67,
+            "bestFinish": null
+          }
+        ]
+      },
+      "teamB": {
+        "teamId": "bGDE",
+        "name": "Vincent (TDC) / Guillaume (TDC)",
+        "score": 1,
+        "average3": 48.48,
+        "recordedDarts": 93,
+        "players": [
+          {
+            "name": "Vincent (TDC)",
+            "score": 826,
+            "darts": 50,
+            "first9Score": 572,
+            "first9Darts": 27,
+            "visits100": 0,
+            "visits140": 1,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [
+              {
+                "leg": 1,
+                "value": 8,
+                "darts": 3
+              },
+              {
+                "leg": 3,
+                "value": 40,
+                "darts": 2
+              }
+            ],
+            "average3": 49.56,
+            "first9": 63.56,
+            "bestFinish": 40
+          },
+          {
+            "name": "Guillaume (TDC)",
+            "score": 677,
+            "darts": 43,
+            "first9Score": 516,
+            "first9Darts": 27,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [
+              {
+                "leg": 2,
+                "value": 40,
+                "darts": 1
+              }
+            ],
+            "average3": 47.23,
+            "first9": 57.33,
+            "bestFinish": 40
+          }
+        ]
+      }
+    },
+    {
+      "id": "m1-t_0_bGDE_meYa",
+      "phase": "Demi-finale",
+      "scoreUnit": "sets",
+      "recordedDarts": 250,
+      "dataStatus": "partial-individual",
+      "teamA": {
+        "teamId": "bGDE",
+        "name": "Vincent (TDC) / Guillaume (TDC)",
+        "score": 0,
+        "average3": 45.02,
+        "recordedDarts": 124,
+        "players": [
+          {
+            "name": "Vincent (TDC)",
+            "score": 1148,
+            "darts": 64,
+            "first9Score": 721,
+            "first9Darts": 36,
+            "visits100": 1,
+            "visits140": 1,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [
+              {
+                "leg": 3,
+                "value": 4,
+                "darts": 1
+              }
+            ],
+            "average3": 53.81,
+            "first9": 60.08,
+            "bestFinish": 4
+          },
+          {
+            "name": "Guillaume (TDC)",
+            "score": 713,
+            "darts": 60,
+            "first9Score": 467,
+            "first9Darts": 36,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [],
+            "average3": 35.65,
+            "first9": 38.92,
+            "bestFinish": null
+          }
+        ]
+      },
+      "teamB": {
+        "teamId": "meYa",
+        "name": "Super Mario (TDC) / Pierre (TDC)",
+        "score": 1,
+        "average3": 47.67,
+        "recordedDarts": 126,
+        "players": [
+          {
+            "name": "Super Mario (TDC)",
+            "score": 968,
+            "darts": 65,
+            "first9Score": 699,
+            "first9Darts": 36,
+            "visits100": 1,
+            "visits140": 1,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [
+              {
+                "leg": 2,
+                "value": 2,
+                "darts": 2
+              }
+            ],
+            "average3": 44.68,
+            "first9": 58.25,
+            "bestFinish": 2
+          },
+          {
+            "name": "Pierre (TDC)",
+            "score": 1034,
+            "darts": 61,
+            "first9Score": 711,
+            "first9Darts": 36,
+            "visits100": 2,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [
+              {
+                "leg": 1,
+                "value": 112,
+                "darts": 3
+              },
+              {
+                "leg": 4,
+                "value": 16,
+                "darts": 1
+              }
+            ],
+            "average3": 50.85,
+            "first9": 59.25,
+            "bestFinish": 112
+          }
+        ]
+      }
+    },
+    {
+      "id": "m1-t_0_kCe9_wAHs",
+      "phase": "Demi-finale",
+      "scoreUnit": "sets",
+      "recordedDarts": 175,
+      "dataStatus": "partial-individual",
+      "teamA": {
+        "teamId": "wAHs",
+        "name": "Kevin (TDC) / Fabien (PDC)",
+        "score": 0,
+        "average3": 44.03,
+        "recordedDarts": 87,
+        "players": [
+          {
+            "name": "Kevin (TDC)",
+            "score": 792,
+            "darts": 45,
+            "first9Score": 475,
+            "first9Darts": 27,
+            "visits100": 0,
+            "visits140": 1,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [],
+            "average3": 52.8,
+            "first9": 52.78,
+            "bestFinish": null
+          },
+          {
+            "name": "Fabien (PDC)",
+            "score": 485,
+            "darts": 42,
+            "first9Score": 328,
+            "first9Darts": 27,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [],
+            "average3": 34.64,
+            "first9": 36.44,
+            "bestFinish": null
+          }
+        ]
+      },
+      "teamB": {
+        "teamId": "kCe9",
+        "name": "Abrousse (TDC) / Alexandre (PDC)",
+        "score": 1,
+        "average3": 51.24,
+        "recordedDarts": 88,
+        "players": [
+          {
+            "name": "Abrousse (TDC)",
+            "score": 990,
+            "darts": 46,
+            "first9Score": 700,
+            "first9Darts": 27,
+            "visits100": 2,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [
+              {
+                "leg": 1,
+                "value": 2,
+                "darts": 1
+              },
+              {
+                "leg": 2,
+                "value": 4,
+                "darts": 1
+              },
+              {
+                "leg": 3,
+                "value": 17,
+                "darts": 2
+              }
+            ],
+            "average3": 64.57,
+            "first9": 77.78,
+            "bestFinish": 17
+          },
+          {
+            "name": "Alexandre (PDC)",
+            "score": 513,
+            "darts": 42,
+            "first9Score": 411,
+            "first9Darts": 27,
+            "visits100": 1,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [],
+            "average3": 36.64,
+            "first9": 45.67,
+            "bestFinish": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "m1-rr_0_r2c7_wAHs",
+      "phase": "Poule",
+      "scoreUnit": "legs",
+      "recordedDarts": 120,
+      "dataStatus": "unavailable-individual",
+      "teamA": {
+        "teamId": "r2c7",
+        "name": "Beverley (TDC) / Fran (PDC)",
+        "score": 0,
+        "average3": 49.2,
+        "recordedDarts": 60,
+        "players": null
+      },
+      "teamB": {
+        "teamId": "wAHs",
+        "name": "Kevin (TDC) / Fabien (PDC)",
+        "score": 2,
+        "average3": 50.1,
+        "recordedDarts": 60,
+        "players": null
+      }
+    },
+    {
+      "id": "m1-rr_0_bGDE_meYa",
+      "phase": "Poule",
+      "scoreUnit": "legs",
+      "recordedDarts": 244,
+      "dataStatus": "unavailable-individual",
+      "teamA": {
+        "teamId": "meYa",
+        "name": "Super Mario (TDC) / Pierre (TDC)",
+        "score": 1,
+        "average3": 36.51,
+        "recordedDarts": 123,
+        "players": null
+      },
+      "teamB": {
+        "teamId": "bGDE",
+        "name": "Vincent (TDC) / Guillaume (TDC)",
+        "score": 2,
+        "average3": 34.91,
+        "recordedDarts": 121,
+        "players": null
+      }
+    },
+    {
+      "id": "m1-rr_0_Y9AH_kCe9",
+      "phase": "Poule",
+      "scoreUnit": "legs",
+      "recordedDarts": 180,
+      "dataStatus": "unavailable-individual",
+      "teamA": {
+        "teamId": "kCe9",
+        "name": "Abrousse (TDC) / Alexandre (PDC)",
+        "score": 2,
+        "average3": 47.14,
+        "recordedDarts": 91,
+        "players": null
+      },
+      "teamB": {
+        "teamId": "Y9AH",
+        "name": "Gary (TDC) / Yoann (KAZ)",
+        "score": 1,
+        "average3": 48.17,
+        "recordedDarts": 89,
+        "players": null
+      }
+    },
+    {
+      "id": "m1-rr_0_8Htt_iTep",
+      "phase": "Poule",
+      "scoreUnit": "legs",
+      "recordedDarts": 228,
+      "dataStatus": "unavailable-individual",
+      "teamA": {
+        "teamId": "iTep",
+        "name": "Nicolas (PDC) / Jeff (TDC)",
+        "score": 2,
+        "average3": 38.82,
+        "recordedDarts": 116,
+        "players": null
+      },
+      "teamB": {
+        "teamId": "8Htt",
+        "name": "Benjamin (TDC) / Julien (KAZ)",
+        "score": 1,
+        "average3": 34.71,
+        "recordedDarts": 112,
+        "players": null
+      }
+    },
+    {
+      "id": "m1-rr_0_bGDE_wAHs",
+      "phase": "Poule",
+      "scoreUnit": "legs",
+      "recordedDarts": 170,
+      "dataStatus": "unavailable-individual",
+      "teamA": {
+        "teamId": "bGDE",
+        "name": "Vincent (TDC) / Guillaume (TDC)",
+        "score": 1,
+        "average3": 50.33,
+        "recordedDarts": 85,
+        "players": null
+      },
+      "teamB": {
+        "teamId": "wAHs",
+        "name": "Kevin (TDC) / Fabien (PDC)",
+        "score": 2,
+        "average3": 49.38,
+        "recordedDarts": 85,
+        "players": null
+      }
+    },
+    {
+      "id": "m1-rr_0_kCe9_meYa",
+      "phase": "Poule",
+      "scoreUnit": "legs",
+      "recordedDarts": 96,
+      "dataStatus": "unavailable-individual",
+      "teamA": {
+        "teamId": "meYa",
+        "name": "Super Mario (TDC) / Pierre (TDC)",
+        "score": 0,
+        "average3": 52.69,
+        "recordedDarts": 48,
+        "players": null
+      },
+      "teamB": {
+        "teamId": "kCe9",
+        "name": "Abrousse (TDC) / Alexandre (PDC)",
+        "score": 2,
+        "average3": 62.63,
+        "recordedDarts": 48,
+        "players": null
+      }
+    },
+    {
+      "id": "m1-rr_0_8Htt_r2c7",
+      "phase": "Poule",
+      "scoreUnit": "legs",
+      "recordedDarts": 116,
+      "dataStatus": "unavailable-individual",
+      "teamA": {
+        "teamId": "r2c7",
+        "name": "Beverley (TDC) / Fran (PDC)",
+        "score": 2,
+        "average3": 50.95,
+        "recordedDarts": 59,
+        "players": null
+      },
+      "teamB": {
+        "teamId": "8Htt",
+        "name": "Benjamin (TDC) / Julien (KAZ)",
+        "score": 0,
+        "average3": 43.58,
+        "recordedDarts": 57,
+        "players": null
+      }
+    },
+    {
+      "id": "m1-rr_0_Y9AH_iTep",
+      "phase": "Poule",
+      "scoreUnit": "legs",
+      "recordedDarts": 126,
+      "dataStatus": "unavailable-individual",
+      "teamA": {
+        "teamId": "iTep",
+        "name": "Nicolas (PDC) / Jeff (TDC)",
+        "score": 0,
+        "average3": 46.24,
+        "recordedDarts": 63,
+        "players": null
+      },
+      "teamB": {
+        "teamId": "Y9AH",
+        "name": "Gary (TDC) / Yoann (KAZ)",
+        "score": 2,
+        "average3": 47.71,
+        "recordedDarts": 63,
+        "players": null
+      }
+    },
+    {
+      "id": "m1-rr_0_kCe9_wAHs",
+      "phase": "Poule",
+      "scoreUnit": "legs",
+      "recordedDarts": 182,
+      "dataStatus": "unavailable-individual",
+      "teamA": {
+        "teamId": "kCe9",
+        "name": "Abrousse (TDC) / Alexandre (PDC)",
+        "score": 1,
+        "average3": 48.77,
+        "recordedDarts": 90,
+        "players": null
+      },
+      "teamB": {
+        "teamId": "wAHs",
+        "name": "Kevin (TDC) / Fabien (PDC)",
+        "score": 2,
+        "average3": 44.02,
+        "recordedDarts": 92,
+        "players": null
+      }
+    },
+    {
+      "id": "m1-rr_0_bGDE_r2c7",
+      "phase": "Poule",
+      "scoreUnit": "legs",
+      "recordedDarts": 174,
+      "dataStatus": "unavailable-individual",
+      "teamA": {
+        "teamId": "r2c7",
+        "name": "Beverley (TDC) / Fran (PDC)",
+        "score": 0,
+        "average3": 32.28,
+        "recordedDarts": 87,
+        "players": null
+      },
+      "teamB": {
+        "teamId": "bGDE",
+        "name": "Vincent (TDC) / Guillaume (TDC)",
+        "score": 2,
+        "average3": 34.55,
+        "recordedDarts": 87,
+        "players": null
+      }
+    },
+    {
+      "id": "m1-rr_0_iTep_meYa",
+      "phase": "Poule",
+      "scoreUnit": "legs",
+      "recordedDarts": 116,
+      "dataStatus": "unavailable-individual",
+      "teamA": {
+        "teamId": "iTep",
+        "name": "Nicolas (PDC) / Jeff (TDC)",
+        "score": 0,
+        "average3": 32.95,
+        "recordedDarts": 57,
+        "players": null
+      },
+      "teamB": {
+        "teamId": "meYa",
+        "name": "Super Mario (TDC) / Pierre (TDC)",
+        "score": 2,
+        "average3": 50.95,
+        "recordedDarts": 59,
+        "players": null
+      }
+    },
+    {
+      "id": "m1-rr_0_8Htt_Y9AH",
+      "phase": "Poule",
+      "scoreUnit": "legs",
+      "recordedDarts": 192,
+      "dataStatus": "unavailable-individual",
+      "teamA": {
+        "teamId": "Y9AH",
+        "name": "Gary (TDC) / Yoann (KAZ)",
+        "score": 2,
+        "average3": 45.49,
+        "recordedDarts": 97,
+        "players": null
+      },
+      "teamB": {
+        "teamId": "8Htt",
+        "name": "Benjamin (TDC) / Julien (KAZ)",
+        "score": 1,
+        "average3": 40.83,
+        "recordedDarts": 95,
+        "players": null
+      }
+    },
+    {
+      "id": "m1-rr_0_8Htt_meYa",
+      "phase": "Poule",
+      "scoreUnit": "legs",
+      "recordedDarts": 181,
+      "dataStatus": "unavailable-individual",
+      "teamA": {
+        "teamId": "meYa",
+        "name": "Super Mario (TDC) / Pierre (TDC)",
+        "score": 2,
+        "average3": 48.43,
+        "recordedDarts": 90,
+        "players": null
+      },
+      "teamB": {
+        "teamId": "8Htt",
+        "name": "Benjamin (TDC) / Julien (KAZ)",
+        "score": 1,
+        "average3": 39.99,
+        "recordedDarts": 91,
+        "players": null
+      }
+    },
+    {
+      "id": "m1-rr_0_bGDE_kCe9",
+      "phase": "Poule",
+      "scoreUnit": "legs",
+      "recordedDarts": 106,
+      "dataStatus": "unavailable-individual",
+      "teamA": {
+        "teamId": "kCe9",
+        "name": "Abrousse (TDC) / Alexandre (PDC)",
+        "score": 2,
+        "average3": 54.33,
+        "recordedDarts": 54,
+        "players": null
+      },
+      "teamB": {
+        "teamId": "bGDE",
+        "name": "Vincent (TDC) / Guillaume (TDC)",
+        "score": 1,
+        "average3": 52.5,
+        "recordedDarts": 52,
+        "players": null
+      }
+    },
+    {
+      "id": "m1-rr_0_iTep_wAHs",
+      "phase": "Poule",
+      "scoreUnit": "legs",
+      "recordedDarts": 136,
+      "dataStatus": "unavailable-individual",
+      "teamA": {
+        "teamId": "iTep",
+        "name": "Nicolas (PDC) / Jeff (TDC)",
+        "score": 2,
+        "average3": 42.66,
+        "recordedDarts": 68,
+        "players": null
+      },
+      "teamB": {
+        "teamId": "wAHs",
+        "name": "Kevin (TDC) / Fabien (PDC)",
+        "score": 1,
+        "average3": 42.22,
+        "recordedDarts": 68,
+        "players": null
+      }
+    },
+    {
+      "id": "m1-rr_0_Y9AH_r2c7",
+      "phase": "Poule",
+      "scoreUnit": "legs",
+      "recordedDarts": 110,
+      "dataStatus": "unavailable-individual",
+      "teamA": {
+        "teamId": "r2c7",
+        "name": "Beverley (TDC) / Fran (PDC)",
+        "score": 1,
+        "average3": 49.42,
+        "recordedDarts": 55,
+        "players": null
+      },
+      "teamB": {
+        "teamId": "Y9AH",
+        "name": "Gary (TDC) / Yoann (KAZ)",
+        "score": 2,
+        "average3": 54.44,
+        "recordedDarts": 55,
+        "players": null
+      }
+    },
+    {
+      "id": "m1-rr_0_Y9AH_meYa",
+      "phase": "Poule",
+      "scoreUnit": "legs",
+      "recordedDarts": 109,
+      "dataStatus": "partial-individual",
+      "teamA": {
+        "teamId": "meYa",
+        "name": "Super Mario (TDC) / Pierre (TDC)",
+        "score": 2,
+        "average3": 54.65,
+        "recordedDarts": 55,
+        "players": [
+          {
+            "name": "Super Mario (TDC)",
+            "score": 640,
+            "darts": 30,
+            "first9Score": 420,
+            "first9Darts": 18,
+            "visits100": 2,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [
+              {
+                "leg": 2,
+                "value": 83,
+                "darts": 3
+              }
+            ],
+            "average3": 64,
+            "first9": 70,
+            "bestFinish": 83
+          },
+          {
+            "name": "Pierre (TDC)",
+            "score": 362,
+            "darts": 25,
+            "first9Score": 264,
+            "first9Darts": 18,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [
+              {
+                "leg": 1,
+                "value": 18,
+                "darts": 1
+              }
+            ],
+            "average3": 43.44,
+            "first9": 44,
+            "bestFinish": 18
+          }
+        ]
+      },
+      "teamB": {
+        "teamId": "Y9AH",
+        "name": "Gary (TDC) / Yoann (KAZ)",
+        "score": 0,
+        "average3": 47.44,
+        "recordedDarts": 54,
+        "players": [
+          {
+            "name": "Gary (TDC)",
+            "score": 370,
+            "darts": 30,
+            "first9Score": 230,
+            "first9Darts": 18,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [],
+            "average3": 37,
+            "first9": 38.33,
+            "bestFinish": null
+          },
+          {
+            "name": "Yoann (KAZ)",
+            "score": 484,
+            "darts": 24,
+            "first9Score": 304,
+            "first9Darts": 18,
+            "visits100": 2,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [],
+            "average3": 60.5,
+            "first9": 50.67,
+            "bestFinish": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "m1-rr_0_kCe9_r2c7",
+      "phase": "Poule",
+      "scoreUnit": "legs",
+      "recordedDarts": 104,
+      "dataStatus": "partial-individual",
+      "teamA": {
+        "teamId": "r2c7",
+        "name": "Beverley (TDC) / Fran (PDC)",
+        "score": 2,
+        "average3": 56.72,
+        "recordedDarts": 53,
+        "players": [
+          {
+            "name": "Beverley (TDC)",
+            "score": 490,
+            "darts": 29,
+            "first9Score": 336,
+            "first9Darts": 18,
+            "visits100": 1,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [
+              {
+                "leg": 1,
+                "value": 54,
+                "darts": 2
+              },
+              {
+                "leg": 2,
+                "value": 50,
+                "darts": 3
+              }
+            ],
+            "average3": 50.69,
+            "first9": 56,
+            "bestFinish": 54
+          },
+          {
+            "name": "Fran (PDC)",
+            "score": 512,
+            "darts": 24,
+            "first9Score": 337,
+            "first9Darts": 18,
+            "visits100": 1,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [],
+            "average3": 64,
+            "first9": 56.17,
+            "bestFinish": null
+          }
+        ]
+      },
+      "teamB": {
+        "teamId": "kCe9",
+        "name": "Abrousse (TDC) / Alexandre (PDC)",
+        "score": 0,
+        "average3": 53.65,
+        "recordedDarts": 51,
+        "players": [
+          {
+            "name": "Abrousse (TDC)",
+            "score": 625,
+            "darts": 27,
+            "first9Score": 413,
+            "first9Darts": 18,
+            "visits100": 0,
+            "visits140": 1,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [],
+            "average3": 69.44,
+            "first9": 68.83,
+            "bestFinish": null
+          },
+          {
+            "name": "Alexandre (PDC)",
+            "score": 287,
+            "darts": 24,
+            "first9Score": 175,
+            "first9Darts": 18,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [],
+            "average3": 35.88,
+            "first9": 29.17,
+            "bestFinish": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "m1-rr_0_8Htt_wAHs",
+      "phase": "Poule",
+      "scoreUnit": "legs",
+      "recordedDarts": 238,
+      "dataStatus": "partial-individual",
+      "teamA": {
+        "teamId": "8Htt",
+        "name": "Benjamin (TDC) / Julien (KAZ)",
+        "score": 2,
+        "average3": 37.48,
+        "recordedDarts": 120,
+        "players": [
+          {
+            "name": "Benjamin (TDC)",
+            "score": 860,
+            "darts": 61,
+            "first9Score": 447,
+            "first9Darts": 27,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [
+              {
+                "leg": 2,
+                "value": 12,
+                "darts": 1
+              }
+            ],
+            "average3": 42.3,
+            "first9": 49.67,
+            "bestFinish": 12
+          },
+          {
+            "name": "Julien (KAZ)",
+            "score": 639,
+            "darts": 59,
+            "first9Score": 403,
+            "first9Darts": 27,
+            "visits100": 1,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [
+              {
+                "leg": 3,
+                "value": 8,
+                "darts": 2
+              }
+            ],
+            "average3": 32.49,
+            "first9": 44.78,
+            "bestFinish": 8
+          }
+        ]
+      },
+      "teamB": {
+        "teamId": "wAHs",
+        "name": "Kevin (TDC) / Fabien (PDC)",
+        "score": 1,
+        "average3": 37.47,
+        "recordedDarts": 118,
+        "players": [
+          {
+            "name": "Kevin (TDC)",
+            "score": 751,
+            "darts": 63,
+            "first9Score": 475,
+            "first9Darts": 27,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [],
+            "average3": 35.76,
+            "first9": 52.78,
+            "bestFinish": null
+          },
+          {
+            "name": "Fabien (PDC)",
+            "score": 723,
+            "darts": 55,
+            "first9Score": 524,
+            "first9Darts": 27,
+            "visits100": 2,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [
+              {
+                "leg": 1,
+                "value": 2,
+                "darts": 1
+              }
+            ],
+            "average3": 39.44,
+            "first9": 58.22,
+            "bestFinish": 2
+          }
+        ]
+      }
+    },
+    {
+      "id": "m1-rr_0_bGDE_iTep",
+      "phase": "Poule",
+      "scoreUnit": "legs",
+      "recordedDarts": 199,
+      "dataStatus": "partial-individual",
+      "teamA": {
+        "teamId": "iTep",
+        "name": "Nicolas (PDC) / Jeff (TDC)",
+        "score": 1,
+        "average3": 44.52,
+        "recordedDarts": 99,
+        "players": [
+          {
+            "name": "Nicolas (PDC)",
+            "score": 792,
+            "darts": 51,
+            "first9Score": 497,
+            "first9Darts": 27,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [],
+            "average3": 46.59,
+            "first9": 55.22,
+            "bestFinish": null
+          },
+          {
+            "name": "Jeff (TDC)",
+            "score": 677,
+            "darts": 48,
+            "first9Score": 381,
+            "first9Darts": 27,
+            "visits100": 1,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [
+              {
+                "leg": 1,
+                "value": 40,
+                "darts": 3
+              }
+            ],
+            "average3": 42.31,
+            "first9": 42.33,
+            "bestFinish": 40
+          }
+        ]
+      },
+      "teamB": {
+        "teamId": "bGDE",
+        "name": "Vincent (TDC) / Guillaume (TDC)",
+        "score": 2,
+        "average3": 44.91,
+        "recordedDarts": 100,
+        "players": [
+          {
+            "name": "Vincent (TDC)",
+            "score": 903,
+            "darts": 52,
+            "first9Score": 533,
+            "first9Darts": 27,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [
+              {
+                "leg": 2,
+                "value": 8,
+                "darts": 1
+              },
+              {
+                "leg": 3,
+                "value": 96,
+                "darts": 3
+              }
+            ],
+            "average3": 52.1,
+            "first9": 59.22,
+            "bestFinish": 96
+          },
+          {
+            "name": "Guillaume (TDC)",
+            "score": 594,
+            "darts": 48,
+            "first9Score": 407,
+            "first9Darts": 27,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [],
+            "average3": 37.13,
+            "first9": 45.22,
+            "bestFinish": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "m1-rr_0_Y9AH_wAHs",
+      "phase": "Poule",
+      "scoreUnit": "legs",
+      "recordedDarts": 163,
+      "dataStatus": "partial-individual",
+      "teamA": {
+        "teamId": "Y9AH",
+        "name": "Gary (TDC) / Yoann (KAZ)",
+        "score": 1,
+        "average3": 48.77,
+        "recordedDarts": 82,
+        "players": [
+          {
+            "name": "Gary (TDC)",
+            "score": 669,
+            "darts": 45,
+            "first9Score": 514,
+            "first9Darts": 27,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [],
+            "average3": 44.6,
+            "first9": 57.11,
+            "bestFinish": null
+          },
+          {
+            "name": "Yoann (KAZ)",
+            "score": 664,
+            "darts": 37,
+            "first9Score": 495,
+            "first9Darts": 27,
+            "visits100": 1,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [
+              {
+                "leg": 1,
+                "value": 2,
+                "darts": 1
+              }
+            ],
+            "average3": 53.84,
+            "first9": 55,
+            "bestFinish": 2
+          }
+        ]
+      },
+      "teamB": {
+        "teamId": "wAHs",
+        "name": "Kevin (TDC) / Fabien (PDC)",
+        "score": 2,
+        "average3": 54.93,
+        "recordedDarts": 81,
+        "players": [
+          {
+            "name": "Kevin (TDC)",
+            "score": 889,
+            "darts": 43,
+            "first9Score": 670,
+            "first9Darts": 27,
+            "visits100": 1,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 1,
+            "finishes": [
+              {
+                "leg": 3,
+                "value": 16,
+                "darts": 1
+              }
+            ],
+            "average3": 62.02,
+            "first9": 74.44,
+            "bestFinish": 16
+          },
+          {
+            "name": "Fabien (PDC)",
+            "score": 594,
+            "darts": 38,
+            "first9Score": 533,
+            "first9Darts": 27,
+            "visits100": 2,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [
+              {
+                "leg": 2,
+                "value": 34,
+                "darts": 2
+              }
+            ],
+            "average3": 46.89,
+            "first9": 59.22,
+            "bestFinish": 34
+          }
+        ]
+      }
+    },
+    {
+      "id": "m1-rr_0_8Htt_bGDE",
+      "phase": "Poule",
+      "scoreUnit": "legs",
+      "recordedDarts": 207,
+      "dataStatus": "partial-individual",
+      "teamA": {
+        "teamId": "bGDE",
+        "name": "Vincent (TDC) / Guillaume (TDC)",
+        "score": 2,
+        "average3": 42.49,
+        "recordedDarts": 104,
+        "players": [
+          {
+            "name": "Vincent (TDC)",
+            "score": 847,
+            "darts": 53,
+            "first9Score": 535,
+            "first9Darts": 27,
+            "visits100": 3,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [
+              {
+                "leg": 3,
+                "value": 2,
+                "darts": 2
+              }
+            ],
+            "average3": 47.94,
+            "first9": 59.44,
+            "bestFinish": 2
+          },
+          {
+            "name": "Guillaume (TDC)",
+            "score": 626,
+            "darts": 51,
+            "first9Score": 448,
+            "first9Darts": 27,
+            "visits100": 1,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [
+              {
+                "leg": 2,
+                "value": 38,
+                "darts": 3
+              }
+            ],
+            "average3": 36.82,
+            "first9": 49.78,
+            "bestFinish": 38
+          }
+        ]
+      },
+      "teamB": {
+        "teamId": "8Htt",
+        "name": "Benjamin (TDC) / Julien (KAZ)",
+        "score": 1,
+        "average3": 40.28,
+        "recordedDarts": 103,
+        "players": [
+          {
+            "name": "Benjamin (TDC)",
+            "score": 771,
+            "darts": 55,
+            "first9Score": 428,
+            "first9Darts": 27,
+            "visits100": 1,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [
+              {
+                "leg": 1,
+                "value": 32,
+                "darts": 1
+              }
+            ],
+            "average3": 42.05,
+            "first9": 47.56,
+            "bestFinish": 32
+          },
+          {
+            "name": "Julien (KAZ)",
+            "score": 612,
+            "darts": 48,
+            "first9Score": 374,
+            "first9Darts": 27,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [],
+            "average3": 38.25,
+            "first9": 41.56,
+            "bestFinish": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "m1-rr_0_iTep_kCe9",
+      "phase": "Poule",
+      "scoreUnit": "legs",
+      "recordedDarts": 129,
+      "dataStatus": "partial-individual",
+      "teamA": {
+        "teamId": "iTep",
+        "name": "Nicolas (PDC) / Jeff (TDC)",
+        "score": 0,
+        "average3": 36.38,
+        "recordedDarts": 63,
+        "players": [
+          {
+            "name": "Nicolas (PDC)",
+            "score": 400,
+            "darts": 33,
+            "first9Score": 174,
+            "first9Darts": 18,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [],
+            "average3": 36.36,
+            "first9": 29,
+            "bestFinish": null
+          },
+          {
+            "name": "Jeff (TDC)",
+            "score": 364,
+            "darts": 30,
+            "first9Score": 201,
+            "first9Darts": 18,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [],
+            "average3": 36.4,
+            "first9": 33.5,
+            "bestFinish": null
+          }
+        ]
+      },
+      "teamB": {
+        "teamId": "kCe9",
+        "name": "Abrousse (TDC) / Alexandre (PDC)",
+        "score": 2,
+        "average3": 45.55,
+        "recordedDarts": 66,
+        "players": [
+          {
+            "name": "Abrousse (TDC)",
+            "score": 519,
+            "darts": 33,
+            "first9Score": 182,
+            "first9Darts": 18,
+            "visits100": 1,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [],
+            "average3": 47.18,
+            "first9": 30.33,
+            "bestFinish": null
+          },
+          {
+            "name": "Alexandre (PDC)",
+            "score": 483,
+            "darts": 33,
+            "first9Score": 279,
+            "first9Darts": 18,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [
+              {
+                "leg": 1,
+                "value": 16,
+                "darts": 3
+              },
+              {
+                "leg": 2,
+                "value": 20,
+                "darts": 3
+              }
+            ],
+            "average3": 43.91,
+            "first9": 46.5,
+            "bestFinish": 20
+          }
+        ]
+      }
+    },
+    {
+      "id": "m1-rr_0_meYa_r2c7",
+      "phase": "Poule",
+      "scoreUnit": "legs",
+      "recordedDarts": 116,
+      "dataStatus": "partial-individual",
+      "teamA": {
+        "teamId": "r2c7",
+        "name": "Beverley (TDC) / Fran (PDC)",
+        "score": 0,
+        "average3": 48.68,
+        "recordedDarts": 57,
+        "players": [
+          {
+            "name": "Beverley (TDC)",
+            "score": 513,
+            "darts": 30,
+            "first9Score": 355,
+            "first9Darts": 18,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [],
+            "average3": 51.3,
+            "first9": 59.17,
+            "bestFinish": null
+          },
+          {
+            "name": "Fran (PDC)",
+            "score": 412,
+            "darts": 27,
+            "first9Score": 291,
+            "first9Darts": 18,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [],
+            "average3": 45.78,
+            "first9": 48.5,
+            "bestFinish": null
+          }
+        ]
+      },
+      "teamB": {
+        "teamId": "meYa",
+        "name": "Super Mario (TDC) / Pierre (TDC)",
+        "score": 2,
+        "average3": 50.95,
+        "recordedDarts": 59,
+        "players": [
+          {
+            "name": "Super Mario (TDC)",
+            "score": 571,
+            "darts": 30,
+            "first9Score": 384,
+            "first9Darts": 18,
+            "visits100": 1,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [],
+            "average3": 57.1,
+            "first9": 64,
+            "bestFinish": null
+          },
+          {
+            "name": "Pierre (TDC)",
+            "score": 431,
+            "darts": 29,
+            "first9Score": 289,
+            "first9Darts": 18,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [
+              {
+                "leg": 1,
+                "value": 20,
+                "darts": 2
+              },
+              {
+                "leg": 2,
+                "value": 10,
+                "darts": 3
+              }
+            ],
+            "average3": 44.59,
+            "first9": 48.17,
+            "bestFinish": 20
+          }
+        ]
+      }
+    },
+    {
+      "id": "m1-rr_0_Y9AH_bGDE",
+      "phase": "Poule",
+      "scoreUnit": "legs",
+      "recordedDarts": 170,
+      "dataStatus": "partial-individual",
+      "teamA": {
+        "teamId": "Y9AH",
+        "name": "Gary (TDC) / Yoann (KAZ)",
+        "score": 2,
+        "average3": 51.14,
+        "recordedDarts": 87,
+        "players": [
+          {
+            "name": "Gary (TDC)",
+            "score": 575,
+            "darts": 45,
+            "first9Score": 361,
+            "first9Darts": 27,
+            "visits100": 1,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [
+              {
+                "leg": 3,
+                "value": 35,
+                "darts": 3
+              }
+            ],
+            "average3": 38.33,
+            "first9": 40.11,
+            "bestFinish": 35
+          },
+          {
+            "name": "Yoann (KAZ)",
+            "score": 908,
+            "darts": 42,
+            "first9Score": 605,
+            "first9Darts": 27,
+            "visits100": 1,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [
+              {
+                "leg": 1,
+                "value": 40,
+                "darts": 3
+              }
+            ],
+            "average3": 64.86,
+            "first9": 67.22,
+            "bestFinish": 40
+          }
+        ]
+      },
+      "teamB": {
+        "teamId": "bGDE",
+        "name": "Vincent (TDC) / Guillaume (TDC)",
+        "score": 1,
+        "average3": 49.19,
+        "recordedDarts": 83,
+        "players": [
+          {
+            "name": "Vincent (TDC)",
+            "score": 798,
+            "darts": 44,
+            "first9Score": 559,
+            "first9Darts": 27,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [
+              {
+                "leg": 2,
+                "value": 20,
+                "darts": 2
+              }
+            ],
+            "average3": 54.41,
+            "first9": 62.11,
+            "bestFinish": 20
+          },
+          {
+            "name": "Guillaume (TDC)",
+            "score": 563,
+            "darts": 39,
+            "first9Score": 365,
+            "first9Darts": 27,
+            "visits100": 1,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [],
+            "average3": 43.31,
+            "first9": 40.56,
+            "bestFinish": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "m1-rr_0_meYa_wAHs",
+      "phase": "Poule",
+      "scoreUnit": "legs",
+      "recordedDarts": 175,
+      "dataStatus": "partial-individual",
+      "teamA": {
+        "teamId": "meYa",
+        "name": "Super Mario (TDC) / Pierre (TDC)",
+        "score": 1,
+        "average3": 44.08,
+        "recordedDarts": 85,
+        "players": [
+          {
+            "name": "Super Mario (TDC)",
+            "score": 590,
+            "darts": 45,
+            "first9Score": 351,
+            "first9Darts": 27,
+            "visits100": 1,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [],
+            "average3": 39.33,
+            "first9": 39,
+            "bestFinish": null
+          },
+          {
+            "name": "Pierre (TDC)",
+            "score": 659,
+            "darts": 40,
+            "first9Score": 457,
+            "first9Darts": 27,
+            "visits100": 1,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [
+              {
+                "leg": 1,
+                "value": 10,
+                "darts": 1
+              }
+            ],
+            "average3": 49.43,
+            "first9": 50.78,
+            "bestFinish": 10
+          }
+        ]
+      },
+      "teamB": {
+        "teamId": "wAHs",
+        "name": "Kevin (TDC) / Fabien (PDC)",
+        "score": 2,
+        "average3": 49.97,
+        "recordedDarts": 90,
+        "players": [
+          {
+            "name": "Kevin (TDC)",
+            "score": 780,
+            "darts": 45,
+            "first9Score": 660,
+            "first9Darts": 27,
+            "visits100": 4,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [],
+            "average3": 52,
+            "first9": 73.33,
+            "bestFinish": null
+          },
+          {
+            "name": "Fabien (PDC)",
+            "score": 719,
+            "darts": 45,
+            "first9Score": 543,
+            "first9Darts": 27,
+            "visits100": 1,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [
+              {
+                "leg": 2,
+                "value": 20,
+                "darts": 3
+              },
+              {
+                "leg": 3,
+                "value": 52,
+                "darts": 3
+              }
+            ],
+            "average3": 47.93,
+            "first9": 60.33,
+            "bestFinish": 52
+          }
+        ]
+      }
+    },
+    {
+      "id": "m1-rr_0_iTep_r2c7",
+      "phase": "Poule",
+      "scoreUnit": "legs",
+      "recordedDarts": 145,
+      "dataStatus": "partial-individual",
+      "teamA": {
+        "teamId": "r2c7",
+        "name": "Beverley (TDC) / Fran (PDC)",
+        "score": 2,
+        "average3": 41.18,
+        "recordedDarts": 73,
+        "players": [
+          {
+            "name": "Beverley (TDC)",
+            "score": 459,
+            "darts": 39,
+            "first9Score": 265,
+            "first9Darts": 18,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [
+              {
+                "leg": 2,
+                "value": 8,
+                "darts": 3
+              }
+            ],
+            "average3": 35.31,
+            "first9": 44.17,
+            "bestFinish": 8
+          },
+          {
+            "name": "Fran (PDC)",
+            "score": 543,
+            "darts": 34,
+            "first9Score": 358,
+            "first9Darts": 18,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [
+              {
+                "leg": 1,
+                "value": 6,
+                "darts": 1
+              }
+            ],
+            "average3": 47.91,
+            "first9": 59.67,
+            "bestFinish": 6
+          }
+        ]
+      },
+      "teamB": {
+        "teamId": "iTep",
+        "name": "Nicolas (PDC) / Jeff (TDC)",
+        "score": 0,
+        "average3": 37.67,
+        "recordedDarts": 72,
+        "players": [
+          {
+            "name": "Nicolas (PDC)",
+            "score": 560,
+            "darts": 39,
+            "first9Score": 278,
+            "first9Darts": 18,
+            "visits100": 2,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [],
+            "average3": 43.08,
+            "first9": 46.33,
+            "bestFinish": null
+          },
+          {
+            "name": "Jeff (TDC)",
+            "score": 344,
+            "darts": 33,
+            "first9Score": 180,
+            "first9Darts": 18,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [],
+            "average3": 31.27,
+            "first9": 30,
+            "bestFinish": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "m1-rr_0_8Htt_kCe9",
+      "phase": "Poule",
+      "scoreUnit": "legs",
+      "recordedDarts": 164,
+      "dataStatus": "partial-individual",
+      "teamA": {
+        "teamId": "kCe9",
+        "name": "Abrousse (TDC) / Alexandre (PDC)",
+        "score": 1,
+        "average3": 51.37,
+        "recordedDarts": 81,
+        "players": [
+          {
+            "name": "Abrousse (TDC)",
+            "score": 830,
+            "darts": 45,
+            "first9Score": 613,
+            "first9Darts": 27,
+            "visits100": 1,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 1,
+            "finishes": [
+              {
+                "leg": 2,
+                "value": 10,
+                "darts": 3
+              }
+            ],
+            "average3": 55.33,
+            "first9": 68.11,
+            "bestFinish": 10
+          },
+          {
+            "name": "Alexandre (PDC)",
+            "score": 557,
+            "darts": 36,
+            "first9Score": 456,
+            "first9Darts": 27,
+            "visits100": 1,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [],
+            "average3": 46.42,
+            "first9": 50.67,
+            "bestFinish": null
+          }
+        ]
+      },
+      "teamB": {
+        "teamId": "8Htt",
+        "name": "Benjamin (TDC) / Julien (KAZ)",
+        "score": 2,
+        "average3": 53.6,
+        "recordedDarts": 83,
+        "players": [
+          {
+            "name": "Benjamin (TDC)",
+            "score": 844,
+            "darts": 42,
+            "first9Score": 596,
+            "first9Darts": 27,
+            "visits100": 2,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [],
+            "average3": 60.29,
+            "first9": 66.22,
+            "bestFinish": null
+          },
+          {
+            "name": "Julien (KAZ)",
+            "score": 639,
+            "darts": 41,
+            "first9Score": 476,
+            "first9Darts": 27,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "finishes": [
+              {
+                "leg": 1,
+                "value": 31,
+                "darts": 3
+              },
+              {
+                "leg": 3,
+                "value": 20,
+                "darts": 2
+              }
+            ],
+            "average3": 46.76,
+            "first9": 52.89,
+            "bestFinish": 31
+          }
+        ]
+      }
+    }
+  ],
+  "playerStats": [
+    {
+      "name": "Vincent (TDC)",
+      "matches": 5,
+      "score": 4522,
+      "darts": 263,
+      "first9Score": 2920,
+      "first9Darts": 144,
+      "visits100": 4,
+      "visits140": 2,
+      "visits170": 0,
+      "visits180": 0,
+      "finishes": [
+        {
+          "leg": 1,
+          "value": 8,
+          "darts": 3,
+          "matchId": "m1-t3_0_bGDE_wAHs"
+        },
+        {
+          "leg": 3,
+          "value": 40,
+          "darts": 2,
+          "matchId": "m1-t3_0_bGDE_wAHs"
+        },
+        {
+          "leg": 3,
+          "value": 4,
+          "darts": 1,
+          "matchId": "m1-t_0_bGDE_meYa"
+        },
+        {
+          "leg": 2,
+          "value": 8,
+          "darts": 1,
+          "matchId": "m1-rr_0_bGDE_iTep"
+        },
+        {
+          "leg": 3,
+          "value": 96,
+          "darts": 3,
+          "matchId": "m1-rr_0_bGDE_iTep"
+        },
+        {
+          "leg": 3,
+          "value": 2,
+          "darts": 2,
+          "matchId": "m1-rr_0_8Htt_bGDE"
+        },
+        {
+          "leg": 2,
+          "value": 20,
+          "darts": 2,
+          "matchId": "m1-rr_0_Y9AH_bGDE"
+        }
+      ],
+      "duoScore": 7695,
+      "average3": 51.58,
+      "first9": 60.83,
+      "bestFinish": 96,
+      "contribution": 58.8
+    },
+    {
+      "name": "Abrousse (TDC)",
+      "matches": 5,
+      "score": 4138,
+      "darts": 211,
+      "first9Score": 2749,
+      "first9Darts": 126,
+      "visits100": 6,
+      "visits140": 1,
+      "visits170": 0,
+      "visits180": 1,
+      "finishes": [
+        {
+          "leg": 2,
+          "value": 39,
+          "darts": 3,
+          "matchId": "m1-t_1_kCe9_meYa"
+        },
+        {
+          "leg": 1,
+          "value": 2,
+          "darts": 1,
+          "matchId": "m1-t_0_kCe9_wAHs"
+        },
+        {
+          "leg": 2,
+          "value": 4,
+          "darts": 1,
+          "matchId": "m1-t_0_kCe9_wAHs"
+        },
+        {
+          "leg": 3,
+          "value": 17,
+          "darts": 2,
+          "matchId": "m1-t_0_kCe9_wAHs"
+        },
+        {
+          "leg": 2,
+          "value": 10,
+          "darts": 3,
+          "matchId": "m1-rr_0_8Htt_kCe9"
+        }
+      ],
+      "duoScore": 6762,
+      "average3": 58.83,
+      "first9": 65.45,
+      "bestFinish": 39,
+      "contribution": 61.2
+    },
+    {
+      "name": "Kevin (TDC)",
+      "matches": 5,
+      "score": 3859,
+      "darts": 241,
+      "first9Score": 2770,
+      "first9Darts": 135,
+      "visits100": 6,
+      "visits140": 1,
+      "visits170": 0,
+      "visits180": 1,
+      "finishes": [
+        {
+          "leg": 3,
+          "value": 16,
+          "darts": 1,
+          "matchId": "m1-rr_0_Y9AH_wAHs"
+        }
+      ],
+      "duoScore": 6979,
+      "average3": 48.04,
+      "first9": 61.56,
+      "bestFinish": 16,
+      "contribution": 55.3
+    },
+    {
+      "name": "Super Mario (TDC)",
+      "matches": 5,
+      "score": 3687,
+      "darts": 228,
+      "first9Score": 2484,
+      "first9Darts": 135,
+      "visits100": 6,
+      "visits140": 1,
+      "visits170": 0,
+      "visits180": 0,
+      "finishes": [
+        {
+          "leg": 3,
+          "value": 40,
+          "darts": 1,
+          "matchId": "m1-t_1_kCe9_meYa"
+        },
+        {
+          "leg": 2,
+          "value": 2,
+          "darts": 2,
+          "matchId": "m1-t_0_bGDE_meYa"
+        },
+        {
+          "leg": 2,
+          "value": 83,
+          "darts": 3,
+          "matchId": "m1-rr_0_Y9AH_meYa"
+        }
+      ],
+      "duoScore": 7155,
+      "average3": 48.51,
+      "first9": 55.2,
+      "bestFinish": 83,
+      "contribution": 51.5
+    },
+    {
+      "name": "Pierre (TDC)",
+      "matches": 5,
+      "score": 3468,
+      "darts": 209,
+      "first9Score": 2507,
+      "first9Darts": 135,
+      "visits100": 4,
+      "visits140": 0,
+      "visits170": 0,
+      "visits180": 0,
+      "finishes": [
+        {
+          "leg": 1,
+          "value": 8,
+          "darts": 1,
+          "matchId": "m1-t_1_kCe9_meYa"
+        },
+        {
+          "leg": 4,
+          "value": 40,
+          "darts": 2,
+          "matchId": "m1-t_1_kCe9_meYa"
+        },
+        {
+          "leg": 1,
+          "value": 112,
+          "darts": 3,
+          "matchId": "m1-t_0_bGDE_meYa"
+        },
+        {
+          "leg": 4,
+          "value": 16,
+          "darts": 1,
+          "matchId": "m1-t_0_bGDE_meYa"
+        },
+        {
+          "leg": 1,
+          "value": 18,
+          "darts": 1,
+          "matchId": "m1-rr_0_Y9AH_meYa"
+        },
+        {
+          "leg": 1,
+          "value": 20,
+          "darts": 2,
+          "matchId": "m1-rr_0_meYa_r2c7"
+        },
+        {
+          "leg": 2,
+          "value": 10,
+          "darts": 3,
+          "matchId": "m1-rr_0_meYa_r2c7"
+        },
+        {
+          "leg": 1,
+          "value": 10,
+          "darts": 1,
+          "matchId": "m1-rr_0_meYa_wAHs"
+        }
+      ],
+      "duoScore": 7155,
+      "average3": 49.78,
+      "first9": 55.71,
+      "bestFinish": 112,
+      "contribution": 48.5
+    },
+    {
+      "name": "Guillaume (TDC)",
+      "matches": 5,
+      "score": 3173,
+      "darts": 241,
+      "first9Score": 2203,
+      "first9Darts": 144,
+      "visits100": 2,
+      "visits140": 0,
+      "visits170": 0,
+      "visits180": 0,
+      "finishes": [
+        {
+          "leg": 2,
+          "value": 40,
+          "darts": 1,
+          "matchId": "m1-t3_0_bGDE_wAHs"
+        },
+        {
+          "leg": 2,
+          "value": 38,
+          "darts": 3,
+          "matchId": "m1-rr_0_8Htt_bGDE"
+        }
+      ],
+      "duoScore": 7695,
+      "average3": 39.5,
+      "first9": 45.9,
+      "bestFinish": 40,
+      "contribution": 41.2
+    },
+    {
+      "name": "Fabien (PDC)",
+      "matches": 5,
+      "score": 3120,
+      "darts": 225,
+      "first9Score": 2321,
+      "first9Darts": 135,
+      "visits100": 5,
+      "visits140": 0,
+      "visits170": 0,
+      "visits180": 0,
+      "finishes": [
+        {
+          "leg": 1,
+          "value": 2,
+          "darts": 1,
+          "matchId": "m1-rr_0_8Htt_wAHs"
+        },
+        {
+          "leg": 2,
+          "value": 34,
+          "darts": 2,
+          "matchId": "m1-rr_0_Y9AH_wAHs"
+        },
+        {
+          "leg": 2,
+          "value": 20,
+          "darts": 3,
+          "matchId": "m1-rr_0_meYa_wAHs"
+        },
+        {
+          "leg": 3,
+          "value": 52,
+          "darts": 3,
+          "matchId": "m1-rr_0_meYa_wAHs"
+        }
+      ],
+      "duoScore": 6979,
+      "average3": 41.6,
+      "first9": 51.58,
+      "bestFinish": 52,
+      "contribution": 44.7
+    },
+    {
+      "name": "Alexandre (PDC)",
+      "matches": 5,
+      "score": 2624,
+      "darts": 189,
+      "first9Score": 1956,
+      "first9Darts": 126,
+      "visits100": 3,
+      "visits140": 0,
+      "visits170": 0,
+      "visits180": 0,
+      "finishes": [
+        {
+          "leg": 1,
+          "value": 16,
+          "darts": 3,
+          "matchId": "m1-rr_0_iTep_kCe9"
+        },
+        {
+          "leg": 2,
+          "value": 20,
+          "darts": 3,
+          "matchId": "m1-rr_0_iTep_kCe9"
+        }
+      ],
+      "duoScore": 6762,
+      "average3": 41.65,
+      "first9": 46.57,
+      "bestFinish": 20,
+      "contribution": 38.8
+    },
+    {
+      "name": "Benjamin (TDC)",
+      "matches": 3,
+      "score": 2475,
+      "darts": 158,
+      "first9Score": 1471,
+      "first9Darts": 81,
+      "visits100": 3,
+      "visits140": 0,
+      "visits170": 0,
+      "visits180": 0,
+      "finishes": [
+        {
+          "leg": 2,
+          "value": 12,
+          "darts": 1,
+          "matchId": "m1-rr_0_8Htt_wAHs"
+        },
+        {
+          "leg": 1,
+          "value": 32,
+          "darts": 1,
+          "matchId": "m1-rr_0_8Htt_bGDE"
+        }
+      ],
+      "duoScore": 4365,
+      "average3": 46.99,
+      "first9": 54.48,
+      "bestFinish": 32,
+      "contribution": 56.7
+    },
+    {
+      "name": "Yoann (KAZ)",
+      "matches": 3,
+      "score": 2056,
+      "darts": 103,
+      "first9Score": 1404,
+      "first9Darts": 72,
+      "visits100": 4,
+      "visits140": 0,
+      "visits170": 0,
+      "visits180": 0,
+      "finishes": [
+        {
+          "leg": 1,
+          "value": 2,
+          "darts": 1,
+          "matchId": "m1-rr_0_Y9AH_wAHs"
+        },
+        {
+          "leg": 1,
+          "value": 40,
+          "darts": 3,
+          "matchId": "m1-rr_0_Y9AH_bGDE"
+        }
+      ],
+      "duoScore": 3670,
+      "average3": 59.88,
+      "first9": 58.5,
+      "bestFinish": 40,
+      "contribution": 56
+    },
+    {
+      "name": "Julien (KAZ)",
+      "matches": 3,
+      "score": 1890,
+      "darts": 148,
+      "first9Score": 1253,
+      "first9Darts": 81,
+      "visits100": 1,
+      "visits140": 0,
+      "visits170": 0,
+      "visits180": 0,
+      "finishes": [
+        {
+          "leg": 3,
+          "value": 8,
+          "darts": 2,
+          "matchId": "m1-rr_0_8Htt_wAHs"
+        },
+        {
+          "leg": 1,
+          "value": 31,
+          "darts": 3,
+          "matchId": "m1-rr_0_8Htt_kCe9"
+        },
+        {
+          "leg": 3,
+          "value": 20,
+          "darts": 2,
+          "matchId": "m1-rr_0_8Htt_kCe9"
+        }
+      ],
+      "duoScore": 4365,
+      "average3": 38.31,
+      "first9": 46.41,
+      "bestFinish": 31,
+      "contribution": 43.3
+    },
+    {
+      "name": "Nicolas (PDC)",
+      "matches": 3,
+      "score": 1752,
+      "darts": 123,
+      "first9Score": 949,
+      "first9Darts": 63,
+      "visits100": 2,
+      "visits140": 0,
+      "visits170": 0,
+      "visits180": 0,
+      "finishes": [],
+      "duoScore": 3137,
+      "average3": 42.73,
+      "first9": 45.19,
+      "bestFinish": null,
+      "contribution": 55.8
+    },
+    {
+      "name": "Gary (TDC)",
+      "matches": 3,
+      "score": 1614,
+      "darts": 120,
+      "first9Score": 1105,
+      "first9Darts": 72,
+      "visits100": 1,
+      "visits140": 0,
+      "visits170": 0,
+      "visits180": 0,
+      "finishes": [
+        {
+          "leg": 3,
+          "value": 35,
+          "darts": 3,
+          "matchId": "m1-rr_0_Y9AH_bGDE"
+        }
+      ],
+      "duoScore": 3670,
+      "average3": 40.35,
+      "first9": 46.04,
+      "bestFinish": 35,
+      "contribution": 44
+    },
+    {
+      "name": "Fran (PDC)",
+      "matches": 3,
+      "score": 1467,
+      "darts": 85,
+      "first9Score": 986,
+      "first9Darts": 54,
+      "visits100": 1,
+      "visits140": 0,
+      "visits170": 0,
+      "visits180": 0,
+      "finishes": [
+        {
+          "leg": 1,
+          "value": 6,
+          "darts": 1,
+          "matchId": "m1-rr_0_iTep_r2c7"
+        }
+      ],
+      "duoScore": 2929,
+      "average3": 51.78,
+      "first9": 54.78,
+      "bestFinish": 6,
+      "contribution": 50.1
+    },
+    {
+      "name": "Beverley (TDC)",
+      "matches": 3,
+      "score": 1462,
+      "darts": 98,
+      "first9Score": 956,
+      "first9Darts": 54,
+      "visits100": 1,
+      "visits140": 0,
+      "visits170": 0,
+      "visits180": 0,
+      "finishes": [
+        {
+          "leg": 1,
+          "value": 54,
+          "darts": 2,
+          "matchId": "m1-rr_0_kCe9_r2c7"
+        },
+        {
+          "leg": 2,
+          "value": 50,
+          "darts": 3,
+          "matchId": "m1-rr_0_kCe9_r2c7"
+        },
+        {
+          "leg": 2,
+          "value": 8,
+          "darts": 3,
+          "matchId": "m1-rr_0_iTep_r2c7"
+        }
+      ],
+      "duoScore": 2929,
+      "average3": 44.76,
+      "first9": 53.11,
+      "bestFinish": 54,
+      "contribution": 49.9
+    },
+    {
+      "name": "Jeff (TDC)",
+      "matches": 3,
+      "score": 1385,
+      "darts": 111,
+      "first9Score": 762,
+      "first9Darts": 63,
+      "visits100": 1,
+      "visits140": 0,
+      "visits170": 0,
+      "visits180": 0,
+      "finishes": [
+        {
+          "leg": 1,
+          "value": 40,
+          "darts": 3,
+          "matchId": "m1-rr_0_bGDE_iTep"
+        }
+      ],
+      "duoScore": 3137,
+      "average3": 37.43,
+      "first9": 36.29,
+      "bestFinish": 40,
+      "contribution": 44.2
+    }
+  ]
+}
