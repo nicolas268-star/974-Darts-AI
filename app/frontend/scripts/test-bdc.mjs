@@ -46,7 +46,13 @@ for (const team of BDC_RESULTS[0].teams) {
   const wins = Object.entries(snapshot.pool[team.id]).filter(([other, result]) => result.r > snapshot.pool[other][team.id].r).length;
   assert.equal(wins, team.poolWins, 'Use corrected bracket wins, not incomplete recorded legs');
 }
-const page = readFileSync(new URL('../components/BdcRoundOne.tsx', import.meta.url), 'utf8');
-assert.match(page, /Statistiques partielles — incident Nakka/);
-assert.match(page, /pool\[match.p1tpid\]\[match.p2tpid\].r/);
+const detail = JSON.parse(readFileSync(new URL('../lib/bdc-round-one-details.json', import.meta.url), 'utf8'));
+assert.equal(detail.matches.length, 32);
+assert.equal(detail.matches.filter(match => match.dataStatus === 'partial-individual').length, 16);
+assert.equal(detail.poolStandings.length, 8);
+assert.equal(detail.poolStandings[0].teamId, 'wAHs');
+assert.equal(detail.poolStandings[7].teamId, 'iTep');
+const page = readFileSync(new URL('../components/BdcRoundTemplate.tsx', import.meta.url), 'utf8');
+assert.match(page, /Donnée indisponible – incident Nakka/);
+assert.doesNotMatch(page, /n01darts\.com|Feuille Nakka/);
 console.log('BDC checks passed: individual points, partner changes, participation, bonus, ties and invalid inputs.');

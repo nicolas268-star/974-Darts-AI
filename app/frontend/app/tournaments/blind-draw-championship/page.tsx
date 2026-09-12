@@ -35,8 +35,7 @@ export default function BdcPage() {
           <span className="bdc-eyebrow">MANCHE {round.number}</span><h3><time dateTime={round.date}>{bdcDate(round.date)}</time></h3>
           <p>19 h · heure de La Réunion</p><p>{round.location}</p>
           <span className="bdc-status">{result ? "Terminée · classement corrigé" : "Résultats à venir"}</span>
-          {round.sourceUrl ? <><a href={round.sourceUrl} target="_blank" rel="noopener noreferrer">Ouvrir la manche sur Nakka ↗</a>{!result && <small>Accès protégé : mot de passe communiqué lors du tirage au sort.</small>}</> : <small>Doublettes et lien de suivi à venir.</small>}
-          {result && <a href="#resultats-manche-1">Résultats et statistiques partielles →</a>}
+          {result ? <a href="#resultats-manche-1">Consulter tous les résultats →</a> : <small>Doublettes et résultats à venir.</small>}
         </article>;
       })}</div>
     </section>

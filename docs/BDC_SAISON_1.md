@@ -15,9 +15,13 @@ Source publique : https://n01darts.com/n01/league/season.php?id=t_iIQi_5560
 
 Points par joueur : Super Mario / Pierre 11 ; Abrousse / Alexandre 9 ; Vincent / Guillaume 8 ; Kevin / Fabien 7 ; Gary / Yoann 5 ; Beverley / Fran 5 ; Benjamin / Julien 4 ; Nicolas / Jeff 4. Chaque joueur a une participation, aucun n’a encore atteint le seuil de trois manches.
 
-`bdc-round-one.json` conserve une sélection non sensible du tableau corrigé et des statistiques publiques Nakka. `bdc-round-one-matches.json` conserve les 32 résumés enregistrés : leurs scores de poule peuvent être incomplets et ne doivent pas servir au classement. L’affichage utilise les scores de `pool`, corrigés, et sépare les moyennes partielles. Les scores de phase finale sont des sets, pas des legs.
+`bdc-round-one.json` conserve une sélection non sensible du tableau corrigé et des statistiques publiques. `bdc-round-one-matches.json` conserve les 32 résumés enregistrés : leurs scores de poule peuvent être incomplets et ne doivent pas servir au classement. L’affichage utilise les scores de `pool`, corrigés, et sépare les moyennes partielles. Les scores de phase finale sont des sets, pas des legs.
 
-Les performances personnelles ne sont pas déduites des totaux de la doublette. Des noms dans une liste d’ordre ne suffisent pas à garantir l’auteur de chaque volée. Les points BDC individuels sont indépendants de cette limite. Aucun import dans le championnat/Supabase ni modification des statistiques historiques de duos.
+`bdc-round-one-details.json` contient la vue normalisée de la manche : 28 matchs de poule, 4 matchs de phase finale, classement de poule et statistiques individuelles disponibles. Seules 16 feuilles sur 32 contiennent l’ordre nominatif nécessaire pour attribuer les volées aux joueurs. La répartition suit cet ordre enregistré ; son total de fléchettes et sa moyenne sont contrôlés contre les totaux de chaque duo. Les 16 autres fiches affichent « Donnée indisponible – incident Nakka ».
+
+`BdcRoundTemplate.tsx` est le modèle de présentation réutilisable pour les manches suivantes : synthèse, Round Robin, tableau final, statistiques générales collectives, classements individuels disponibles, contributions au scoring et fiches dépliables. `BdcRoundOne.tsx` ne fait qu’injecter les données de la Manche 01 dans ce modèle.
+
+Les performances personnelles ne sont jamais déduites des seuls totaux de la doublette. Elles sont publiées uniquement lorsqu’une feuille conserve à la fois l’ordre nominatif et les volées. Les points BDC individuels sont indépendants de cette limite. Aucun import dans le championnat/Supabase ni modification des statistiques historiques de duos.
 
 ## Manches suivantes
 
