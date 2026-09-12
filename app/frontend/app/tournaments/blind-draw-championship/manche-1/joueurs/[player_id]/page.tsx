@@ -7,7 +7,6 @@ import sourceData from "@/lib/bdc-round-one.json";
 import { BDC_RESULTS, BDC_URL } from "@/lib/bdc";
 import {
   BDC_UNAVAILABLE,
-  applyBdcRoundOneValidatedFinishes,
   buildBdcPlayerRoundProfile,
   type BdcPlayerMatchProfile,
   type BdcRoundDetails,
@@ -17,7 +16,7 @@ import "../../../../../competitions/competition-hub.css";
 import "../../../bdc.css";
 
 const roundResult = BDC_RESULTS.find((result) => result.round === 1)!;
-const details = applyBdcRoundOneValidatedFinishes(detailsData as BdcRoundDetails);
+const details = detailsData as BdcRoundDetails;
 const source = sourceData as BdcRoundSource;
 const backHref = `${BDC_URL}#m1-joueurs`;
 
@@ -102,7 +101,8 @@ function MatchCard({ match }: { match: BdcPlayerMatchProfile }) {
     </summary>
     <div className="bdc-player-fixture-body">
       <div className="bdc-player-fixture-context"><span>Partenaire · <strong>{match.partner}</strong></span><span>Moyenne du duo · <strong>{decimal(match.duoAverage3)}</strong></span></div>
-      {!match.available || !stats ? <div className="bdc-unavailable-panel"><strong>{BDC_UNAVAILABLE}</strong><p>Le résultat collectif reste validé, mais les séquences individuelles complètes de cette rencontre ne sont plus disponibles.</p>{match.validatedFinishes.length > 0 && <div className="bdc-player-finishes"><strong>Finishes attribués selon l’ordre confirmé</strong><ul>{match.validatedFinishes.map((finish) => <li key={`${finish.leg}-${finish.value}-${finish.darts}`}>{finish.leg === null ? "Leg non identifié" : `Leg ${finish.leg}`} · sortie {finish.value}{finish.darts === null ? "" : ` · ${finish.darts} fléchette${finish.darts > 1 ? "s" : ""}`}</li>)}</ul></div>}</div> : <>
+      {!match.available || !stats ? <div className="bdc-unavailable-panel"><strong>{BDC_UNAVAILABLE}</strong><p>Le résultat collectif reste validé, mais aucune volée individuelle ne peut être récupérée pour cette rencontre.</p></div> : <>
+        {!match.dataComplete && <div className="bdc-unavailable-panel"><strong>Données individuelles partielles</strong><p>{match.recordedLegs} legs enregistrés sur {match.officialLegs}. Les statistiques ci-dessous utilisent uniquement les volées réellement conservées.</p></div>}
         <dl className="bdc-player-match-metrics">
           <div><dt>Contribution scoring</dt><dd>{decimal(match.contribution, "%")}</dd></div>
           <div><dt>Moyenne 3 darts</dt><dd>{decimal(stats.average3)}</dd></div>
@@ -111,7 +111,7 @@ function MatchCard({ match }: { match: BdcPlayerMatchProfile }) {
           <div><dt>Fléchettes enregistrées</dt><dd>{stats.darts}</dd></div>
           <div><dt>Finishes</dt><dd>{stats.finishes.length}</dd></div>
           <div><dt>Plus haut finish</dt><dd>{stats.bestFinish ?? "—"}</dd></div>
-          <div><dt>Tours sans score</dt><dd className="is-unavailable">{BDC_UNAVAILABLE}</dd></div>
+          <div><dt>Tours sans score</dt><dd>{stats.zeroVisits}</dd></div>
           <div><dt>100–139</dt><dd>{stats.visits100}</dd></div>
           <div><dt>140–169</dt><dd>{stats.visits140}</dd></div>
           <div><dt>170–179</dt><dd>{stats.visits170}</dd></div>
@@ -150,18 +150,18 @@ export default async function BdcPlayerRoundPage({
       </header>
 
       <section className="bdc-player-section" aria-labelledby="synthese-joueur">
-        <div className="bdc-report-title"><div><span>01</span><h2 id="synthese-joueur">Synthèse de la Manche 01</h2></div><small>{profile.matchesCovered}/{profile.matchesPlayed} matchs avec attribution individuelle fiable</small></div>
+        <div className="bdc-report-title"><div><span>01</span><h2 id="synthese-joueur">Synthèse de la Manche 01</h2></div><small>{profile.matchesCovered}/{profile.matchesPlayed} matchs exploitables · {profile.matchesIncomplete} partiel{profile.matchesIncomplete > 1 ? "s" : ""}</small></div>
         <div className="bdc-player-kpis">
           <article><span>Matchs disputés</span><strong>{profile.matchesPlayed}</strong><small>{profile.matchesWon} victoire{profile.matchesWon > 1 ? "s" : ""} · résultats collectifs validés</small></article>
           <article><span>Moyenne 3 darts</span><strong>{summary ? decimal(summary.average3) : "—"}</strong><small>sur {profile.matchesCovered} matchs couverts</small></article>
           <article><span>Moyenne First 9</span><strong>{summary?.first9 === null || !summary ? "—" : decimal(summary.first9)}</strong><small>{summary?.first9 === null || !summary ? BDC_UNAVAILABLE : "9 premières fléchettes disponibles"}</small></article>
           <article><span>Contribution scoring</span><strong>{summary ? decimal(summary.contribution, "%") : "—"}</strong><small>points joueur ÷ points du duo</small></article>
-          <article><span>Finishes réalisés</span><strong>{summary?.finishes.length ?? "—"}</strong><small>données enregistrées et validations confirmées</small></article>
+          <article><span>Finishes réalisés</span><strong>{summary?.finishes.length ?? "—"}</strong><small>legs enregistrés uniquement</small></article>
           <article><span>Plus haut finish</span><strong>{summary?.bestFinish ?? "—"}</strong><small>{summary?.bestFinish === null || !summary ? "Aucun finish attribuable" : "meilleure sortie enregistrée"}</small></article>
-          <article><span>Tours sans score</span><strong className="is-unavailable">—</strong><small>{BDC_UNAVAILABLE}</small></article>
+          <article><span>Tours sans score</span><strong>{summary?.zeroVisits ?? "—"}</strong><small>volées à 0 enregistrées</small></article>
           <article className="bdc-big-visits"><span>Grosses volées</span><div><b>100–139 <strong>{summary?.visits100 ?? "—"}</strong></b><b>140–169 <strong>{summary?.visits140 ?? "—"}</strong></b><b>170–179 <strong>{summary?.visits170 ?? "—"}</strong></b><b>180 <strong>{summary?.visits180 ?? "—"}</strong></b></div><small>sur les matchs couverts</small></article>
         </div>
-        <p className="bdc-note">Les statistiques individuelles détaillées résument les rencontres dont les séquences de volées sont exploitables. L’ordre officiel correspond à l’ordre des noms du duo. Les finishes des feuilles partielles sont attribués grâce à cet ordre confirmé, sans inventer les autres données manquantes.</p>
+        <p className="bdc-note">Les statistiques sont recalculées volée par volée selon l’ordre confirmé des joueurs. Trois rencontres ne couvrent que les legs enregistrés avant l’incident ; une feuille est totalement indisponible. Aucun chiffre manquant n’est inventé.</p>
       </section>
 
       <section className="bdc-player-section" aria-labelledby="evolution-joueur">
@@ -180,7 +180,7 @@ export default async function BdcPlayerRoundPage({
         <div className="bdc-player-fixtures">{profile.matches.map((match) => <MatchCard match={match} key={match.id} />)}</div>
       </section>
 
-      <aside className="bdc-source-limits bdc-player-limits"><h3>Fiabilité des données</h3><p>Les résultats collectifs et le classement final validés manuellement sont conservés. Aucune statistique individuelle manquante n’est reconstituée.</p><p>Les tours sans score ne figurent pas dans les données exploitables de cette manche : <strong>{BDC_UNAVAILABLE}</strong>.</p></aside>
+      <aside className="bdc-source-limits bdc-player-limits"><h3>Fiabilité des données</h3><p>Les résultats collectifs et le classement final validés manuellement sont conservés. Les scores, fléchettes, moyennes, First 9, grosses volées, 180, tours sans score et finishes individuels proviennent uniquement des volées enregistrées.</p><p>Les legs joués hors système et la feuille perdue restent signalés comme indisponibles.</p></aside>
 
       <Link href={backHref} className="bdc-button bdc-player-return">Retour à la Manche 01</Link>
     </main>

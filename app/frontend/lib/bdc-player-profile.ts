@@ -20,6 +20,7 @@ export type BdcPlayerMatchStats = {
   visits140: number;
   visits170: number;
   visits180: number;
+  zeroVisits: number;
   finishes: BdcFinish[];
   average3: number | null;
   first9: number | null;
@@ -33,7 +34,6 @@ export type BdcMatchSide = {
   average3: number;
   recordedDarts: number;
   players: BdcPlayerMatchStats[] | null;
-  validatedFinishes?: Array<BdcFinish & { player: string }>;
 };
 
 export type BdcRoundMatch = {
@@ -42,6 +42,8 @@ export type BdcRoundMatch = {
   scoreUnit: string;
   recordedDarts: number;
   dataStatus: string;
+  recordedLegs: number;
+  officialLegs: number;
   teamA: BdcMatchSide;
   teamB: BdcMatchSide;
 };
@@ -55,7 +57,12 @@ export type BdcPlayerGlobalStats = BdcPlayerMatchStats & {
 export type BdcRoundDetails = {
   round: number;
   status: string;
-  quality: { individualMatches: number; totalMatches: number };
+  quality: {
+    individualMatches: number;
+    totalMatches: number;
+    incompleteMatches: number;
+    unavailableMatches: number;
+  };
   poolStandings: Array<{
     rank: number;
     teamId: string;
@@ -105,10 +112,12 @@ export type BdcPlayerMatchProfile = {
   scoreUnit: string;
   duoAverage3: number;
   available: boolean;
+  dataComplete: boolean;
+  recordedLegs: number;
+  officialLegs: number;
   contribution: number | null;
   stats: BdcPlayerMatchStats | null;
-  validatedFinishes: BdcFinish[];
-  zeroVisits: null;
+  zeroVisits: number | null;
 };
 
 export type BdcPlayerRoundProfile = {
@@ -122,91 +131,12 @@ export type BdcPlayerRoundProfile = {
   matchesPlayed: number;
   matchesWon: number;
   matchesCovered: number;
+  matchesIncomplete: number;
   duoAverage3: number | null;
   summary: BdcPlayerGlobalStats | null;
-  zeroVisits: null;
+  zeroVisits: number | null;
   matches: BdcPlayerMatchProfile[];
 };
-
-type BdcValidatedFinishEvent = BdcFinish & {
-  teamId: string;
-  player: string;
-};
-
-// Finishes from the 15 surviving partial sheets. Attribution uses the
-// organiser-confirmed, fixed player order inside every duo. The missing legs
-// that were entered manually after the incident are deliberately absent.
-export const BDC_ROUND_ONE_VALIDATED_FINISHES: BdcValidatedFinishEvent[] = [
-  { matchId: "m1-rr_0_r2c7_wAHs", teamId: "wAHs", player: "Fabien (PDC)", leg: 1, value: 10, darts: 1, validation: "recorded-order-confirmed" },
-  { matchId: "m1-rr_0_r2c7_wAHs", teamId: "wAHs", player: "Kevin (TDC)", leg: 2, value: 22, darts: 2, validation: "recorded-order-confirmed" },
-  { matchId: "m1-rr_0_bGDE_meYa", teamId: "meYa", player: "Super Mario (TDC)", leg: 1, value: 44, darts: 3, validation: "recorded-order-confirmed" },
-  { matchId: "m1-rr_0_bGDE_meYa", teamId: "bGDE", player: "Vincent (TDC)", leg: 2, value: 2, darts: 1, validation: "recorded-order-confirmed" },
-  { matchId: "m1-rr_0_bGDE_meYa", teamId: "bGDE", player: "Guillaume (TDC)", leg: 3, value: 4, darts: 3, validation: "recorded-order-confirmed" },
-  { matchId: "m1-rr_0_Y9AH_kCe9", teamId: "kCe9", player: "Alexandre (PDC)", leg: 1, value: 8, darts: 1, validation: "recorded-order-confirmed" },
-  { matchId: "m1-rr_0_Y9AH_kCe9", teamId: "Y9AH", player: "Gary (TDC)", leg: 2, value: 20, darts: 2, validation: "recorded-order-confirmed" },
-  { matchId: "m1-rr_0_Y9AH_kCe9", teamId: "kCe9", player: "Abrousse (TDC)", leg: 3, value: 39, darts: 3, validation: "recorded-order-confirmed" },
-  { matchId: "m1-rr_0_8Htt_iTep", teamId: "iTep", player: "Nicolas (PDC)", leg: 1, value: 8, darts: 3, validation: "recorded-order-confirmed" },
-  { matchId: "m1-rr_0_8Htt_iTep", teamId: "8Htt", player: "Julien (KAZ)", leg: 2, value: 16, darts: 1, validation: "recorded-order-confirmed" },
-  { matchId: "m1-rr_0_8Htt_iTep", teamId: "iTep", player: "Nicolas (PDC)", leg: 3, value: 4, darts: 2, validation: "recorded-order-confirmed" },
-  { matchId: "m1-rr_0_bGDE_wAHs", teamId: "wAHs", player: "Fabien (PDC)", leg: 1, value: 32, darts: 1, validation: "recorded-order-confirmed" },
-  { matchId: "m1-rr_0_bGDE_wAHs", teamId: "bGDE", player: "Vincent (TDC)", leg: 2, value: 8, darts: 1, validation: "recorded-order-confirmed" },
-  { matchId: "m1-rr_0_bGDE_wAHs", teamId: "wAHs", player: "Fabien (PDC)", leg: 3, value: 88, darts: 3, validation: "recorded-order-confirmed" },
-  { matchId: "m1-rr_0_kCe9_meYa", teamId: "kCe9", player: "Abrousse (TDC)", leg: 1, value: 40, darts: 1, validation: "recorded-order-confirmed" },
-  { matchId: "m1-rr_0_kCe9_meYa", teamId: "kCe9", player: "Alexandre (PDC)", leg: 2, value: 39, darts: 2, validation: "recorded-order-confirmed" },
-  { matchId: "m1-rr_0_8Htt_r2c7", teamId: "r2c7", player: "Fran (PDC)", leg: 1, value: 40, darts: 3, validation: "recorded-order-confirmed" },
-  { matchId: "m1-rr_0_8Htt_r2c7", teamId: "r2c7", player: "Fran (PDC)", leg: 2, value: 75, darts: 2, validation: "recorded-order-confirmed" },
-  { matchId: "m1-rr_0_Y9AH_iTep", teamId: "Y9AH", player: "Yoann (KAZ)", leg: 1, value: 10, darts: 2, validation: "recorded-order-confirmed" },
-  { matchId: "m1-rr_0_Y9AH_iTep", teamId: "Y9AH", player: "Yoann (KAZ)", leg: 2, value: 16, darts: 1, validation: "recorded-order-confirmed" },
-  { matchId: "m1-rr_0_kCe9_wAHs", teamId: "wAHs", player: "Kevin (TDC)", leg: 1, value: 46, darts: 3, validation: "recorded-order-confirmed" },
-  { matchId: "m1-rr_0_kCe9_wAHs", teamId: "kCe9", player: "Alexandre (PDC)", leg: 2, value: 6, darts: 3, validation: "recorded-order-confirmed" },
-  { matchId: "m1-rr_0_kCe9_wAHs", teamId: "wAHs", player: "Kevin (TDC)", leg: 3, value: 16, darts: 2, validation: "recorded-order-confirmed" },
-  { matchId: "m1-rr_0_bGDE_r2c7", teamId: "bGDE", player: "Vincent (TDC)", leg: 1, value: 2, darts: 1, validation: "recorded-order-confirmed" },
-  { matchId: "m1-rr_0_bGDE_r2c7", teamId: "bGDE", player: "Vincent (TDC)", leg: 2, value: 9, darts: 2, validation: "recorded-order-confirmed" },
-  { matchId: "m1-rr_0_iTep_meYa", teamId: "meYa", player: "Pierre (TDC)", leg: 1, value: 51, darts: 2, validation: "recorded-order-confirmed" },
-  { matchId: "m1-rr_0_iTep_meYa", teamId: "meYa", player: "Pierre (TDC)", leg: 2, value: 6, darts: 3, validation: "recorded-order-confirmed" },
-  { matchId: "m1-rr_0_8Htt_Y9AH", teamId: "Y9AH", player: "Gary (TDC)", leg: 1, value: 16, darts: 1, validation: "recorded-order-confirmed" },
-  { matchId: "m1-rr_0_8Htt_Y9AH", teamId: "8Htt", player: "Julien (KAZ)", leg: 2, value: 40, darts: 2, validation: "recorded-order-confirmed" },
-  { matchId: "m1-rr_0_8Htt_Y9AH", teamId: "Y9AH", player: "Gary (TDC)", leg: 3, value: 16, darts: 3, validation: "recorded-order-confirmed" },
-  { matchId: "m1-rr_0_bGDE_kCe9", teamId: "bGDE", player: "Guillaume (TDC)", leg: 1, value: 36, darts: 1, validation: "recorded-order-confirmed" },
-  { matchId: "m1-rr_0_bGDE_kCe9", teamId: "kCe9", player: "Alexandre (PDC)", leg: 2, value: 16, darts: 3, validation: "recorded-order-confirmed" },
-  { matchId: "m1-rr_0_iTep_wAHs", teamId: "iTep", player: "Nicolas (PDC)", leg: 1, value: 10, darts: 2, validation: "recorded-order-confirmed" },
-  { matchId: "m1-rr_0_iTep_wAHs", teamId: "wAHs", player: "Kevin (TDC)", leg: 2, value: 56, darts: 2, validation: "recorded-order-confirmed" },
-  { matchId: "m1-rr_0_Y9AH_r2c7", teamId: "r2c7", player: "Fran (PDC)", leg: 1, value: 8, darts: 1, validation: "recorded-order-confirmed" },
-  { matchId: "m1-rr_0_Y9AH_r2c7", teamId: "Y9AH", player: "Yoann (KAZ)", leg: 2, value: 32, darts: 1, validation: "recorded-order-confirmed" },
-];
-
-export function applyBdcRoundOneValidatedFinishes(details: BdcRoundDetails): BdcRoundDetails {
-  const eventsForMatch = (matchId: string) =>
-    BDC_ROUND_ONE_VALIDATED_FINISHES.filter((finish) => finish.matchId === matchId);
-
-  const matches = details.matches.map((match) => {
-    const events = eventsForMatch(match.id);
-    const enrichSide = (side: BdcMatchSide): BdcMatchSide => ({
-      ...side,
-      validatedFinishes: events
-        .filter((finish) => finish.teamId === side.teamId)
-        .map(({ teamId: _teamId, ...finish }) => finish),
-    });
-    return { ...match, teamA: enrichSide(match.teamA), teamB: enrichSide(match.teamB) };
-  });
-
-  const playerStats = details.playerStats.map((stats) => {
-    const additions = BDC_ROUND_ONE_VALIDATED_FINISHES
-      .filter((finish) => finish.player === stats.name)
-      .map(({ teamId: _teamId, player: _player, ...finish }) => finish)
-      .filter((finish) => !stats.finishes.some((current) =>
-        current.matchId === finish.matchId && current.leg === finish.leg,
-      ));
-    const finishes = [...stats.finishes, ...additions];
-    return {
-      ...stats,
-      finishes,
-      bestFinish: finishes.length ? Math.max(...finishes.map((finish) => finish.value)) : null,
-    };
-  });
-
-  return { ...details, matches, playerStats };
-}
 
 const average = (score: number, darts: number) =>
   darts > 0 ? Math.round((score * 3 / darts) * 100) / 100 : null;
@@ -244,9 +174,6 @@ export function buildBdcPlayerRoundProfile(
     const playerSide = match.teamA.teamId === team.id ? match.teamA : match.teamB;
     const opponentSide = playerSide === match.teamA ? match.teamB : match.teamA;
     const stats = playerSide.players?.find((entry) => entry.name === player.name) ?? null;
-    const validatedFinishes = playerSide.validatedFinishes
-      ?.filter((finish) => finish.player === player.name)
-      .map(({ player: _player, ...finish }) => finish) ?? [];
     const recordedDuoScore = playerSide.players?.reduce((sum, entry) => sum + entry.score, 0) ?? 0;
 
     return {
@@ -261,14 +188,14 @@ export function buildBdcPlayerRoundProfile(
       scoreUnit: match.scoreUnit,
       duoAverage3: playerSide.average3,
       available: stats !== null,
+      dataComplete: match.dataStatus === "partial-individual",
+      recordedLegs: match.recordedLegs,
+      officialLegs: match.officialLegs,
       contribution: stats && recordedDuoScore > 0
         ? Math.round((stats.score / recordedDuoScore) * 1000) / 10
         : null,
       stats,
-      validatedFinishes,
-      // The available aggregate does not include the score of every visit.
-      // Do not infer zero-score visits from darts or total score.
-      zeroVisits: null,
+      zeroVisits: stats?.zeroVisits ?? null,
     };
   });
 
@@ -286,9 +213,10 @@ export function buildBdcPlayerRoundProfile(
     matchesPlayed: teamStats.match,
     matchesWon: teamStats.winMatch,
     matchesCovered: matches.filter((match) => match.available).length,
+    matchesIncomplete: matches.filter((match) => match.available && !match.dataComplete).length,
     duoAverage3: average(teamStats.score, teamStats.darts),
     summary,
-    zeroVisits: null,
+    zeroVisits: summary?.zeroVisits ?? null,
     matches,
   };
 }

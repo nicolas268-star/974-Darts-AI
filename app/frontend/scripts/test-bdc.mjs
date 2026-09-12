@@ -48,59 +48,85 @@ for (const team of BDC_RESULTS[0].teams) {
 }
 const rawDetail = JSON.parse(readFileSync(new URL('../lib/bdc-round-one-details.json', import.meta.url), 'utf8'));
 assert.equal(rawDetail.matches.length, 32);
-assert.equal(rawDetail.matches.filter(match => match.dataStatus === 'partial-individual').length, 16);
+assert.equal(rawDetail.quality.individualMatches, 31);
+assert.equal(rawDetail.quality.incompleteMatches, 3);
+assert.equal(rawDetail.quality.unavailableMatches, 1);
+assert.equal(rawDetail.matches.filter(match => match.dataStatus === 'partial-individual').length, 28);
+assert.equal(rawDetail.matches.filter(match => match.dataStatus === 'partial-individual-incomplete').length, 3);
+assert.equal(rawDetail.matches.filter(match => match.dataStatus === 'unavailable-individual').length, 1);
 assert.equal(rawDetail.poolStandings.length, 8);
 assert.equal(rawDetail.poolStandings[0].teamId, 'wAHs');
 assert.equal(rawDetail.poolStandings[7].teamId, 'iTep');
+for (const match of rawDetail.matches.filter(match => match.dataStatus !== 'unavailable-individual')) {
+  for (const side of [match.teamA, match.teamB]) {
+    assert.equal(side.players.reduce((sum, player) => sum + player.darts, 0), side.recordedDarts, `Player darts match duo darts in ${match.id}`);
+    assert.ok(side.players.every(player => player.zeroVisits >= 0));
+  }
+}
+const allAuditedPlayers = rawDetail.matches.flatMap(match => [match.teamA, match.teamB]).flatMap(side => side.players ?? []);
+assert.equal(allAuditedPlayers.flatMap(player => player.finishes).length, 81);
+assert.equal(allAuditedPlayers.reduce((sum, player) => sum + player.zeroVisits, 0), 86);
+assert.equal(allAuditedPlayers.reduce((sum, player) => sum + player.visits100, 0), 82);
+assert.equal(allAuditedPlayers.reduce((sum, player) => sum + player.visits140, 0), 13);
+assert.equal(allAuditedPlayers.reduce((sum, player) => sum + player.visits170, 0), 0);
+assert.equal(allAuditedPlayers.reduce((sum, player) => sum + player.visits180, 0), 3);
+for (const global of rawDetail.playerStats) {
+  const appearances = rawDetail.matches.flatMap(match => [match.teamA, match.teamB])
+    .filter(side => side.players?.some(player => player.name === global.name));
+  const rows = appearances.map(side => side.players.find(player => player.name === global.name));
+  const sum = field => rows.reduce((total, player) => total + player[field], 0);
+  assert.equal(global.matches, rows.length);
+  for (const field of ['score', 'darts', 'first9Score', 'first9Darts', 'visits100', 'visits140', 'visits170', 'visits180', 'zeroVisits']) {
+    assert.equal(global[field], sum(field), `${field} aggregate for ${global.name}`);
+  }
+  assert.equal(global.finishes.length, rows.reduce((total, player) => total + player.finishes.length, 0));
+  assert.equal(global.duoScore, appearances.reduce((total, side) => total + side.players.reduce((score, player) => score + player.score, 0), 0));
+  assert.equal(global.average3, Math.round((global.score * 3 / global.darts) * 100) / 100);
+  assert.equal(global.first9, Math.round((global.first9Score * 3 / global.first9Darts) * 100) / 100);
+  assert.equal(global.contribution, Math.round((global.score / global.duoScore) * 1000) / 10);
+}
 const page = readFileSync(new URL('../components/BdcRoundTemplate.tsx', import.meta.url), 'utf8');
 assert.match(page, /Donnée indisponible – incident Nakka/);
 assert.doesNotMatch(page, /n01darts\.com|Feuille Nakka/);
 const profileSource = readFileSync(new URL('../lib/bdc-player-profile.ts', import.meta.url), 'utf8')
   .replace('import { bdcPoints, type BdcRoundResult } from "@/lib/bdc";', `const bdcPoints = ${bdcPoints.toString()}; type BdcRoundResult = any;`);
 const profileModule = ts.transpileModule(profileSource, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } });
-const { applyBdcRoundOneValidatedFinishes, BDC_ROUND_ONE_VALIDATED_FINISHES, buildBdcPlayerRoundProfile, BDC_UNAVAILABLE } = await import(`data:text/javascript;base64,${Buffer.from(profileModule.outputText).toString('base64')}`);
-const detail = applyBdcRoundOneValidatedFinishes(rawDetail);
-assert.equal(BDC_ROUND_ONE_VALIDATED_FINISHES.length, 36);
-assert.equal(new Set(BDC_ROUND_ONE_VALIDATED_FINISHES.map(finish => finish.matchId)).size, 15);
-assert.equal(new Set(BDC_ROUND_ONE_VALIDATED_FINISHES.map(finish => `${finish.matchId}:${finish.leg}`)).size, 36, 'One recorded finish per leg');
-for (const finish of BDC_ROUND_ONE_VALIDATED_FINISHES) {
-  const match = rawDetail.matches.find(entry => entry.id === finish.matchId);
-  const side = [match?.teamA, match?.teamB].find(entry => entry?.teamId === finish.teamId);
-  assert.ok(side?.name.split(' / ').includes(finish.player), `Finish player belongs to ${finish.teamId}`);
-  assert.ok(finish.value >= 2 && finish.value <= 170);
-  assert.ok(finish.darts >= 1 && finish.darts <= 3);
-  assert.equal(finish.validation, 'recorded-order-confirmed');
-}
-assert.equal(detail.matches.flatMap(match => [match.teamA, match.teamB]).flatMap(side => side.validatedFinishes ?? []).length, 36);
-assert.equal(detail.matches.find(match => match.id === 'm1-rr_0_8Htt_meYa').teamA.validatedFinishes.length, 0, 'Never invent finishes for the lost sheet');
+const { buildBdcPlayerRoundProfile, BDC_UNAVAILABLE } = await import(`data:text/javascript;base64,${Buffer.from(profileModule.outputText).toString('base64')}`);
+const detail = rawDetail;
 const profiles = BDC_RESULTS[0].teams.flatMap(team => team.players.map(player => buildBdcPlayerRoundProfile(player.id, BDC_RESULTS[0], detail, snapshot)));
 assert.equal(profiles.length, 16);
 assert.ok(profiles.every(Boolean));
 assert.ok(profiles.every(profile => profile.matches.length === profile.matchesPlayed));
 assert.ok(profiles.every(profile => profile.matches.filter(match => match.available).length === profile.matchesCovered));
 assert.ok(profiles.every(profile => profile.matches.filter(match => match.result === 'Victoire').length === profile.matchesWon));
-assert.ok(profiles.every(profile => profile.zeroVisits === null && profile.matches.every(match => match.zeroVisits === null)), 'Never infer zero-score visits');
+assert.ok(profiles.every(profile => profile.zeroVisits !== null));
+assert.ok(profiles.every(profile => profile.matches.filter(match => match.available).every(match => match.zeroVisits !== null)));
 const nicolas = profiles.find(profile => profile.player.id === 'nicolas-pdc');
 assert.equal(nicolas.partner.id, 'jeff-tdc');
 assert.equal(nicolas.matchesPlayed, 7);
-assert.equal(nicolas.matchesCovered, 3);
+assert.equal(nicolas.matchesCovered, 7);
+assert.equal(nicolas.matchesIncomplete, 1);
 assert.equal(nicolas.points, 4);
-assert.equal(nicolas.summary.contribution, 55.8);
+assert.equal(nicolas.summary.score, 4005);
+assert.equal(nicolas.summary.darts, 283);
+assert.equal(nicolas.summary.average3, 42.46);
+assert.equal(nicolas.summary.first9, 48.31);
+assert.equal(nicolas.summary.contribution, 55.6);
+assert.equal(nicolas.summary.zeroVisits, 0);
+assert.equal(nicolas.summary.visits100, 4);
+assert.equal(nicolas.summary.visits180, 0);
 assert.equal(nicolas.summary.finishes.length, 3);
 assert.equal(nicolas.summary.bestFinish, 10);
 const nicolasKevinFabien = nicolas.matches.find(match => match.id === 'm1-rr_0_iTep_wAHs');
-assert.equal(nicolasKevinFabien.available, false);
-assert.deepEqual(nicolasKevinFabien.validatedFinishes, [{
-  leg: 1,
-  value: 10,
-  darts: 2,
-  matchId: 'm1-rr_0_iTep_wAHs',
-  validation: 'recorded-order-confirmed',
-}]);
-assert.deepEqual(
-  Object.fromEntries(['Beverley (TDC)', 'Fran (PDC)', 'Kevin (TDC)', 'Fabien (PDC)', 'Nicolas (PDC)', 'Jeff (TDC)'].map(name => [name, BDC_ROUND_ONE_VALIDATED_FINISHES.filter(finish => finish.player === name).length])),
-  { 'Beverley (TDC)': 0, 'Fran (PDC)': 3, 'Kevin (TDC)': 4, 'Fabien (PDC)': 3, 'Nicolas (PDC)': 3, 'Jeff (TDC)': 0 },
-);
+assert.equal(nicolasKevinFabien.available, true);
+assert.equal(nicolasKevinFabien.dataComplete, false);
+assert.equal(nicolasKevinFabien.recordedLegs, 2);
+assert.equal(nicolasKevinFabien.officialLegs, 3);
+assert.equal(nicolasKevinFabien.stats.score, 574);
+assert.equal(nicolasKevinFabien.stats.average3, 49.2);
+assert.equal(nicolasKevinFabien.stats.first9, 69);
+assert.equal(nicolasKevinFabien.stats.zeroVisits, 0);
+assert.deepEqual(nicolasKevinFabien.stats.finishes, [{ leg: 1, value: 10, darts: 2, matchId: 'm1-rr_0_iTep_wAHs' }]);
 assert.equal(BDC_UNAVAILABLE, 'Donnée indisponible – incident Nakka');
 const playerPage = readFileSync(new URL('../app/tournaments/blind-draw-championship/manche-1/joueurs/[player_id]/page.tsx', import.meta.url), 'utf8');
 assert.match(playerPage, /Partenaire de la manche/);
