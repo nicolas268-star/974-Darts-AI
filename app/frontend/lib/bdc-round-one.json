@@ -1,0 +1,652 @@
+{
+  "sourceUrl": "https://n01darts.com/n01/league/season.php?id=t_iIQi_5560",
+  "retrievedOn": "2026-09-11",
+  "entries": [
+    {
+      "tpid": "r2c7",
+      "name": "Beverley (TDC) / Fran (PDC)"
+    },
+    {
+      "tpid": "iTep",
+      "name": "Nicolas (PDC) / Jeff (TDC)"
+    },
+    {
+      "tpid": "meYa",
+      "name": "Super Mario (TDC) / Pierre (TDC)"
+    },
+    {
+      "tpid": "kCe9",
+      "name": "Abrousse (TDC) / Alexandre (PDC)"
+    },
+    {
+      "tpid": "Y9AH",
+      "name": "Gary (TDC) / Yoann (KAZ)"
+    },
+    {
+      "tpid": "bGDE",
+      "name": "Vincent (TDC) / Guillaume (TDC)"
+    },
+    {
+      "tpid": "8Htt",
+      "name": "Benjamin (TDC) / Julien (KAZ)"
+    },
+    {
+      "tpid": "wAHs",
+      "name": "Kevin (TDC) / Fabien (PDC)"
+    }
+  ],
+  "pool": {
+    "8Htt": {
+      "kCe9": {
+        "a": 53.6,
+        "r": 2
+      },
+      "bGDE": {
+        "a": 40.28,
+        "r": 1
+      },
+      "wAHs": {
+        "a": 37.48,
+        "r": 2
+      },
+      "meYa": {
+        "a": 39.99,
+        "r": 1
+      },
+      "Y9AH": {
+        "r": 1,
+        "a": 40.83
+      },
+      "r2c7": {
+        "r": 0,
+        "a": 43.58
+      },
+      "iTep": {
+        "r": 1,
+        "a": 34.71
+      }
+    },
+    "kCe9": {
+      "8Htt": {
+        "a": 51.37,
+        "r": 1
+      },
+      "iTep": {
+        "a": 45.55,
+        "r": 2
+      },
+      "r2c7": {
+        "a": 53.65,
+        "r": 0
+      },
+      "bGDE": {
+        "a": 54.33,
+        "r": 2
+      },
+      "wAHs": {
+        "r": 1,
+        "a": 48.77
+      },
+      "meYa": {
+        "r": 2,
+        "a": 62.63
+      },
+      "Y9AH": {
+        "r": 2,
+        "a": 47.14
+      }
+    },
+    "iTep": {
+      "r2c7": {
+        "a": 37.67,
+        "r": 0
+      },
+      "kCe9": {
+        "a": 36.38,
+        "r": 0
+      },
+      "bGDE": {
+        "a": 44.52,
+        "r": 1
+      },
+      "wAHs": {
+        "a": 42.66,
+        "r": 2
+      },
+      "meYa": {
+        "r": 0,
+        "a": 32.95
+      },
+      "Y9AH": {
+        "r": 0,
+        "a": 46.24
+      },
+      "8Htt": {
+        "r": 2,
+        "a": 38.82
+      }
+    },
+    "r2c7": {
+      "iTep": {
+        "a": 41.18,
+        "r": 2
+      },
+      "meYa": {
+        "a": 48.68,
+        "r": 0
+      },
+      "kCe9": {
+        "a": 56.72,
+        "r": 2
+      },
+      "Y9AH": {
+        "a": 49.42,
+        "r": 1
+      },
+      "bGDE": {
+        "r": 0,
+        "a": 32.28
+      },
+      "8Htt": {
+        "r": 2,
+        "a": 50.95
+      },
+      "wAHs": {
+        "r": 0,
+        "a": 49.2
+      }
+    },
+    "meYa": {
+      "wAHs": {
+        "a": 44.08,
+        "r": 1
+      },
+      "r2c7": {
+        "a": 50.95,
+        "r": 2
+      },
+      "Y9AH": {
+        "a": 54.65,
+        "r": 2
+      },
+      "8Htt": {
+        "a": 48.43,
+        "r": 2
+      },
+      "iTep": {
+        "r": 2,
+        "a": 50.95
+      },
+      "kCe9": {
+        "r": 0,
+        "a": 52.69
+      },
+      "bGDE": {
+        "r": 1,
+        "a": 36.51
+      }
+    },
+    "wAHs": {
+      "meYa": {
+        "a": 49.97,
+        "r": 2
+      },
+      "Y9AH": {
+        "a": 54.93,
+        "r": 2
+      },
+      "8Htt": {
+        "a": 37.47,
+        "r": 1
+      },
+      "iTep": {
+        "a": 42.22,
+        "r": 1
+      },
+      "kCe9": {
+        "r": 2,
+        "a": 44.02
+      },
+      "bGDE": {
+        "r": 2,
+        "a": 49.38
+      },
+      "r2c7": {
+        "r": 2,
+        "a": 50.1
+      }
+    },
+    "Y9AH": {
+      "bGDE": {
+        "a": 51.14,
+        "r": 2
+      },
+      "wAHs": {
+        "a": 48.77,
+        "r": 1
+      },
+      "meYa": {
+        "a": 47.44,
+        "r": 0
+      },
+      "r2c7": {
+        "a": 54.44,
+        "r": 2
+      },
+      "8Htt": {
+        "r": 2,
+        "a": 45.49
+      },
+      "iTep": {
+        "r": 2,
+        "a": 47.71
+      },
+      "kCe9": {
+        "r": 1,
+        "a": 48.17
+      }
+    },
+    "bGDE": {
+      "Y9AH": {
+        "a": 49.19,
+        "r": 1
+      },
+      "8Htt": {
+        "a": 42.49,
+        "r": 2
+      },
+      "iTep": {
+        "a": 44.91,
+        "r": 2
+      },
+      "kCe9": {
+        "a": 52.5,
+        "r": 1
+      },
+      "r2c7": {
+        "r": 2,
+        "a": 34.55
+      },
+      "wAHs": {
+        "r": 1,
+        "a": 50.33
+      },
+      "meYa": {
+        "r": 2,
+        "a": 34.91
+      }
+    }
+  },
+  "finals": [
+    {
+      "kCe9": {
+        "wAHs": {
+          "r": 1,
+          "a": 51.24
+        }
+      },
+      "wAHs": {
+        "kCe9": {
+          "r": 0,
+          "a": 44.03
+        }
+      },
+      "bGDE": {
+        "meYa": {
+          "r": 0,
+          "a": 45.02
+        }
+      },
+      "meYa": {
+        "bGDE": {
+          "r": 1,
+          "a": 47.67
+        }
+      }
+    },
+    {
+      "kCe9": {
+        "meYa": {
+          "r": 0,
+          "a": 51.53
+        }
+      },
+      "meYa": {
+        "kCe9": {
+          "r": 1,
+          "a": 50.89
+        }
+      }
+    }
+  ],
+  "thirdPlace": [
+    {
+      "bGDE": {
+        "wAHs": {
+          "r": 1,
+          "a": 48.48
+        }
+      },
+      "wAHs": {
+        "bGDE": {
+          "r": 0,
+          "a": 41.53
+        }
+      }
+    }
+  ],
+  "stats": {
+    "8Htt": {
+      "score": 8995,
+      "darts": 661,
+      "winLeg": 8,
+      "leg": 20,
+      "a_b": 9,
+      "w_b": 1,
+      "winMatch": 2,
+      "match": 7,
+      "winSet": 0,
+      "set": 0,
+      "ton00": 6,
+      "ton40": 1,
+      "ton70": 0,
+      "ton80": 0,
+      "highOut": 40,
+      "highOutCount": 0,
+      "best": 29,
+      "worst": 41,
+      "winDarts": 271,
+      "winCnt": 8,
+      "f9Score": 2810,
+      "f9Darts": 180,
+      "r_g": 1,
+      "rank": 0,
+      "rnd": "",
+      "rank_s2": 0,
+      "rnd_s2": "",
+      "a": 0,
+      "acnt": 0,
+      "ca": 0,
+      "cacnt": 0,
+      "cM9": 0,
+      "cM8": 0,
+      "cM7": 0,
+      "cM6": 0,
+      "hc": 0,
+      "ho": 1
+    },
+    "kCe9": {
+      "score": 11635,
+      "darts": 683,
+      "winLeg": 11,
+      "leg": 20,
+      "a_b": 12,
+      "w_b": 4,
+      "winMatch": 5,
+      "match": 9,
+      "winSet": 0,
+      "set": 0,
+      "ton00": 17,
+      "ton40": 3,
+      "ton70": 0,
+      "ton80": 1,
+      "highOut": 40,
+      "highOutCount": 0,
+      "best": 21,
+      "worst": 40,
+      "winDarts": 377,
+      "winCnt": 13,
+      "f9Score": 4317,
+      "f9Darts": 216,
+      "r_g": 1,
+      "rank": 2,
+      "rnd": -1,
+      "rank_s2": 0,
+      "rnd_s2": "",
+      "a": 0,
+      "acnt": 0,
+      "ca": 0,
+      "cacnt": 0,
+      "cM9": 0,
+      "cM8": 0,
+      "cM7": 0,
+      "cM6": 0,
+      "hc": 0,
+      "ho": 1
+    },
+    "iTep": {
+      "score": 7202,
+      "darts": 538,
+      "winLeg": 5,
+      "leg": 17,
+      "a_b": 8,
+      "w_b": 1,
+      "winMatch": 2,
+      "match": 7,
+      "winSet": 0,
+      "set": 0,
+      "ton00": 5,
+      "ton40": 0,
+      "ton70": 0,
+      "ton80": 0,
+      "highOut": 40,
+      "highOutCount": 0,
+      "best": 32,
+      "worst": 51,
+      "winDarts": 157,
+      "winCnt": 4,
+      "f9Score": 2062,
+      "f9Darts": 144,
+      "r_g": 1,
+      "rank": 0,
+      "rnd": "",
+      "rank_s2": 0,
+      "rnd_s2": "",
+      "a": 0,
+      "acnt": 0,
+      "ca": 0,
+      "cacnt": 0,
+      "cM9": 0,
+      "cM8": 0,
+      "cM7": 0,
+      "cM6": 0,
+      "hc": 0,
+      "ho": 1
+    },
+    "r2c7": {
+      "score": 6757,
+      "darts": 444,
+      "winLeg": 7,
+      "leg": 15,
+      "a_b": 7,
+      "w_b": 3,
+      "winMatch": 3,
+      "match": 7,
+      "winSet": 0,
+      "set": 0,
+      "ton00": 6,
+      "ton40": 0,
+      "ton70": 0,
+      "ton80": 1,
+      "highOut": 75,
+      "highOutCount": 0,
+      "best": 24,
+      "worst": 39,
+      "winDarts": 219,
+      "winCnt": 7,
+      "f9Score": 2421,
+      "f9Darts": 126,
+      "r_g": 1,
+      "rank": 0,
+      "rnd": "",
+      "rank_s2": 0,
+      "rnd_s2": "",
+      "a": 0,
+      "acnt": 0,
+      "ca": 0,
+      "cacnt": 0,
+      "cM9": 0,
+      "cM8": 0,
+      "cM7": 0,
+      "cM6": 0,
+      "hc": 0,
+      "ho": 1
+    },
+    "meYa": {
+      "score": 11950,
+      "darts": 757,
+      "winLeg": 12,
+      "leg": 19,
+      "a_b": 13,
+      "w_b": 7,
+      "winMatch": 6,
+      "match": 9,
+      "winSet": 0,
+      "set": 0,
+      "ton00": 18,
+      "ton40": 1,
+      "ton70": 0,
+      "ton80": 0,
+      "highOut": 112,
+      "highOutCount": 1,
+      "best": 23,
+      "worst": 40,
+      "winDarts": 475,
+      "winCnt": 16,
+      "f9Score": 3920,
+      "f9Darts": 225,
+      "r_g": 1,
+      "rank": 1,
+      "rnd": -1,
+      "rank_s2": 0,
+      "rnd_s2": "",
+      "a": 0,
+      "acnt": 0,
+      "ca": 0,
+      "cacnt": 0,
+      "cM9": 0,
+      "cM8": 0,
+      "cM7": 0,
+      "cM6": 0,
+      "hc": 0,
+      "ho": 1
+    },
+    "wAHs": {
+      "score": 11687,
+      "darts": 771,
+      "winLeg": 12,
+      "leg": 22,
+      "a_b": 14,
+      "w_b": 6,
+      "winMatch": 5,
+      "match": 9,
+      "winSet": 0,
+      "set": 0,
+      "ton00": 13,
+      "ton40": 4,
+      "ton70": 0,
+      "ton80": 1,
+      "highOut": 88,
+      "highOutCount": 0,
+      "best": 23,
+      "worst": 46,
+      "winDarts": 357,
+      "winCnt": 12,
+      "f9Score": 3694,
+      "f9Darts": 225,
+      "r_g": 1,
+      "rank": 4,
+      "rnd": -3,
+      "rank_s2": 0,
+      "rnd_s2": "",
+      "a": 0,
+      "acnt": 0,
+      "ca": 0,
+      "cacnt": 0,
+      "cM9": 0,
+      "cM8": 0,
+      "cM7": 0,
+      "cM6": 0,
+      "hc": 0,
+      "ho": 1
+    },
+    "Y9AH": {
+      "score": 8570,
+      "darts": 527,
+      "winLeg": 10,
+      "leg": 19,
+      "a_b": 8,
+      "w_b": 1,
+      "winMatch": 4,
+      "match": 7,
+      "winSet": 0,
+      "set": 0,
+      "ton00": 9,
+      "ton40": 2,
+      "ton70": 0,
+      "ton80": 0,
+      "highOut": 40,
+      "highOutCount": 0,
+      "best": 22,
+      "worst": 35,
+      "winDarts": 266,
+      "winCnt": 9,
+      "f9Score": 2695,
+      "f9Darts": 162,
+      "r_g": 1,
+      "rank": 0,
+      "rnd": "",
+      "rank_s2": 0,
+      "rnd_s2": "",
+      "a": 0,
+      "acnt": 0,
+      "ca": 0,
+      "cacnt": 0,
+      "cM9": 0,
+      "cM8": 0,
+      "cM7": 0,
+      "cM6": 0,
+      "hc": 0,
+      "ho": 1
+    },
+    "bGDE": {
+      "score": 12441,
+      "darts": 849,
+      "winLeg": 12,
+      "leg": 22,
+      "a_b": 13,
+      "w_b": 7,
+      "winMatch": 5,
+      "match": 9,
+      "winSet": 0,
+      "set": 0,
+      "ton00": 10,
+      "ton40": 3,
+      "ton70": 0,
+      "ton80": 0,
+      "highOut": 96,
+      "highOutCount": 0,
+      "best": 22,
+      "worst": 49,
+      "winDarts": 531,
+      "winCnt": 15,
+      "f9Score": 4073,
+      "f9Darts": 234,
+      "r_g": 1,
+      "rank": 3,
+      "rnd": -3,
+      "rank_s2": 0,
+      "rnd_s2": "",
+      "a": 0,
+      "acnt": 0,
+      "ca": 0,
+      "cacnt": 0,
+      "cM9": 0,
+      "cM8": 0,
+      "cM7": 0,
+      "cM6": 0,
+      "hc": 0,
+      "ho": 1
+    }
+  }
+}
