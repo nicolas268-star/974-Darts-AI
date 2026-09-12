@@ -72,6 +72,17 @@ assert.equal(nicolas.matchesPlayed, 7);
 assert.equal(nicolas.matchesCovered, 3);
 assert.equal(nicolas.points, 4);
 assert.equal(nicolas.summary.contribution, 55.8);
+assert.equal(nicolas.summary.finishes.length, 1);
+assert.equal(nicolas.summary.bestFinish, 10);
+const nicolasKevinFabien = nicolas.matches.find(match => match.id === 'm1-rr_0_iTep_wAHs');
+assert.equal(nicolasKevinFabien.available, false);
+assert.deepEqual(nicolasKevinFabien.validatedFinishes, [{
+  leg: null,
+  value: 10,
+  darts: 2,
+  matchId: 'm1-rr_0_iTep_wAHs',
+  validation: 'manual',
+}]);
 assert.equal(BDC_UNAVAILABLE, 'Donnée indisponible – incident Nakka');
 const playerPage = readFileSync(new URL('../app/tournaments/blind-draw-championship/manche-1/joueurs/[player_id]/page.tsx', import.meta.url), 'utf8');
 assert.match(playerPage, /Partenaire de la manche/);

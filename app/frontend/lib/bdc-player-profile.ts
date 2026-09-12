@@ -3,10 +3,11 @@ import { bdcPoints, type BdcRoundResult } from "@/lib/bdc";
 export const BDC_UNAVAILABLE = "Donnée indisponible – incident Nakka";
 
 export type BdcFinish = {
-  leg: number;
+  leg: number | null;
   value: number;
-  darts: number;
+  darts: number | null;
   matchId?: string;
+  validation?: string;
 };
 
 export type BdcPlayerMatchStats = {
@@ -32,6 +33,7 @@ export type BdcMatchSide = {
   average3: number;
   recordedDarts: number;
   players: BdcPlayerMatchStats[] | null;
+  validatedFinishes?: Array<BdcFinish & { player: string }>;
 };
 
 export type BdcRoundMatch = {
@@ -105,6 +107,7 @@ export type BdcPlayerMatchProfile = {
   available: boolean;
   contribution: number | null;
   stats: BdcPlayerMatchStats | null;
+  validatedFinishes: BdcFinish[];
   zeroVisits: null;
 };
 
@@ -161,6 +164,9 @@ export function buildBdcPlayerRoundProfile(
     const playerSide = match.teamA.teamId === team.id ? match.teamA : match.teamB;
     const opponentSide = playerSide === match.teamA ? match.teamB : match.teamA;
     const stats = playerSide.players?.find((entry) => entry.name === player.name) ?? null;
+    const validatedFinishes = playerSide.validatedFinishes
+      ?.filter((finish) => finish.player === player.name)
+      .map(({ player: _player, ...finish }) => finish) ?? [];
     const recordedDuoScore = playerSide.players?.reduce((sum, entry) => sum + entry.score, 0) ?? 0;
 
     return {
@@ -179,6 +185,7 @@ export function buildBdcPlayerRoundProfile(
         ? Math.round((stats.score / recordedDuoScore) * 1000) / 10
         : null,
       stats,
+      validatedFinishes,
       // The available aggregate does not include the score of every visit.
       // Do not infer zero-score visits from darts or total score.
       zeroVisits: null,

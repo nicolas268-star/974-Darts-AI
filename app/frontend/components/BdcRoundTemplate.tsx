@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { BDC_RESULTS, BDC_URL, bdcPoints } from "@/lib/bdc";
 
-type Finish = { leg: number; value: number; darts: number; matchId?: string };
+type Finish = { leg: number | null; value: number; darts: number | null; matchId?: string; validation?: string };
 type PlayerMatchStats = {
   name: string; score: number; darts: number; first9Score: number; first9Darts: number;
   visits100: number; visits140: number; visits170: number; visits180: number;
   finishes: Finish[]; average3: number | null; first9: number | null; bestFinish: number | null;
 };
-type MatchSide = { teamId: string; name: string; score: number; average3: number; recordedDarts: number; players: PlayerMatchStats[] | null };
+type MatchSide = { teamId: string; name: string; score: number; average3: number; recordedDarts: number; players: PlayerMatchStats[] | null; validatedFinishes?: Array<Finish & { player: string }> };
 type RoundMatch = { id: string; phase: string; scoreUnit: string; recordedDarts: number; dataStatus: string; teamA: MatchSide; teamB: MatchSide };
 type PlayerGlobalStats = PlayerMatchStats & { matches: number; duoScore: number; contribution: number | null };
 type RoundDetails = {
@@ -58,7 +58,7 @@ function PlayerMatchCard({ player }: { player: PlayerMatchStats }) {
       <div><dt>170–179</dt><dd>{player.visits170}</dd></div><div><dt>180</dt><dd>{player.visits180}</dd></div>
     </dl>
     <div className="bdc-finishes"><strong>Finishes</strong>{player.finishes.length
-      ? <ul>{player.finishes.map(finish => <li key={`${finish.leg}-${finish.value}-${finish.darts}`}>Leg {finish.leg} · sortie {finish.value} en {finish.darts} fléchette{finish.darts > 1 ? "s" : ""}</li>)}</ul>
+      ? <ul>{player.finishes.map(finish => <li key={`${finish.leg}-${finish.value}-${finish.darts}`}>{finish.leg === null ? "Leg non identifié" : `Leg ${finish.leg}`} · sortie {finish.value}{finish.darts === null ? " · nombre de fléchettes indisponible" : ` en ${finish.darts} fléchette${finish.darts > 1 ? "s" : ""}`}</li>)}</ul>
       : <span>Aucun finish enregistré</span>}</div>
   </article>;
 }
@@ -69,7 +69,7 @@ function MatchDetail({ match }: { match: RoundMatch }) {
     <span className="bdc-match-phase">{match.phase}</span><span>{match.teamA.name}</span><strong>{match.teamA.score} – {match.teamB.score}</strong><span>{match.teamB.name}</span>
   </summary><div className="bdc-match-content">
     <div className="bdc-match-facts"><span>Score final · {match.teamA.score}–{match.teamB.score} {match.scoreUnit}</span><span>{match.recordedDarts} fléchettes enregistrées</span><span>Moyennes duo · {fmt(match.teamA.average3)} / {fmt(match.teamB.average3)}</span></div>
-    {unavailable ? <div className="bdc-unavailable-panel"><strong>{UNAVAILABLE}</strong><p>L’ordre nominatif des joueurs n’est pas présent dans cette feuille. Le score collectif et les moyennes du duo restent affichés.</p></div>
+    {unavailable ? <div className="bdc-unavailable-panel"><strong>{UNAVAILABLE}</strong><p>Les séquences individuelles complètes ne sont plus présentes dans cette feuille. Le score collectif et les moyennes du duo restent affichés.</p>{[match.teamA, match.teamB].flatMap(side => side.validatedFinishes ?? []).map(finish => <p key={`${finish.player}-${finish.value}`}><strong>Finish confirmé :</strong> {finish.player} · sortie {finish.value}{finish.darts === null ? "" : ` en ${finish.darts} fléchette${finish.darts > 1 ? "s" : ""}`} · validation manuelle</p>)}</div>
       : <div className="bdc-duo-details">{[match.teamA, match.teamB].map(side => <section key={side.teamId}>
         <h4>{side.name}</h4><Contribution side={side} /><div className="bdc-player-match-grid">{side.players!.map(player => <PlayerMatchCard player={player} key={player.name} />)}</div>
       </section>)}</div>}
@@ -131,7 +131,7 @@ export function BdcRoundTemplate({ details, source }: { details: RoundDetails; s
 
     <section id="m1-joueurs" className="bdc-report-block">
       <div className="bdc-report-title"><div><span>05</span><h3>Performances individuelles disponibles</h3></div><small>{details.quality.individualMatches} matchs sur {details.quality.totalMatches}</small></div>
-      <p>Ces comparaisons utilisent uniquement les feuilles où l’ordre des joueurs est enregistré. Le nombre de matchs couverts accompagne chaque joueur pour donner le recul nécessaire.</p>
+      <p>Ces comparaisons utilisent les feuilles disposant de séquences individuelles exploitables. Les finishes confirmés manuellement sont ajoutés séparément, sans reconstituer les autres statistiques manquantes.</p>
       <div className="bdc-leaders"><LeaderCard label="Meilleur scoreur" rows={details.playerStats} value={row => row.score} /><LeaderCard label="Meilleure moyenne 3 darts" rows={details.playerStats} value={row => row.average3} /><LeaderCard label="Meilleure moyenne First 9" rows={first9Rows} value={row => row.first9} /><LeaderCard label="Plus grand nombre de finishes" rows={details.playerStats} value={row => row.finishes.length} /><LeaderCard label="Plus haut finish" rows={details.playerStats.filter(row => row.bestFinish !== null)} value={row => row.bestFinish} /><LeaderCard label="Plus gros volume 100+" rows={details.playerStats} value={totalBigScores} /></div>
       <div className="bdc-table-scroll" role="region" aria-label="Classement des performances individuelles disponibles" tabIndex={0}><table className="bdc-table"><thead><tr><th>Joueur</th><th>Matchs couverts</th><th>Score</th><th>Part du duo</th><th>Moy. 3 darts</th><th>First 9</th><th>Finishes</th><th>Haut finish</th><th>100–139</th><th>140–169</th><th>170–179</th><th>180</th></tr></thead><tbody>
         {details.playerStats.map(row => { const playerId = playerIds[row.name]; return <tr key={row.name}><th scope="row">{playerId ? <Link className="bdc-player-link" href={`${BDC_URL}/manche-${details.round}/joueurs/${playerId}`}>{row.name}<span aria-hidden="true">→</span></Link> : row.name}</th><td>{row.matches}</td><td><strong>{fmt(row.score)}</strong></td><td>{fmt(row.contribution, "%")}</td><td>{fmt(row.average3)}</td><td>{row.first9 === null ? UNAVAILABLE : fmt(row.first9)}</td><td>{row.finishes.length}</td><td>{row.bestFinish ?? "—"}</td><td>{row.visits100}</td><td>{row.visits140}</td><td>{row.visits170}</td><td>{row.visits180}</td></tr>; })}
@@ -140,7 +140,7 @@ export function BdcRoundTemplate({ details, source }: { details: RoundDetails; s
 
     <section id="m1-matchs" className="bdc-report-block"><div className="bdc-report-title"><div><span>06</span><h3>Fiches détaillées des rencontres</h3></div><small>Sections dépliables</small></div><div className="bdc-match-list">{details.matches.map(match => <MatchDetail match={match} key={match.id} />)}</div></section>
 
-    <section className="bdc-source-limits"><h3>Source et limites</h3><p>Plusieurs matchs se sont interrompus à 1–1 dans le système avant d’être terminés hors application. Le classement et les scores finaux validés manuellement sont conservés. Les statistiques reposent seulement sur les volées enregistrées.</p><p>Lorsqu’une feuille ne contient pas l’ordre nominatif, les performances ne sont pas réparties entre les partenaires. Les chiffres disponibles ne servent pas à reconstituer les séquences manquantes.</p></section>
+    <section className="bdc-source-limits"><h3>Source et limites</h3><p>Plusieurs matchs se sont interrompus à 1–1 dans le système avant d’être terminés hors application. Le classement et les scores finaux validés manuellement sont conservés. Les statistiques reposent seulement sur les volées enregistrées.</p><p>L’ordre officiel des joueurs correspond à l’ordre des noms dans chaque duo et a été confirmé par l’organisateur. Lorsque les séquences de volées ne sont plus disponibles, seules les performances expressément validées sont ajoutées ; les autres chiffres ne sont pas reconstitués.</p></section>
 
     <section className="bdc-report-block"><div className="bdc-report-title"><div><span>07</span><h3>Classement de la manche et points BDC</h3></div><small>Points attribués à chaque joueur</small></div><div className="bdc-table-scroll" role="region" aria-label="Classement de la manche 1 et points BDC" tabIndex={0}><table className="bdc-table"><thead><tr><th>Place</th><th>Doublette</th><th>Victoires de poule</th><th>Base</th><th>Bonus</th><th>Points par joueur</th></tr></thead><tbody>
       {result.teams.map(team => <tr key={team.id}><td>{team.place}</td><th scope="row">{names[team.id]}</th><td>{team.poolWins}/7</td><td>{bdcPoints(team.place!, 0, 8)}</td><td>+{Math.min(team.poolWins!, 3)}</td><td><strong>{bdcPoints(team.place!, team.poolWins!, 8)}</strong></td></tr>)}
