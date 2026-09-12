@@ -873,17 +873,7 @@
         "score": 2,
         "average3": 42.66,
         "recordedDarts": 68,
-        "players": null,
-        "validatedFinishes": [
-          {
-            "player": "Nicolas (PDC)",
-            "leg": null,
-            "value": 10,
-            "darts": 2,
-            "matchId": "m1-rr_0_iTep_wAHs",
-            "validation": "manual"
-          }
-        ]
+        "players": null
       },
       "teamB": {
         "teamId": "wAHs",
@@ -2573,19 +2563,11 @@
       "visits140": 0,
       "visits170": 0,
       "visits180": 0,
-      "finishes": [
-        {
-          "leg": null,
-          "value": 10,
-          "darts": 2,
-          "matchId": "m1-rr_0_iTep_wAHs",
-          "validation": "manual"
-        }
-      ],
+      "finishes": [],
       "duoScore": 3137,
       "average3": 42.73,
       "first9": 45.19,
-      "bestFinish": 10,
+      "bestFinish": null,
       "contribution": 55.8
     },
     {

@@ -7,6 +7,7 @@ import sourceData from "@/lib/bdc-round-one.json";
 import { BDC_RESULTS, BDC_URL } from "@/lib/bdc";
 import {
   BDC_UNAVAILABLE,
+  applyBdcRoundOneValidatedFinishes,
   buildBdcPlayerRoundProfile,
   type BdcPlayerMatchProfile,
   type BdcRoundDetails,
@@ -16,7 +17,7 @@ import "../../../../../competitions/competition-hub.css";
 import "../../../bdc.css";
 
 const roundResult = BDC_RESULTS.find((result) => result.round === 1)!;
-const details = detailsData as BdcRoundDetails;
+const details = applyBdcRoundOneValidatedFinishes(detailsData as BdcRoundDetails);
 const source = sourceData as BdcRoundSource;
 const backHref = `${BDC_URL}#m1-joueurs`;
 
@@ -101,7 +102,7 @@ function MatchCard({ match }: { match: BdcPlayerMatchProfile }) {
     </summary>
     <div className="bdc-player-fixture-body">
       <div className="bdc-player-fixture-context"><span>Partenaire · <strong>{match.partner}</strong></span><span>Moyenne du duo · <strong>{decimal(match.duoAverage3)}</strong></span></div>
-      {!match.available || !stats ? <div className="bdc-unavailable-panel"><strong>{BDC_UNAVAILABLE}</strong><p>Le résultat collectif reste validé, mais les séquences individuelles complètes de cette rencontre ne sont plus disponibles.</p>{match.validatedFinishes.length > 0 && <div className="bdc-player-finishes"><strong>Finish confirmé manuellement</strong><ul>{match.validatedFinishes.map((finish) => <li key={`${finish.value}-${finish.darts}`}>Sortie {finish.value}{finish.darts === null ? "" : ` · ${finish.darts} fléchette${finish.darts > 1 ? "s" : ""}`}</li>)}</ul></div>}</div> : <>
+      {!match.available || !stats ? <div className="bdc-unavailable-panel"><strong>{BDC_UNAVAILABLE}</strong><p>Le résultat collectif reste validé, mais les séquences individuelles complètes de cette rencontre ne sont plus disponibles.</p>{match.validatedFinishes.length > 0 && <div className="bdc-player-finishes"><strong>Finishes attribués selon l’ordre confirmé</strong><ul>{match.validatedFinishes.map((finish) => <li key={`${finish.leg}-${finish.value}-${finish.darts}`}>{finish.leg === null ? "Leg non identifié" : `Leg ${finish.leg}`} · sortie {finish.value}{finish.darts === null ? "" : ` · ${finish.darts} fléchette${finish.darts > 1 ? "s" : ""}`}</li>)}</ul></div>}</div> : <>
         <dl className="bdc-player-match-metrics">
           <div><dt>Contribution scoring</dt><dd>{decimal(match.contribution, "%")}</dd></div>
           <div><dt>Moyenne 3 darts</dt><dd>{decimal(stats.average3)}</dd></div>
@@ -160,7 +161,7 @@ export default async function BdcPlayerRoundPage({
           <article><span>Tours sans score</span><strong className="is-unavailable">—</strong><small>{BDC_UNAVAILABLE}</small></article>
           <article className="bdc-big-visits"><span>Grosses volées</span><div><b>100–139 <strong>{summary?.visits100 ?? "—"}</strong></b><b>140–169 <strong>{summary?.visits140 ?? "—"}</strong></b><b>170–179 <strong>{summary?.visits170 ?? "—"}</strong></b><b>180 <strong>{summary?.visits180 ?? "—"}</strong></b></div><small>sur les matchs couverts</small></article>
         </div>
-        <p className="bdc-note">Les statistiques individuelles détaillées résument les rencontres dont les séquences de volées sont exploitables. L’ordre officiel correspond à l’ordre des noms du duo. Les finishes confirmés manuellement sont inclus sans inventer les autres données manquantes.</p>
+        <p className="bdc-note">Les statistiques individuelles détaillées résument les rencontres dont les séquences de volées sont exploitables. L’ordre officiel correspond à l’ordre des noms du duo. Les finishes des feuilles partielles sont attribués grâce à cet ordre confirmé, sans inventer les autres données manquantes.</p>
       </section>
 
       <section className="bdc-player-section" aria-labelledby="evolution-joueur">
