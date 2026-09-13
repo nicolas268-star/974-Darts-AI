@@ -199,6 +199,29 @@ class NakkaDirectImportTests(unittest.TestCase):
             ],
         )
 
+    def test_secondary_knockout_is_imported_as_loser_bracket(self) -> None:
+        payload = deepcopy(EVENT)
+        payload["s2_setting"] = {"match_type": "01"}
+        payload["s2_result"] = [{
+            "p1": {"p2": {"r": 2, "a": 44.5}},
+            "p2": {"p1": {"r": 0, "a": 39.1}},
+        }]
+
+        with patch.object(direct, "_request_json", side_effect=[payload, STATS]):
+            preview = direct.analyze_direct_event(
+                "https://n01darts.com/n01/league/season.php?id=t_direct_123",
+                2026,
+                [],
+            )["lastPreview"]
+
+        self.assertEqual(preview["summary"]["matches"], 3)
+        self.assertEqual(preview["summary"]["knockoutMatches"], 2)
+        self.assertEqual(
+            [match["stage_label"] for match in preview["matches"][:2]],
+            ["Finale", "Loser Bracket · Finale"],
+        )
+        self.assertEqual(preview["matches"][1]["stage_code"], "loser_1")
+
     def test_import_requires_explicit_confirmation(self) -> None:
         preview = self._analyse()["lastPreview"]
         with self.assertRaises(ValueError):

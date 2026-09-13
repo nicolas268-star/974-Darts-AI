@@ -76,6 +76,18 @@ TOURNAMENT_EDITORIALS: dict[str, dict[str, Any]] = {
             "pour remporter la Papangue Dart Cup nº1."
         ),
     },
+    "t_aKyY_3246": {
+        "format": "POOLS_AND_DOUBLE_KNOCKOUT",
+        "format_label": "Poules · Winner Bracket · Loser Bracket",
+        "winner": "Manu (KAD)",
+        "runner_up": "Dudul (KAD)",
+        "editorial_summary": (
+            "Après huit poules de qualification, Manu a remporté le tableau "
+            "principal au terme d’une finale très serrée face à Dudul (4–3). "
+            "Dans le tableau Loser Bracket, Antoine s’est imposé face à "
+            "Ambroise (3–1)."
+        ),
+    },
 }
 _STATE_LOCK = Lock()
 
@@ -296,6 +308,7 @@ def _round_robin_matches(
     win_points = _integer(settings.get("point_w")) or 2
     draw_points = _integer(settings.get("point_d"))
     loss_points = _integer(settings.get("point_l"))
+    include_leg_points = _integer(settings.get("include_leg")) == 1
     matches: list[dict[str, Any]] = []
     seen: set[tuple[str, str, int]] = set()
     match_number = 0
@@ -366,6 +379,7 @@ def _round_robin_matches(
                     "round_robin_win_points": win_points,
                     "round_robin_draw_points": draw_points,
                     "round_robin_loss_points": loss_points,
+                    "round_robin_include_leg_points": include_leg_points,
                     "home_average_3_darts": _decimal(home_result.get("a")),
                     "away_average_3_darts": _decimal(away_result.get("a")),
                 })
@@ -493,6 +507,42 @@ def _knockout_matches(
                 "Petite finale",
                 mode,
             ))
+    return matches
+
+
+def _secondary_knockout_matches(
+    payload: dict[str, Any],
+    participant_names: dict[str, str],
+    source_url: str,
+    source_id: str,
+) -> list[dict[str, Any]]:
+    """Read N01's secondary/consolation knockout as a Loser Bracket."""
+
+    result_groups = payload.get("s2_result") or []
+    if not isinstance(result_groups, list):
+        return []
+    setting = payload.get("s2_setting") or {}
+    if not isinstance(setting, dict):
+        setting = {}
+    mode = (
+        "Cricket"
+        if str(setting.get("match_type") or "").lower() == "cricket"
+        else "Simple"
+    )
+    round_count = len(result_groups)
+    matches: list[dict[str, Any]] = []
+    for round_index, group in enumerate(result_groups, start=1):
+        round_label = _knockout_stage_label(round_index, round_count)
+        matches.extend(_result_group_matches(
+            group,
+            participant_names,
+            source_url,
+            source_id,
+            f"loser_{round_index}",
+            100 + round_index,
+            f"Loser Bracket · {round_label}",
+            mode,
+        ))
     return matches
 
 
@@ -649,9 +699,14 @@ def analyze_direct_event(
     double_elimination_matches = _double_elimination_matches(
         event_payload, names, canonical_url, source_id
     )
-    knockout_matches = double_elimination_matches or _knockout_matches(
-        event_payload, names, canonical_url, source_id
-    )
+    if double_elimination_matches:
+        knockout_matches = double_elimination_matches
+    else:
+        knockout_matches = _knockout_matches(
+            event_payload, names, canonical_url, source_id
+        ) + _secondary_knockout_matches(
+            event_payload, names, canonical_url, source_id
+        )
     matches = knockout_matches + pool_matches
     for match_number, match in enumerate(matches, start=1):
         match["match_number"] = match_number

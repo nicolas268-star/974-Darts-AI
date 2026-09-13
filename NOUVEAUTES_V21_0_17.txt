@@ -1,0 +1,10 @@
+974 Darts AI — V21.0.17 CANONICAL
+
+- Ajout de la prise en charge du tableau secondaire N01 comme Loser Bracket.
+- Affichage séparé du Winner Bracket puis du Loser Bracket avant les poules.
+- Ajout des moyennes 3 fléchettes dans les cartes des tableaux à élimination.
+- Conservation des scores et moyennes dans chaque case des huit poules Round Robin.
+- Alignement du calcul des points de poule sur le barème N01 incluant les legs gagnés.
+- Application du face-à-face direct comme critère de départage à égalité.
+- Enrichissement du tableau des statistiques individuelles avec les matchs et taux de victoire.
+- Préparation de l’import T5 « Kaz a darts 974 open 13 sept » (35 joueurs, 90 matchs).

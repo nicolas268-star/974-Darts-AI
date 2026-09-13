@@ -662,6 +662,18 @@
   text-align: center;
 }
 
+.visual-match-card > div > span small {
+  color: #84acce;
+  display: block;
+  font-size: 9px;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.visual-match-card > div.winner > span small {
+  color: #80dcb9;
+}
+
 .visual-match-card > div.winner strong {
   background: #17634f;
 }

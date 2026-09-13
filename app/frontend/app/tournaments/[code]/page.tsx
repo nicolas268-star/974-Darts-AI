@@ -5,6 +5,7 @@ import type {
   TournamentMatch,
   TournamentParticipant,
   TournamentRoundRobinGroup,
+  TournamentStage,
 } from "@/lib/types/sprint14";
 import "../../competitions/competition-hub.css";
 
@@ -49,17 +50,75 @@ function MatchCard({
         <b>{match.legs} legs</b>
       </header>
       <div className={match.winner === match.home ? "winner" : ""}>
-        <span>{match.home}</span>
+        <span>
+          {match.home}
+          {match.home_average_3_darts != null && (
+            <small>Moy. {decimal(match.home_average_3_darts)}</small>
+          )}
+        </span>
         <strong>{match.home_score}</strong>
       </div>
       <div className={match.winner === match.away ? "winner" : ""}>
-        <span>{match.away}</span>
+        <span>
+          {match.away}
+          {match.away_average_3_darts != null && (
+            <small>Moy. {decimal(match.away_average_3_darts)}</small>
+          )}
+        </span>
         <strong>{match.away_score}</strong>
       </div>
       {!match.result_complete && (
         <small>{match.unresolved_legs} leg(s) à vérifier</small>
       )}
     </article>
+  );
+}
+
+function BracketPanel({
+  stages,
+  eyebrow,
+  title,
+  description,
+}: {
+  stages: TournamentStage[];
+  eyebrow: string;
+  title: string;
+  description: string;
+}) {
+  if (!stages.length) return null;
+  return (
+    <section className="hub-panel tournament-visual-panel bracket-panel">
+      <div className="tournament-panel-heading">
+        <div>
+          <span>{eyebrow}</span>
+          <h2>{title}</h2>
+        </div>
+        <p>{description}</p>
+      </div>
+      <div className="bracket-scroll">
+        <div
+          className="bracket-grid"
+          style={{
+            gridTemplateColumns: `repeat(${stages.length}, minmax(235px, 1fr))`,
+          }}
+        >
+          {stages.map((round) => (
+            <section className="bracket-round" key={round.code}>
+              <h3>{round.name}</h3>
+              <div className="bracket-round-matches">
+                {round.matches.map((match) => (
+                  <MatchCard match={match} key={match.id} />
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+      </div>
+      <p className="bracket-coverage">
+        Tableau reconstruit à partir des résultats officiels disponibles dans
+        le tournoi N01.
+      </p>
+    </section>
   );
 }
 
@@ -84,6 +143,8 @@ function ParticipantTable({
           <tr>
             <th>{duo ? "Duo" : "Joueur"}</th>
             <th>{duo ? "Joueurs suivis" : "Équipe / duo"}</th>
+            <th>Matchs V/J</th>
+            <th>Victoires</th>
             <th>Legs G/J</th>
             <th>Moy. 3 fl.</th>
             <th>First 9</th>
@@ -101,6 +162,14 @@ function ParticipantTable({
                 {duo
                   ? participant.players?.join(" / ") || "—"
                   : participant.team || "—"}
+              </td>
+              <td>
+                {participant.matches_won ?? "—"}/{participant.matches_played ?? "—"}
+              </td>
+              <td>
+                {participant.win_rate == null
+                  ? "—"
+                  : `${decimal(participant.win_rate)} %`}
               </td>
               <td>
                 {participant.legs_won}/{participant.legs_played}
@@ -243,6 +312,12 @@ export default async function TournamentPage({
     .sort((a, b) => (b.best_finish ?? 0) - (a.best_finish ?? 0))[0];
   const scorers180 = data?.players.filter((player) => player.scores_180 > 0) ?? [];
   const total180 = scorers180.reduce((total, player) => total + player.scores_180, 0);
+  const loserBracket = data?.bracket?.filter((stage) =>
+    stage.code.startsWith("loser_"),
+  ) ?? [];
+  const winnerBracket = data?.bracket?.filter((stage) =>
+    !stage.code.startsWith("loser_"),
+  ) ?? [];
 
   return (
     <div className="dashboard">
@@ -286,7 +361,7 @@ export default async function TournamentPage({
                 <div className="tournament-story-heading">
                   <div>
                     <span className="competition-eyebrow">RÉSUMÉ DU TOURNOI</span>
-                    <h2>Papangue Dart Cup nº1</h2>
+                    <h2>{data.event_name}</h2>
                   </div>
                   <div className="tournament-podium">
                     <span>🏆 <strong>{data.winner}</strong></span>
@@ -302,7 +377,7 @@ export default async function TournamentPage({
                 <div className="tournament-panel-heading">
                   <div>
                     <span>PERFORMANCES DU TOURNOI</span>
-                    <h2>Les distinctions de T4</h2>
+                    <h2>Les distinctions de {data.code}</h2>
                   </div>
                   <p>Calculées à partir des statistiques validées du tournoi.</p>
                 </div>
@@ -346,40 +421,19 @@ export default async function TournamentPage({
               </div>
             )}
 
-            {!!data.bracket?.length && (
-              <section className="hub-panel tournament-visual-panel bracket-panel">
-                <div className="tournament-panel-heading">
-                  <div>
-                    <span>ÉLIMINATION DIRECTE</span>
-                    <h2>Le chemin vers la finale</h2>
-                  </div>
-                  <p>Le vainqueur de chaque rencontre est surligné.</p>
-                </div>
-                <div className="bracket-scroll">
-                  <div
-                    className="bracket-grid"
-                    style={{
-                      gridTemplateColumns: `repeat(${data.bracket.length}, minmax(235px, 1fr))`,
-                    }}
-                  >
-                    {data.bracket.map((round) => (
-                      <section className="bracket-round" key={round.code}>
-                        <h3>{round.name}</h3>
-                        <div className="bracket-round-matches">
-                          {round.matches.map((match) => (
-                            <MatchCard match={match} key={match.id} />
-                          ))}
-                        </div>
-                      </section>
-                    ))}
-                  </div>
-                </div>
-                <p className="bracket-coverage">
-                  Tableau reconstruit à partir des résultats officiels
-                  disponibles dans le tournoi Nakka.
-                </p>
-              </section>
-            )}
+            <BracketPanel
+              stages={winnerBracket}
+              eyebrow="WINNER BRACKET · ÉLIMINATION DIRECTE"
+              title="Le chemin vers la finale"
+              description="Le vainqueur de chaque rencontre est surligné."
+            />
+
+            <BracketPanel
+              stages={loserBracket}
+              eyebrow="LOSER BRACKET · ÉLIMINATION DIRECTE"
+              title="Le tableau de consolante"
+              description="Le parcours des joueurs qualifiés pour le tableau secondaire."
+            />
 
             {!!data.round_robin?.length && (
               <section className="hub-panel tournament-visual-panel round-robin-panel">

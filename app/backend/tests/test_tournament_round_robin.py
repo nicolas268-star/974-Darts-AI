@@ -16,6 +16,7 @@ def _match(
     stage: str = "rr_1",
     first_to: int = 3,
     win_points: int = 2,
+    include_leg_points: bool = False,
 ) -> dict:
     return {
         "phase": "POOL",
@@ -24,6 +25,7 @@ def _match(
         "round_robin_first_to": first_to,
         "round_robin_best_of": first_to * 2 - 1,
         "round_robin_win_points": win_points,
+        "round_robin_include_leg_points": include_leg_points,
         "home": home,
         "away": away,
         "home_score": home_score,
@@ -111,6 +113,36 @@ class TournamentRoundRobinTests(unittest.TestCase):
         })
 
         self.assertEqual([group["code"] for group in groups], ["rr_1", "rr_2"])
+
+    def test_adds_leg_points_and_uses_head_to_head_tiebreak(self) -> None:
+        groups = build_tournament_round_robins({
+            "players": [
+                {"name": "Aline", "average_3_darts": 40.0},
+                {"name": "Benoît", "average_3_darts": 40.0},
+                {"name": "Cédric", "average_3_darts": 50.0},
+                {"name": "Diane", "average_3_darts": 45.0},
+            ],
+            "matches": [
+                _match("Aline", "Benoît", 2, 0, first_to=2, include_leg_points=True),
+                _match("Cédric", "Aline", 2, 0, first_to=2, include_leg_points=True),
+                _match("Aline", "Diane", 2, 0, first_to=2, include_leg_points=True),
+                _match("Benoît", "Cédric", 2, 0, first_to=2, include_leg_points=True),
+                _match("Diane", "Benoît", 2, 1, first_to=2, include_leg_points=True),
+                _match("Diane", "Cédric", 2, 1, first_to=2, include_leg_points=True),
+            ],
+        })
+
+        standings = groups[0]["standings"]
+        self.assertEqual(
+            [(row["name"], row["points"], row["rank"]) for row in standings],
+            [
+                ("Aline", 8, 1),
+                ("Diane", 8, 2),
+                ("Benoît", 5, 3),
+                ("Cédric", 5, 4),
+            ],
+        )
+        self.assertTrue(groups[0]["include_leg_points"])
 
 
 if __name__ == "__main__":

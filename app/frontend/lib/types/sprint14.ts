@@ -169,6 +169,7 @@ export type TournamentRoundRobinGroup = {
   win_points: number;
   draw_points: number;
   loss_points: number;
+  include_leg_points?: boolean;
   participant_count: number;
   match_count: number;
   expected_match_count: number;
@@ -205,6 +206,9 @@ export type TournamentParticipant = {
   scores_140: number;
   scores_100: number;
   no_score: number;
+  matches_played?: number;
+  matches_won?: number;
+  win_rate?: number | null;
 };
 
 export type TournamentHub = {

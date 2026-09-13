@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from functools import cmp_to_key
 from typing import Any
 
 
@@ -87,6 +88,10 @@ def build_tournament_round_robins(
         win_points = _first_integer(matches, "round_robin_win_points") or 2
         draw_points = _first_integer(matches, "round_robin_draw_points")
         loss_points = _first_integer(matches, "round_robin_loss_points")
+        include_leg_points = any(
+            bool(match.get("round_robin_include_leg_points"))
+            for match in matches
+        )
 
         match_by_pair: dict[tuple[str, str], dict[str, Any]] = {}
         for match in matches:
@@ -144,19 +149,47 @@ def build_tournament_round_robins(
                 home_row["points"] += draw_points
                 away_row["points"] += draw_points
 
+            if include_leg_points:
+                home_row["points"] += home_score
+                away_row["points"] += away_score
+
         standings = list(standing_by_name.values())
         for row in standings:
             row["leg_difference"] = row["legs_for"] - row["legs_against"]
-        standings.sort(
-            key=lambda row: (
-                -row["points"],
-                -row["wins"],
-                -row["leg_difference"],
-                -row["legs_for"],
-                -float(row.get("average_3_darts") or 0),
-                str(row["name"]).casefold(),
+
+        def compare_standings(left: dict[str, Any], right: dict[str, Any]) -> int:
+            for key in ("points", "wins", "leg_difference", "legs_for"):
+                left_value = _integer(left.get(key))
+                right_value = _integer(right.get(key))
+                if left_value != right_value:
+                    return -1 if left_value > right_value else 1
+
+            head_to_head = match_by_pair.get(
+                tuple(sorted((left["name"], right["name"]), key=str.casefold))
             )
-        )
+            if head_to_head:
+                home = str(head_to_head.get("home") or "")
+                home_score = _integer(head_to_head.get("home_score"))
+                away_score = _integer(head_to_head.get("away_score"))
+                if home_score != away_score:
+                    winner = home if home_score > away_score else str(
+                        head_to_head.get("away") or ""
+                    )
+                    return -1 if winner == left["name"] else 1
+
+            left_average = float(left.get("average_3_darts") or 0)
+            right_average = float(right.get("average_3_darts") or 0)
+            if left_average != right_average:
+                return -1 if left_average > right_average else 1
+            return (
+                -1
+                if str(left["name"]).casefold() < str(right["name"]).casefold()
+                else 1
+                if str(left["name"]).casefold() > str(right["name"]).casefold()
+                else 0
+            )
+
+        standings.sort(key=cmp_to_key(compare_standings))
         for rank, row in enumerate(standings, start=1):
             row["rank"] = rank
         rank_by_name = {row["name"]: row["rank"] for row in standings}
@@ -221,6 +254,7 @@ def build_tournament_round_robins(
             "win_points": win_points,
             "draw_points": draw_points,
             "loss_points": loss_points,
+            "include_leg_points": include_leg_points,
             "participant_count": len(names),
             "match_count": len(match_by_pair),
             "expected_match_count": expected_matches,
