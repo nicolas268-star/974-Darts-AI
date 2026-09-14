@@ -93,6 +93,7 @@ export type ChampionshipHub = {
     win_points: number;
     draw_points: number;
     loss_points: number;
+    forfeit_points?: number;
   } | null;
   summary: CompetitionSummary;
   standings: Standing[];

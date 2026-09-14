@@ -93,6 +93,16 @@ export default async function ChampionshipPage({
               </div>
             )}
 
+            {data.rules && (
+              <div className="competition-notice">
+                <strong>Barème officiel :</strong>{" "}
+                victoire {data.rules.win_points} points · nul{" "}
+                {data.rules.draw_points} points · défaite{" "}
+                {data.rules.loss_points} point · forfait{" "}
+                {data.rules.forfeit_points ?? 0} point
+              </div>
+            )}
+
             <section className="hub-kpis">
               <article>
                 <span>Journées</span>
