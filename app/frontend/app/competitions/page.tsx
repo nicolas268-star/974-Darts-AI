@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Sidebar } from "@/components/Sidebar";
+import { committeeCalendarEvents } from "@/lib/committee-ranking";
 import type {
   ChampionshipCard,
   CompetitionCatalog,
@@ -66,6 +67,10 @@ export default async function CompetitionsPage() {
     data?.active_championship
     ?? championships.find((season) => season.is_active)
   );
+  const officialDates = committeeCalendarEvents.filter(
+    (event) => event.status === "SCHEDULED",
+  );
+
   return (
     <div className="dashboard">
       <Sidebar />
@@ -77,8 +82,8 @@ export default async function CompetitionsPage() {
             </span>
             <h1>Les compétitions</h1>
             <p>
-              Naviguez entre les championnats officiels et les tournois
-              amicaux sans mélanger leurs statistiques.
+              Naviguez entre le championnat par équipes, le classement
+              individuel officiel et les tournois amicaux.
             </p>
           </div>
           <div className="competition-hero-badge">
@@ -89,8 +94,8 @@ export default async function CompetitionsPage() {
 
         {!data && (
           <div className="competition-notice danger">
-            Les données des compétitions sont momentanément indisponibles.
-            Redémarrez le service puis actualisez cette page.
+            Les données dynamiques sont momentanément indisponibles.
+            Le calendrier et les barèmes officiels restent consultables.
           </div>
         )}
 
@@ -98,7 +103,7 @@ export default async function CompetitionsPage() {
           <div className="competition-section-title">
             <div>
               <span>PALMARÈS OFFICIEL</span>
-              <h2>Championnats</h2>
+              <h2>Championnats par équipes</h2>
             </div>
             <p>Une saison sélectionnée ne modifie jamais les autres années.</p>
           </div>
@@ -128,13 +133,39 @@ export default async function CompetitionsPage() {
           </div>
         </section>
 
+        <section className="competition-section individual-ranking-section">
+          <div className="competition-section-title">
+            <div>
+              <span>CHAMPIONNAT INDIVIDUEL 974</span>
+              <h2>Classement 2026–2027</h2>
+            </div>
+            <p>Opens Comité, Coupe Comité et Opens de club reconnus.</p>
+          </div>
+          <Link href="/competitions/classement-individuel" className="committee-ranking-card">
+            <div>
+              <span>CLASSEMENT PROVISOIRE</span>
+              <strong>2026–27</strong>
+              <p>Barèmes officiels, points par compétition et règles de départage.</p>
+              <small>Ouvrir le classement individuel →</small>
+            </div>
+            <div className="committee-ranking-dates">
+              {officialDates.slice(0, 3).map((event) => (
+                <span key={event.id}>
+                  <b>{new Date(`${event.start_date}T12:00:00+04:00`).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", timeZone: "Indian/Reunion" })}</b>
+                  {event.title}
+                </span>
+              ))}
+            </div>
+          </Link>
+        </section>
+
         <section className="competition-section tournament-section">
           <div className="competition-section-title">
             <div>
-              <span>HORS CHAMPIONNAT</span>
-              <h2>Tournois amicaux</h2>
+              <span>TOURNOIS & ANALYSES</span>
+              <h2>Tournois publiés</h2>
             </div>
-            <p>Résultats visibles, sans impact sur le classement ou l’ELO.</p>
+            <p>Le statut de chaque événement indique s’il rapporte des points 974.</p>
           </div>
           <div className="tournament-grid">
             {(data?.tournaments ?? []).map((tournament) => (
@@ -161,8 +192,8 @@ export default async function CompetitionsPage() {
             ))}
           </div>
           <div className="competition-notice">
-            Les tournois amicaux sont volontairement exclus des points
-            d’équipe, du classement officiel et de l’ELO du championnat.
+            Les tournois amicaux restent exclus du classement officiel. Seuls
+            les Opens de club reconnus par le Comité rapportent des points.
           </div>
         </section>
       </main>
