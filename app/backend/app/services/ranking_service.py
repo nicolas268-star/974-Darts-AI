@@ -20,14 +20,17 @@ DEFAULT_RULES = {
     ],
 }
 
+RULES_2026_2027 = {
+    **DEFAULT_RULES,
+    "win_points": 4,
+    "draw_points": 2,
+    "loss_points": 1,
+    "forfeit_points": 0,
+}
+
 SEASON_RULES = {
-    "2026-2027": {
-        **DEFAULT_RULES,
-        "win_points": 4,
-        "draw_points": 2,
-        "loss_points": 1,
-        "forfeit_points": 0,
-    },
+    "2026-2027": RULES_2026_2027,
+    "2027": RULES_2026_2027,
 }
 
 
