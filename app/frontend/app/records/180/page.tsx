@@ -71,6 +71,7 @@ export default async function Club180Page({ searchParams }: PageProps) {
   const officialPlayers = players
     .map((player) => ({ ...player, team: canonicalTeamName(player.team) }))
   const playerByName = new Map(officialPlayers.map((player) => [normalizedPlayerName(player.name), player]));
+  const playerById = new Map(officialPlayers.map((player) => [player.player_id, player]));
   const season = ranking?.season?.name ?? "2026";
   const sourceRows = [
     ...officialPlayers.map((player) => ({
@@ -79,7 +80,9 @@ export default async function Club180Page({ searchParams }: PageProps) {
       source_type: "championship" as const,
     })),
     ...tournamentRecords.flatMap((record) => {
-      const player = playerByName.get(normalizedPlayerName(record.name));
+      const player =
+        playerById.get(record.canonical_player_id ?? "") ??
+        playerByName.get(normalizedPlayerName(record.name));
       return player ? [{
         ...player,
         legs_played: record.legs_played,
