@@ -8,7 +8,7 @@ from typing import Any
 from supabase import Client
 
 from app.services.player_statistics_engine import PlayerStatisticsEngine
-from app.services.ranking_service import build_ranking
+from app.services.ranking_service import build_ranking, _rules_for_season_name
 from app.services.season_registry_service import public_seasons
 from app.services.control_catalog import (
     OFFICIAL_2026_FIXTURES,
@@ -284,7 +284,11 @@ class CompetitionHubService:
                 "contract_version": "14.1",
                 "championship": card,
                 "season": None,
-                "rules": None,
+                "rules": (
+                    _rules_for_season_name("2026-2027")
+                    if card.get("year") == 2027
+                    else None
+                ),
                 "summary": {
                     "rounds": 0,
                     "teams": 0,
