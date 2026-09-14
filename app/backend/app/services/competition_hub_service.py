@@ -9,6 +9,7 @@ from supabase import Client
 
 from app.services.player_statistics_engine import PlayerStatisticsEngine
 from app.services.ranking_service import build_ranking
+from app.services.season_registry_service import public_seasons
 from app.services.control_catalog import (
     OFFICIAL_2026_FIXTURES,
     OFFICIAL_2026_SOURCE_URL,
@@ -104,6 +105,12 @@ class CompetitionHubService:
             if season.get("is_active"):
                 active_year = year
 
+        registry_active_year = _season_year(
+            public_seasons().get("defaultSeason")
+        )
+        if registry_active_year is not None:
+            active_year = max(active_year or registry_active_year, registry_active_year)
+
         anchor_year = (
             active_year
             or max(actual_by_year, default=current_year)
@@ -123,7 +130,8 @@ class CompetitionHubService:
             season_id = str(season.get("id")) if season else None
             rounds_total = round_count.get(season_id or "", 0)
             published = published_count.get(season_id or "", 0)
-            if season and season.get("is_active"):
+            card_is_active = year == active_year
+            if card_is_active:
                 status = "ACTIVE"
             elif season and rounds_total > 0:
                 status = "ARCHIVED" if year < anchor_year else "AVAILABLE"
@@ -140,9 +148,7 @@ class CompetitionHubService:
                     else year
                 ),
                 "year": year,
-                "is_active": bool(
-                    season and season.get("is_active")
-                ),
+                "is_active": card_is_active,
                 "status": status,
                 "rounds": rounds_total,
                 "published_rounds": published,
