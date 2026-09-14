@@ -41,6 +41,30 @@ function isFriendlyOverride(event: CalendarEvent) {
   );
 }
 
+type CalendarFilter = "all" | "championship" | "bdc" | "category-c" | "category-d" | "category-e" | "friendly";
+
+const calendarFilters: Array<{ id: CalendarFilter; label: string; className: string }> = [
+  { id: "all", label: "Toutes les dates", className: "legend-all" },
+  { id: "championship", label: "Championnat interclubs", className: "legend-championship" },
+  { id: "bdc", label: "Blind Draw Championship", className: "legend-bdc" },
+  { id: "category-c", label: "Coupe Comité", className: "legend-category-c" },
+  { id: "category-d", label: "Open Comité", className: "legend-category-d" },
+  { id: "category-e", label: "Open de club reconnu", className: "legend-category-e" },
+  { id: "friendly", label: "Tournoi amical", className: "legend-friendly" },
+];
+
+function eventFilter(event: CalendarEvent): Exclude<CalendarFilter, "all"> | null {
+  if (bdcCalendarRound(event.title, event.start_date)) return "bdc";
+  if (event.ranking_category) return `category-${event.ranking_category.toLowerCase()}` as Exclude<CalendarFilter, "all">;
+  if (event.event_type === "CHAMPIONSHIP") return "championship";
+  if (event.event_type === "FRIENDLY") return "friendly";
+  return null;
+}
+
+function isCalendarFilter(value: string | undefined): value is CalendarFilter {
+  return calendarFilters.some((filter) => filter.id === value);
+}
+
 async function getEvents(): Promise<CalendarEvent[]> {
   let dynamicEvents: CalendarEvent[] = [];
   try {
@@ -97,16 +121,26 @@ function EventCard({ event }: { event: CalendarEvent }) {
   </article>;
 }
 
-export default async function CalendarPage() {
+type CalendarPageProps = {
+  searchParams?: Promise<{ filter?: string | string[] }>;
+};
+
+export default async function CalendarPage({ searchParams }: CalendarPageProps) {
+  const query = await searchParams;
+  const requestedFilter = Array.isArray(query?.filter) ? query.filter[0] : query?.filter;
+  const activeFilter: CalendarFilter = isCalendarFilter(requestedFilter) ? requestedFilter : "all";
   const events = await getEvents();
+  const visibleEvents = activeFilter === "all"
+    ? events
+    : events.filter((event) => eventFilter(event) === activeFilter);
   const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Indian/Reunion" }).format(new Date());
-  const upcoming = events.filter((event) => event.start_date >= today && event.status !== "COMPLETED");
-  const past = events.filter((event) => event.start_date < today || event.status === "COMPLETED").reverse();
+  const upcoming = visibleEvents.filter((event) => event.start_date >= today && event.status !== "COMPLETED");
+  const past = visibleEvents.filter((event) => event.start_date < today || event.status === "COMPLETED").reverse();
 
   return <div className="dashboard"><Sidebar /><main className="main calendar-page">
     <section className="calendar-hero"><div><span>Agenda 974 Darts</span><h1>Calendrier</h1><p>Championnat, compétitions individuelles officielles, tournois reconnus et rendez-vous amicaux réunis au même endroit.</p></div><CalendarDays size={72} /><div className="calendar-count"><strong>{upcoming.length}</strong><span>événement{upcoming.length !== 1 ? "s" : ""} à venir</span></div></section>
-    <section className="calendar-legend"><span className="legend-championship">Championnat interclubs</span><span className="legend-bdc">Blind Draw Championship</span><span className="legend-category-c">Coupe Comité</span><span className="legend-category-d">Open Comité</span><span className="legend-category-e">Open de club reconnu</span><span className="legend-friendly">Tournoi amical</span></section>
-    <section className="calendar-list"><header><div><span>À vos agendas</span><h2>Prochains rendez-vous</h2></div><PartyPopper /></header>{upcoming.length ? upcoming.map((event) => <EventCard event={event} key={event.id} />) : <div className="calendar-empty"><CalendarDays size={34} /><strong>Le prochain rendez-vous arrive bientôt</strong><p>Le calendrier est prêt. Les événements ajoutés par l’administrateur apparaîtront ici immédiatement.</p></div>}</section>
+    <nav className="calendar-legend" aria-label="Filtrer le calendrier">{calendarFilters.map((filter) => <Link key={filter.id} href={filter.id === "all" ? "/calendar" : `/calendar?filter=${filter.id}`} className={`${filter.className} ${activeFilter === filter.id ? "active" : ""}`} aria-current={activeFilter === filter.id ? "page" : undefined}>{filter.label}</Link>)}</nav>
+    <section className="calendar-list"><header><div><span>À vos agendas</span><h2>Prochains rendez-vous</h2></div><PartyPopper /></header>{upcoming.length ? upcoming.map((event) => <EventCard event={event} key={event.id} />) : <div className="calendar-empty"><CalendarDays size={34} /><strong>Aucun rendez-vous à venir dans cette catégorie</strong><p>Choisissez un autre filtre ou affichez toutes les dates.</p></div>}</section>
     {past.length > 0 && <section className="calendar-list calendar-past"><header><div><span>Archives</span><h2>Événements passés</h2></div></header>{past.slice(0, 20).map((event) => <EventCard event={event} key={event.id} />)}</section>}
   </main></div>;
 }
