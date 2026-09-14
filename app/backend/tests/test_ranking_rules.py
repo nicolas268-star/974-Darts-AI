@@ -1,3 +1,4 @@
+from app.services.competition_hub_service import _season_year
 from app.services.ranking_service import _rules_for_season_name
 
 
@@ -16,3 +17,9 @@ def test_2026_2027_uses_new_committee_rules():
         assert rules["draw_points"] == 2
         assert rules["loss_points"] == 1
         assert rules["forfeit_points"] == 0
+
+
+def test_sporting_season_is_displayed_under_its_ending_year():
+    assert _season_year("2026") == 2026
+    assert _season_year("2026-2027") == 2027
+    assert _season_year("Championnat 2026–2027") == 2027
