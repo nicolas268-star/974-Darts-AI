@@ -23,6 +23,24 @@ function eventKey(event: Pick<CalendarEvent, "start_date" | "title">) {
   return `${event.start_date}|${event.title.toLocaleLowerCase("fr").replace(/[^a-z0-9]/g, "")}`;
 }
 
+const friendlyEventOverrides = [
+  { date: "2026-09-25", keywords: ["cricket", "five"] },
+  { date: "2026-08-02", keywords: ["dimanche", "legende"] },
+  { date: "2026-08-28", keywords: ["papangue", "dart"] },
+  { date: "2026-08-07", keywords: ["cricket", "challenge"] },
+];
+
+function normalizedTitle(title: string) {
+  return title.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("fr");
+}
+
+function isFriendlyOverride(event: CalendarEvent) {
+  const title = normalizedTitle(event.title);
+  return friendlyEventOverrides.some(({ date, keywords }) =>
+    event.start_date === date && keywords.every((keyword) => title.includes(keyword))
+  );
+}
+
 async function getEvents(): Promise<CalendarEvent[]> {
   let dynamicEvents: CalendarEvent[] = [];
   try {
@@ -36,6 +54,12 @@ async function getEvents(): Promise<CalendarEvent[]> {
   } catch {
     dynamicEvents = [];
   }
+
+  dynamicEvents = dynamicEvents.map((event): CalendarEvent =>
+    isFriendlyOverride(event)
+      ? { ...event, event_type: "FRIENDLY", ranking_category: null, ranking_kind: null }
+      : event
+  );
 
   const existing = new Set(dynamicEvents.map(eventKey));
   const officialFallbacks = committeeCalendarEvents
@@ -60,11 +84,13 @@ const dateFormatter = new Intl.DateTimeFormat("fr-FR", {
 function EventCard({ event }: { event: CalendarEvent }) {
   const date = new Date(`${event.start_date}T12:00:00+04:00`);
   const bdcRound = bdcCalendarRound(event.title, event.start_date);
-  const rankingLabel = event.ranking_category
-    ? rankingCategoryLabels[event.ranking_category]
-    : calendarTypeLabels[event.event_type];
+  const rankingLabel = bdcRound
+    ? "Blind Draw Championship"
+    : event.ranking_category
+      ? rankingCategoryLabels[event.ranking_category]
+      : calendarTypeLabels[event.event_type];
 
-  return <article className={`calendar-event type-${event.event_type.toLowerCase()} ${event.ranking_category ? `ranking-category-${event.ranking_category.toLowerCase()}` : ""} ${event.status === "CANCELLED" ? "cancelled" : ""}`}>
+  return <article className={`calendar-event type-${event.event_type.toLowerCase()} ${bdcRound ? "event-bdc" : ""} ${event.ranking_category ? `ranking-category-${event.ranking_category.toLowerCase()}` : ""} ${event.status === "CANCELLED" ? "cancelled" : ""}`}>
     <div className="calendar-date"><strong>{String(date.getDate()).padStart(2, "0")}</strong><span>{date.toLocaleDateString("fr-FR", { month: "short", timeZone: "Indian/Reunion" })}</span></div>
     <div className="calendar-event-main"><div className="calendar-event-meta"><span>{rankingLabel}</span>{event.status === "CANCELLED" && <b>Annulé</b>}</div><h2>{event.title}</h2><p><CalendarDays size={16} /> {dateFormatter.format(date)}{event.end_date && event.end_date !== event.start_date ? ` au ${dateFormatter.format(new Date(`${event.end_date}T12:00:00+04:00`))}` : ""}</p><p><Clock3 size={16} /> {event.start_time || "Horaire à confirmer"}</p><p><MapPin size={16} /> {event.location}{event.address ? ` · ${event.address}` : ""}</p>{event.description && <small>{event.description}</small>}</div>
     {bdcRound ? <div className="calendar-event-actions"><Link href={`${BDC_URL}#manche-${bdcRound.number}`}>Manche {bdcRound.number} et classement BDC →</Link>{event.source_url && <Link href={event.source_url} target="_blank" rel="noreferrer">Voir les détails →</Link>}</div> : event.source_url && <Link href={event.source_url} target="_blank" rel="noreferrer">Voir les détails →</Link>}
@@ -79,7 +105,7 @@ export default async function CalendarPage() {
 
   return <div className="dashboard"><Sidebar /><main className="main calendar-page">
     <section className="calendar-hero"><div><span>Agenda 974 Darts</span><h1>Calendrier</h1><p>Championnat, compétitions individuelles officielles, tournois reconnus et rendez-vous amicaux réunis au même endroit.</p></div><CalendarDays size={72} /><div className="calendar-count"><strong>{upcoming.length}</strong><span>événement{upcoming.length !== 1 ? "s" : ""} à venir</span></div></section>
-    <section className="calendar-legend"><span className="legend-championship">Championnat interclubs</span><span className="legend-category-c">Coupe Comité</span><span className="legend-category-d">Open Comité</span><span className="legend-category-e">Open de club reconnu</span><span className="legend-friendly">Tournoi amical</span></section>
+    <section className="calendar-legend"><span className="legend-championship">Championnat interclubs</span><span className="legend-bdc">Blind Draw Championship</span><span className="legend-category-c">Coupe Comité</span><span className="legend-category-d">Open Comité</span><span className="legend-category-e">Open de club reconnu</span><span className="legend-friendly">Tournoi amical</span></section>
     <section className="calendar-list"><header><div><span>À vos agendas</span><h2>Prochains rendez-vous</h2></div><PartyPopper /></header>{upcoming.length ? upcoming.map((event) => <EventCard event={event} key={event.id} />) : <div className="calendar-empty"><CalendarDays size={34} /><strong>Le prochain rendez-vous arrive bientôt</strong><p>Le calendrier est prêt. Les événements ajoutés par l’administrateur apparaîtront ici immédiatement.</p></div>}</section>
     {past.length > 0 && <section className="calendar-list calendar-past"><header><div><span>Archives</span><h2>Événements passés</h2></div></header>{past.slice(0, 20).map((event) => <EventCard event={event} key={event.id} />)}</section>}
   </main></div>;
