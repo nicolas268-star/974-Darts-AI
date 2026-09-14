@@ -77,20 +77,33 @@ def build_event_preview(event_id: str, db: Client | None = None) -> dict[str, An
     if not tournament or tournament.get("status") != "AVAILABLE":
         raise ValueError("Les résultats T5 ne sont pas disponibles.")
 
-    knockout = [
+    winner_bracket = [
         match
         for match in tournament.get("matches") or []
-        if match.get("phase") == "KNOCKOUT" and match.get("winner")
+        if (
+            match.get("phase") == "KNOCKOUT"
+            and str(match.get("stage_code") or "").startswith("winner_")
+            and match.get("winner")
+        )
     ]
-    if not knockout:
-        raise ValueError("Aucun résultat éliminatoire exploitable dans T5.")
+    if not winner_bracket:
+        raise ValueError("Aucun résultat de Winner Bracket exploitable dans T5.")
 
     losses: dict[str, float] = {}
     raw_names: dict[str, str] = {}
-    final_match = max(knockout, key=lambda item: _number(item.get("match_number")))
+    # N01 numérote les tours de Winner Bracket avec stage_index. Le champ
+    # match_number vaut parfois 0 pour tous les matchs importés et ne peut donc
+    # pas, à lui seul, identifier la finale.
+    def round_order(match: dict[str, Any]) -> tuple[float, float]:
+        return (
+            _number(match.get("stage_index")),
+            _number(match.get("match_number")),
+        )
+
+    final_match = max(winner_bracket, key=round_order)
     winner = str(final_match.get("winner") or "").strip()
 
-    for match in knockout:
+    for match in winner_bracket:
         home = str(match.get("home") or "").strip()
         away = str(match.get("away") or "").strip()
         match_winner = str(match.get("winner") or "").strip()
@@ -100,7 +113,7 @@ def build_event_preview(event_id: str, db: Client | None = None) -> dict[str, An
         display = _display_name(tournament, loser)
         key = unicodedata.normalize("NFKC", display).casefold()
         raw_names[key] = display
-        losses[key] = max(losses.get(key, -1), _number(match.get("match_number")))
+        losses[key] = max(losses.get(key, -1), _number(match.get("stage_index")))
 
     ordered = [_display_name(tournament, winner)]
     winner_key = unicodedata.normalize("NFKC", ordered[0]).casefold()
@@ -172,7 +185,7 @@ def build_event_preview(event_id: str, db: Client | None = None) -> dict[str, An
         "summary": {
             "players_awarded": len(results),
             "points_awarded": sum(int(row["points"]) for row in results),
-            "source_matches": len(knockout),
+            "source_matches": len(winner_bracket),
         },
     }
 
