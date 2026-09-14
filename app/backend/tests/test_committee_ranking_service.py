@@ -29,9 +29,9 @@ class CommitteeRankingServiceTests(unittest.TestCase):
         tournament = {
             "status": "AVAILABLE",
             "matches": [
-                match("winner_1", 1, "Alice", "Bruno", "Alice"),
-                match("winner_1", 1, "Chloé", "David", "Chloé"),
-                match("winner_2", 2, "Alice", "Chloé", "Alice"),
+                match("ko_1", 1, "Alice", "Bruno", "Alice"),
+                match("ko_1", 1, "Chloé", "David", "Chloé"),
+                match("ko_2", 2, "Alice", "Chloé", "Alice"),
                 match("loser_1", 101, "Bruno", "David", "David"),
                 match("loser_2", 102, "David", "Chloé", "David"),
                 match("grand_final_1", 201, "Alice", "David", "David"),
