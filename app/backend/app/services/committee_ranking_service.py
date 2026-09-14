@@ -77,12 +77,16 @@ def build_event_preview(event_id: str, db: Client | None = None) -> dict[str, An
     if not tournament or tournament.get("status") != "AVAILABLE":
         raise ValueError("Les résultats T5 ne sont pas disponibles.")
 
+    def is_winner_bracket(match: dict[str, Any]) -> bool:
+        stage_code = str(match.get("stage_code") or "")
+        return stage_code.startswith("ko_") and stage_code.removeprefix("ko_").isdigit()
+
     winner_bracket = [
         match
         for match in tournament.get("matches") or []
         if (
             match.get("phase") == "KNOCKOUT"
-            and str(match.get("stage_code") or "").startswith("winner_")
+            and is_winner_bracket(match)
             and match.get("winner")
         )
     ]
@@ -91,7 +95,9 @@ def build_event_preview(event_id: str, db: Client | None = None) -> dict[str, An
 
     losses: dict[str, float] = {}
     raw_names: dict[str, str] = {}
-    # N01 numérote les tours de Winner Bracket avec stage_index. Le champ
+    # Le cache T5 code la Winner Bracket ko_1, ko_2, etc. et la Loser
+    # Bracket loser_1, loser_2, etc. N01 numérote les tours avec stage_index.
+    # Le champ
     # match_number vaut parfois 0 pour tous les matchs importés et ne peut donc
     # pas, à lui seul, identifier la finale.
     def round_order(match: dict[str, Any]) -> tuple[float, float]:
