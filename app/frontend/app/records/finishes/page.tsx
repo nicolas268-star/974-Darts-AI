@@ -56,6 +56,7 @@ export default async function HighestFinishesPage() {
   const officialPlayers = players
     .map((player) => ({ ...player, team: canonicalTeamName(player.team) }))
   const playerByName = new Map(officialPlayers.map((player) => [normalizedPlayerName(player.name), player]));
+  const playerById = new Map(officialPlayers.map((player) => [player.player_id, player]));
   const season = ranking?.season?.name ?? "2026";
   const finishers = [
     ...officialPlayers.map((player) => ({
@@ -64,7 +65,9 @@ export default async function HighestFinishesPage() {
       finish_count_known: true,
     })),
     ...tournamentRecords.flatMap((record) => {
-      const player = playerByName.get(normalizedPlayerName(record.name));
+      const player =
+        playerById.get(record.canonical_player_id ?? "") ??
+        playerByName.get(normalizedPlayerName(record.name));
       return player ? [{
         ...player,
         legs_played: record.legs_played,
@@ -106,7 +109,8 @@ export default async function HighestFinishesPage() {
   const centuryFinishers = bestFinishers.filter((player) => (player.best_finish ?? 0) >= 100);
   const teamLeaders = [
     ...bestFinishers.reduce((teams, player) => {
-      const team = player.team || "Équipe non renseignée";
+      const team = player.team && player.team !== "—" ? player.team : null;
+      if (!team) return teams;
       const current = teams.get(team);
       if (!current || (player.best_finish ?? 0) > (current.best_finish ?? 0)) {
         teams.set(team, player);
