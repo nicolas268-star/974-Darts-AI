@@ -194,6 +194,8 @@ export type TournamentStage = {
 
 export type TournamentParticipant = {
   name: string;
+  canonical_player_id?: string | null;
+  nakka_participant_id?: string | null;
   team?: string;
   teams?: string[];
   players?: string[];
