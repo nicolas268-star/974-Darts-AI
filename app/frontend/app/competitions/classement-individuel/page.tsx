@@ -15,8 +15,34 @@ const dateFormatter = new Intl.DateTimeFormat("fr-FR", {
   timeZone: "Indian/Reunion",
 });
 
-export default function IndividualRankingPage() {
+type RankingRow = {
+  rank: number;
+  player_name: string;
+  club: string;
+  event_points: Record<string, number>;
+  total: number;
+};
+
+type RankingPayload = {
+  rankings: { mixed: RankingRow[]; men: RankingRow[]; women: RankingRow[] };
+};
+
+async function loadRanking(): Promise<RankingPayload | null> {
+  const base = process.env.PYTHON_API_URL ?? "http://127.0.0.1:8000";
+  try {
+    const response = await fetch(`${base}/api/v1/committee-ranking`, { cache: "no-store", signal: AbortSignal.timeout(5000) });
+    return response.ok ? response.json() : null;
+  } catch {
+    return null;
+  }
+}
+
+export default async function IndividualRankingPage({ searchParams }: { searchParams: Promise<{ categorie?: string }> }) {
   const scheduled = committeeCalendarEvents.filter((event) => event.status === "SCHEDULED");
+  const requested = (await searchParams).categorie;
+  const category = requested === "hommes" ? "men" : requested === "femmes" ? "women" : "mixed";
+  const payload = await loadRanking();
+  const rows = payload?.rankings?.[category] ?? [];
 
   return (
     <div className="dashboard">
@@ -45,13 +71,21 @@ export default function IndividualRankingPage() {
             <p>Mis à jour après validation des résultats par le Directeur sportif.</p>
           </div>
           <div className="committee-ranking-tabs" aria-label="Catégories du classement">
-            <span className="active">Mixte · Masters</span><span>Hommes</span><span>Femmes</span>
+            <Link className={category === "mixed" ? "active" : ""} href="/competitions/classement-individuel">Mixte · Masters</Link>
+            <Link className={category === "men" ? "active" : ""} href="/competitions/classement-individuel?categorie=hommes">Hommes</Link>
+            <Link className={category === "women" ? "active" : ""} href="/competitions/classement-individuel?categorie=femmes">Femmes</Link>
           </div>
           <div className="committee-ranking-table-scroll">
             <table className="committee-ranking-table">
               <thead><tr><th>Rang</th><th>Joueur</th><th>Club</th>{rankingColumnLabels.map((column) => <th title={column.label} key={column.key}>{column.short}</th>)}<th>Total</th></tr></thead>
               <tbody>
-                <tr className="committee-ranking-empty"><td colSpan={10}><strong>Résultats du premier Open de club en cours de validation</strong><span>Le classement sera publié dès validation officielle des points du tournoi Kaz A Darts du 13 septembre.</span><Link href="/tournaments/t5">Consulter les résultats du tournoi →</Link></td></tr>
+                {rows.length ? rows.map((row) => (
+                  <tr key={row.player_name}>
+                    <td><strong>{row.rank}</strong></td><td>{row.player_name}</td><td>{row.club}</td>
+                    {rankingColumnLabels.map((column) => <td key={column.key}>{row.event_points[column.key] ?? "—"}</td>)}
+                    <td><strong>{row.total}</strong></td>
+                  </tr>
+                )) : <tr className="committee-ranking-empty"><td colSpan={10}><strong>Résultats du premier Open de club en cours de validation</strong><span>Le classement sera publié dès validation officielle des points du tournoi Kaz A Darts du 13 septembre.</span><Link href="/tournaments/t5">Consulter les résultats du tournoi →</Link></td></tr>}
               </tbody>
             </table>
           </div>
