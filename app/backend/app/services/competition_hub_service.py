@@ -26,8 +26,11 @@ def _rows(response: Any) -> list[dict[str, Any]]:
 
 
 def _season_year(value: Any) -> int | None:
-    match = re.search(r"(20\d{2})", str(value or ""))
-    return int(match.group(1)) if match else None
+    years = re.findall(r"20\d{2}", str(value or ""))
+    if not years:
+        return None
+    # Une saison sportive 2026-2027 est présentée sous son année de fin : 2027.
+    return int(years[-1])
 
 
 class CompetitionHubService:
