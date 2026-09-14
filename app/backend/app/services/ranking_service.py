@@ -10,6 +10,7 @@ DEFAULT_RULES = {
     "win_points": 3,
     "draw_points": 2,
     "loss_points": 1,
+    "forfeit_points": 0,
     "ranking_order": [
         "points",
         "set_difference",
@@ -18,6 +19,21 @@ DEFAULT_RULES = {
         "name",
     ],
 }
+
+SEASON_RULES = {
+    "2026-2027": {
+        **DEFAULT_RULES,
+        "win_points": 4,
+        "draw_points": 2,
+        "loss_points": 1,
+        "forfeit_points": 0,
+    },
+}
+
+
+def _rules_for_season_name(season_name: str | None) -> dict:
+    normalized = str(season_name or "").strip().replace("–", "-").replace("/", "-")
+    return dict(SEASON_RULES.get(normalized, DEFAULT_RULES))
 
 
 def _all(
@@ -74,12 +90,29 @@ def get_rules(db: Client, season_id: str | None = None) -> dict:
 
     if result:
         row = result[0]
+        row["forfeit_points"] = int(row.get("forfeit_points") or 0)
         row["ranking_order"] = (
             row.get("ranking_order") or DEFAULT_RULES["ranking_order"]
         )
         return row
 
-    return DEFAULT_RULES.copy()
+    season_name = None
+    if season_id:
+        try:
+            season_rows = (
+                db.table("seasons")
+                .select("name")
+                .eq("id", season_id)
+                .limit(1)
+                .execute()
+                .data
+                or []
+            )
+            season_name = season_rows[0].get("name") if season_rows else None
+        except Exception:
+            season_name = None
+
+    return _rules_for_season_name(season_name)
 
 
 def _select_season(
@@ -241,7 +274,15 @@ def _official_standings(
             else:
                 current["detailed_encounters"] += 1
 
-        if home_score > away_score:
+        forfeit_team_id = result.get("forfeit_team_id")
+        if forfeit_team_id in {home_team_id, away_team_id}:
+            winner = away if forfeit_team_id == home_team_id else home
+            forfeiting = home if forfeit_team_id == home_team_id else away
+            winner["wins"] += 1
+            forfeiting["losses"] += 1
+            winner["points"] += rules["win_points"]
+            forfeiting["points"] += rules.get("forfeit_points", 0)
+        elif home_score > away_score:
             home["wins"] += 1
             away["losses"] += 1
             home["points"] += rules["win_points"]
@@ -612,11 +653,22 @@ def build_ranking(
         "championship_results",
         (
             "id,natural_key,season_id,round_id,home_team_id,away_team_id,"
-            "home_score,away_score,detail_status,quality_status,quality_note,"
-            "source_sheet,source_row"
+            "home_score,away_score,forfeit_team_id,detail_status,"
+            "quality_status,quality_note,source_sheet,source_row"
         ),
         [("season_id", resolved_season_id)],
     )
+    if official_results is None:
+        official_results = _optional_all(
+            db,
+            "championship_results",
+            (
+                "id,natural_key,season_id,round_id,home_team_id,away_team_id,"
+                "home_score,away_score,detail_status,quality_status,quality_note,"
+                "source_sheet,source_row"
+            ),
+            [("season_id", resolved_season_id)],
+        )
 
     if official_results:
         payload = _official_standings(
