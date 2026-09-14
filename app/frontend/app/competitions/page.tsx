@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Sidebar } from "@/components/Sidebar";
+import { BDC_RESULTS, BDC_ROUNDS, BDC_URL, bdcDate, bdcStandings } from "@/lib/bdc";
 import { committeeCalendarEvents } from "@/lib/committee-ranking";
 import type {
   ChampionshipCard,
@@ -70,6 +71,14 @@ export default async function CompetitionsPage() {
   const officialDates = committeeCalendarEvents.filter(
     (event) => event.status === "SCHEDULED",
   );
+  const today = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Indian/Reunion",
+  }).format(new Date());
+  const nextBdcRound = BDC_ROUNDS.find((round) => round.date >= today);
+  const publishedBdcRounds = BDC_RESULTS.filter((round) =>
+    round.teams.every((team) => team.place !== null && team.poolWins !== null),
+  ).length;
+  const rankedBdcPlayers = bdcStandings(BDC_RESULTS).length;
 
   return (
     <div className="dashboard">
@@ -155,6 +164,37 @@ export default async function CompetitionsPage() {
                   {event.title}
                 </span>
               ))}
+            </div>
+          </Link>
+        </section>
+
+        <section className="competition-section bdc-feature-section">
+          <div className="competition-section-title">
+            <div>
+              <span>BLIND DRAW CHAMPIONSHIP</span>
+              <h2>BDC · Saison 1</h2>
+            </div>
+            <p>Doublettes tirées au sort et classement individuel cumulatif.</p>
+          </div>
+          <Link href={BDC_URL} className="bdc-feature-card">
+            <div className="bdc-feature-intro">
+              <span>CHAMPIONNAT EN COURS</span>
+              <strong>6 manches · 2026–2027</strong>
+              <p>
+                Retrouvez le classement général, le détail des manches et les
+                performances individuelles de chaque joueur.
+              </p>
+              <small>Ouvrir le Blind Draw Championship →</small>
+            </div>
+            <div className="bdc-feature-kpis">
+              <span><b>{publishedBdcRounds}</b> manche publiée</span>
+              <span><b>{rankedBdcPlayers}</b> joueurs classés</span>
+              <span><b>{BDC_ROUNDS.length}</b> manches au calendrier</span>
+              <span className="bdc-next-round">
+                <small>PROCHAINE MANCHE</small>
+                <b>{nextBdcRound ? bdcDate(nextBdcRound.date) : "Saison terminée"}</b>
+                {nextBdcRound && <em>{nextBdcRound.location}</em>}
+              </span>
             </div>
           </Link>
         </section>
