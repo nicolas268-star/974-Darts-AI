@@ -673,7 +673,9 @@ def build_ranking(
             [("season_id", resolved_season_id)],
         )
 
-    if official_results:
+    # An empty table is a valid state for a newly opened season. Only use the
+    # legacy PvP reconstruction when the table itself is genuinely unavailable.
+    if official_results is not None:
         payload = _official_standings(
             results=[
                 result
