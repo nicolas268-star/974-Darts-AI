@@ -449,6 +449,27 @@
   color: #ffb0bc;
 }
 
+.ranking-event-access {
+  align-items: center;
+  display: flex;
+  gap: 18px;
+  justify-content: space-between;
+}
+
+.ranking-event-access a {
+  color: #ffad46;
+  font-weight: 850;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+@media (max-width: 680px) {
+  .ranking-event-access {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
 .hub-back {
   color: #ff9a38;
   display: inline-block;

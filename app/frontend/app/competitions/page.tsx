@@ -31,7 +31,7 @@ const seasonStatus = (status: string) => ({
 const EXPECTED_CHAMPIONSHIP_YEARS = [2026, 2027, 2028] as const;
 
 function fallbackChampionship(year: number): ChampionshipCard {
-  const isActive = year === 2026;
+  const isActive = year === 2027;
   return {
     id: null,
     slug: String(year),
@@ -79,6 +79,9 @@ export default async function CompetitionsPage() {
     round.teams.every((team) => team.place !== null && team.poolWins !== null),
   ).length;
   const rankedBdcPlayers = bdcStandings(BDC_RESULTS).length;
+  const friendlyTournaments = (data?.tournaments ?? []).filter(
+    (tournament) => tournament.code !== "T5",
+  );
 
   return (
     <div className="dashboard">
@@ -108,13 +111,13 @@ export default async function CompetitionsPage() {
           </div>
         )}
 
-        <section className="competition-section">
+        <section className="competition-section" id="championnat-interclubs">
           <div className="competition-section-title">
             <div>
               <span>PALMARÈS OFFICIEL</span>
-              <h2>Championnats par équipes</h2>
+              <h2>Championnat interclubs</h2>
             </div>
-            <p>Une saison sélectionnée ne modifie jamais les autres années.</p>
+            <p>La saison 2026 reste consultable comme historique officiel.</p>
           </div>
           <div className="s14-championship-grid">
             {championships.map((season) => (
@@ -142,7 +145,7 @@ export default async function CompetitionsPage() {
           </div>
         </section>
 
-        <section className="competition-section individual-ranking-section">
+        <section className="competition-section individual-ranking-section" id="classement-individuel-974">
           <div className="competition-section-title">
             <div>
               <span>CHAMPIONNAT INDIVIDUEL 974</span>
@@ -166,12 +169,16 @@ export default async function CompetitionsPage() {
               ))}
             </div>
           </Link>
+          <div className="competition-notice ranking-event-access">
+            <span>Open Kaz A Darts du 13 septembre : résultats classants publiés.</span>
+            <Link href="/tournaments/t5">Analyser le tournoi T5 →</Link>
+          </div>
         </section>
 
-        <section className="competition-section bdc-feature-section">
+        <section className="competition-section bdc-feature-section" id="autres-competitions">
           <div className="competition-section-title">
             <div>
-              <span>BLIND DRAW CHAMPIONSHIP</span>
+              <span>AUTRES COMPÉTITIONS · HORS CLASSEMENT 974</span>
               <h2>BDC · Saison 1</h2>
             </div>
             <p>Doublettes tirées au sort et classement individuel cumulatif.</p>
@@ -202,13 +209,13 @@ export default async function CompetitionsPage() {
         <section className="competition-section tournament-section">
           <div className="competition-section-title">
             <div>
-              <span>TOURNOIS & ANALYSES</span>
-              <h2>Tournois publiés</h2>
+              <span>ÉVÉNEMENTS HORS CLASSEMENT 974</span>
+              <h2>Tournois amicaux</h2>
             </div>
-            <p>Le statut de chaque événement indique s’il rapporte des points 974.</p>
+            <p>T1 à T4 et futurs événements ne rapportant aucun point individuel 974.</p>
           </div>
           <div className="tournament-grid">
-            {(data?.tournaments ?? []).map((tournament) => (
+            {friendlyTournaments.map((tournament) => (
               <Link
                 href={tournament.href}
                 className="tournament-card"

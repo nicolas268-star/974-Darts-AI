@@ -2,7 +2,14 @@ from fastapi import APIRouter, Depends, Header, HTTPException
 from pydantic import BaseModel, Field
 
 from app.api.calendar_router import verify_internal_token
-from app.services.season_registry_service import calendar_preview, import_calendar, public_seasons, registry_status, scan_season
+from app.services.season_registry_service import (
+    calendar_preview,
+    import_calendar,
+    public_seasons,
+    registry_status,
+    resolve_database_season,
+    scan_season,
+)
 
 router = APIRouter(prefix="/api/v1/seasons", tags=["Seasons"])
 
@@ -18,9 +25,9 @@ def seasons_public():
     try:
         from app.main import db_client
         rows = list(getattr(db_client().table("seasons").select("id,name,is_active").execute(), "data", None) or [])
+        rounds = list(getattr(db_client().table("rounds").select("season_id,published").execute(), "data", None) or [])
         for season in payload["seasons"]:
-            key = str(season["key"])
-            match = next((row for row in rows if key in str(row.get("name") or "")), None)
+            match = resolve_database_season(str(season["key"]), rows, rounds)
             if match: season["dbSeasonId"] = match.get("id")
     except Exception:
         pass

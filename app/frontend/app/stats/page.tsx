@@ -3,14 +3,14 @@ import "./stats-hub.css";
 
 const groups = [
   {
-    eyebrow: "CHAMPIONNAT",
-    title: "Résultats & classement",
-    copy: "Suivez la saison officielle, les compétitions et le calendrier à partir des données publiées.",
+    eyebrow: "COMPÉTITIONS 974",
+    title: "Compétitions & classements",
+    copy: "Distinguez clairement le championnat interclubs, le classement individuel 974 et les compétitions hors classement.",
     links: [
-      ["Classement officiel", "/dashboard"],
-      ["Compétitions", "/competitions"],
-      ["Calendrier", "/calendar"],
-      ["Tournois amicaux", "/tournaments"],
+      ["Championnat interclubs", "/competitions#championnat-interclubs"],
+      ["Classement individuel 974", "/competitions/classement-individuel"],
+      ["Calendrier des compétitions", "/calendar"],
+      ["Autres compétitions & tournois", "/competitions#autres-competitions"],
     ],
   },
   {
