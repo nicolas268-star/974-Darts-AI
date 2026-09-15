@@ -47,6 +47,12 @@ CLUBS = {
 }
 
 
+def _points_for(placement: str, club: str) -> int:
+    if club == "Non licencié":
+        return 0
+    return POINTS[placement]
+
+
 def _rows(response: Any) -> list[dict[str, Any]]:
     return list(getattr(response, "data", None) or [])
 
@@ -240,7 +246,7 @@ def validate_event(db: Client, event_id: str, results: list[dict[str, Any]], use
             "club": club,
             "gender": gender,
             "placement": placement,
-            "points": POINTS[placement],
+            "points": _points_for(placement, club),
             "display_order": index + 1,
         })
 
@@ -303,6 +309,9 @@ def public_ranking(db: Client) -> dict[str, Any]:
 
     players: dict[str, dict[str, Any]] = {}
     for row in results:
+        points = int(row.get("points") or 0)
+        if points <= 0:
+            continue
         name = str(row.get("player_name") or "").strip()
         key = unicodedata.normalize("NFKC", name).casefold()
         player = players.setdefault(key, {
@@ -316,7 +325,6 @@ def public_ranking(db: Client) -> dict[str, Any]:
             player["club"] = row["club"]
         if row.get("gender") in {"M", "F"}:
             player["gender"] = row["gender"]
-        points = int(row.get("points") or 0)
         player["event_points"][str(row.get("event_id"))] += points
         player["total"] += points
 
