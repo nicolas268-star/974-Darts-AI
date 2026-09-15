@@ -31,6 +31,13 @@ type Preview = {
 
 const EVENT_ID = "club-open-kaz-2026-09-13";
 const API = "/api/admin/backend/api/v1/committee-ranking";
+const CLUB_OPTIONS = [
+  "Kaz A Darts 974",
+  "Papangue Darts Club",
+  "3 B Darts Club",
+  "Tampon Darts Club",
+  "Non licencié",
+] as const;
 
 function messageOf(value: unknown) {
   if (value && typeof value === "object") {
@@ -69,7 +76,8 @@ export default function CommitteeRankingPublication() {
   useEffect(() => { void load(); }, [load]);
 
   const status = preview?.event.status ?? "DRAFT";
-  const canValidate = directorConfirmed && results.length > 0 && status === "DRAFT" && !busy;
+  const clubsConfirmed = results.length > 0 && results.every((row) => CLUB_OPTIONS.some((club) => club === row.club));
+  const canValidate = directorConfirmed && clubsConfirmed && status === "DRAFT" && !busy;
   const canPublish = publicationConfirmed && status === "VALIDATED" && !busy;
   const statusLabel = status === "PUBLISHED" ? "Publié" : status === "VALIDATED" ? "Validé" : "À valider";
   const total = useMemo(() => results.reduce((sum, row) => sum + row.points, 0), [results]);
@@ -140,7 +148,7 @@ export default function CommitteeRankingPublication() {
         <div className={styles.heading}><div><p>APERÇU DES POINTS</p><h2>Résultats calculés automatiquement</h2></div><a href="https://n01darts.com/n01/tournament/comp.php?id=t_aKyY_3246" target="_blank" rel="noreferrer">Ouvrir la source N01 ↗</a></div>
         {busy === "load" ? <div className={styles.loading}>Lecture des résultats T5…</div> : (
           <div className={styles.tableScroll}><table><thead><tr><th>Rang</th><th>Joueur</th><th>Résultat</th><th>Club</th><th>Catégorie</th><th>Points</th></tr></thead><tbody>
-            {results.map((row, index) => <tr key={`${row.player_name}-${index}`}><td>{index + 1}</td><td><strong>{row.player_name}</strong></td><td>{row.placement_label}</td><td><input aria-label={`Club de ${row.player_name}`} value={row.club ?? ""} placeholder="Club à confirmer" disabled={status !== "DRAFT"} onChange={(event) => updateRow(index, { club: event.target.value })} /></td><td><select aria-label={`Catégorie de ${row.player_name}`} value={row.gender} disabled={status !== "DRAFT"} onChange={(event) => updateRow(index, { gender: event.target.value as ResultRow["gender"] })}><option value="X">À confirmer</option><option value="M">Homme</option><option value="F">Femme</option></select></td><td><b className={styles.points}>+{row.points}</b></td></tr>)}
+            {results.map((row, index) => <tr key={`${row.player_name}-${index}`}><td>{index + 1}</td><td><strong>{row.player_name}</strong></td><td>{row.placement_label}</td><td><select aria-label={`Club de ${row.player_name}`} value={row.club ?? ""} disabled={status !== "DRAFT"} onChange={(event) => updateRow(index, { club: event.target.value })}><option value="">À confirmer</option>{CLUB_OPTIONS.map((club) => <option key={club} value={club}>{club}</option>)}</select></td><td><select aria-label={`Catégorie de ${row.player_name}`} value={row.gender} disabled={status !== "DRAFT"} onChange={(event) => updateRow(index, { gender: event.target.value as ResultRow["gender"] })}><option value="X">À confirmer</option><option value="M">Homme</option><option value="F">Femme</option></select></td><td><b className={styles.points}>+{row.points}</b></td></tr>)}
           </tbody></table></div>
         )}
       </section>
@@ -149,6 +157,7 @@ export default function CommitteeRankingPublication() {
         <article className={`${styles.approval} ${status !== "DRAFT" ? styles.approved : ""}`}>
           <div className={styles.stepNumber}>4</div><p>VALIDATION OFFICIELLE</p><h2>Validation du Directeur sportif</h2><span>Je confirme que le tableau T5 correspond aux résultats officiels et que le barème de catégorie E est correctement appliqué.</span>
           <label><input type="checkbox" checked={directorConfirmed} disabled={status !== "DRAFT"} onChange={(event) => setDirectorConfirmed(event.target.checked)} /><strong>Résultats validés par le Directeur sportif</strong></label>
+          {!clubsConfirmed && status === "DRAFT" ? <small>Le club de chaque joueur doit être confirmé avant validation.</small> : null}
           <button type="button" disabled={!canValidate} onClick={() => void validate()}>{busy === "validate" ? "Enregistrement…" : status !== "DRAFT" ? "✓ Validation enregistrée" : "Enregistrer la validation officielle"}</button>
         </article>
 
