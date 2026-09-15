@@ -38,6 +38,14 @@ PLACEMENT_LABELS = {
     "ROUND_OF_16": "⅛ finaliste",
 }
 
+CLUBS = {
+    "Kaz A Darts 974",
+    "Papangue Darts Club",
+    "3 B Darts Club",
+    "Tampon Darts Club",
+    "Non licencié",
+}
+
 
 def _rows(response: Any) -> list[dict[str, Any]]:
     return list(getattr(response, "data", None) or [])
@@ -215,8 +223,11 @@ def validate_event(db: Client, event_id: str, results: list[dict[str, Any]], use
         name = str(row.get("player_name") or "").strip()
         placement = str(row.get("placement") or "")
         gender = str(row.get("gender") or "X").upper()
+        club = str(row.get("club") or "").strip()
         if not name or placement not in POINTS or gender not in {"M", "F", "X"}:
             raise ValueError("Une ligne de résultat est invalide.")
+        if club not in CLUBS:
+            raise ValueError(f"Le club de {name} doit être confirmé dans la liste officielle.")
         key = unicodedata.normalize("NFKC", name).casefold()
         if key in names:
             raise ValueError(f"Le joueur {name} apparaît plusieurs fois.")
@@ -226,7 +237,7 @@ def validate_event(db: Client, event_id: str, results: list[dict[str, Any]], use
         normalized.append({
             "event_id": event_id,
             "player_name": name,
-            "club": str(row.get("club") or "").strip() or None,
+            "club": club,
             "gender": gender,
             "placement": placement,
             "points": POINTS[placement],
