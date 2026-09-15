@@ -38,6 +38,13 @@ const CLUB_OPTIONS = [
   "Tampon Darts Club",
   "Non licencié",
 ] as const;
+const PLACEMENT_POINTS: Record<string, number> = {
+  WINNER: 10,
+  RUNNER_UP: 8,
+  SEMI_FINALIST: 6,
+  QUARTER_FINALIST: 4,
+  ROUND_OF_16: 2,
+};
 
 function messageOf(value: unknown) {
   if (value && typeof value === "object") {
@@ -86,6 +93,14 @@ export default function CommitteeRankingPublication() {
     setResults((current) => current.map((row, rowIndex) => rowIndex === index ? { ...row, ...patch } : row));
   }
 
+  function updateClub(index: number, club: string) {
+    setResults((current) => current.map((row, rowIndex) => rowIndex === index ? {
+      ...row,
+      club,
+      points: club === "Non licencié" ? 0 : (PLACEMENT_POINTS[row.placement] ?? row.points),
+    } : row));
+  }
+
   async function validate() {
     setBusy("validate");
     setNotice(null);
@@ -131,7 +146,7 @@ export default function CommitteeRankingPublication() {
       <div className={styles.topline}><Link href="/admin">← Administration</Link><span className={styles.status}>{statusLabel}</span></div>
       <header className={styles.hero}>
         <div><p>CLASSEMENT INDIVIDUEL 974</p><h1>Validation & publication</h1><span>Open Kaz A Darts · 13 septembre 2026 · Catégorie E</span></div>
-        <div className={styles.heroScore}><strong>{preview?.summary.players_awarded ?? results.length}</strong><span>joueurs classés</span><b>{preview?.summary.points_awarded ?? total} points attribués</b></div>
+        <div className={styles.heroScore}><strong>{preview?.summary.players_awarded ?? results.length}</strong><span>joueurs classés</span><b>{total} points attribués</b></div>
       </header>
 
       <ol className={styles.steps}>
@@ -148,7 +163,7 @@ export default function CommitteeRankingPublication() {
         <div className={styles.heading}><div><p>APERÇU DES POINTS</p><h2>Résultats calculés automatiquement</h2></div><a href="https://n01darts.com/n01/tournament/comp.php?id=t_aKyY_3246" target="_blank" rel="noreferrer">Ouvrir la source N01 ↗</a></div>
         {busy === "load" ? <div className={styles.loading}>Lecture des résultats T5…</div> : (
           <div className={styles.tableScroll}><table><thead><tr><th>Rang</th><th>Joueur</th><th>Résultat</th><th>Club</th><th>Catégorie</th><th>Points</th></tr></thead><tbody>
-            {results.map((row, index) => <tr key={`${row.player_name}-${index}`}><td>{index + 1}</td><td><strong>{row.player_name}</strong></td><td>{row.placement_label}</td><td><select aria-label={`Club de ${row.player_name}`} value={row.club ?? ""} disabled={status !== "DRAFT"} onChange={(event) => updateRow(index, { club: event.target.value })}><option value="">À confirmer</option>{CLUB_OPTIONS.map((club) => <option key={club} value={club}>{club}</option>)}</select></td><td><select aria-label={`Catégorie de ${row.player_name}`} value={row.gender} disabled={status !== "DRAFT"} onChange={(event) => updateRow(index, { gender: event.target.value as ResultRow["gender"] })}><option value="X">À confirmer</option><option value="M">Homme</option><option value="F">Femme</option></select></td><td><b className={styles.points}>+{row.points}</b></td></tr>)}
+            {results.map((row, index) => <tr key={`${row.player_name}-${index}`}><td>{index + 1}</td><td><strong>{row.player_name}</strong></td><td>{row.placement_label}</td><td><select aria-label={`Club de ${row.player_name}`} value={row.club ?? ""} disabled={status !== "DRAFT"} onChange={(event) => updateClub(index, event.target.value)}><option value="">À confirmer</option>{CLUB_OPTIONS.map((club) => <option key={club} value={club}>{club}</option>)}</select></td><td><select aria-label={`Catégorie de ${row.player_name}`} value={row.gender} disabled={status !== "DRAFT"} onChange={(event) => updateRow(index, { gender: event.target.value as ResultRow["gender"] })}><option value="X">À confirmer</option><option value="M">Homme</option><option value="F">Femme</option></select></td><td><b className={row.points === 0 ? styles.noPoints : styles.points}>{row.points === 0 ? "0" : `+${row.points}`}</b></td></tr>)}
           </tbody></table></div>
         )}
       </section>
