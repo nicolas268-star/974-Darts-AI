@@ -12,6 +12,7 @@ const items = [
   { href: "/admin/seasons", label: "Saisons", test: (p: string) => p.startsWith("/admin/seasons") },
   { href: "/admin/transfers", label: "Transferts", test: (p: string) => p.startsWith("/admin/transfers") },
   { href: "/admin/calendar", label: "Calendrier", test: (p: string) => p.startsWith("/admin/calendar") },
+  { href: "/admin/classement-individuel", label: "Classement individuel", test: (p: string) => p.startsWith("/admin/classement-individuel") },
   { href: "/admin/tournament-watch", label: "Veille tournois", test: (p: string) => p.startsWith("/admin/tournament-watch") },
   { href: "/admin/audience", label: "Audience", test: (p: string) => p.startsWith("/admin/audience") },
   { href: "/admin/visibility", label: "Visibilité", test: (p: string) => p.startsWith("/admin/visibility") },
@@ -28,6 +29,7 @@ function pageLabel(pathname: string) {
   if (pathname.startsWith("/admin/seasons")) return "Saisons";
   if (pathname.startsWith("/admin/transfers")) return "Joueurs & transferts";
   if (pathname.startsWith("/admin/calendar")) return "Calendrier";
+  if (pathname.startsWith("/admin/classement-individuel")) return "Classement individuel";
   if (pathname.startsWith("/admin/tournament-watch")) return "Veille tournois";
   if (pathname.startsWith("/admin/audience")) return "Audience";
   if (pathname.startsWith("/admin/visibility")) return "Visibilité";

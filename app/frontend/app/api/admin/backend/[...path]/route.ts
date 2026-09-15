@@ -24,6 +24,7 @@ const allowedGetPaths = [
   /^\/api\/v1\/tournament-watch\/status$/,
   /^\/api\/v1\/seasons\/admin$/,
   /^\/api\/v1\/player-transfers\/admin$/,
+  /^\/api\/v1\/committee-ranking\/events\/[^/]+\/preview$/,
 ];
 
 const allowedPostPaths = [
@@ -55,6 +56,8 @@ const allowedPostPaths = [
   /^\/api\/v1\/seasons\/calendar\/import$/,
   /^\/api\/v1\/player-transfers\/upsert$/,
   /^\/api\/v1\/player-transfers\/cancel$/,
+  /^\/api\/v1\/committee-ranking\/validate$/,
+  /^\/api\/v1\/committee-ranking\/publish$/,
 ];
 
 function jsonError(status: number, error: string) {
