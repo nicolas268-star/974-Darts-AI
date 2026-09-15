@@ -4,6 +4,7 @@ import json
 import os
 import tempfile
 import threading
+import re
 from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Any
@@ -72,6 +73,55 @@ def public_seasons() -> dict[str, Any]:
     with _lock: state = _load_unlocked()
     seasons = [{key: item.get(key) for key in ("key", "label", "status", "dbSeasonId", "active", "eloPolicy", "leagueTitle", "eventCount", "lastScanAt")} for item in state["seasons"]]
     return {"seasons": seasons, "defaultSeason": next((item["key"] for item in seasons if item.get("active")), "2026")}
+
+
+def resolve_database_season(
+    registry_key: str,
+    seasons: list[dict[str, Any]],
+    rounds: list[dict[str, Any]],
+) -> dict[str, Any] | None:
+    """Match a registry season to the canonical database row.
+
+    A partial string match is ambiguous for values such as ``2026`` and
+    ``Championnat 2026``. Prefer the candidate that already owns published
+    sporting data, then the exact canonical name.
+    """
+    expected_years = tuple(re.findall(r"20\d{2}", str(registry_key)))
+    if not expected_years:
+        return None
+
+    candidates = [
+        season
+        for season in seasons
+        if tuple(re.findall(r"20\d{2}", str(season.get("name") or "")))
+        == expected_years
+    ]
+    if not candidates:
+        return None
+
+    round_count: dict[str, int] = {}
+    published_count: dict[str, int] = {}
+    for row in rounds:
+        season_id = str(row.get("season_id") or "")
+        if not season_id:
+            continue
+        round_count[season_id] = round_count.get(season_id, 0) + 1
+        if row.get("published"):
+            published_count[season_id] = published_count.get(season_id, 0) + 1
+
+    normalized_key = str(registry_key).strip().replace("–", "-").replace("/", "-")
+    return max(
+        candidates,
+        key=lambda season: (
+            published_count.get(str(season.get("id") or ""), 0),
+            round_count.get(str(season.get("id") or ""), 0),
+            1
+            if str(season.get("name") or "").strip().replace("–", "-").replace("/", "-")
+            == normalized_key
+            else 0,
+            1 if season.get("is_active") else 0,
+        ),
+    )
 
 def registry_status() -> dict[str, Any]:
     with _lock: return _load_unlocked()
