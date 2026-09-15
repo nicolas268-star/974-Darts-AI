@@ -3,7 +3,7 @@ from __future__ import annotations
 import unittest
 from unittest.mock import patch
 
-from app.services.committee_ranking_service import build_event_preview
+from app.services.committee_ranking_service import _points_for, build_event_preview
 
 
 def match(
@@ -25,6 +25,10 @@ def match(
 
 
 class CommitteeRankingServiceTests(unittest.TestCase):
+    def test_non_licensed_player_receives_no_points(self) -> None:
+        self.assertEqual(_points_for("WINNER", "Non licencié"), 0)
+        self.assertEqual(_points_for("WINNER", "Kaz A Darts 974"), 10)
+
     def test_only_winner_bracket_awards_points(self) -> None:
         tournament = {
             "status": "AVAILABLE",
