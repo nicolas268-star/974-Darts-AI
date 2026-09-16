@@ -82,6 +82,15 @@ alter table public.player_identity_events
     'MERGE_REQUESTED', 'MERGE_APPLIED', 'OFFICIAL_NAME_CONFIRMED'
   ));
 
+alter table public.player_aliases
+  drop constraint if exists player_aliases_source_check;
+alter table public.player_aliases
+  add constraint player_aliases_source_check
+  check (source in (
+    'INITIAL_MIGRATION', 'MANUAL', 'NAKKA_IMPORT', 'ADMIN_MERGE',
+    'COMMITTEE_LICENSE_REGISTRY'
+  ));
+
 with official_players(
   official_last_name, official_first_name, official_display_name,
   official_source_name, normalized_official_name, club_code
