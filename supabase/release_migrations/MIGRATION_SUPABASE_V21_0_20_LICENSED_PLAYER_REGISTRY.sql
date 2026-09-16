@@ -260,11 +260,11 @@ begin
     ) returning id into new_identity_id;
 
     insert into public.player_aliases (
-      identity_id, source_player_id, alias_name, normalized_alias,
+      identity_id, source_player_id, alias_name,
       source, confidence, confirmed
     ) values (
       new_identity_id, new_player_id, licensed.official_display_name,
-      licensed.normalized_official_name, 'COMMITTEE_LICENSE_REGISTRY', 100, true
+      'COMMITTEE_LICENSE_REGISTRY', 100, true
     );
 
     update public.committee_licensed_players
@@ -309,14 +309,13 @@ join public.committee_licensed_players licensed
 where player.id = identity.canonical_player_id;
 
 insert into public.player_aliases (
-  identity_id, source_player_id, alias_name, normalized_alias,
+  identity_id, source_player_id, alias_name,
   source, confidence, confirmed
 )
 select
   licensed.identity_id,
   identity.canonical_player_id,
   licensed.official_display_name,
-  licensed.normalized_official_name,
   'COMMITTEE_LICENSE_REGISTRY',
   100,
   true
