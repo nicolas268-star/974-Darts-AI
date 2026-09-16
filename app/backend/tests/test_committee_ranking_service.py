@@ -3,7 +3,11 @@ from __future__ import annotations
 import unittest
 from unittest.mock import patch
 
-from app.services.committee_ranking_service import _points_for, build_event_preview
+from app.services.committee_ranking_service import (
+    _normalized_name,
+    _points_for,
+    build_event_preview,
+)
 
 
 def match(
@@ -25,6 +29,10 @@ def match(
 
 
 class CommitteeRankingServiceTests(unittest.TestCase):
+    def test_official_name_normalization_ignores_accents_and_spacing(self) -> None:
+        self.assertEqual(_normalized_name("  Stéphane ARBOUSSE "), "stephanearbousse")
+        self.assertEqual(_normalized_name("Kévin BARRET"), "kevinbarret")
+
     def test_non_licensed_player_receives_no_points(self) -> None:
         self.assertEqual(_points_for("WINNER", "Non licencié"), 0)
         self.assertEqual(_points_for("WINNER", "Kaz A Darts 974"), 10)
