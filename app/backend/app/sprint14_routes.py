@@ -39,12 +39,14 @@ def championship_hub(season_ref: str):
 
 @router.get("/tournaments")
 def tournament_catalog():
-    return CompetitionHubService.tournaments()
+    tournament_service = service()
+    return CompetitionHubService.tournaments(tournament_service.db)
 
 
 @router.get("/tournaments/{code}")
 def tournament_hub(code: str):
-    payload = CompetitionHubService.tournament(code)
+    tournament_service = service()
+    payload = CompetitionHubService.tournament(code, tournament_service.db)
     if payload is None:
         raise HTTPException(
             status_code=404,
