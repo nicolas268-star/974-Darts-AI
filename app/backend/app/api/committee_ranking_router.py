@@ -6,6 +6,7 @@ from app.api.calendar_router import verify_internal_token
 from app.config import settings
 from app.services.committee_ranking_service import (
     build_event_preview,
+    licensed_players,
     public_ranking,
     publish_event,
     validate_event,
@@ -40,6 +41,11 @@ class PublicationInput(BaseModel):
 @router.get("")
 def ranking_public():
     return public_ranking(db_client())
+
+
+@router.get("/licensed-players")
+def licensed_players_public():
+    return licensed_players(db_client())
 
 
 @router.get("/events/{event_id}/preview", dependencies=[Depends(verify_internal_token)])
