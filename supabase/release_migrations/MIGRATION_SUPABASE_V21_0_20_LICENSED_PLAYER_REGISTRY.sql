@@ -3,6 +3,12 @@
 
 begin;
 
+-- La fonction existante est appelée pendant toute la migration. Un chemin de
+-- recherche explicite évite qu'un objet homonyme placé dans un autre schéma
+-- soit résolu à sa place.
+alter function public.normalize_player_alias(text)
+  set search_path = pg_catalog, public, extensions;
+
 create table if not exists public.committee_clubs (
   code text primary key,
   name text not null unique,
@@ -25,6 +31,9 @@ set name = excluded.name,
 alter table public.teams
   add column if not exists official_club_code text
   references public.committee_clubs(code) on update cascade on delete set null;
+
+create index if not exists teams_official_club_code_idx
+  on public.teams(official_club_code);
 
 update public.teams
 set official_club_code = case
@@ -64,6 +73,12 @@ create unique index if not exists committee_licensed_players_season_identity_idx
 
 create index if not exists committee_licensed_players_club_idx
   on public.committee_licensed_players(season_key, club_code, official_last_name);
+
+create index if not exists committee_licensed_players_club_code_idx
+  on public.committee_licensed_players(club_code);
+
+create index if not exists committee_licensed_players_identity_idx
+  on public.committee_licensed_players(identity_id);
 
 alter table public.committee_ranking_results
   add column if not exists identity_id uuid
