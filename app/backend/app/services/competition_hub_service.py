@@ -20,6 +20,7 @@ from app.services.tournament_workbook_service import (
     load_tournament_cache,
 )
 from app.services.tournament_round_robin import build_tournament_round_robins
+from app.services.player_identity_service import normalize_alias
 
 
 def _rows(response: Any) -> list[dict[str, Any]]:
@@ -34,6 +35,56 @@ def _season_year(value: Any) -> int | None:
     return int(years[-1])
 
 
+def _canonical_display_aliases(
+    db: Client | None,
+    names: list[str],
+) -> dict[str, str]:
+    if db is None:
+        return {}
+    normalized_to_raw: dict[str, list[str]] = defaultdict(list)
+    for name in names:
+        normalized = normalize_alias(name)
+        if normalized:
+            normalized_to_raw[normalized].append(name)
+    if not normalized_to_raw:
+        return {}
+
+    aliases = _rows(
+        db.table("player_aliases")
+        .select("identity_id,normalized_alias")
+        .in_("normalized_alias", sorted(normalized_to_raw))
+        .eq("confirmed", True)
+        .execute()
+    )
+    identity_ids = sorted({str(row["identity_id"]) for row in aliases if row.get("identity_id")})
+    identities = {}
+    if identity_ids:
+        identities = {
+            str(row["id"]): str(row["canonical_display_name"])
+            for row in _rows(
+                db.table("player_identities")
+                .select("id,canonical_display_name,status")
+                .in_("id", identity_ids)
+                .eq("status", "ACTIVE")
+                .execute()
+            )
+        }
+
+    canonical_by_normalized: dict[str, set[str]] = defaultdict(set)
+    for alias in aliases:
+        canonical = identities.get(str(alias.get("identity_id") or ""))
+        normalized = str(alias.get("normalized_alias") or "")
+        if canonical and normalized:
+            canonical_by_normalized[normalized].add(canonical)
+
+    return {
+        raw_name: next(iter(canonical_names))
+        for normalized, raw_names in normalized_to_raw.items()
+        if len(canonical_names := canonical_by_normalized.get(normalized, set())) == 1
+        for raw_name in raw_names
+    }
+
+
 class CompetitionHubService:
     """Read-only hub for official seasons and friendly tournaments."""
 
@@ -43,16 +94,26 @@ class CompetitionHubService:
     def _seasons_and_rounds(
         self,
     ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
-        seasons = _rows(
-            self.db.table("seasons")
-            .select("id,name,is_active")
-            .execute()
-        )
-        rounds = _rows(
-            self.db.table("rounds")
-            .select("id,season_id,code,published,played_on")
-            .execute()
-        )
+        # Un environnement de prévisualisation peut ne contenir que le
+        # registre officiel des licenciés. Le catalogue doit alors rester
+        # disponible à partir du registre de saisons embarqué, sans transformer
+        # l'absence des tables statistiques en erreur HTTP 500.
+        try:
+            seasons = _rows(
+                self.db.table("seasons")
+                .select("id,name,is_active")
+                .execute()
+            )
+        except Exception:
+            seasons = []
+        try:
+            rounds = _rows(
+                self.db.table("rounds")
+                .select("id,season_id,code,published,played_on")
+                .execute()
+            )
+        except Exception:
+            rounds = []
         return seasons, rounds
 
     def _season_cards(self) -> list[dict[str, Any]]:
@@ -105,9 +166,15 @@ class CompetitionHubService:
             if season.get("is_active"):
                 active_year = year
 
-        registry_active_year = _season_year(
-            public_seasons().get("defaultSeason")
-        )
+        registry = public_seasons()
+        registry_seasons = registry.get("seasons") or []
+        registry_years = {
+            year
+            for item in registry_seasons
+            if (year := _season_year(item.get("key") or item.get("label")))
+            is not None
+        }
+        registry_active_year = _season_year(registry.get("defaultSeason"))
         if registry_active_year is not None:
             active_year = max(active_year or registry_active_year, registry_active_year)
 
@@ -117,10 +184,12 @@ class CompetitionHubService:
         )
         first_year = min(
             min(actual_by_year, default=anchor_year),
+            min(registry_years, default=anchor_year),
             anchor_year,
         )
         last_year = max(
             max(actual_by_year, default=anchor_year),
+            max(registry_years, default=anchor_year),
             anchor_year + 2,
         )
 
@@ -159,7 +228,7 @@ class CompetitionHubService:
         return cards
 
     @staticmethod
-    def _tournament_cards() -> list[dict[str, Any]]:
+    def _tournament_cards(db: Client | None = None) -> list[dict[str, Any]]:
         cache = load_tournament_cache()
         available = {
             str(item.get("code") or "").upper(): item
@@ -226,11 +295,25 @@ class CompetitionHubService:
                 "summary": summary,
                 "href": f"/tournaments/{code.lower()}",
             })
+        aliases = _canonical_display_aliases(
+            db,
+            [
+                str(name)
+                for card in cards
+                for name in (card.get("winner"), card.get("runner_up"))
+                if name
+            ],
+        )
+        for card in cards:
+            if card.get("winner"):
+                card["winner"] = aliases.get(str(card["winner"]), card["winner"])
+            if card.get("runner_up"):
+                card["runner_up"] = aliases.get(str(card["runner_up"]), card["runner_up"])
         return cards
 
     def catalog(self) -> dict[str, Any]:
         seasons = self._season_cards()
-        tournaments = self._tournament_cards()
+        tournaments = self._tournament_cards(self.db)
         active = next(
             (item for item in seasons if item["is_active"]),
             None,
@@ -345,15 +428,15 @@ class CompetitionHubService:
         }
 
     @staticmethod
-    def tournaments() -> dict[str, Any]:
+    def tournaments(db: Client | None = None) -> dict[str, Any]:
         return {
             "contract_version": "14.1",
-            "tournaments": CompetitionHubService._tournament_cards(),
+            "tournaments": CompetitionHubService._tournament_cards(db),
             "official_separation": True,
         }
 
     @staticmethod
-    def tournament(code: str) -> dict[str, Any] | None:
+    def tournament(code: str, db: Client | None = None) -> dict[str, Any] | None:
         normalized = code.upper()
         cache = load_tournament_cache()
         if normalized not in available_tournament_codes(cache):
@@ -371,6 +454,21 @@ class CompetitionHubService:
                 "contract_version": "16.0.3",
                 "official_separation": True,
                 **tournament,
+            }
+            names = [
+                str(value)
+                for match in payload.get("matches") or []
+                for value in (match.get("home"), match.get("away"), match.get("winner"))
+                if value
+            ]
+            names.extend(
+                str(player.get("name"))
+                for player in payload.get("players") or []
+                if player.get("name")
+            )
+            payload["display_aliases"] = {
+                **(payload.get("display_aliases") or {}),
+                **_canonical_display_aliases(db, names),
             }
             payload["round_robin"] = build_tournament_round_robins(payload)
             return payload

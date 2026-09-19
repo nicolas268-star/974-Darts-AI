@@ -34,7 +34,7 @@ const API = "/api/admin/backend/api/v1/committee-ranking";
 const CLUB_OPTIONS = [
   "Kaz A Darts 974",
   "Papangue Darts Club",
-  "3 B Darts Club",
+  "3B Darts Club",
   "Tampon Darts Club",
   "Non licencié",
 ] as const;

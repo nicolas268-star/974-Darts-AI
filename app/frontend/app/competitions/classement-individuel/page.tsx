@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { CalendarDays, Info, Medal, Trophy } from "lucide-react";
 import { Sidebar } from "@/components/Sidebar";
@@ -56,7 +57,21 @@ export default async function IndividualRankingPage({ searchParams }: { searchPa
             <h1>Classement individuel</h1>
             <p>Saison 2026–2027 · classement masculin, féminin et sélection finale mixte.</p>
           </div>
-          <div className="committee-ranking-season"><Trophy size={28} /><strong>2026–27</strong><small>Saison en cours</small></div>
+          <div className="committee-ranking-hero-aside">
+            <div className="committee-ranking-logo-card">
+              <span className="committee-ranking-logo-crop">
+                <Image
+                  alt="Logo du Comité de Fléchettes de La Réunion"
+                  height={129}
+                  priority
+                  src="/club-map/institutions.png"
+                  width={237}
+                />
+              </span>
+              <small>Comité de La Réunion</small>
+            </div>
+            <div className="committee-ranking-season"><Trophy size={28} /><strong>2026–27</strong><small>Saison en cours</small></div>
+          </div>
         </header>
 
         <section className="committee-ranking-summary">
@@ -77,13 +92,25 @@ export default async function IndividualRankingPage({ searchParams }: { searchPa
           </div>
           <div className="committee-ranking-table-scroll">
             <table className="committee-ranking-table">
-              <thead><tr><th>Rang</th><th>Joueur</th><th>Club</th>{rankingColumnLabels.map((column) => <th title={column.label} key={column.key}>{column.short}</th>)}<th>Total</th></tr></thead>
+              <colgroup>
+                <col className="ranking-col-rank" />
+                <col className="ranking-col-player" />
+                <col className="ranking-col-club" />
+                {rankingColumnLabels.map((column) => <col className="ranking-col-event" key={column.key} />)}
+                <col className="ranking-col-total" />
+              </colgroup>
+              <thead><tr><th scope="col">Rang</th><th scope="col">Joueur</th><th scope="col">Club</th>{rankingColumnLabels.map((column) => <th scope="col" title={column.label} key={column.key}>{column.short}</th>)}<th scope="col">Total</th></tr></thead>
               <tbody>
                 {rows.length ? rows.map((row) => (
                   <tr key={row.player_name}>
-                    <td><strong>{row.rank}</strong></td><td>{row.player_name}</td><td>{row.club}</td>
-                    {rankingColumnLabels.map((column) => <td key={column.key}>{row.event_points[column.key] ?? "—"}</td>)}
-                    <td><strong>{row.total}</strong></td>
+                    <td className="ranking-rank"><strong>{row.rank}</strong></td>
+                    <td className="ranking-player"><strong>{row.player_name}</strong></td>
+                    <td className="ranking-club"><span>{row.club}</span></td>
+                    {rankingColumnLabels.map((column) => {
+                      const points = row.event_points[column.key];
+                      return <td className={points ? "ranking-points has-points" : "ranking-points"} key={column.key}>{points ?? "—"}</td>;
+                    })}
+                    <td className="ranking-total"><strong>{row.total}</strong></td>
                   </tr>
                 )) : <tr className="committee-ranking-empty"><td colSpan={10}><strong>Résultats du premier Open de club en cours de validation</strong><span>Le classement sera publié dès validation officielle des points du tournoi Kaz A Darts du 13 septembre.</span><Link href="/tournaments/t5">Consulter les résultats du tournoi →</Link></td></tr>}
               </tbody>

@@ -41,16 +41,47 @@ PLACEMENT_LABELS = {
 CLUBS = {
     "Kaz A Darts 974",
     "Papangue Darts Club",
-    "3 B Darts Club",
+    "3B Darts Club",
     "Tampon Darts Club",
     "Non licencié",
 }
+
+SEASON_KEY = "2026-2027"
 
 
 def _points_for(placement: str, club: str) -> int:
     if club == "Non licencié":
         return 0
     return POINTS[placement]
+
+
+def _rank_players(
+    players: dict[str, dict[str, Any]],
+    gender: str | None,
+) -> list[dict[str, Any]]:
+    """Build an independent ranking so category ranks never overwrite mixed ranks."""
+    selected = [
+        {
+            **item,
+            "event_points": dict(item.get("event_points") or {}),
+        }
+        for item in players.values()
+        if gender is None or item.get("gender") == gender
+    ]
+    selected.sort(
+        key=lambda item: (
+            -int(item["total"]),
+            str(item["player_name"]).casefold(),
+        )
+    )
+    last_total = None
+    rank_value = 0
+    for index, item in enumerate(selected, start=1):
+        if item["total"] != last_total:
+            rank_value = index
+            last_total = item["total"]
+        item["rank"] = rank_value
+    return selected
 
 
 def _rows(response: Any) -> list[dict[str, Any]]:
@@ -80,6 +111,107 @@ def _placement(index: int) -> str | None:
 
 def _display_name(tournament: dict[str, Any], name: str) -> str:
     return str((tournament.get("display_aliases") or {}).get(name) or name).strip()
+
+
+def _normalized_name(value: str | None) -> str:
+    text = unicodedata.normalize("NFKD", (value or "").strip().lower())
+    text = "".join(char for char in text if not unicodedata.combining(char))
+    return "".join(char for char in text if char.isalnum())
+
+
+def _licensed_identity_map(
+    db: Client,
+    player_names: list[str],
+) -> dict[str, dict[str, str]]:
+    normalized_names = sorted({_normalized_name(name) for name in player_names if name})
+    if not normalized_names:
+        return {}
+
+    aliases = _rows(
+        db.table("player_aliases")
+        .select("identity_id,normalized_alias")
+        .in_("normalized_alias", normalized_names)
+        .eq("confirmed", True)
+        .execute()
+    )
+    identity_ids = sorted({str(row["identity_id"]) for row in aliases if row.get("identity_id")})
+    if not identity_ids:
+        return {}
+
+    licensed = _rows(
+        db.table("committee_licensed_players")
+        .select("identity_id,official_display_name,club_code")
+        .eq("season_key", SEASON_KEY)
+        .eq("license_status", "ACTIVE")
+        .in_("identity_id", identity_ids)
+        .execute()
+    )
+    club_codes = sorted({str(row["club_code"]) for row in licensed if row.get("club_code")})
+    clubs = {}
+    if club_codes:
+        clubs = {
+            str(row["code"]): str(row["name"])
+            for row in _rows(
+                db.table("committee_clubs")
+                .select("code,name")
+                .in_("code", club_codes)
+                .execute()
+            )
+        }
+
+    official_by_identity = {
+        str(row["identity_id"]): {
+            "identity_id": str(row["identity_id"]),
+            "official_display_name": str(row["official_display_name"]),
+            "club": clubs.get(str(row.get("club_code")), ""),
+        }
+        for row in licensed
+        if row.get("identity_id")
+    }
+    resolved: dict[str, dict[str, str]] = {}
+    ambiguous: set[str] = set()
+    for alias in aliases:
+        key = str(alias.get("normalized_alias") or "")
+        official = official_by_identity.get(str(alias.get("identity_id") or ""))
+        if not key or not official:
+            continue
+        if key in resolved and resolved[key]["identity_id"] != official["identity_id"]:
+            ambiguous.add(key)
+            continue
+        resolved[key] = official
+    for key in ambiguous:
+        resolved.pop(key, None)
+    return resolved
+
+
+def licensed_players(db: Client) -> dict[str, Any]:
+    clubs = {
+        str(row["code"]): str(row["name"])
+        for row in _rows(
+            db.table("committee_clubs").select("code,name").order("name").execute()
+        )
+    }
+    rows = _rows(
+        db.table("committee_licensed_players")
+        .select(
+            "identity_id,official_last_name,official_first_name,"
+            "official_display_name,club_code,license_status,source_label,verified_at"
+        )
+        .eq("season_key", SEASON_KEY)
+        .eq("license_status", "ACTIVE")
+        .order("official_last_name")
+        .order("official_first_name")
+        .execute()
+    )
+    players = [
+        {**row, "club": clubs.get(str(row.get("club_code")), "—")}
+        for row in rows
+    ]
+    return {
+        "season": SEASON_KEY,
+        "count": len(players),
+        "players": players,
+    }
 
 
 def build_event_preview(event_id: str, db: Client | None = None) -> dict[str, Any]:
@@ -223,6 +355,10 @@ def validate_event(db: Client, event_id: str, results: list[dict[str, Any]], use
         for row in official_preview["results"]
     }
 
+    licensed_identities = _licensed_identity_map(
+        db,
+        [str(row.get("player_name") or "") for row in results],
+    )
     normalized = []
     names: set[str] = set()
     for index, row in enumerate(results):
@@ -239,9 +375,19 @@ def validate_event(db: Client, event_id: str, results: list[dict[str, Any]], use
             raise ValueError(f"Le joueur {name} apparaît plusieurs fois.")
         if expected.get(key) != placement:
             raise ValueError(f"Le résultat de {name} ne correspond pas à la source T5.")
+        official = licensed_identities.get(_normalized_name(name))
+        if club != "Non licencié":
+            if not official:
+                raise ValueError(f"{name} n'est pas relié au registre officiel des licenciés.")
+            if official["club"] != club:
+                raise ValueError(
+                    f"Le club de {name} ne correspond pas au registre officiel "
+                    f"({official['club']})."
+                )
         names.add(key)
         normalized.append({
             "event_id": event_id,
+            "identity_id": official["identity_id"] if official else None,
             "player_name": name,
             "club": club,
             "gender": gender,
@@ -302,18 +448,32 @@ def public_ranking(db: Client) -> dict[str, Any]:
     if event_ids:
         results = _rows(
             db.table("committee_ranking_results")
-            .select("event_id,player_name,club,gender,points")
+            .select("event_id,identity_id,player_name,club,gender,points")
             .in_("event_id", event_ids)
             .execute()
         )
+
+    identity_ids = sorted({str(row["identity_id"]) for row in results if row.get("identity_id")})
+    canonical_names = {}
+    if identity_ids:
+        canonical_names = {
+            str(row["id"]): str(row["canonical_display_name"])
+            for row in _rows(
+                db.table("player_identities")
+                .select("id,canonical_display_name")
+                .in_("id", identity_ids)
+                .execute()
+            )
+        }
 
     players: dict[str, dict[str, Any]] = {}
     for row in results:
         points = int(row.get("points") or 0)
         if points <= 0:
             continue
-        name = str(row.get("player_name") or "").strip()
-        key = unicodedata.normalize("NFKC", name).casefold()
+        identity_id = str(row.get("identity_id") or "")
+        name = canonical_names.get(identity_id) or str(row.get("player_name") or "").strip()
+        key = identity_id or unicodedata.normalize("NFKC", name).casefold()
         player = players.setdefault(key, {
             "player_name": name,
             "club": row.get("club") or "—",
@@ -328,21 +488,12 @@ def public_ranking(db: Client) -> dict[str, Any]:
         player["event_points"][str(row.get("event_id"))] += points
         player["total"] += points
 
-    def ranking(gender: str | None) -> list[dict[str, Any]]:
-        selected = [item for item in players.values() if gender is None or item["gender"] == gender]
-        selected.sort(key=lambda item: (-int(item["total"]), str(item["player_name"]).casefold()))
-        last_total = None
-        rank_value = 0
-        for index, item in enumerate(selected, start=1):
-            if item["total"] != last_total:
-                rank_value = index
-                last_total = item["total"]
-            item["rank"] = rank_value
-            item["event_points"] = dict(item["event_points"])
-        return selected
-
     return {
         "season": "2026-2027",
         "events": events,
-        "rankings": {"mixed": ranking(None), "men": ranking("M"), "women": ranking("F")},
+        "rankings": {
+            "mixed": _rank_players(players, None),
+            "men": _rank_players(players, "M"),
+            "women": _rank_players(players, "F"),
+        },
     }

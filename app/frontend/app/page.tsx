@@ -370,7 +370,15 @@ export default async function HomePage() {
           <p>La data au service des fléchettes réunionnaises.</p>
         </div>
         <div className="home-footer-legal">
-          <span>Créé et développé à La Réunion par Nicolas Dupont</span>
+          <span className="home-footer-credit">
+            <span>Créé et développé à La Réunion par</span>
+            <span className="ndx-signature-brand">
+              <span className="ndx-signature-logo">
+                <Image alt="Logo NDX Performance Lab" height={1254} src="/brand/ndx-performance-lab.png" width={1254} />
+              </span>
+              <strong>NDX Performance Lab</strong>
+            </span>
+          </span>
           <nav aria-label="Informations juridiques">
             <Link href="/mentions-legales">Mentions légales</Link>
             <Link href="/confidentialite">Confidentialité & traceurs</Link>

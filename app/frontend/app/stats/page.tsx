@@ -3,13 +3,13 @@ import "./stats-hub.css";
 
 const groups = [
   {
-    eyebrow: "CHAMPIONNAT",
-    title: "Résultats & classement",
-    copy: "Suivez la saison officielle, les compétitions et le calendrier à partir des données publiées.",
+    eyebrow: "COMPÉTITIONS",
+    title: "Compétitions & classements",
+    copy: "Accédez séparément au championnat interclubs, aux compétitions du Comité et aux rendez-vous amicaux.",
     links: [
-      ["Classement officiel", "/dashboard"],
-      ["Compétitions", "/competitions"],
-      ["Calendrier", "/calendar"],
+      ["Championnat interclubs", "/championships/2027"],
+      ["Compétitions Comité", "/competitions/classement-individuel"],
+      ["Calendrier général", "/calendar"],
       ["Tournois amicaux", "/tournaments"],
     ],
   },
