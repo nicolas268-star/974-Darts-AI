@@ -86,18 +86,23 @@ p { color: var(--muted); line-height: 1.65; }
   letter-spacing: 0.025em;
 }
 .site-signature-credit { display: flex; align-items: center; gap: 10px; }
+.site-signature-byline { display:flex; align-items:center; gap:9px; }
 .site-signature-credit > span {
   width: 24px;
   height: 1px;
   background: linear-gradient(90deg, transparent, var(--accent-2));
 }
 .site-signature p { margin: 0; color: inherit; }
-.site-signature strong { color: #aab9c9; font-weight: 750; }
+.ndx-signature-brand { display:inline-flex; align-items:center; gap:7px; color:#d4ad59; white-space:nowrap; }
+.ndx-signature-brand strong { color:#c6a45b; font-size:.74rem; font-weight:850; letter-spacing:.055em; text-transform:uppercase; }
+.ndx-signature-logo { position:relative; display:inline-block; overflow:hidden; flex:0 0 36px; width:36px; height:36px; border:1px solid rgba(202,164,83,.48); border-radius:9px; background:#fff; box-shadow:0 5px 14px rgba(0,0,0,.22); }
+.ndx-signature-logo img { position:absolute; top:-5px; left:-7px; width:50px; max-width:none; height:50px; }
 .site-legal-links { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px 16px; }
 .site-legal-links a { color: #8fa2b8; text-decoration: underline; text-decoration-color: transparent; text-underline-offset: 4px; }
 .site-legal-links a:hover { color: #f0f5fb; text-decoration-color: #ff9b55; }
 @media (max-width: 720px) {
   .site-signature { align-items: flex-start; flex-direction: column; }
+  .site-signature-byline { align-items:flex-start; flex-direction:column; }
   .site-legal-links { justify-content: flex-start; }
 }
 .private-stats-notice {

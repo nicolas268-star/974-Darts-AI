@@ -892,6 +892,7 @@
 .home-footer-identity,
 .home-footer-legal { display: flex; align-items: center; gap: 24px; }
 .home-footer-legal { justify-content: flex-end; }
+.home-footer-credit { display:flex; align-items:center; gap:9px; }
 .home-footer-legal nav { display: flex; flex-wrap: wrap; gap: 8px 16px; }
 .home-footer-legal a {
   color: #9fb5c8;
@@ -943,6 +944,7 @@
   .home-footer { align-items: flex-start; flex-direction: column; }
   .home-footer-identity,
   .home-footer-legal { align-items: flex-start; flex-direction: column; gap: 10px; }
+  .home-footer-credit { align-items:flex-start; flex-direction:column; }
 
   .home-section { padding: 72px 18px; }
   .leader-row { grid-template-columns: 35px 1fr 58px; }
