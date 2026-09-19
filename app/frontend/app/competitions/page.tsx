@@ -23,7 +23,7 @@ async function loadCatalog(): Promise<CompetitionCatalog | null> {
 
 const seasonStatus = (status: string) => ({
   ACTIVE: "En cours",
-  ARCHIVED: "Archivé",
+  ARCHIVED: "Historique",
   AVAILABLE: "Disponible",
   PLANNED: "À venir",
 }[status] ?? status);
@@ -31,14 +31,15 @@ const seasonStatus = (status: string) => ({
 const EXPECTED_CHAMPIONSHIP_YEARS = [2026, 2027, 2028] as const;
 
 function fallbackChampionship(year: number): ChampionshipCard {
-  const isActive = year === 2026;
+  const isActive = year === 2027;
+  const isArchived = year < 2027;
   return {
     id: null,
     slug: String(year),
     name: `Championnat ${year}`,
     year,
     is_active: isActive,
-    status: isActive ? "ACTIVE" : "PLANNED",
+    status: isActive ? "ACTIVE" : isArchived ? "ARCHIVED" : "PLANNED",
     rounds: 0,
     published_rounds: 0,
     has_data: false,
@@ -134,7 +135,9 @@ export default async function CompetitionsPage() {
                 <p>
                   {season.has_data
                     ? `${season.published_rounds} journée(s) publiée(s)`
-                    : "Saison prête à être alimentée"}
+                    : season.status === "ARCHIVED"
+                      ? "Saison clôturée"
+                      : "Saison prête à être alimentée"}
                 </p>
                 <small>Ouvrir le championnat →</small>
               </Link>

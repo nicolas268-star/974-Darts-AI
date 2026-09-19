@@ -94,16 +94,26 @@ class CompetitionHubService:
     def _seasons_and_rounds(
         self,
     ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
-        seasons = _rows(
-            self.db.table("seasons")
-            .select("id,name,is_active")
-            .execute()
-        )
-        rounds = _rows(
-            self.db.table("rounds")
-            .select("id,season_id,code,published,played_on")
-            .execute()
-        )
+        # Un environnement de prévisualisation peut ne contenir que le
+        # registre officiel des licenciés. Le catalogue doit alors rester
+        # disponible à partir du registre de saisons embarqué, sans transformer
+        # l'absence des tables statistiques en erreur HTTP 500.
+        try:
+            seasons = _rows(
+                self.db.table("seasons")
+                .select("id,name,is_active")
+                .execute()
+            )
+        except Exception:
+            seasons = []
+        try:
+            rounds = _rows(
+                self.db.table("rounds")
+                .select("id,season_id,code,published,played_on")
+                .execute()
+            )
+        except Exception:
+            rounds = []
         return seasons, rounds
 
     def _season_cards(self) -> list[dict[str, Any]]:
@@ -156,9 +166,15 @@ class CompetitionHubService:
             if season.get("is_active"):
                 active_year = year
 
-        registry_active_year = _season_year(
-            public_seasons().get("defaultSeason")
-        )
+        registry = public_seasons()
+        registry_seasons = registry.get("seasons") or []
+        registry_years = {
+            year
+            for item in registry_seasons
+            if (year := _season_year(item.get("key") or item.get("label")))
+            is not None
+        }
+        registry_active_year = _season_year(registry.get("defaultSeason"))
         if registry_active_year is not None:
             active_year = max(active_year or registry_active_year, registry_active_year)
 
@@ -168,10 +184,12 @@ class CompetitionHubService:
         )
         first_year = min(
             min(actual_by_year, default=anchor_year),
+            min(registry_years, default=anchor_year),
             anchor_year,
         )
         last_year = max(
             max(actual_by_year, default=anchor_year),
+            max(registry_years, default=anchor_year),
             anchor_year + 2,
         )
 

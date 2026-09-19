@@ -55,6 +55,35 @@ def _points_for(placement: str, club: str) -> int:
     return POINTS[placement]
 
 
+def _rank_players(
+    players: dict[str, dict[str, Any]],
+    gender: str | None,
+) -> list[dict[str, Any]]:
+    """Build an independent ranking so category ranks never overwrite mixed ranks."""
+    selected = [
+        {
+            **item,
+            "event_points": dict(item.get("event_points") or {}),
+        }
+        for item in players.values()
+        if gender is None or item.get("gender") == gender
+    ]
+    selected.sort(
+        key=lambda item: (
+            -int(item["total"]),
+            str(item["player_name"]).casefold(),
+        )
+    )
+    last_total = None
+    rank_value = 0
+    for index, item in enumerate(selected, start=1):
+        if item["total"] != last_total:
+            rank_value = index
+            last_total = item["total"]
+        item["rank"] = rank_value
+    return selected
+
+
 def _rows(response: Any) -> list[dict[str, Any]]:
     return list(getattr(response, "data", None) or [])
 
@@ -459,21 +488,12 @@ def public_ranking(db: Client) -> dict[str, Any]:
         player["event_points"][str(row.get("event_id"))] += points
         player["total"] += points
 
-    def ranking(gender: str | None) -> list[dict[str, Any]]:
-        selected = [item for item in players.values() if gender is None or item["gender"] == gender]
-        selected.sort(key=lambda item: (-int(item["total"]), str(item["player_name"]).casefold()))
-        last_total = None
-        rank_value = 0
-        for index, item in enumerate(selected, start=1):
-            if item["total"] != last_total:
-                rank_value = index
-                last_total = item["total"]
-            item["rank"] = rank_value
-            item["event_points"] = dict(item["event_points"])
-        return selected
-
     return {
         "season": "2026-2027",
         "events": events,
-        "rankings": {"mixed": ranking(None), "men": ranking("M"), "women": ranking("F")},
+        "rankings": {
+            "mixed": _rank_players(players, None),
+            "men": _rank_players(players, "M"),
+            "women": _rank_players(players, "F"),
+        },
     }

@@ -1,4 +1,19 @@
+import sys
+import types
+from unittest.mock import patch
+
+if "supabase" not in sys.modules:
+    supabase_stub = types.ModuleType("supabase")
+    supabase_stub.Client = object
+    sys.modules["supabase"] = supabase_stub
+
+from app.services.competition_hub_service import CompetitionHubService
 from app.services.season_registry_service import _empty, _event_date
+
+
+class MissingStatisticsDatabase:
+    def table(self, _name: str):
+        raise RuntimeError("table absente de la prévisualisation")
 
 def test_new_season_is_registered_without_replacing_2026():
     state = _empty()
@@ -12,3 +27,25 @@ def test_new_season_is_registered_without_replacing_2026():
 
 def test_nakka_compact_date_is_supported():
     assert _event_date(20260928) == "2026-09-28"
+
+
+def test_competition_hub_uses_registry_when_statistics_schema_is_absent():
+    registry = {
+        "defaultSeason": "2026-2027",
+        "seasons": [
+            {"key": "2026", "label": "Championnat 2026", "active": False},
+            {"key": "2026-2027", "label": "Championnat 2026–2027", "active": True},
+        ],
+    }
+
+    with patch(
+        "app.services.competition_hub_service.public_seasons",
+        return_value=registry,
+    ):
+        cards = CompetitionHubService(MissingStatisticsDatabase())._season_cards()
+
+    by_year = {card["year"]: card for card in cards}
+    assert by_year[2026]["status"] == "ARCHIVED"
+    assert by_year[2026]["is_active"] is False
+    assert by_year[2027]["status"] == "ACTIVE"
+    assert by_year[2027]["is_active"] is True
