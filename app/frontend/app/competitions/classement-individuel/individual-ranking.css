@@ -10,6 +10,11 @@
 .committee-ranking-hero>div:first-child>span,.committee-ranking-heading>div>span { color:#ffad46; font-size:12px; font-weight:900; letter-spacing:.13em; }
 .committee-ranking-hero h1 { margin:10px 0 14px; font-size:clamp(42px,6vw,72px); line-height:1; }
 .committee-ranking-hero p,.committee-ranking-heading p { color:#9ecbf0; }
+.committee-ranking-hero-aside { display:flex; align-items:stretch; gap:12px; }
+.committee-ranking-logo-card { display:grid; min-width:142px; padding:13px 16px 11px; place-items:center; border:1px solid rgba(248,189,75,.38); border-radius:20px; background:linear-gradient(145deg,#fff,#eef3f6); box-shadow:0 14px 30px rgba(0,0,0,.22); }
+.committee-ranking-logo-card small { margin-top:5px; color:#26384a; font-size:9px; font-weight:900; letter-spacing:.05em; text-transform:uppercase; }
+.committee-ranking-logo-crop { position:relative; display:block; overflow:hidden; width:94px; height:92px; }
+.committee-ranking-logo-crop img { position:absolute; top:-4px; left:0; width:169px; max-width:none; height:92px; object-fit:fill; }
 .committee-ranking-season { display:grid; min-width:165px; padding:22px; place-items:center; border:1px solid #385b74; border-radius:20px; background:rgba(5,20,36,.76); color:#ffcf68; box-shadow:inset 0 1px rgba(255,255,255,.04); }
 .committee-ranking-season strong { font-size:32px; }
 .committee-ranking-season small { color:#9ecbf0; }
@@ -73,4 +78,5 @@
 .committee-dates-grid strong { font-size:18px; }
 .committee-dates-grid span,.committee-dates-grid small { color:#9ecbf0; }
 @media(max-width:1000px){.committee-points-grid{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:720px){.committee-ranking-hero,.committee-ranking-heading{align-items:flex-start;flex-direction:column}.committee-ranking-season{width:100%}.committee-ranking-summary,.committee-points-grid,.committee-dates-grid{grid-template-columns:1fr}.committee-ranking-heading p{text-align:left}.committee-ranking-panel{padding:18px}}
+@media(max-width:720px){.committee-ranking-hero,.committee-ranking-heading{align-items:flex-start;flex-direction:column}.committee-ranking-hero-aside{width:100%}.committee-ranking-logo-card,.committee-ranking-season{min-width:0;flex:1}.committee-ranking-summary,.committee-points-grid,.committee-dates-grid{grid-template-columns:1fr}.committee-ranking-heading p{text-align:left}.committee-ranking-panel{padding:18px}}
+@media(max-width:430px){.committee-ranking-hero-aside{display:grid;grid-template-columns:1fr}.committee-ranking-logo-card,.committee-ranking-season{width:100%}}

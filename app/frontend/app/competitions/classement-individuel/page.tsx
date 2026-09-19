@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { CalendarDays, Info, Medal, Trophy } from "lucide-react";
 import { Sidebar } from "@/components/Sidebar";
@@ -56,7 +57,21 @@ export default async function IndividualRankingPage({ searchParams }: { searchPa
             <h1>Classement individuel</h1>
             <p>Saison 2026–2027 · classement masculin, féminin et sélection finale mixte.</p>
           </div>
-          <div className="committee-ranking-season"><Trophy size={28} /><strong>2026–27</strong><small>Saison en cours</small></div>
+          <div className="committee-ranking-hero-aside">
+            <div className="committee-ranking-logo-card">
+              <span className="committee-ranking-logo-crop">
+                <Image
+                  alt="Logo du Comité de Fléchettes de La Réunion"
+                  height={129}
+                  priority
+                  src="/club-map/institutions.png"
+                  width={237}
+                />
+              </span>
+              <small>Comité de La Réunion</small>
+            </div>
+            <div className="committee-ranking-season"><Trophy size={28} /><strong>2026–27</strong><small>Saison en cours</small></div>
+          </div>
         </header>
 
         <section className="committee-ranking-summary">
