@@ -110,14 +110,19 @@ class DuoStatisticsEngine:
         return cls(PlayerStatisticsDataset.load(db))
 
     def _identity(self, player_id: str) -> dict[str, Any]:
-        player = self.player_by_id.get(player_id, {})
+        canonical_id = self.player_engine._canonical_id(player_id)
+        player = self.player_by_id.get(canonical_id, {})
         team = self.team_by_id.get(str(player.get("team_id")), {})
         return {
-            "id": player.get("id", player_id),
+            "id": player.get("id", canonical_id),
             "name": player.get("display_name"),
             "team_id": player.get("team_id"),
             "team": team.get("name"),
         }
+
+    def _canonical_player_id(self, player_id: Any) -> str:
+        raw_id = str(player_id or "")
+        return self.player_engine._canonical_id(raw_id)
 
     def _observations(self, season_id: str | None = None):
         season, rounds, encounters, matches, legs, scope = self.player_engine._scope(season_id)
@@ -130,7 +135,9 @@ class DuoStatisticsEngine:
             players_by_team: dict[str, set[str]] = defaultdict(set)
             for row in rows:
                 if row.get("player_id") and row.get("team_id"):
-                    players_by_team[str(row.get("team_id"))].add(str(row.get("player_id")))
+                    players_by_team[str(row.get("team_id"))].add(
+                        self._canonical_player_id(row.get("player_id"))
+                    )
 
             accepted_any = False
             for team_id, player_ids in players_by_team.items():
@@ -175,7 +182,11 @@ class DuoStatisticsEngine:
         return season, observations, {**scope, "duo_matches_ignored": ignored_matches}
 
     def _player_contribution(self, player_id: str, rows: list[dict[str, Any]], duo_score: int) -> dict[str, Any]:
-        player_rows = [row for row in rows if str(row.get("player_id")) == player_id]
+        player_rows = [
+            row
+            for row in rows
+            if self._canonical_player_id(row.get("player_id")) == player_id
+        ]
         score = _sum_int(player_rows, "score")
         finishes = [int(row.get("finish")) for row in player_rows if row.get("finish") not in (None, 0)]
         return {
