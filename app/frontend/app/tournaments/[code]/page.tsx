@@ -323,13 +323,14 @@ export default async function TournamentPage({
     <div className="dashboard">
       <Sidebar />
       <main className="main competition-page tournament-theme">
-        <Link href="/tournaments" className="hub-back">
-          ← Retour aux tournois amicaux
+        <Link href={data?.affects_committee_ranking ? "/competitions" : "/tournaments"} className="hub-back">
+          ← Retour {data?.affects_committee_ranking ? "aux compétitions Comité" : "aux tournois amicaux"}
         </Link>
 
         {!data ? (
           <div className="competition-notice danger">
-            Ce tournoi est indisponible. Vérifiez le backend puis actualisez.
+            Ce tournoi est momentanément indisponible. Veuillez réessayer dans
+            quelques instants.
           </div>
         ) : (
           <>
@@ -341,7 +342,9 @@ export default async function TournamentPage({
                 <h1>{data.date_label ?? data.name}</h1>
                 <p>
                   {data.format_label ?? "Phase de poules et tableau final"} ·
-                  Analyse indépendante du championnat.
+                  {data.affects_committee_ranking
+                    ? " Résultats reconnus par le Comité."
+                    : " Analyse indépendante du championnat."}
                 </p>
               </div>
               <span className="hub-status">
@@ -352,8 +355,9 @@ export default async function TournamentPage({
             </header>
 
             <div className="competition-notice">
-              Tournoi hors championnat : aucun résultat affiché ici ne
-              modifie les points, le classement officiel ou l’ELO.
+              {data.affects_committee_ranking
+                ? "Open de club reconnu : les points validés sont publiés dans le classement individuel du Comité."
+                : "Tournoi amical : aucun résultat affiché ici ne modifie le classement individuel, le championnat interclubs ou l’ELO."}
             </div>
 
             {data.editorial_summary && (

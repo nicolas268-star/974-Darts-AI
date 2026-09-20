@@ -13,6 +13,8 @@ from typing import Any
 
 from supabase import Client
 
+from app.services.control_catalog import canonical_team_name
+
 
 _PAIR_DECISIONS_PATH = (
     Path(__file__).resolve().parents[2]
@@ -58,6 +60,100 @@ def normalize_alias(value: str | None) -> str:
     text = unicodedata.normalize("NFKD", (value or "").strip().lower())
     text = "".join(char for char in text if not unicodedata.combining(char))
     return re.sub(r"[^a-z0-9]+", "", text)
+
+
+def _career_player_ids(
+    profile: dict[str, Any],
+    players: list[dict[str, Any]],
+) -> list[str]:
+    """Resolve historical rows even when a confirmed alias has no source id."""
+    identity = profile.get("identity") or {}
+    aliases = profile.get("aliases") or []
+    player_ids = {
+        str(value)
+        for value in [
+            identity.get("canonical_player_id"),
+            *(alias.get("source_player_id") for alias in aliases),
+        ]
+        if value
+    }
+    confirmed_names = {
+        str(alias.get("normalized_alias") or normalize_alias(alias.get("alias_name")))
+        for alias in aliases
+        if alias.get("confirmed") is not False
+    }
+    confirmed_names.add(normalize_alias(identity.get("canonical_display_name")))
+    confirmed_names.discard("")
+    for player in players:
+        if normalize_alias(player.get("display_name")) in confirmed_names and player.get("id"):
+            player_ids.add(str(player["id"]))
+    return sorted(player_ids)
+
+
+def _canonical_memberships(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    grouped: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
+    for row in rows:
+        canonical_team = canonical_team_name(row.get("team"))
+        grouped[(canonical_team, str(row.get("season") or ""))].append(
+            {**row, "team": canonical_team or row.get("team")}
+        )
+
+    result: list[dict[str, Any]] = []
+    for candidates in grouped.values():
+        selected = max(
+            candidates,
+            key=lambda row: (
+                "COMMITTEE" in str(row.get("source") or "").upper(),
+                bool(row.get("is_current")),
+                str(row.get("created_at") or ""),
+            ),
+        )
+        result.append({
+            **selected,
+            "is_current": any(bool(row.get("is_current")) for row in candidates),
+        })
+    return sorted(
+        result,
+        key=lambda row: (
+            not bool(row.get("is_current")),
+            str(row.get("valid_from") or ""),
+            str(row.get("team") or ""),
+        ),
+    )
+
+
+def _aggregate_career_rows(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    played = len(rows)
+    won = sum(1 for row in rows if bool(row.get("leg_won")))
+    weighted_sum = 0.0
+    total_darts = 0
+    averages = []
+    finishes = []
+    for row in rows:
+        average = row.get("average_3_darts")
+        darts = int(row.get("darts_thrown") or 0)
+        if average is not None:
+            averages.append(float(average))
+            if darts > 0:
+                weighted_sum += float(average) * darts
+                total_darts += darts
+        if row.get("finish") not in (None, 0):
+            finishes.append(int(row["finish"]))
+    average_3_darts = (
+        round(weighted_sum / total_darts, 2)
+        if total_darts
+        else round(sum(averages) / len(averages), 2) if averages else None
+    )
+    return {
+        "legs_played": played,
+        "legs_won": won,
+        "win_rate": round(won / played * 100, 1) if played else 0.0,
+        "average_3_darts": average_3_darts,
+        "best_finish": max(finishes) if finishes else None,
+        "scores_180": sum(int(row.get("scores_180") or 0) for row in rows),
+        "scores_140_plus": sum(int(row.get("scores_140") or 0) for row in rows),
+        "scores_100_plus": sum(int(row.get("scores_100") or 0) for row in rows),
+    }
 
 
 
@@ -310,6 +406,8 @@ class PlayerIdentityService:
                 "club_id": team.get("club_id") if team else None,
                 "season": season.get("name") if season else None,
             })
+
+        history = _canonical_memberships(history)
 
         return {
             "identity": identity,
@@ -907,13 +1005,12 @@ class PlayerIdentityService:
         if not profile:
             return None
 
-        source_ids = [
-            str(alias["source_player_id"])
-            for alias in profile["aliases"]
-            if alias.get("source_player_id")
-        ]
-        canonical_id = str(profile["identity"]["canonical_player_id"])
-        all_player_ids = sorted(set(source_ids + [canonical_id]))
+        players = _rows(
+            self.db.table("players")
+            .select("id,display_name")
+            .execute()
+        )
+        all_player_ids = _career_player_ids(profile, players)
 
         stat_rows = _rows(
             self.db.table("player_leg_stats")
@@ -932,49 +1029,16 @@ class PlayerIdentityService:
             for row in _rows(self.db.table("teams").select("id,name").in_("id", team_ids).execute()):
                 teams[str(row["id"])] = row.get("name")
 
-        def aggregate(rows: list[dict[str, Any]]) -> dict[str, Any]:
-            played = len(rows)
-            won = sum(1 for row in rows if bool(row.get("leg_won")))
-            weighted_sum = 0.0
-            total_darts = 0
-            averages = []
-            finishes = []
-            for row in rows:
-                average = row.get("average_3_darts")
-                darts = int(row.get("darts_thrown") or 0)
-                if average is not None:
-                    averages.append(float(average))
-                    if darts > 0:
-                        weighted_sum += float(average) * darts
-                        total_darts += darts
-                if row.get("finish") not in (None, 0):
-                    finishes.append(int(row["finish"]))
-            average_3_darts = (
-                round(weighted_sum / total_darts, 2)
-                if total_darts
-                else round(sum(averages) / len(averages), 2) if averages else None
-            )
-            return {
-                "legs_played": played,
-                "legs_won": won,
-                "win_rate": round(won / played * 100, 1) if played else 0.0,
-                "average_3_darts": average_3_darts,
-                "best_finish": max(finishes) if finishes else None,
-                "scores_180": sum(int(row.get("scores_180") or 0) for row in rows),
-                "scores_140_plus": sum(int(row.get("scores_140") or 0) for row in rows),
-                "scores_100_plus": sum(int(row.get("scores_100") or 0) for row in rows),
-            }
-
         return {
             "identity": profile["identity"],
             "aliases": profile["aliases"],
             "memberships": profile["memberships"],
-            "career": aggregate(stat_rows),
+            "career": _aggregate_career_rows(stat_rows),
             "by_team": [
                 {
                     "team_id": team_id,
                     "team": teams.get(team_id, "Équipe inconnue"),
-                    **aggregate(rows),
+                    **_aggregate_career_rows(rows),
                 }
                 for team_id, rows in sorted(
                     by_team.items(),

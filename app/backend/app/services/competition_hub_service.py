@@ -23,6 +23,30 @@ from app.services.tournament_round_robin import build_tournament_round_robins
 from app.services.player_identity_service import normalize_alias
 
 
+COMMITTEE_RECOGNIZED_TOURNAMENTS: dict[str, dict[str, Any]] = {
+    "T5": {
+        "classification": "COMMITTEE_RECOGNIZED",
+        "classification_label": "Open de club reconnu",
+        "affects_committee_ranking": True,
+        "committee_event_key": "club-open-kaz-2026-09-13",
+        "ranking_status": "PUBLISHED",
+    },
+}
+
+
+def _tournament_classification(code: str) -> dict[str, Any]:
+    return COMMITTEE_RECOGNIZED_TOURNAMENTS.get(
+        code.upper(),
+        {
+            "classification": "FRIENDLY",
+            "classification_label": "Tournoi amical",
+            "affects_committee_ranking": False,
+            "committee_event_key": None,
+            "ranking_status": "NOT_APPLICABLE",
+        },
+    )
+
+
 def _rows(response: Any) -> list[dict[str, Any]]:
     return list(getattr(response, "data", None) or [])
 
@@ -257,6 +281,7 @@ class CompetitionHubService:
                 }
             )
             cards.append({
+                **_tournament_classification(code),
                 "code": code,
                 "name": (
                     tournament.get("name")
@@ -326,7 +351,8 @@ class CompetitionHubService:
             "tournaments": tournaments,
             "principles": {
                 "official_separation": True,
-                "tournaments_affect_official_ranking": False,
+                "friendly_tournaments_affect_official_ranking": False,
+                "recognized_events_may_affect_committee_ranking": True,
                 "tournaments_affect_official_elo": False,
                 "player_identity_shared": True,
             },
@@ -386,8 +412,8 @@ class CompetitionHubService:
                     OFFICIAL_2026_SOURCE_URL if official_schedule else None
                 ),
                 "status_message": (
-                    "Cette saison est préparée dans la navigation. "
-                    "Elle sera alimentée dès sa création et son premier import."
+                    "Cette saison est prête. Les premiers résultats officiels "
+                    "seront affichés dès leur publication."
                 ),
             }
 
@@ -453,6 +479,7 @@ class CompetitionHubService:
             payload = {
                 "contract_version": "16.0.3",
                 "official_separation": True,
+                **_tournament_classification(normalized),
                 **tournament,
             }
             names = [
@@ -475,6 +502,7 @@ class CompetitionHubService:
         return {
             "contract_version": "16.0.3",
             "official_separation": True,
+            **_tournament_classification(normalized),
             "code": normalized,
             "name": f"Tournoi amical {normalized}",
             "date": None,

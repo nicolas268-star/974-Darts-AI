@@ -1,1 +1,5 @@
-export { default } from "../teams/page";
+import { redirect } from "next/navigation";
+
+export default function LegacyTeamsPage() {
+  redirect("/teams");
+}
