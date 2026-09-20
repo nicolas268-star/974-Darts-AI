@@ -91,5 +91,7 @@ export type DuoDashboardResponse = {
     nakka_note: string;
     duo_detection?: string;
     scope?: unknown;
+    radar_percentiles?: Record<string, Record<string, number | null>>;
+    radar_population_size?: number;
   };
 };

@@ -3,6 +3,8 @@
   padding-bottom: 64px;
 }
 
+.competition-glossary dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0}.competition-glossary dl div{padding:16px;border:1px solid #29445f;border-radius:14px;background:#0a1a2d}.competition-glossary dt{color:#ffad46;font-weight:900}.competition-glossary dd{margin:8px 0 0;color:#b7d0e3;line-height:1.5}@media(max-width:720px){.competition-glossary dl{grid-template-columns:1fr}}
+
 .competition-overview-theme,
 .championship-theme {
   background:

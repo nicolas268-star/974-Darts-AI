@@ -54,7 +54,7 @@ export default async function PlayersPage() {
             <div><span>SAISON OFFICIELLE</span><h2>Répertoire des performances</h2></div>
             <p>Les colonnes sont alignées par nature : identité à gauche, indicateurs au centre.</p>
           </div>
-          <div className="players-table-scroll">
+          <p className="table-scroll-hint">Faites glisser le tableau horizontalement pour consulter tous les indicateurs.</p><div className="players-table-scroll" tabIndex={0} role="region" aria-label="Tableau des statistiques joueurs, défilement horizontal">
             <table className="players-table">
               <colgroup>
                 <col className="players-col-name" />

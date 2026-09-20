@@ -80,3 +80,4 @@
 @media(max-width:1000px){.committee-points-grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:720px){.committee-ranking-hero,.committee-ranking-heading{align-items:flex-start;flex-direction:column}.committee-ranking-hero-aside{width:100%}.committee-ranking-logo-card,.committee-ranking-season{min-width:0;flex:1}.committee-ranking-summary,.committee-points-grid,.committee-dates-grid{grid-template-columns:1fr}.committee-ranking-heading p{text-align:left}.committee-ranking-panel{padding:18px}}
 @media(max-width:430px){.committee-ranking-hero-aside{display:grid;grid-template-columns:1fr}.committee-ranking-logo-card,.committee-ranking-season{width:100%}}
+.table-scroll-hint{display:none;color:#9ecbf0;font-size:.78rem;margin:0 0 8px}@media(max-width:720px){.table-scroll-hint{display:block}.committee-ranking-table-scroll{scrollbar-color:#d8a937 #091c30}.committee-ranking-table-scroll:focus-visible{outline:2px solid #ffd46f;outline-offset:3px}}

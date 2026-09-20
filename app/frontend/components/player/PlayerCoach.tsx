@@ -78,9 +78,9 @@ export function PlayerCoach({ data }: { data: PlayerCoachResponse }) {
       <div className="section-heading player-coach-heading">
         <div>
           <span className="eyebrow">
-            <BrainCircuit size={14} /> IA Coach
+            <BrainCircuit size={14} /> Coach analytique
           </span>
-          <h3>Analyse explicable et recommandations</h3>
+          <h3>Analyse explicable des données observées</h3>
           <p>
             Interprétation interne fondée uniquement sur les données réellement
             observées.
@@ -105,11 +105,11 @@ export function PlayerCoach({ data }: { data: PlayerCoachResponse }) {
               <ShieldCheck size={13} /> {data.confidence.label}
             </span>
           </div>
-          <h4>{data.player.name} — lecture du coach</h4>
+          <h4>{data.player.name} — lecture analytique</h4>
           <p>{data.summary}</p>
         </div>
         <div className="coach-confidence">
-          <span>Confiance</span>
+          <span>Niveau de confiance</span>
           <strong>{data.confidence.score}</strong>
           <small>/100</small>
           <div>

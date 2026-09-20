@@ -209,7 +209,7 @@ function RoundRobinTable({ group }: { group: TournamentRoundRobinGroup }) {
         </div>
       </div>
 
-      <div className="round-robin-scroll">
+      <p className="table-scroll-hint">Faites glisser le tableau horizontalement pour consulter toutes les confrontations.</p><div className="round-robin-scroll" tabIndex={0} role="region" aria-label={`Tableau de poule ${group.name}, défilement horizontal`}>
         <table className="round-robin-table">
           <thead>
             <tr>

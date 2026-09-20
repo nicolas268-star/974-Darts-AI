@@ -52,7 +52,7 @@ export default async function DuosPage() {
             </p>
           </div>
           <span className="duo-season">
-            Saison active · {data.season?.name ?? "—"}
+            Saison historique · {data.season?.name ?? "—"}
           </span>
         </header>
 

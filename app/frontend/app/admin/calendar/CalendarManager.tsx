@@ -5,7 +5,7 @@ import { CalendarDays, CheckCircle2, Edit3, MapPin, Plus, Save, Trash2 } from "l
 import { calendarTypeLabels, type CalendarEvent, type CalendarEventType } from "@/lib/calendar/types";
 import styles from "./CalendarManager.module.css";
 
-const emptyForm = { id: "", title: "", event_type: "CHAMPIONSHIP" as CalendarEventType, start_date: "", start_time: "", end_date: "", location: "", address: "", description: "", source_url: "", status: "SCHEDULED" as const };
+const emptyForm = { id: "", title: "", event_type: "CHAMPIONSHIP" as CalendarEventType, start_date: "", start_time: "", end_date: "", location: "", address: "", description: "", source_url: "", championship_teams: "", status: "SCHEDULED" as const };
 type FormState = typeof emptyForm | (Omit<typeof emptyForm, "status"> & { status: "SCHEDULED" | "COMPLETED" | "CANCELLED" });
 
 export default function CalendarManager() {
@@ -28,14 +28,14 @@ export default function CalendarManager() {
   useEffect(() => { void load(); }, [load]);
 
   function edit(event: CalendarEvent) {
-    setForm({ id: event.id, title: event.title, event_type: event.event_type, start_date: event.start_date, start_time: event.start_time || "", end_date: event.end_date || "", location: event.location, address: event.address || "", description: event.description || "", source_url: event.source_url || "", status: event.status });
+    setForm({ id: event.id, title: event.title, event_type: event.event_type, start_date: event.start_date, start_time: event.start_time || "", end_date: event.end_date || "", location: event.location, address: event.address || "", description: event.description || "", source_url: event.source_url || "", championship_teams: (event.championship_teams || []).join("; "), status: event.status });
     setMessage(""); setError(""); window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   async function save(event: React.FormEvent) {
     event.preventDefault(); setBusy(true); setMessage(""); setError("");
     try {
-      const payload = { ...form, id: form.id || undefined, start_time: form.start_time || null, end_date: form.end_date || null, address: form.address || null, description: form.description || null, source_url: form.source_url || null };
+      const payload = { ...form, id: form.id || undefined, championship_teams: form.event_type === "CHAMPIONSHIP" ? form.championship_teams.split(";").map((team) => team.trim()).filter(Boolean) : [], start_time: form.start_time || null, end_date: form.end_date || null, address: form.address || null, description: form.description || null, source_url: form.source_url || null };
       const response = await fetch("/api/admin/backend/api/v1/calendar/events/upsert", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || result.detail || "Enregistrement impossible.");
@@ -63,6 +63,7 @@ export default function CalendarManager() {
         <label>Titre<input required minLength={2} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Ex. J11 · Kazadarts A vs PDC Neige" /></label>
         <div className={styles.row}><label>Type<select value={form.event_type} onChange={(e) => setForm({ ...form, event_type: e.target.value as CalendarEventType })}>{Object.entries(calendarTypeLabels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label><label>Statut<select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as FormState["status"] })}><option value="SCHEDULED">Programmé</option><option value="COMPLETED">Terminé</option><option value="CANCELLED">Annulé</option></select></label></div>
         <div className={styles.row}><label>Date<input required type="date" value={form.start_date} onChange={(e) => setForm({ ...form, start_date: e.target.value })} /></label><label>Heure<input type="time" value={form.start_time} onChange={(e) => setForm({ ...form, start_time: e.target.value })} /></label><label>Date de fin<input type="date" value={form.end_date} onChange={(e) => setForm({ ...form, end_date: e.target.value })} /></label></div>
+        {form.event_type === "CHAMPIONSHIP" && <label>Équipes concernées<input value={form.championship_teams} onChange={(e) => setForm({ ...form, championship_teams: e.target.value })} placeholder="Équipe A ; Équipe B" /><small>Séparez les équipes par un point-virgule : elles alimentent le filtre public.</small></label>}
         <label>Lieu<input required minLength={2} value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} placeholder="Ex. Tampon Darts Club" /></label>
         <label>Adresse (facultatif)<input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder="Rue, commune" /></label>
         <label>Description (facultatif)<textarea rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Informations pratiques, format, inscription…" /></label>

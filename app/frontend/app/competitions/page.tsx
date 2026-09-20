@@ -272,6 +272,18 @@ export default async function CompetitionsPage() {
             individuel du Comité, ni le championnat interclubs, ni l’ELO.
           </div>
         </section>
+
+        <section className="competition-section competition-glossary">
+          <div className="competition-section-title"><div><span>REPÈRES PUBLICS</span><h2>Comprendre les statuts</h2></div><p>Une même règle de lecture dans toutes les rubriques.</p></div>
+          <dl>
+            <div><dt>Saison active</dt><dd>Période sportive actuellement ouverte ; ses équipes et résultats sont publiés séparément de l’historique.</dd></div>
+            <div><dt>Officiel</dt><dd>Résultat ou barème validé par l’organisateur compétent et publié comme référence sportive.</dd></div>
+            <div><dt>Reconnu par le Comité</dt><dd>Compétition dont les points sont intégrés au classement individuel après validation officielle.</dd></div>
+            <div><dt>Tournoi amical</dt><dd>Événement informatif : il ne modifie ni les points Comité, ni le championnat interclubs, ni l’ELO.</dd></div>
+            <div><dt>Joueur licencié</dt><dd>Joueur actif du registre officiel du Comité ; seuls les licenciés peuvent recevoir des points Comité.</dd></div>
+            <div><dt>Identité canonique</dt><dd>Nom de référence unique d’un joueur. Les surnoms et orthographes historiques restent visibles comme source secondaire.</dd></div>
+          </dl>
+        </section>
       </main>
     </div>
   );

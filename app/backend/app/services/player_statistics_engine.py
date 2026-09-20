@@ -303,8 +303,11 @@ def _coach_confidence(legs_played: int, trend_points: int, relationship_count: i
     trend_coverage = min(100, int(round(trend_points / 8 * 100)))
     relationship_coverage = min(100, int(round(relationship_count / 6 * 100)))
     score = _clamp_index(observed_volume * 0.55 + trend_coverage * 0.25 + relationship_coverage * 0.20)
-    label = "Confiance élevée" if score >= 75 else "Confiance modérée" if score >= 50 else "Confiance limitée"
-    return {"score": score, "label": label, "legs_component": observed_volume, "trend_component": trend_coverage, "relationship_component": relationship_coverage}
+    minimum_volume_reached = legs_played >= 12 and trend_points >= 3
+    if not minimum_volume_reached:
+        score = min(score, 49)
+    label = "Données insuffisantes" if not minimum_volume_reached else ("Confiance élevée" if score >= 75 else "Confiance modérée" if score >= 50 else "Confiance limitée")
+    return {"score": score, "label": label, "legs_component": observed_volume, "trend_component": trend_coverage, "relationship_component": relationship_coverage, "minimum_volume_reached": minimum_volume_reached}
 
 
 def _coach_item(key: str, title: str, explanation: str, evidence: list[dict[str, Any]], score: int, category: str) -> dict[str, Any]:
@@ -1229,10 +1232,12 @@ class PlayerStatisticsEngine:
                 relationships.append({"type":rel_type,"title":title,"player_id":item.get("player_id"),"name":item.get("name"),"relationship_index":item.get("relationship_index"),"wilson_lower_bound":item.get("wilson_lower_bound"),"legs_played":item.get("legs_played"),"message":f"{item.get('name')} est identifié à partir des relations réellement observées."})
         recent_wins=sum(1 for m in recent_matches[:5] if (_numeric(m.get("win_rate")) or 0)>=50)
         confidence=_coach_confidence(legs_played,len(trends),len(network.get("partners") or [])+len(network.get("opponents") or []))
+        if not confidence["minimum_volume_reached"]:
+            recommendations=[]
         summary=f"{dashboard.get('player',{}).get('name')} présente un profil {dna.get('style',{}).get('label','analytique').lower()}, avec un indice de domination de {dna.get('dominance',{}).get('score',0)}/100 et un taux de victoire observé de {round(win_rate,1)} %."
         if strengths: summary += f" Le principal point fort identifié est : {strengths[0]['title'].lower()}."
         if development: summary += f" La priorité de progression est : {development[0]['title'].lower()}."
-        return {"player":dashboard.get("player"),"season":dashboard.get("season"),"headline":{"title":"Coach IA explicable","style":dna.get("style"),"dominance":dna.get("dominance"),"recent_form":{"wins":recent_wins,"matches":min(5,len(recent_matches))}},"summary":summary,"strengths":sorted(strengths,key=lambda i:i["score"],reverse=True)[:4],"development_areas":sorted(development,key=lambda i:i["score"],reverse=True)[:4],"recommendations":sorted(recommendations,key=lambda i:i["score"],reverse=True)[:4],"relationships":relationships,"confidence":confidence,"meta":{"contract_version":"7.3","frontend_ready":True,"engine_type":"deterministic_explainable_coach","uses_external_llm":False,"data_sources":["dashboard","player_dna","player_network"],"no_invented_data":True,"limitations":["Aucune route de checkout n'est déduite.","Aucune précision aux doubles n'est calculée sans donnée source.","Les conseils sont des interprétations internes et non des statistiques officielles."],"nakka_note":NAKKA_DATA_NOTE}}
+        return {"player":dashboard.get("player"),"season":dashboard.get("season"),"headline":{"title":"Coach analytique explicable","style":dna.get("style"),"dominance":dna.get("dominance"),"recent_form":{"wins":recent_wins,"matches":min(5,len(recent_matches))}},"summary":summary,"strengths":sorted(strengths,key=lambda i:i["score"],reverse=True)[:4],"development_areas":sorted(development,key=lambda i:i["score"],reverse=True)[:4],"recommendations":sorted(recommendations,key=lambda i:i["score"],reverse=True)[:4],"relationships":relationships,"confidence":confidence,"meta":{"contract_version":"7.4","frontend_ready":True,"engine_type":"deterministic_explainable_coach","uses_external_llm":False,"data_sources":["dashboard","player_dna","player_network"],"no_invented_data":True,"limitations":["Aucune recommandation n'est publiée avant 12 legs et 3 points de tendance.","Aucune route de checkout n'est déduite.","Aucune précision aux doubles n'est calculée sans donnée source.","Les conseils sont des interprétations internes et non des statistiques officielles."],"nakka_note":NAKKA_DATA_NOTE}}
 
     def compare(self, left_player_id: str, right_player_id: str, season_id: str | None = None) -> dict[str, Any] | None:
         left=self.dashboard(left_player_id,season_id); right=self.dashboard(right_player_id,season_id)
