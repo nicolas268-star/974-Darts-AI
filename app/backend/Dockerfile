@@ -18,6 +18,7 @@ RUN pip install --no-cache-dir -r requirements.txt \
 
 COPY --chown=darts:darts app ./app
 COPY --chown=darts:darts data ./data
+COPY --chown=darts:darts RELEASE.json ./RELEASE.json
 
 USER darts
 
