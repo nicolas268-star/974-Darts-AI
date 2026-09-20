@@ -20,9 +20,8 @@ from .parser import parse_workbook
 from .publisher import Publisher
 from .services.ranking_service import build_ranking, get_rules
 from .services.stats_service import player_overview
+from .version import APP_VERSION
 
-
-APP_VERSION = "21.0.16"
 
 app = FastAPI(
     title="974 Darts AI Data API",
