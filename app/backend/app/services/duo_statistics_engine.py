@@ -60,6 +60,16 @@ def _difficulty_level(wilson_score: float, legs_played: int) -> tuple[int, str]:
     return stars, label
 
 
+def _percentile_rank(value: float | int | None, population: list[float | int]) -> int | None:
+    """Rank an observed value against the complete season population.
+
+    Missing data remains missing; a real zero remains a valid zero percentile.
+    """
+    if value is None or not population:
+        return None
+    return round(sum(item <= value for item in population) / len(population) * 100)
+
+
 def _is_explicit_duo_mode(mode: Any) -> bool:
     value = str(mode or "").strip().lower()
     return any(token in value for token in ("double", "duo", "pair", "d4"))
@@ -265,9 +275,16 @@ class DuoStatisticsEngine:
 
         summary = self._aggregate(pair, pair_observations)
 
+        radar_metrics = ("average_3_darts", "first_9", "best_finish", "scores_100_plus", "scores_140_plus", "scores_180")
+        radar_population: dict[str, list[float | int]] = defaultdict(list)
         opponent_profiles: dict[tuple[str, str], dict[str, Any]] = {}
         for observed_pair, observed_rows in observations.items():
             aggregate = self._aggregate(observed_pair, observed_rows)
+            for contribution in aggregate.get("contributions") or []:
+                for metric in radar_metrics:
+                    value = contribution.get(metric)
+                    if value is not None:
+                        radar_population[metric].append(value)
             wilson_score = _wilson_lower_bound(
                 int(aggregate.get("legs_won") or 0),
                 int(aggregate.get("legs_played") or 0),
@@ -372,6 +389,13 @@ class DuoStatisticsEngine:
             key=lambda row: (row.get("played_on") or date.min.isoformat(), _round_number(row.get("round")), row.get("match_number") or 0),
             reverse=True,
         )
+        radar_percentiles = {
+            str(contribution["player"]["id"]): {
+                metric: _percentile_rank(contribution.get(metric), radar_population[metric])
+                for metric in radar_metrics
+            }
+            for contribution in summary.get("contributions") or []
+        }
         return {
             "season": season,
             "duo": summary,
@@ -382,5 +406,7 @@ class DuoStatisticsEngine:
                 "nakka_note": NAKKA_DATA_NOTE,
                 "scope": scope,
                 "duo_detection": "Deux joueurs distincts observés pour une même équipe dans un match de duo.",
+                "radar_percentiles": radar_percentiles,
+                "radar_population_size": max((len(values) for values in radar_population.values()), default=0),
             },
         }

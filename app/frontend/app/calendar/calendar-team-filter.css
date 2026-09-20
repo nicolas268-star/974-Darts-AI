@@ -1,0 +1,11 @@
+.calendar-team-filter {
+  padding: 14px 16px;
+  border: 1px solid #24526d;
+  border-radius: 15px;
+  background: #0a2134;
+}
+.calendar-team-filter > strong { display: block; margin-bottom: 9px; color: #9fe2ff; font-size: .75rem; letter-spacing: .1em; text-transform: uppercase; }
+.calendar-team-filter > div { display: flex; flex-wrap: wrap; gap: 8px; }
+.calendar-team-filter a { padding: 7px 10px; border: 1px solid #28516c; border-radius: 999px; color: #c7ddeb; text-decoration: none; font-size: .85rem; }
+.calendar-team-filter a.active { border-color: #38bdf8; background: rgba(56,189,248,.14); color: #e8faff; }
+.calendar-team-filter p { margin: 0; color: #9db8ca; font-size: .9rem; }

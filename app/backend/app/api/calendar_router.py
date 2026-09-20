@@ -37,6 +37,17 @@ class CalendarEventInput(BaseModel):
     description: str | None = Field(default=None, max_length=1000)
     source_url: HttpUrl | None = None
     status: Literal["SCHEDULED", "COMPLETED", "CANCELLED"] = "SCHEDULED"
+    championship_teams: list[str] = Field(default_factory=list, max_length=2)
+
+    @field_validator("championship_teams")
+    @classmethod
+    def validate_championship_teams(cls, value: list[str]) -> list[str]:
+        teams = [team.strip() for team in value if team.strip()]
+        if len(teams) != len(set(team.casefold() for team in teams)):
+            raise ValueError("Une équipe ne peut être indiquée qu'une fois.")
+        if any(len(team) > 120 for team in teams):
+            raise ValueError("Le nom d'une équipe ne peut pas dépasser 120 caractères.")
+        return teams
 
     @field_validator("end_date")
     @classmethod

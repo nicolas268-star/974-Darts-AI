@@ -90,7 +90,7 @@ export default async function IndividualRankingPage({ searchParams }: { searchPa
             <Link className={category === "men" ? "active" : ""} href="/competitions/classement-individuel?categorie=hommes">Hommes</Link>
             <Link className={category === "women" ? "active" : ""} href="/competitions/classement-individuel?categorie=femmes">Femmes</Link>
           </div>
-          <div className="committee-ranking-table-scroll">
+          <p className="table-scroll-hint">Faites glisser le tableau horizontalement pour voir toutes les compétitions.</p><div className="committee-ranking-table-scroll" tabIndex={0} role="region" aria-label="Tableau du classement individuel, défilement horizontal">
             <table className="committee-ranking-table">
               <colgroup>
                 <col className="ranking-col-rank" />

@@ -22,8 +22,6 @@ const matchResult = (match: DuoMatch) =>
 const difficultyStars = (count: number) =>
   `${"★".repeat(Math.max(1, Math.min(5, count)))}${"☆".repeat(Math.max(0, 5 - count))}`;
 const radarColors = ["#38BDF8", "#FB923C"];
-const normalizeRadarValue = (value: number | null | undefined, maximum: number) =>
-  Math.round(((value ?? 0) / Math.max(1, maximum)) * 100);
 
 const clamp = (value: number, minimum = 0, maximum = 100) =>
   Math.min(maximum, Math.max(minimum, value));
@@ -77,21 +75,15 @@ export function DuoDetailDashboard({ data }: { data: DuoDashboardResponse }) {
     color: radarColors[index % radarColors.length],
   }));
 
-  const maxValues = {
-    average: Math.max(1, ...contributions.map(c => c.average_3_darts ?? 0)),
-    first9: Math.max(1, ...contributions.map(c => c.first_9 ?? 0)),
-    best: Math.max(1, ...contributions.map(c => c.best_finish ?? 0)),
-    s100: Math.max(1, ...contributions.map(c => c.scores_100_plus)),
-    s140: Math.max(1, ...contributions.map(c => c.scores_140_plus)),
-    s180: Math.max(1, ...contributions.map(c => c.scores_180)),
-  };
+  const radarPercentiles = data.meta.radar_percentiles ?? {};
+  const radarValue = (playerId: string, metric: string) => radarPercentiles[playerId]?.[metric] ?? null;
   const radarData = [
-    { metric: "Moyenne", ...Object.fromEntries(contributions.map((c, i) => [`p${i}`, normalizeRadarValue(c.average_3_darts, maxValues.average)])) },
-    { metric: "First 9", ...Object.fromEntries(contributions.map((c, i) => [`p${i}`, normalizeRadarValue(c.first_9, maxValues.first9)])) },
-    { metric: "Best finish", ...Object.fromEntries(contributions.map((c, i) => [`p${i}`, normalizeRadarValue(c.best_finish, maxValues.best)])) },
-    { metric: "100+", ...Object.fromEntries(contributions.map((c, i) => [`p${i}`, normalizeRadarValue(c.scores_100_plus, maxValues.s100)])) },
-    { metric: "140+", ...Object.fromEntries(contributions.map((c, i) => [`p${i}`, normalizeRadarValue(c.scores_140_plus, maxValues.s140)])) },
-    { metric: "180", ...Object.fromEntries(contributions.map((c, i) => [`p${i}`, normalizeRadarValue(c.scores_180, maxValues.s180)])) },
+    { metric: "Moyenne", ...Object.fromEntries(contributions.map((c, i) => [`p${i}`, radarValue(c.player.id, "average_3_darts")])) },
+    { metric: "First 9", ...Object.fromEntries(contributions.map((c, i) => [`p${i}`, radarValue(c.player.id, "first_9")])) },
+    { metric: "Best finish", ...Object.fromEntries(contributions.map((c, i) => [`p${i}`, radarValue(c.player.id, "best_finish")])) },
+    { metric: "100+", ...Object.fromEntries(contributions.map((c, i) => [`p${i}`, radarValue(c.player.id, "scores_100_plus")])) },
+    { metric: "140+", ...Object.fromEntries(contributions.map((c, i) => [`p${i}`, radarValue(c.player.id, "scores_140_plus")])) },
+    { metric: "180", ...Object.fromEntries(contributions.map((c, i) => [`p${i}`, radarValue(c.player.id, "scores_180")])) },
   ];
 
   const scoringBalance = contributions.length >= 2
@@ -303,8 +295,8 @@ export function DuoDetailDashboard({ data }: { data: DuoDashboardResponse }) {
               <p>Les indices sont compris entre 0 et 100. Les valeurs absentes restent à 0 et ne sont jamais inventées.</p>
               <div className="duo-radar-example">
                 <span>Exemple — moyenne</span>
-                <small>Meilleure valeur : {fmt(maxValues.average)}</small>
-                {contributions[1] && <strong>({fmt(contributions[1].average_3_darts)} / {fmt(maxValues.average)}) × 100 = {normalizeRadarValue(contributions[1].average_3_darts, maxValues.average)}</strong>}
+                <small>Référence : saison complète ({data.meta.radar_population_size ?? 0} profils observés)</small>
+                {contributions[1] && <strong>{contributions[1].player.name} : percentile {radarValue(contributions[1].player.id, "average_3_darts") ?? "—"} / 100</strong>}
               </div>
             </div>
           </aside>
@@ -336,10 +328,10 @@ export function DuoDetailDashboard({ data }: { data: DuoDashboardResponse }) {
         <div className="duo-radar-table-wrap">
           <table className="duo-radar-table">
             <thead><tr><th>Joueur</th><th>Moyenne<br/><small>(/100)</small></th><th>First 9<br/><small>(/100)</small></th><th>Best finish<br/><small>(/100)</small></th><th>100+<br/><small>(/100)</small></th><th>140+<br/><small>(/100)</small></th><th>180<br/><small>(/100)</small></th></tr></thead>
-            <tbody>{contributions.map((c,index) => <tr key={c.player.id} style={{ ["--radar-player-color" as string]: radarColors[index % radarColors.length] }}><td><span className="duo-radar-name"><i/>{c.player.name}</span><small>{duo.team ?? "—"}</small></td><td><strong>{normalizeRadarValue(c.average_3_darts,maxValues.average)}</strong><small>({fmt(c.average_3_darts)})</small></td><td><strong>{normalizeRadarValue(c.first_9,maxValues.first9)}</strong><small>({fmt(c.first_9)})</small></td><td><strong>{normalizeRadarValue(c.best_finish,maxValues.best)}</strong><small>({c.best_finish ?? "—"})</small></td><td><strong>{normalizeRadarValue(c.scores_100_plus,maxValues.s100)}</strong><small>({c.scores_100_plus})</small></td><td><strong>{normalizeRadarValue(c.scores_140_plus,maxValues.s140)}</strong><small>({c.scores_140_plus})</small></td><td><strong>{normalizeRadarValue(c.scores_180,maxValues.s180)}</strong><small>({c.scores_180})</small></td></tr>)}</tbody>
+            <tbody>{contributions.map((c,index) => <tr key={c.player.id} style={{ ["--radar-player-color" as string]: radarColors[index % radarColors.length] }}><td><span className="duo-radar-name"><i/>{c.player.name}</span><small>{duo.team ?? "—"}</small></td><td><strong>{radarValue(c.player.id,"average_3_darts") ?? "—"}</strong><small>({fmt(c.average_3_darts)})</small></td><td><strong>{radarValue(c.player.id,"first_9") ?? "—"}</strong><small>({fmt(c.first_9)})</small></td><td><strong>{radarValue(c.player.id,"best_finish") ?? "—"}</strong><small>({c.best_finish ?? "—"})</small></td><td><strong>{radarValue(c.player.id,"scores_100_plus") ?? "—"}</strong><small>({c.scores_100_plus})</small></td><td><strong>{radarValue(c.player.id,"scores_140_plus") ?? "—"}</strong><small>({c.scores_140_plus})</small></td><td><strong>{radarValue(c.player.id,"scores_180") ?? "—"}</strong><small>({c.scores_180})</small></td></tr>)}</tbody>
           </table>
         </div>
-        <p className="chart-note duo-radar-footnote">Les valeurs entre parenthèses sont les valeurs réelles. Les indices du radar sont normalisés à l’intérieur du duo uniquement.</p>
+        <p className="chart-note duo-radar-footnote">Les valeurs entre parenthèses sont les valeurs réelles. Les indices sont des percentiles calculés sur les profils observés de la saison ; une donnée absente reste indisponible.</p>
       </article>
 
       <article className="card duo-panel duo-panel-wide"><div className="section-heading"><div><span className="badge">Évolution</span><h3>Moyenne et First 9 par journée</h3></div></div><div className="duo-chart-frame duo-evolution-frame"><ResponsiveContainer width="100%" height="100%"><LineChart data={trendData}><CartesianGrid strokeDasharray="3 3" opacity={0.15}/><XAxis dataKey="label"/><YAxis/><Tooltip/><Legend/><Line type="monotone" dataKey="moyenne" name="Moyenne 3 fl." strokeWidth={3} connectNulls/><Line type="monotone" dataKey="first9" name="First 9" strokeWidth={2} connectNulls/></LineChart></ResponsiveContainer></div></article>
@@ -354,7 +346,7 @@ export function DuoDetailDashboard({ data }: { data: DuoDashboardResponse }) {
           <small>{data.recent_matches.length} matchs analysés</small>
         </div>
       </div>
-      <div className="table-scroll">
+      <p className="table-scroll-hint">Faites glisser le tableau horizontalement pour consulter les détails.</p><div className="table-scroll" tabIndex={0} role="region" aria-label="Historique des matchs du duo, défilement horizontal">
         <table className="table duo-history-table duo-smart-history">
           <thead>
             <tr>

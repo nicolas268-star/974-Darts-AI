@@ -158,6 +158,11 @@
   text-align: center;
 }
 
+.teams-season-pending strong { color: #ffb13b; letter-spacing: .08em; text-transform: uppercase; }
+.teams-season-pending h2 { margin: 10px 0; color: #f7fbff; }
+.teams-season-pending p { max-width: 720px; margin: 0 auto 16px; line-height: 1.55; }
+.teams-season-pending a { color: #ff9b52; font-weight: 850; }
+
 .teams-back {
   display: inline-flex;
   margin-bottom: 14px;

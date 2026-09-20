@@ -8,25 +8,25 @@ import "./teams.css";
 
 const backend = process.env.PYTHON_API_URL ?? "http://127.0.0.1:8000";
 
-async function getRanking(): Promise<ChampionshipHub | null> {
+type TeamsPageData = { ranking: ChampionshipHub | null; activeSeason: CompetitionCatalog["active_championship"] };
+
+async function getRanking(): Promise<TeamsPageData> {
   try {
     const catalogResponse = await fetch(`${backend}/api/v1/competitions`, {
       cache: "no-store",
       signal: AbortSignal.timeout(5000),
     });
-    if (!catalogResponse.ok) return null;
+    if (!catalogResponse.ok) return { ranking: null, activeSeason: null };
     const catalog: CompetitionCatalog = await catalogResponse.json();
-    const championship = [...catalog.championships]
-      .filter((item) => item.has_data)
-      .sort((a, b) => b.year - a.year)[0] ?? catalog.active_championship;
-    if (!championship) return null;
+    const championship = catalog.active_championship;
+    if (!championship) return { ranking: null, activeSeason: null };
     const response = await fetch(
       `${backend}/api/v1/competitions/championships/${championship.year}`,
       { cache: "no-store", signal: AbortSignal.timeout(5000) },
     );
-    return response.ok ? response.json() : null;
+    return { ranking: response.ok ? await response.json() : null, activeSeason: championship };
   } catch {
-    return null;
+    return { ranking: null, activeSeason: null };
   }
 }
 
@@ -45,7 +45,7 @@ async function getPlayers(): Promise<PlayerOverview[]> {
 }
 
 export default async function TeamsPage() {
-  const [ranking, players] = await Promise.all([getRanking(), getPlayers()]);
+  const [{ ranking, activeSeason }, players] = await Promise.all([getRanking(), getPlayers()]);
   const standings = ranking?.standings ?? [];
 
   return (
@@ -57,7 +57,7 @@ export default async function TeamsPage() {
           <div>
             <span>CHAMPIONNAT 974 · ÉQUIPES</span>
             <h1>Les équipes</h1>
-            <p>Classement, bilan collectif et accès aux effectifs de la saison.</p>
+            <p>Classement, bilan collectif et effectifs officiellement publiés pour la saison active.</p>
           </div>
           <strong>{standings.length} équipe(s)</strong>
         </header>
@@ -72,7 +72,9 @@ export default async function TeamsPage() {
           </section>
         ) : null}
 
-        {!ranking ? (
+        {activeSeason && !activeSeason.has_data ? (
+          <section className="teams-empty teams-season-pending"><strong>{activeSeason.name}</strong><h2>Effectifs en attente de publication</h2><p>Les équipes 2026 restent consultables comme historique. Elles ne sont pas présentées comme les équipes de la saison en cours.</p><Link href="/championships/2026">Consulter le championnat 2026 historique →</Link></section>
+        ) : !ranking ? (
           <section className="teams-empty">
             Le classement des équipes est momentanément indisponible.
           </section>

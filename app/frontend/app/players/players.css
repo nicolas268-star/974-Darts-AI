@@ -39,3 +39,4 @@
 .players-empty strong,.players-empty span { display:block; }
 .players-empty span { margin-top:8px; color:#90b3ce; }
 @media(max-width:820px){.players-hero,.players-table-heading{align-items:flex-start;flex-direction:column}.players-hero-mark{width:100%}.players-summary{grid-template-columns:1fr}.players-table-heading p{text-align:left}.players-table-panel{padding:18px}}
+.table-scroll-hint{display:none;color:#9ecbf0;font-size:.78rem;margin:0 0 8px}@media(max-width:820px){.table-scroll-hint{display:block}.players-table-scroll{scrollbar-color:#63dfbd #091c30}.players-table-scroll:focus-visible{outline:2px solid #72e3c5;outline-offset:3px}}

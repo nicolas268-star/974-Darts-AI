@@ -16,6 +16,7 @@ export type CalendarEvent = {
   description?: string | null;
   source_url?: string | null;
   status: CalendarEventStatus;
+  championship_teams?: string[];
   created_at?: string;
   updated_at?: string;
 };
