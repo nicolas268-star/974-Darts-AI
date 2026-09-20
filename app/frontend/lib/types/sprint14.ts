@@ -12,6 +12,7 @@ export type CompetitionSummary = {
   tracked_players?: number;
   tracked_duos?: number;
   complete_results?: number;
+  collective_only_encounters?: number;
 };
 
 export type ChampionshipCard = {
@@ -41,6 +42,11 @@ export type TournamentCard = {
   status: "AVAILABLE" | "WAITING_DATA";
   summary: CompetitionSummary;
   href: string;
+  classification: "COMMITTEE_RECOGNIZED" | "FRIENDLY";
+  classification_label: string;
+  affects_committee_ranking: boolean;
+  committee_event_key: string | null;
+  ranking_status: "PUBLISHED" | "NOT_APPLICABLE";
 };
 
 export type CompetitionCatalog = {
@@ -51,7 +57,8 @@ export type CompetitionCatalog = {
   tournaments: TournamentCard[];
   principles: {
     official_separation: boolean;
-    tournaments_affect_official_ranking: boolean;
+    friendly_tournaments_affect_official_ranking: boolean;
+    recognized_events_may_affect_committee_ranking: boolean;
     tournaments_affect_official_elo: boolean;
     player_identity_shared: boolean;
   };
@@ -72,6 +79,9 @@ export type Standing = {
   legs_lost: number;
   leg_difference: number;
   points: number;
+  detailed_encounters: number;
+  collective_only_encounters: number;
+  detail_complete: boolean;
 };
 
 export type PlayerLeader = {
@@ -217,6 +227,11 @@ export type TournamentParticipant = {
 export type TournamentHub = {
   contract_version: string;
   official_separation: boolean;
+  classification: "COMMITTEE_RECOGNIZED" | "FRIENDLY";
+  classification_label: string;
+  affects_committee_ranking: boolean;
+  committee_event_key: string | null;
+  ranking_status: "PUBLISHED" | "NOT_APPLICABLE";
   code: string;
   name: string;
   date: string | null;

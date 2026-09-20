@@ -4,8 +4,9 @@ const origin = "https://974darts.re";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const routes = [
-    "", "/flechettes-la-reunion", "/dashboard", "/competitions", "/calendar",
-    "/teams", "/players", "/duos", "/tournaments", "/records/180",
+    "", "/flechettes-la-reunion", "/competitions", "/championships/2027",
+    "/championships/2026", "/calendar", "/teams", "/players", "/duos",
+    "/tournaments", "/records/180",
     "/records/finishes", "/records/mvp", "/records/mvp/2026",
     "/mentions-legales", "/confidentialite", "/conditions-utilisation",
   ];

@@ -80,6 +80,12 @@ export default async function CompetitionsPage() {
     round.teams.every((team) => team.place !== null && team.poolWins !== null),
   ).length;
   const rankedBdcPlayers = bdcStandings(BDC_RESULTS).length;
+  const committeeTournaments = (data?.tournaments ?? []).filter(
+    (tournament) => tournament.classification === "COMMITTEE_RECOGNIZED",
+  );
+  const friendlyTournaments = (data?.tournaments ?? []).filter(
+    (tournament) => tournament.classification === "FRIENDLY",
+  );
 
   return (
     <div className="dashboard">
@@ -202,16 +208,43 @@ export default async function CompetitionsPage() {
           </Link>
         </section>
 
+        {!!committeeTournaments.length && (
+          <section className="competition-section tournament-section individual-ranking-section">
+            <div className="competition-section-title">
+              <div>
+                <span>COMPÉTITIONS COMITÉ</span>
+                <h2>Opens reconnus publiés</h2>
+              </div>
+              <p>Résultats validés et points intégrés au classement individuel.</p>
+            </div>
+            <div className="tournament-grid">
+              {committeeTournaments.map((tournament) => (
+                <Link href={tournament.href} className="tournament-card" key={tournament.code}>
+                  <div><span>Points publiés</span><strong>{tournament.code}</strong></div>
+                  <h3>{tournament.name}</h3>
+                  <p className="tournament-event-name">{tournament.event_name}</p>
+                  <div className="mini-kpis">
+                    <span><b>{tournament.summary.matches ?? 0}</b> matchs</span>
+                    <span><b>{tournament.summary.legs ?? 0}</b> legs</span>
+                    <span><b>{tournament.summary.tracked_players ?? 0}</b> joueurs suivis</span>
+                  </div>
+                  <small>Consulter les résultats reconnus →</small>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
         <section className="competition-section tournament-section">
           <div className="competition-section-title">
             <div>
               <span>TOURNOIS & ANALYSES</span>
-              <h2>Tournois publiés</h2>
+              <h2>Tournois amicaux publiés</h2>
             </div>
             <p>Le statut de chaque événement indique s’il rapporte des points 974.</p>
           </div>
           <div className="tournament-grid">
-            {(data?.tournaments ?? []).map((tournament) => (
+            {friendlyTournaments.map((tournament) => (
               <Link
                 href={tournament.href}
                 className="tournament-card"
@@ -235,8 +268,8 @@ export default async function CompetitionsPage() {
             ))}
           </div>
           <div className="competition-notice">
-            Les tournois amicaux restent exclus du classement officiel. Seuls
-            les Opens de club reconnus par le Comité rapportent des points.
+            Ces tournois sont indépendants : ils ne modifient ni le classement
+            individuel du Comité, ni le championnat interclubs, ni l’ELO.
           </div>
         </section>
       </main>

@@ -65,8 +65,8 @@ export default async function DuosPage() {
           <section className="card duo-empty">
             <strong>Les données Duos ne sont pas disponibles.</strong>
             <p>
-              Vérifie que le backend est démarré sur le port 8000, puis recharge
-              cette page.
+              Les données seront affichées dès qu’elles seront de nouveau
+              disponibles.
             </p>
           </section>
         )}

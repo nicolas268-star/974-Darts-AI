@@ -573,8 +573,8 @@ def _pvp_fallback(
         },
         "data_quality_notes": [
             (
-                "Mode de secours PvP actif : installez la migration Sprint 10.1 "
-                "pour inclure les résultats collectifs absents du détail."
+                "Les résultats collectifs publiés sont affichés. Certaines "
+                "statistiques individuelles détaillées ne sont pas encore disponibles."
             )
         ],
         "ranking_source": "PVP_FALLBACK",

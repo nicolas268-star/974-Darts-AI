@@ -2,17 +2,28 @@ import Link from "next/link";
 import { Sidebar } from "@/components/Sidebar";
 import { sameTeam } from "@/lib/team-identity";
 import { getTeamTheme } from "@/lib/team-themes";
-import type { RankingPayload, PlayerOverview } from "@/lib/types/sprint4";
+import type { PlayerOverview } from "@/lib/types/sprint4";
+import type { ChampionshipHub, CompetitionCatalog } from "@/lib/types/sprint14";
 import "./teams.css";
 
 const backend = process.env.PYTHON_API_URL ?? "http://127.0.0.1:8000";
 
-async function getRanking(): Promise<RankingPayload | null> {
+async function getRanking(): Promise<ChampionshipHub | null> {
   try {
-    const response = await fetch(`${backend}/api/v1/ranking`, {
+    const catalogResponse = await fetch(`${backend}/api/v1/competitions`, {
       cache: "no-store",
       signal: AbortSignal.timeout(5000),
     });
+    if (!catalogResponse.ok) return null;
+    const catalog: CompetitionCatalog = await catalogResponse.json();
+    const championship = [...catalog.championships]
+      .filter((item) => item.has_data)
+      .sort((a, b) => b.year - a.year)[0] ?? catalog.active_championship;
+    if (!championship) return null;
+    const response = await fetch(
+      `${backend}/api/v1/competitions/championships/${championship.year}`,
+      { cache: "no-store", signal: AbortSignal.timeout(5000) },
+    );
     return response.ok ? response.json() : null;
   } catch {
     return null;
@@ -51,7 +62,7 @@ export default async function TeamsPage() {
           <strong>{standings.length} équipe(s)</strong>
         </header>
 
-        {ranking?.data_quality_notes.length ? (
+        {ranking?.data_quality_notes?.length ? (
           <section className="teams-quality">
             <strong>Résultats collectifs complets</strong>
             <span>
@@ -63,7 +74,7 @@ export default async function TeamsPage() {
 
         {!ranking ? (
           <section className="teams-empty">
-            Le backend ne retourne actuellement aucune donnée de classement.
+            Le classement des équipes est momentanément indisponible.
           </section>
         ) : (
           <section className="teams-grid">

@@ -7,7 +7,10 @@ if "supabase" not in sys.modules:
     supabase_stub.Client = object
     sys.modules["supabase"] = supabase_stub
 
-from app.services.competition_hub_service import CompetitionHubService
+from app.services.competition_hub_service import (
+    CompetitionHubService,
+    _tournament_classification,
+)
 from app.services.season_registry_service import _empty, _event_date
 
 
@@ -49,3 +52,14 @@ def test_competition_hub_uses_registry_when_statistics_schema_is_absent():
     assert by_year[2026]["is_active"] is False
     assert by_year[2027]["status"] == "ACTIVE"
     assert by_year[2027]["is_active"] is True
+
+
+def test_t5_is_recognized_by_committee_while_older_tournaments_stay_friendly():
+    recognized = _tournament_classification("T5")
+    friendly = _tournament_classification("T4")
+
+    assert recognized["classification"] == "COMMITTEE_RECOGNIZED"
+    assert recognized["affects_committee_ranking"] is True
+    assert recognized["ranking_status"] == "PUBLISHED"
+    assert friendly["classification"] == "FRIENDLY"
+    assert friendly["affects_committee_ranking"] is False

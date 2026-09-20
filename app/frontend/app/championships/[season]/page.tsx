@@ -58,8 +58,8 @@ export default async function ChampionshipPage({
 
         {!data ? (
           <div className="competition-notice danger">
-            Ce championnat est indisponible. Vérifiez que le backend est
-            démarré puis actualisez la page.
+            Ce championnat est momentanément indisponible. Veuillez réessayer
+            dans quelques instants.
           </div>
         ) : (
           <>
@@ -211,8 +211,8 @@ export default async function ChampionshipPage({
                 </div>
               ) : (
                 <p className="hub-empty">
-                  Le classement apparaîtra après le premier import de cette
-                  saison.
+                  Le classement apparaîtra après la publication des premiers
+                  résultats officiels de cette saison.
                 </p>
               )}
             </section>
@@ -254,7 +254,7 @@ export default async function ChampionshipPage({
                 </div>
               ) : (
                 <p className="hub-empty">
-                  Les leaders apparaîtront après le premier import.
+                  Les leaders apparaîtront après la publication des premiers résultats.
                 </p>
               )}
             </section>

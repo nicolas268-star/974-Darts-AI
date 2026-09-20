@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { ReunionClubMap } from "@/components/home/ReunionClubMap";
+import type { CompetitionCatalog } from "@/lib/types/sprint14";
 import "./home.css";
 
 const backend = process.env.PYTHON_API_URL ?? "http://127.0.0.1:8000";
@@ -15,6 +16,7 @@ type Standing = {
 };
 
 type RankingPayload = {
+  championship?: { year: number };
   season: { id: string; name: string; is_active: boolean } | null;
   standings: Standing[];
   summary: {
@@ -49,10 +51,20 @@ type PlayerOverview = {
 
 async function getRanking(): Promise<RankingPayload | null> {
   try {
-    const response = await fetch(`${backend}/api/v1/ranking`, {
+    const catalogResponse = await fetch(`${backend}/api/v1/competitions`, {
       cache: "no-store",
       signal: AbortSignal.timeout(5000),
     });
+    if (!catalogResponse.ok) return null;
+    const catalog: CompetitionCatalog = await catalogResponse.json();
+    const championship = [...(catalog.championships ?? [])]
+      .filter((item) => item.has_data)
+      .sort((a, b) => b.year - a.year)[0] ?? catalog.active_championship;
+    if (!championship) return null;
+    const response = await fetch(
+      `${backend}/api/v1/competitions/championships/${championship.year}`,
+      { cache: "no-store", signal: AbortSignal.timeout(5000) },
+    );
     return response.ok ? response.json() : null;
   } catch {
     return null;
@@ -107,7 +119,7 @@ const features = [
     label: "Classement officiel",
     title: "Le classement, sans approximation",
     copy: "Points, victoires et différence de sets calculés depuis les résultats collectifs publiés.",
-    href: "/dashboard",
+    href: "/championships/2026",
     cta: "Voir le classement",
   },
   {
@@ -141,6 +153,7 @@ export default async function HomePage() {
     .sort((a, b) => (b.average_3_darts ?? 0) - (a.average_3_darts ?? 0))
     .slice(0, 4);
   const teamIds = Object.fromEntries(standings.map((team) => [team.name, team.team_id]));
+  const championshipHref = `/championships/${ranking?.championship?.year ?? 2026}`;
 
   return (
     <div className="home-page">
@@ -224,7 +237,7 @@ export default async function HomePage() {
                   <span>TOP 3 · CLASSEMENT OFFICIEL</span>
                   <h3>La course en tête</h3>
                 </div>
-                <Link href="/dashboard">Classement complet →</Link>
+                <Link href={championshipHref}>Classement complet →</Link>
               </div>
 
               {leaders.length ? (
@@ -253,7 +266,7 @@ export default async function HomePage() {
                 </div>
               ) : (
                 <p className="home-offline">
-                  Démarre le backend pour afficher le classement publié.
+                  Le classement publié sera bientôt de nouveau disponible.
                 </p>
               )}
             </article>

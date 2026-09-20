@@ -26,6 +26,9 @@ async function loadTournaments(): Promise<
 
 export default async function TournamentsPage() {
   const tournaments = await loadTournaments();
+  const friendlyTournaments = tournaments?.filter(
+    (tournament) => tournament.classification === "FRIENDLY",
+  );
   return (
     <div className="dashboard">
       <Sidebar />
@@ -45,7 +48,7 @@ export default async function TournamentsPage() {
             </p>
           </div>
           <div className="competition-hero-badge">
-            <strong>{tournaments?.length ?? "—"}</strong>
+            <strong>{friendlyTournaments?.length ?? "—"}</strong>
             <span>Tournois suivis</span>
           </div>
         </header>
@@ -54,13 +57,14 @@ export default async function TournamentsPage() {
 
         {!tournaments && (
           <div className="competition-notice danger">
-            Le backend Tournois est indisponible. Redémarrez le backend.
+            Les tournois sont momentanément indisponibles. Veuillez réessayer
+            dans quelques instants.
           </div>
         )}
 
         <section className="competition-section">
           <div className="tournament-grid">
-            {(tournaments ?? []).map((tournament) => (
+            {(friendlyTournaments ?? []).map((tournament) => (
               <Link
                 href={tournament.href}
                 className="tournament-card"
