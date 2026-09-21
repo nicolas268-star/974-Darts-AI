@@ -1236,3 +1236,22 @@
     width: 145px;
   }
 }
+
+
+/* A016 — lecture progressive des analyses tournoi */
+.tournament-disclosure{padding:0;overflow:hidden}
+.tournament-disclosure>summary{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:18px 20px;cursor:pointer;list-style:none}
+.tournament-disclosure>summary::-webkit-details-marker{display:none}
+.tournament-disclosure>summary span{display:grid;gap:4px}
+.tournament-disclosure>summary b{color:#f8fafc;font-size:1rem}
+.tournament-disclosure>summary small{color:#94a3b8;font-size:.76rem;font-weight:600}
+.tournament-disclosure>summary strong{display:inline-flex;align-items:center;gap:7px;color:#fdba74;font-size:.75rem}
+.tournament-disclosure>summary strong:after{content:"+";font-size:1.15rem}
+.tournament-disclosure[open]>summary{border-bottom:1px solid rgba(148,163,184,.15)}
+.tournament-disclosure[open]>summary strong:after{content:"−"}
+.tournament-disclosure>summary:hover,.tournament-disclosure>summary:focus-visible{background:rgba(148,163,184,.06);outline:none}
+.tournament-disclosure>summary:focus-visible{box-shadow:inset 0 0 0 2px rgba(251,146,60,.7)}
+.tournament-disclosure-content{padding:20px}
+.tournament-disclosure-content.tournament-visual-panel{padding:20px}
+.tournament-disclosure-content .hub-panel{margin:0}
+@media(max-width:620px){.tournament-disclosure>summary{align-items:flex-start;padding:16px}.tournament-disclosure-content{padding:14px}.tournament-disclosure>summary strong{flex:none}}
