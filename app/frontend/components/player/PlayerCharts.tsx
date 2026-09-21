@@ -66,7 +66,7 @@ export function PlayerCharts({ data, championshipAverage }: { data: PlayerDashbo
       <div className="chart-frame"><ResponsiveContainer width="100%" height="100%"><LineChart data={trend} margin={{ top: 12, right: 12, left: 4, bottom: 0 }}><CartesianGrid stroke="rgba(255,255,255,.07)" vertical={false}/><XAxis dataKey="round" stroke="#9aa9bd" tickLine={false} axisLine={false}/><YAxis width={52} stroke="#9aa9bd" tickLine={false} axisLine={false} domain={[0,100]} tickFormatter={(value) => `${value}%`}/><Tooltip contentStyle={tooltipStyle} formatter={(value) => [`${Number(value).toFixed(1)} %`, "Victoires"]}/><ReferenceLine y={50} stroke="rgba(255,255,255,.25)" strokeDasharray="5 5"/><Line type="monotone" dataKey="victoire" stroke="#34d399" strokeWidth={3} dot={{ r: 4 }}/></LineChart></ResponsiveContainer></div>
     </section>
     <section className="card player-chart-card player-chart-wide">
-      <div className="section-heading"><div><span className="eyebrow">Scoring</span><h3>Volumes de scores</h3></div><span className="chart-chip">Saison {data.season?.name ?? "—"}</span></div>
+      <div className="section-heading"><div><span className="eyebrow">Scoring</span><h3>Volumes de scores</h3></div><span className="chart-chip">{data.season?.id === "all" ? "Toute la carrière" : `Saison ${data.season?.name ?? "—"}`}</span></div>
       <div className="chart-frame chart-frame-short"><ResponsiveContainer width="100%" height="100%"><BarChart data={scoring} margin={{ top: 12, right: 12, left: -20, bottom: 0 }}><CartesianGrid stroke="rgba(255,255,255,.07)" vertical={false}/><XAxis dataKey="label" stroke="#9aa9bd" tickLine={false} axisLine={false}/><YAxis stroke="#9aa9bd" tickLine={false} axisLine={false} allowDecimals={false}/>
 <Tooltip
   contentStyle={{

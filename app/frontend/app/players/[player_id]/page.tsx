@@ -9,11 +9,13 @@ import { PlayerNetwork } from "@/components/player/PlayerNetwork";
 import { PlayerDNA } from "@/components/player/PlayerDNA";
 import { PlayerCoach } from "@/components/player/PlayerCoach";
 import { PlayerCompareLauncher } from "@/components/player/PlayerCompareLauncher";
+import { PlayerSeasonFilter } from "@/components/player/PlayerSeasonFilter";
 import type { PlayerDashboard } from "@/lib/player/dashboard-types";
 import type { PlayerNetworkResponse } from "@/lib/player/network-types";
 import type { PlayerDNAResponse } from "@/lib/player/dna-types";
 import type { PlayerCoachResponse } from "@/lib/player/coach-types";
 import type { PlayerOverview } from "@/lib/types/sprint4";
+import type { CompetitionCatalog } from "@/lib/types/sprint14";
 import "./player-premium.css";
 import "./player-affiliation-timeline.css";
 import "./player-network.css";
@@ -22,10 +24,11 @@ import "./player-coach.css";
 import "./player-compare-launcher.css";
 
 const backend = process.env.PYTHON_API_URL ?? "http://127.0.0.1:8000";
-async function getDashboard(playerId: string): Promise<PlayerDashboard | null> { try { const response = await fetch(`${backend}/api/v1/players/${playerId}/dashboard`, { cache: "no-store", signal: AbortSignal.timeout(5000) }); if (response.status === 404) return null; if (!response.ok) throw new Error(`API joueur: ${response.status}`); return response.json(); } catch (error) { console.error(error); return null; } }
-async function getNetwork(playerId: string): Promise<PlayerNetworkResponse | null> {
+const seasonQuery = (season?: string) => season ? `?season_id=${encodeURIComponent(season)}` : "";
+async function getDashboard(playerId: string, season?: string): Promise<PlayerDashboard | null> { try { const response = await fetch(`${backend}/api/v1/players/${playerId}/dashboard${seasonQuery(season)}`, { cache: "no-store", signal: AbortSignal.timeout(5000) }); if (response.status === 404) return null; if (!response.ok) throw new Error(`API joueur: ${response.status}`); return response.json(); } catch (error) { console.error(error); return null; } }
+async function getNetwork(playerId: string, season?: string): Promise<PlayerNetworkResponse | null> {
   try {
-    const response = await fetch(`${backend}/api/v1/players/${playerId}/network`, {
+    const response = await fetch(`${backend}/api/v1/players/${playerId}/network${seasonQuery(season)}`, {
       cache: "no-store",
       signal: AbortSignal.timeout(5000),
     });
@@ -36,9 +39,9 @@ async function getNetwork(playerId: string): Promise<PlayerNetworkResponse | nul
     return null;
   }
 }
-async function getDNA(playerId: string): Promise<PlayerDNAResponse | null> {
+async function getDNA(playerId: string, season?: string): Promise<PlayerDNAResponse | null> {
   try {
-    const response = await fetch(`${backend}/api/v1/players/${playerId}/dna`, { cache: "no-store", signal: AbortSignal.timeout(5000) });
+    const response = await fetch(`${backend}/api/v1/players/${playerId}/dna${seasonQuery(season)}`, { cache: "no-store", signal: AbortSignal.timeout(5000) });
     if (!response.ok) return null;
     return response.json();
   } catch (error) {
@@ -46,9 +49,9 @@ async function getDNA(playerId: string): Promise<PlayerDNAResponse | null> {
     return null;
   }
 }
-async function getCoach(playerId: string): Promise<PlayerCoachResponse | null> {
+async function getCoach(playerId: string, season?: string): Promise<PlayerCoachResponse | null> {
   try {
-    const response = await fetch(`${backend}/api/v1/players/${playerId}/coach`, { cache: "no-store", signal: AbortSignal.timeout(5000) });
+    const response = await fetch(`${backend}/api/v1/players/${playerId}/coach${seasonQuery(season)}`, { cache: "no-store", signal: AbortSignal.timeout(5000) });
     if (!response.ok) return null;
     return response.json();
   } catch (error) { console.error(error); return null; }
@@ -65,7 +68,8 @@ async function getTournamentSummary(playerId: string): Promise<PlayerTournamentS
 async function getAffiliations(playerId:string):Promise<PlayerAffiliations|null>{try{const response=await fetch(`${backend}/api/v1/players/${playerId}/affiliations`,{cache:"no-store",signal:AbortSignal.timeout(5000)});return response.ok?response.json():null}catch{return null}}
 
 
-async function getPlayers(): Promise<PlayerOverview[]> { try { const response = await fetch(`${backend}/api/v1/players`, { cache: "no-store", signal: AbortSignal.timeout(5000) }); return response.ok ? (await response.json()).players : []; } catch { return []; } }
+async function getPlayers(season?: string): Promise<PlayerOverview[]> { try { const response = await fetch(`${backend}/api/v1/players${seasonQuery(season)}`, { cache: "no-store", signal: AbortSignal.timeout(5000) }); return response.ok ? (await response.json()).players : []; } catch { return []; } }
+async function getCompetitionCatalog(): Promise<CompetitionCatalog | null> { try { const response = await fetch(`${backend}/api/v1/competitions`, { cache: "no-store", signal: AbortSignal.timeout(5000) }); return response.ok ? response.json() : null; } catch { return null; } }
 const number = (value: number | null | undefined, digits = 2) => value == null ? "—" : new Intl.NumberFormat("fr-FR", { maximumFractionDigits: digits, minimumFractionDigits: digits }).format(value);
 const average = (values: number[]) => values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : null;
 
@@ -79,10 +83,20 @@ const playerTier = (score: number, rank: number, legsPlayed: number) => {
   return { icon: "🛠️", label: "Profil à développer", tone: "danger" };
 };
 
-export default async function PlayerDashboardPage({ params }: { params: Promise<{ player_id: string }> }) {
+export default async function PlayerDashboardPage({ params, searchParams }: { params: Promise<{ player_id: string }>; searchParams: Promise<{ season?: string }> }) {
   const { player_id } = await params;
-  const [data, network, dna, coach, players, tournamentSummary, affiliations] = await Promise.all([getDashboard(player_id), getNetwork(player_id), getDNA(player_id), getCoach(player_id), getPlayers(), getTournamentSummary(player_id), getAffiliations(player_id)]);
+  const requestedSeason = (await searchParams).season;
+  const season = requestedSeason === "all" || ["2026", "2027", "2028", "2029"].includes(requestedSeason ?? "") ? requestedSeason : undefined;
+  const [data, network, dna, coach, players, tournamentSummary, affiliations, catalog] = await Promise.all([getDashboard(player_id, season), getNetwork(player_id, season), getDNA(player_id, season), getCoach(player_id, season), getPlayers(season), getTournamentSummary(player_id), getAffiliations(player_id), getCompetitionCatalog()]);
   if (!data) notFound();
+
+  const yearsInSeasonName = data.season?.name.match(/20\d{2}/g) ?? [];
+  const selectedSeason = season ?? yearsInSeasonName.at(-1) ?? "all";
+  const seasonOptions = [2026, 2027, 2028, 2029].map((year) => ({
+    year,
+    hasData: Boolean(catalog?.championships.find((item) => item.year === year)?.has_data)
+      || (selectedSeason === String(year) && data.meta.has_data),
+  }));
 
   const ranked = players.filter((player) => player.average_3_darts != null).sort((a, b) => (b.average_3_darts ?? 0) - (a.average_3_darts ?? 0));
   const rank = ranked.findIndex((player) => player.player_id === player_id) + 1;
@@ -121,7 +135,8 @@ export default async function PlayerDashboardPage({ params }: { params: Promise<
   return <div className="dashboard"><Sidebar/><main className="main player-dashboard-page">
     <Link href="/players" className="back-link"><ArrowLeft size={17}/> Retour aux joueurs</Link>
     <Link href={`/players/${player_id}/career`} className="career-link">Identité & carrière · équipes, saisons et alias</Link>
-    <PlayerDashboardControls players={players.map((player) => ({ player_id: player.player_id, name: player.name, team: player.team }))} currentPlayerId={player_id}/>
+    <PlayerDashboardControls players={players.map((player) => ({ player_id: player.player_id, name: player.name, team: player.team }))} currentPlayerId={player_id} season={selectedSeason}/>
+    <PlayerSeasonFilter playerId={player_id} selected={selectedSeason} seasons={seasonOptions}/>
 
     <header className="player-hero card player-premium-hero">
       <div className="player-premium-avatar-wrap">
@@ -133,7 +148,7 @@ export default async function PlayerDashboardPage({ params }: { params: Promise<
       </div>
       <div className="player-identity player-premium-identity">
         <div className="player-premium-badges">
-          <span className="badge">Profil joueur · Saison {data.season?.name ?? "—"}</span>
+          <span className="badge">Profil joueur · {data.season?.id === "all" ? "Toute la carrière" : `Saison ${data.season?.name ?? "—"}`}</span>
           <span className={`player-tier-badge player-tier-${tier.tone}`}>{tier.icon} {tier.label}</span>
         </div>
         <h2>{data.player.name}</h2>
@@ -169,7 +184,7 @@ export default async function PlayerDashboardPage({ params }: { params: Promise<
       ))}
     </section>
 
-    <PlayerCompareLauncher currentPlayerId={player_id} currentPlayerName={data.player.name} players={players.map((player) => ({ player_id: player.player_id, name: player.name, team: player.team, average_3_darts: player.average_3_darts, win_rate: player.win_rate }))}/>
+    <PlayerCompareLauncher currentPlayerId={player_id} currentPlayerName={data.player.name} players={players.map((player) => ({ player_id: player.player_id, name: player.name, team: player.team, average_3_darts: player.average_3_darts, win_rate: player.win_rate }))} season={selectedSeason}/>
 
     <section className="player-kpi-grid">{kpis.map(({ label, value, icon: Icon, tone, detail }) => <article className={`card player-kpi player-kpi-${tone}`} key={label}><div className="player-kpi-icon"><Icon size={21}/></div><span>{label}</span><strong>{value}</strong><small>{detail}</small></article>)}</section>
 
