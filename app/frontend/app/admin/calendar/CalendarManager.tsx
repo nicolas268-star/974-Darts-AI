@@ -3,9 +3,14 @@
 import { useCallback, useEffect, useState } from "react";
 import { CalendarDays, CheckCircle2, Edit3, MapPin, Plus, Save, Trash2 } from "lucide-react";
 import { calendarTypeLabels, type CalendarEvent, type CalendarEventType } from "@/lib/calendar/types";
+import { committeeCalendarEvents } from "@/lib/committee-ranking";
 import styles from "./CalendarManager.module.css";
 
-const emptyForm = { id: "", title: "", event_type: "CHAMPIONSHIP" as CalendarEventType, start_date: "", start_time: "", end_date: "", location: "", address: "", description: "", source_url: "", championship_teams: "", status: "SCHEDULED" as const };
+const officialEventIds = new Set(committeeCalendarEvents
+  .filter((event) => event.ranking_kind === "COMMITTEE_OPEN" || event.ranking_kind === "COMMITTEE_CUP")
+  .map((event) => event.id));
+
+const emptyForm = { id: "", title: "", event_type: "CHAMPIONSHIP" as CalendarEventType, ranking_category: null as CalendarEvent["ranking_category"], ranking_kind: null as CalendarEvent["ranking_kind"], start_date: "", start_time: "", end_date: "", location: "", address: "", description: "", source_url: "", championship_teams: "", status: "SCHEDULED" as const };
 type FormState = typeof emptyForm | (Omit<typeof emptyForm, "status"> & { status: "SCHEDULED" | "COMPLETED" | "CANCELLED" });
 
 export default function CalendarManager() {
@@ -21,14 +26,23 @@ export default function CalendarManager() {
       const response = await fetch("/api/admin/backend/api/v1/calendar/events", { cache: "no-store" });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || payload.detail || "Calendrier indisponible.");
-      setEvents(payload.events || []);
+      const storedEvents = (payload.events || []) as CalendarEvent[];
+      const storedIds = new Set(storedEvents.map((event) => event.id));
+      const editableOfficialEvents = committeeCalendarEvents.filter(
+        (event) => officialEventIds.has(event.id) && !storedIds.has(event.id),
+      );
+      setEvents([...storedEvents, ...editableOfficialEvents].sort((a, b) =>
+        a.start_date.localeCompare(b.start_date)
+        || (a.start_time || "").localeCompare(b.start_time || "")
+        || a.title.localeCompare(b.title, "fr")
+      ));
     } catch (caught) { setError(caught instanceof Error ? caught.message : "Calendrier indisponible."); }
   }, []);
 
   useEffect(() => { void load(); }, [load]);
 
   function edit(event: CalendarEvent) {
-    setForm({ id: event.id, title: event.title, event_type: event.event_type, start_date: event.start_date, start_time: event.start_time || "", end_date: event.end_date || "", location: event.location, address: event.address || "", description: event.description || "", source_url: event.source_url || "", championship_teams: (event.championship_teams || []).join("; "), status: event.status });
+    setForm({ id: event.id, title: event.title, event_type: event.event_type, ranking_category: event.ranking_category || null, ranking_kind: event.ranking_kind || null, start_date: event.start_date, start_time: event.start_time || "", end_date: event.end_date || "", location: event.location, address: event.address || "", description: event.description || "", source_url: event.source_url || "", championship_teams: (event.championship_teams || []).join("; "), status: event.status });
     setMessage(""); setError(""); window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -71,7 +85,7 @@ export default function CalendarManager() {
         {message && <p className={styles.success}><CheckCircle2 /> {message}</p>}{error && <p className={styles.error}>{error}</p>}
         <div className={styles.actions}><button disabled={busy} type="submit"><Save /> {busy ? "Enregistrement…" : form.id ? "Enregistrer les modifications" : "Publier l’événement"}</button>{form.id && <button className={styles.secondary} type="button" onClick={() => setForm(emptyForm)}>Annuler</button>}</div>
       </form>
-      <section className={styles.list}><header><div><span>Événements enregistrés</span><h2>{events.length} rendez-vous</h2></div><button onClick={() => void load()}>Actualiser</button></header>{events.length ? events.map((event) => <article key={event.id}><div className={styles.eventDate}><strong>{event.start_date.slice(8, 10)}</strong><span>{new Date(`${event.start_date}T12:00:00`).toLocaleDateString("fr-FR", { month: "short" })}</span></div><div><span className={styles.type}>{calendarTypeLabels[event.event_type]}</span><h3>{event.title}</h3><p><MapPin /> {event.location} · {event.start_time || "horaire à confirmer"}</p></div><div className={styles.itemActions}><button aria-label="Modifier" onClick={() => edit(event)}><Edit3 /></button><button aria-label="Supprimer" onClick={() => void remove(event)}><Trash2 /></button></div></article>) : <div className={styles.empty}><CalendarDays /><strong>Aucun événement enregistré</strong><p>Utilisez le formulaire pour publier le premier rendez-vous.</p></div>}</section>
+      <section className={styles.list}><header><div><span>Événements enregistrés</span><h2>{events.length} rendez-vous</h2></div><button onClick={() => void load()}>Actualiser</button></header>{events.length ? events.map((event) => <article key={event.id}><div className={styles.eventDate}><strong>{event.start_date.slice(8, 10)}</strong><span>{new Date(`${event.start_date}T12:00:00`).toLocaleDateString("fr-FR", { month: "short" })}</span></div><div><span className={styles.type}>{event.ranking_kind === "COMMITTEE_CUP" ? "Coupe Comité" : event.ranking_kind === "COMMITTEE_OPEN" ? "Open Comité" : calendarTypeLabels[event.event_type]}</span><h3>{event.title}</h3><p><MapPin /> {event.location} · {event.start_time || "horaire à confirmer"}</p></div><div className={styles.itemActions}><button aria-label="Modifier" onClick={() => edit(event)}><Edit3 /></button>{!officialEventIds.has(event.id) && <button aria-label="Supprimer" onClick={() => void remove(event)}><Trash2 /></button>}</div></article>) : <div className={styles.empty}><CalendarDays /><strong>Aucun événement enregistré</strong><p>Utilisez le formulaire pour publier le premier rendez-vous.</p></div>}</section>
     </div>
   </div>;
 }
