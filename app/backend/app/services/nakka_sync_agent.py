@@ -14,6 +14,8 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, urljoin, urlparse
 
+from app.services.nakka_browser_collector import collect_event_detail
+
 
 DEFAULT_SOURCE_URL = (
     "https://n01darts.com/n01/league/portal.php?lgid=lg_QqGB_7154"
@@ -56,12 +58,6 @@ def validate_source_url(value: str) -> str:
         raise ValueError("L’identifiant Nakka lgid est absent ou invalide.")
     return value.strip()
 
-
-def _event_id(url: str) -> str | None:
-    values = parse_qs(urlparse(url).query).get("id", [])
-    if len(values) != 1 or not re.fullmatch(r"t_[A-Za-z0-9_]+", values[0]):
-        return None
-    return values[0]
 
 
 def _league_id(source_url: str) -> str:
@@ -312,82 +308,6 @@ def _collect_official_event_list(
     return title, _events_from_api_payload(source_url, rows)
 
 
-def _collect_links(page: Any, source_url: str) -> list[dict[str, Any]]:
-    raw_links = page.locator('a[href*="season.php?id="]').evaluate_all(
-        """els => els.map(a => ({
-          href: a.getAttribute('href') || '',
-          text: (a.innerText || a.textContent || '').replace(/\\s+/g, ' ').trim()
-        }))"""
-    )
-    events: list[dict[str, Any]] = []
-    seen: set[str] = set()
-    for link in raw_links:
-        absolute = urljoin(source_url, link.get("href", ""))
-        event_id = _event_id(absolute)
-        if not event_id or event_id in seen:
-            continue
-        seen.add(event_id)
-        events.append(
-            {
-                "id": event_id,
-                "label": link.get("text") or event_id,
-                "url": absolute,
-                "deepChecked": False,
-                "detail": None,
-            }
-        )
-    return events[:MAX_EVENTS]
-
-
-def _wait_for_portal_events(page: Any) -> None:
-    try:
-        page.locator('a[href*="season.php?id="]').first.wait_for(
-            state="attached",
-            timeout=20_000,
-        )
-        page.wait_for_timeout(500)
-    except Exception:
-        # La validation NO_EVENTS reste l'autorité de sécurité si le portail
-        # ne produit réellement aucune rencontre.
-        return
-
-
-def _expand_portal(page: Any) -> None:
-    for _ in range(20):
-        more = page.locator("#read_more, [id*='read_more'], button:has-text('More')")
-        if more.count() == 0 or not more.first.is_visible():
-            return
-        before = page.locator('a[href*="season.php?id="]').count()
-        more.first.click(force=True)
-        after = before
-        for _ in range(12):
-            page.wait_for_timeout(250)
-            after = page.locator('a[href*="season.php?id="]').count()
-            if after > before:
-                break
-        if after <= before:
-            return
-
-
-def _collect_event_detail(page: Any, event: dict[str, Any]) -> dict[str, Any]:
-    page.goto(event["url"], wait_until="domcontentloaded", timeout=30_000)
-    page.wait_for_timeout(650)
-    event["deepChecked"] = True
-    body_text = page.locator("body").inner_text(timeout=10_000)
-    stats_url = f"https://n01darts.com/n01/league/t_stats.html?id={event['id']}"
-    page.goto(stats_url, wait_until="domcontentloaded", timeout=30_000)
-    page.wait_for_timeout(900)
-    stats_text = page.locator("body").inner_text(timeout=10_000)
-    meaningful_stats = stats_text
-    if len(re.sub(r"\s+", "", stats_text)) < 60:
-        meaningful_stats = ""
-    event["detail"] = {
-        "matchText": body_text[:25_000],
-        "statsText": meaningful_stats[:40_000],
-        "statsUrl": stats_url,
-    }
-    return event
-
 
 def collect_nakka_snapshot(
     source_url: str,
@@ -414,7 +334,7 @@ def collect_nakka_snapshot(
                 page = browser.new_page(locale="fr-FR")
                 for event in events[: max(0, min(max_deep_events, MAX_EVENTS))]:
                     try:
-                        _collect_event_detail(page, event)
+                        collect_event_detail(page, event)
                     except Exception as exc:
                         event["deepChecked"] = True
                         event["detail"] = {"error": type(exc).__name__, "statsText": ""}
