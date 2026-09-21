@@ -17,6 +17,7 @@ def _engine() -> PlayerStatisticsEngine:
         teams=[{"id": "pdc", "name": "PDC Fournaise", "club_id": None}],
         clubs=[],
         seasons=[
+            {"id": "empty-championship-2026", "name": "Championnat 2026", "is_active": True},
             {"id": "season-2026", "name": "2026", "is_active": False},
             {"id": "season-2027", "name": "2026-2027", "is_active": True},
         ],
@@ -47,6 +48,15 @@ def test_calendar_year_selects_the_matching_sports_season() -> None:
     assert dashboard["season"]["name"] == "2026-2027"
     assert dashboard["kpis"]["legs_played"] == 6
     assert dashboard["kpis"]["average_3_darts"] == 54
+
+
+def test_year_prefers_the_duplicate_season_that_contains_data() -> None:
+    dashboard = _engine().dashboard("pierre", "2026")
+
+    assert dashboard is not None
+    assert dashboard["season"]["id"] == "season-2026"
+    assert dashboard["kpis"]["legs_played"] == 4
+    assert dashboard["meta"]["scope"]["season_strategy"] == "requested_year_data_rich"
 
 
 def test_all_career_aggregates_every_published_season() -> None:
