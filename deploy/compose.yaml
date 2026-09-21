@@ -11,9 +11,6 @@ services:
     build:
       context: ../app/backend
       dockerfile: Dockerfile
-      target: scraper
-      target: worker
-      target: scraper
       target: api
     env_file:
       - /etc/974darts/production.env
@@ -92,6 +89,7 @@ services:
     build:
       context: ../app/backend
       dockerfile: Dockerfile
+      target: scraper
     command: ["python", "-m", "app.services.nakka_watch_worker"]
     env_file:
       - /etc/974darts/production.env
@@ -115,6 +113,7 @@ services:
     build:
       context: ../app/backend
       dockerfile: Dockerfile
+      target: worker
     command: ["python", "-m", "app.services.tournament_watch_worker"]
     env_file:
       - /etc/974darts/production.env
@@ -138,6 +137,7 @@ services:
     build:
       context: ../app/backend
       dockerfile: Dockerfile
+      target: scraper
     command: ["python", "-m", "app.services.season_registry_worker"]
     env_file:
       - /etc/974darts/production.env
