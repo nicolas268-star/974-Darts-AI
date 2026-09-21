@@ -54,8 +54,8 @@ class ControlQualityCatalogTests(unittest.TestCase):
     def test_2026_collapses_provisional_tdc_and_3bdc_suffixes(self) -> None:
         self.assertEqual(canonical_team_name("TDC A", 2026), "TDC")
         self.assertEqual(canonical_team_name("3BDC B", 2026), "3BDC")
-        self.assertEqual(canonical_team_name("TDC A", 2027), "TDC A")
-        self.assertEqual(canonical_team_name("3BDC B", 2027), "3BDC B")
+        self.assertEqual(canonical_team_name("TDC A", 2027), "Tampon Darts Club - Zarboutan")
+        self.assertEqual(canonical_team_name("3BDC B", 2027), "3B Darts Club - B(londe)")
 
     def test_dynamic_route_manifest_is_complete(self) -> None:
         templates = {item["template"] for item in ROUTE_MANIFEST}
