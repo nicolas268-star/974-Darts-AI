@@ -14,3 +14,22 @@
 
 .career-link{display:inline-flex;margin:0 0 10px;padding:7px 10px;border:1px solid rgba(141,195,255,.14);border-radius:9px;background:rgba(141,195,255,.05);color:#8dc3ff;text-decoration:none;font-size:.7rem;font-weight:800}.career-link:hover{border-color:rgba(141,195,255,.35);color:#dbeafe}
 .player-affiliation-card{display:grid;align-content:center;gap:3px;min-width:205px;padding:13px 16px;border:1px solid rgba(94,211,204,.25);border-radius:14px;background:rgba(6,18,31,.62)}.player-affiliation-card>span,.player-affiliation-card b{color:#68d9d2;font-size:.65rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase}.player-affiliation-card>strong{font-size:.95rem}.player-affiliation-card>small,.player-affiliation-card>em{color:#92a8bf;font-size:.72rem;font-style:normal}.player-affiliation-card>div{margin-top:7px;padding-top:7px;border-top:1px solid rgba(116,150,180,.2)}.player-affiliation-card p{margin:3px 0;color:#e1edf8;font-size:.75rem}.player-affiliation-card>a{margin-top:5px;color:#65d7d0;font-size:.7rem;text-decoration:none}@media(max-width:900px){.player-affiliation-card{order:3;width:100%;box-sizing:border-box}.player-premium-hero{flex-wrap:wrap}}@media(max-width:520px){.player-affiliation-card{min-width:0}}
+
+
+/* A016 — indices secondaires et méthodologie explicite */
+.player-index-disclosure{margin:16px 0;padding:0;overflow:hidden}
+.player-index-disclosure>summary{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 18px;cursor:pointer;list-style:none}
+.player-index-disclosure>summary::-webkit-details-marker{display:none}
+.player-index-disclosure>summary span{display:grid;gap:3px}
+.player-index-disclosure>summary b{color:#f8fafc}
+.player-index-disclosure>summary small{color:#94a3b8;font-size:.72rem}
+.player-index-disclosure>summary strong{color:#fdba74;font-size:.74rem}
+.player-index-disclosure>summary strong:after{content:" +";font-size:1rem}
+.player-index-disclosure[open]>summary{border-bottom:1px solid rgba(148,163,184,.14)}
+.player-index-disclosure[open]>summary strong:after{content:" −"}
+.player-index-disclosure>summary:hover,.player-index-disclosure>summary:focus-visible{background:rgba(141,195,255,.05);outline:none}
+.player-index-disclosure>summary:focus-visible{box-shadow:inset 0 0 0 2px rgba(255,138,61,.68)}
+.player-index-disclosure-content{padding:16px 18px 18px}
+.player-index-method{margin:0;color:#b8c7d9;font-size:.78rem;line-height:1.6}
+.player-index-disclosure .player-premium-index-grid{margin:14px 0 0}
+@media(max-width:620px){.player-index-disclosure>summary{align-items:flex-start}.player-index-disclosure-content{padding:14px}}
