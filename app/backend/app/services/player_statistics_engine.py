@@ -434,16 +434,27 @@ class PlayerStatisticsEngine:
             season = next((s for s in self.data.seasons if str(s.get("id")) == requested), None)
             if season is None and requested.isdigit() and len(requested) == 4:
                 requested_year = int(requested)
-                season = next(
-                    (s for s in self.data.seasons if self._season_year(s) == requested_year),
-                    None,
+                matching_seasons = [
+                    s for s in self.data.seasons
+                    if self._season_year(s) == requested_year
+                ]
+                counts = self._season_data_counts()
+                matching_seasons.sort(
+                    key=lambda s: (
+                        counts.get(str(s.get("id")), 0),
+                        bool(s.get("is_active")),
+                        str(s.get("name") or ""),
+                    ),
+                    reverse=True,
                 )
+                season = matching_seasons[0] if matching_seasons else None
                 if season is None:
                     return {
                         "id": f"year:{requested}",
                         "name": requested,
                         "is_active": False,
                     }, "requested_year_without_data"
+                return season, "requested_year_data_rich"
             return season, "requested"
 
         counts = self._season_data_counts()
