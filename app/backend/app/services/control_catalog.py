@@ -58,14 +58,14 @@ SEASON_PROFILES: dict[int, SeasonProfile] = {
     2027: SeasonProfile(
         year=2027,
         expected_teams=(
-            "Kazadarts A",
-            "Kazadarts B",
-            "PDC Fournaise",
-            "PDC Neige",
-            "TDC A",
-            "TDC B",
-            "3BDC A",
-            "3BDC B",
+            "Kaz A Darts - A",
+            "Kaz A Darts - B",
+            "Papangue Darts Club - Fournaise",
+            "Papangue Darts Club - Neige",
+            "Tampon Darts Club - Zarboutan",
+            "Tampon Darts Club - Zarlor",
+            "3B Darts Club - A(mbré)",
+            "3B Darts Club - B(londe)",
         ),
         expected_clubs=(
             "Kazadarts",
@@ -75,10 +75,7 @@ SEASON_PROFILES: dict[int, SeasonProfile] = {
         ),
         expected_encounters=None,
         state="PREPARED",
-        note=(
-            "Structure préparée pour huit équipes et quatre clubs. Les noms "
-            "TDC A/B et 3BDC A/B restent provisoires jusqu'à confirmation."
-        ),
+        note="Huit équipes confirmées par la composition officielle 2026/2027.",
     ),
 }
 
@@ -94,6 +91,14 @@ TEAM_CLUBS: dict[str, str] = {
     "3BDC": "3 Brasseurs Darts Club",
     "3BDC A": "3 Brasseurs Darts Club",
     "3BDC B": "3 Brasseurs Darts Club",
+    "Kaz A Darts - A": "Kaz A Darts 974",
+    "Kaz A Darts - B": "Kaz A Darts 974",
+    "Papangue Darts Club - Fournaise": "Papangue Darts Club",
+    "Papangue Darts Club - Neige": "Papangue Darts Club",
+    "Tampon Darts Club - Zarboutan": "Tampon Darts Club",
+    "Tampon Darts Club - Zarlor": "Tampon Darts Club",
+    "3B Darts Club - A(mbré)": "3B Darts Club",
+    "3B Darts Club - B(londe)": "3B Darts Club",
 }
 
 
@@ -142,6 +147,19 @@ def canonical_team_name(value: str | None, season: int | None = None) -> str:
         return "TDC"
     if season == 2026 and normalized in {"3bdc a", "3bdc b", "3 bdc a", "3 bdc b"}:
         return "3BDC"
+
+    if season == 2027:
+        official_2027 = {
+            "kazadarts a": "Kaz A Darts - A", "kaz a": "Kaz A Darts - A", "kaza a": "Kaz A Darts - A",
+            "kazadarts b": "Kaz A Darts - B", "kaz b": "Kaz A Darts - B", "kaza b": "Kaz A Darts - B",
+            "pdc fournaise": "Papangue Darts Club - Fournaise", "fournaise": "Papangue Darts Club - Fournaise",
+            "pdc neige": "Papangue Darts Club - Neige", "neige": "Papangue Darts Club - Neige",
+            "tdc a": "Tampon Darts Club - Zarboutan", "tdc zarboutan": "Tampon Darts Club - Zarboutan",
+            "tdc b": "Tampon Darts Club - Zarlor", "tdc zarlor": "Tampon Darts Club - Zarlor",
+            "3bdc a": "3B Darts Club - A(mbré)", "3 bdc a": "3B Darts Club - A(mbré)",
+            "3bdc b": "3B Darts Club - B(londe)", "3 bdc b": "3B Darts Club - B(londe)",
+        }
+        return official_2027.get(normalized, str(value or "").strip())
 
     canonical = TEAM_ALIASES.get(normalized)
     if canonical:

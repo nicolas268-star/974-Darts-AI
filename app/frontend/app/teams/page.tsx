@@ -4,6 +4,7 @@ import { sameTeam } from "@/lib/team-identity";
 import { getTeamTheme } from "@/lib/team-themes";
 import type { PlayerOverview } from "@/lib/types/sprint4";
 import type { ChampionshipHub, CompetitionCatalog } from "@/lib/types/sprint14";
+import { TEAM_ROSTERS_2027, TEAM_ROSTERS_2027_PLAYER_COUNT } from "@/lib/team-rosters-2027";
 import "./teams.css";
 
 const backend = process.env.PYTHON_API_URL ?? "http://127.0.0.1:8000";
@@ -73,7 +74,20 @@ export default async function TeamsPage() {
         ) : null}
 
         {activeSeason && !activeSeason.has_data ? (
-          <section className="teams-empty teams-season-pending"><strong>{activeSeason.name}</strong><h2>Effectifs en attente de publication</h2><p>Les équipes 2026 restent consultables comme historique. Elles ne sont pas présentées comme les équipes de la saison en cours.</p><Link href="/championships/2026">Consulter le championnat 2026 historique →</Link></section>
+          <section className="teams-rosters-2027">
+            <div className="teams-rosters-heading">
+              <div><strong>{activeSeason.name}</strong><h2>8 équipes officielles</h2><p>{TEAM_ROSTERS_2027_PLAYER_COUNT} joueurs inscrits pour la saison 2026/2027.</p></div>
+              <Link href="/championships/2026">Championnat 2026 historique →</Link>
+            </div>
+            <div className="teams-rosters-grid">
+              {TEAM_ROSTERS_2027.map((team) => (
+                <article className="team-roster-card" key={team.id}>
+                  <header><span>{team.club}</span><h3>{team.name}</h3><small>{team.players.length} joueur(s)</small></header>
+                  <ul>{team.players.map((player) => <li key={player.license}><span>{player.officialName}</span><small>Nakka : {player.nakkaName}</small></li>)}</ul>
+                </article>
+              ))}
+            </div>
+          </section>
         ) : !ranking ? (
           <section className="teams-empty">
             Le classement des équipes est momentanément indisponible.
