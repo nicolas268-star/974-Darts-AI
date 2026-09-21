@@ -18,6 +18,7 @@ services:
       ALLOWED_ORIGIN: "https://${SITE_DOMAIN}"
       PYTHONDONTWRITEBYTECODE: "1"
       PYTHONUNBUFFERED: "1"
+      SCRAPER_API_URL: "http://scraper:8001"
     expose:
       - "8000"
     volumes:
@@ -79,6 +80,38 @@ services:
         - node
         - -e
         - "fetch('http://127.0.0.1:3000/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 20s
+    logging: *default-logging
+
+  scraper:
+    build:
+      context: ../app/backend
+      dockerfile: Dockerfile
+      target: scraper
+    command: ["uvicorn", "app.scraper_main:app", "--host", "0.0.0.0", "--port", "8001", "--workers", "1"]
+    env_file:
+      - /etc/974darts/production.env
+    expose:
+      - "8001"
+    volumes:
+      - /var/lib/974darts/backend-data:/app/data
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=128m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health', timeout=3).read()"
       interval: 15s
       timeout: 5s
       retries: 8

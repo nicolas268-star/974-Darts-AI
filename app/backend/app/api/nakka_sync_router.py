@@ -1,5 +1,10 @@
 from __future__ import annotations
 
+import json
+import os
+import urllib.error
+import urllib.request
+
 from fastapi import APIRouter, Header, HTTPException, status
 from pydantic import BaseModel, Field
 
@@ -95,6 +100,36 @@ def verify_internal_token(token: str | None) -> None:
         )
 
 
+def _run_deep_scrape(payload: NakkaRunRequest) -> dict:
+    base_url = os.getenv("SCRAPER_API_URL", "http://scraper:8001").rstrip("/")
+    request = urllib.request.Request(
+        f"{base_url}/internal/nakka-sync/run",
+        data=json.dumps(
+            {
+                "season": payload.season,
+                "source_url": payload.source_url,
+                "max_deep_events": payload.max_deep_events,
+            }
+        ).encode("utf-8"),
+        headers={
+            "Content-Type": "application/json",
+            "X-Internal-Token": settings.internal_api_token,
+        },
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=180) as response:
+            return json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        try:
+            detail = json.loads(exc.read().decode("utf-8")).get("detail")
+        except (UnicodeDecodeError, json.JSONDecodeError):
+            detail = None
+        raise NakkaSyncError(detail or "Le service de scraping Nakka a refusé la demande.") from exc
+    except (OSError, TimeoutError, urllib.error.URLError) as exc:
+        raise NakkaSyncError("Le service de scraping Nakka est indisponible.") from exc
+
+
 def _identity_candidates() -> list[dict[str, str]]:
     """Return official names and confirmed aliases for direct Nakka imports."""
     try:
@@ -183,10 +218,12 @@ def run_nakka_sync(
     verify_internal_token(x_internal_token)
     try:
         source_url = validate_source_url(payload.source_url)
+        if payload.deep:
+            return _run_deep_scrape(payload)
         return run_and_store(
             source_url,
             season=payload.season,
-            deep=payload.deep,
+            deep=False,
             max_deep_events=payload.max_deep_events,
         )
     except ValueError as exc:
