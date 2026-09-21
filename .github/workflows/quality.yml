@@ -50,6 +50,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Préparer l'environnement Compose de CI
+        run: |
+          sudo install -d -m 755 /etc/974darts
+          sudo touch /etc/974darts/production.env
       - name: Valider la configuration Compose
         env:
           SITE_DOMAIN: example.test
