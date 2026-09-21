@@ -16,10 +16,12 @@ export function PlayerCompareLauncher({
   currentPlayerId,
   currentPlayerName,
   players,
+  season,
 }: {
   currentPlayerId: string;
   currentPlayerName: string;
   players: PlayerOption[];
+  season?: string;
 }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
@@ -45,7 +47,7 @@ export function PlayerCompareLauncher({
         <option value="">Choisir un joueur</option>
         {choices.map((player) => <option key={player.player_id} value={player.player_id}>{player.name}{player.team ? ` · ${player.team}` : ""}</option>)}
       </select>
-      <button type="button" disabled={!selectedId} onClick={() => selectedId && router.push(`/players/compare/${currentPlayerId}/${selectedId}`)}><ArrowLeftRight size={17}/> Comparer</button>
+      <button type="button" disabled={!selectedId} onClick={() => selectedId && router.push(`/players/compare/${currentPlayerId}/${selectedId}${season ? `?season=${season}` : ""}`)}><ArrowLeftRight size={17}/> Comparer</button>
     </div>
 
     <div className="compare-launcher-preview">

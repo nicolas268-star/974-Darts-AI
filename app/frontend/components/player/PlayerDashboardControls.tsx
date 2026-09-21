@@ -6,7 +6,7 @@ import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 
 export type PlayerNavItem = { player_id: string; name: string; team: string | null };
 
-export function PlayerDashboardControls({ players, currentPlayerId }: { players: PlayerNavItem[]; currentPlayerId: string }) {
+export function PlayerDashboardControls({ players, currentPlayerId, season }: { players: PlayerNavItem[]; currentPlayerId: string; season?: string }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const sorted = useMemo(() => [...players].sort((a, b) => a.name.localeCompare(b.name, "fr")), [players]);
@@ -15,7 +15,7 @@ export function PlayerDashboardControls({ players, currentPlayerId }: { players:
     ? sorted.filter((player) => `${player.name} ${player.team ?? ""}`.toLowerCase().includes(query.toLowerCase())).slice(0, 8)
     : [];
 
-  const go = (id?: string) => id && router.push(`/players/${id}`);
+  const go = (id?: string) => id && router.push(`/players/${id}${season ? `?season=${season}` : ""}`);
 
   return (
     <div className="player-toolbar card">

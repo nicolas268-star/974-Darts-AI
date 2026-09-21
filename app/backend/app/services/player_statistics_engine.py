@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import date
+import re
 from typing import Any
 
 from supabase import Client
@@ -74,7 +75,7 @@ def _weighted_metric(rows: list[dict[str, Any]], key: str) -> float | None:
         value = _row_average_3_darts(row) if key == "average_3_darts" else _numeric(row.get(key))
         if value is None:
             continue
-        values.append((value, int(row.get("darts_thrown") or 0)))
+        values.append((value, int(row.get("darts_thrown") or row.get("legs_played") or 0)))
     if not values:
         return None
     weighted = [(value, darts) for value, darts in values if darts > 0]
@@ -431,6 +432,18 @@ class PlayerStatisticsEngine:
     def _resolve_season(self, requested: str | None) -> tuple[dict[str, Any] | None, str]:
         if requested:
             season = next((s for s in self.data.seasons if str(s.get("id")) == requested), None)
+            if season is None and requested.isdigit() and len(requested) == 4:
+                requested_year = int(requested)
+                season = next(
+                    (s for s in self.data.seasons if self._season_year(s) == requested_year),
+                    None,
+                )
+                if season is None:
+                    return {
+                        "id": f"year:{requested}",
+                        "name": requested,
+                        "is_active": False,
+                    }, "requested_year_without_data"
             return season, "requested"
 
         counts = self._season_data_counts()
@@ -451,6 +464,44 @@ class PlayerStatisticsEngine:
         return (self.data.seasons[-1], "latest_without_data") if self.data.seasons else (None, "none")
 
     def _scope(self, season_id: str | None):
+        if season_id == "all":
+            data_rounds = [
+                row for row in self.data.rounds
+                if self._round_has_data(str(row.get("id")))
+            ]
+            published_rounds = [
+                row for row in self.data.rounds
+                if bool(row.get("published"))
+            ]
+            effective_ids = {
+                str(row.get("id")) for row in [*published_rounds, *data_rounds]
+            }
+            effective_rounds = [
+                row for row in self.data.rounds
+                if str(row.get("id")) in effective_ids
+            ]
+            rounds = {str(row["id"]): row for row in effective_rounds}
+            encounters = {
+                str(row["id"]): row for row in self.data.encounters
+                if str(row.get("round_id")) in rounds
+            }
+            matches = {
+                str(row["id"]): row for row in self.data.matches
+                if str(row.get("encounter_id")) in encounters
+            }
+            legs = {
+                str(row["id"]): row for row in self.data.legs
+                if str(row.get("match_id")) in matches and row.get("status") == "VALID"
+            }
+            season = {"id": "all", "name": "Toute la carrière", "is_active": False}
+            return season, rounds, encounters, matches, legs, {
+                "season_strategy": "all_career",
+                "round_strategy": "all_published_or_with_data",
+                "season_rounds": len(self.data.rounds),
+                "published_rounds": len(published_rounds),
+                "data_rounds": len(data_rounds),
+            }
+
         season, season_strategy = self._resolve_season(season_id)
         if not season:
             return None, {}, {}, {}, {}, {"season_strategy": season_strategy, "round_strategy": "none"}
@@ -490,8 +541,8 @@ class PlayerStatisticsEngine:
     def _season_year(season: dict[str, Any] | None) -> int | None:
         if not season:
             return None
-        digits = "".join(char for char in str(season.get("name") or "") if char.isdigit())
-        return int(digits[:4]) if len(digits) >= 4 else None
+        years = re.findall(r"20\d{2}", str(season.get("name") or ""))
+        return int(years[-1]) if years else None
 
     def _canonical_team(self, team: dict[str, Any] | None, season_year: int | None) -> dict[str, Any] | None:
         """Return the official team row for a legacy or plural team label."""
@@ -633,7 +684,7 @@ class PlayerStatisticsEngine:
             and str(r.get("leg_id")) in legs
         ]
         daily_rows = self._daily_rows(canonical_id, set(rounds))
-        profile = self._profile(
+        profile = None if season_id == "all" else self._profile(
             canonical_id,
             str(season.get("id")) if season else None,
         )
@@ -682,7 +733,7 @@ class PlayerStatisticsEngine:
                 "played_on": round_row.get("played_on") if round_row else None,
                 "value": int(row.get("elo_after")),
             })
-        elo_history.sort(key=lambda x: (_round_number(x.get("round")), x.get("played_on") or ""))
+        elo_history.sort(key=lambda x: (x.get("played_on") or "", _round_number(x.get("round"))))
         elo_value = elo_history[-1]["value"] if elo_history else (int(profile.get("elo")) if profile and profile.get("elo") is not None else None)
 
         base = {
@@ -759,7 +810,7 @@ class PlayerStatisticsEngine:
                     "scores_140_plus": None,
                     "scores_180": None,
                 })
-        trends.sort(key=lambda x: (_round_number(x.get("round")), x.get("played_on") or ""))
+        trends.sort(key=lambda x: (x.get("played_on") or "", _round_number(x.get("round"))))
         base["trends"] = trends
 
         if by_match:
