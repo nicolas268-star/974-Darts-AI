@@ -173,7 +173,7 @@ export default async function PlayerDashboardPage({ params, searchParams }: { pa
 
     <details className="card player-index-disclosure">
       <summary>
-        <span><b>Comprendre les indices</b><small>${data.kpis.legs_played} legs · ${data.recent_matches.length} matchs récents analysés</small></span>
+        <span><b>Comprendre les indices</b><small>{data.kpis.legs_played} legs · {data.recent_matches.length} matchs récents analysés</small></span>
         <strong>Afficher</strong>
       </summary>
       <div className="player-index-disclosure-content">
