@@ -40,3 +40,13 @@
 .players-empty span { margin-top:8px; color:#90b3ce; }
 @media(max-width:820px){.players-hero,.players-table-heading{align-items:flex-start;flex-direction:column}.players-hero-mark{width:100%}.players-summary{grid-template-columns:1fr}.players-table-heading p{text-align:left}.players-table-panel{padding:18px}}
 .table-scroll-hint{display:none;color:#9ecbf0;font-size:.78rem;margin:0 0 8px}@media(max-width:820px){.table-scroll-hint{display:block}.players-table-scroll{scrollbar-color:#63dfbd #091c30}.players-table-scroll:focus-visible{outline:2px solid #72e3c5;outline-offset:3px}}
+
+.players-season-filter { display:flex; align-items:center; justify-content:space-between; gap:24px; margin:20px 0 14px; padding:18px 20px; border:1px solid #24445e; border-radius:17px; background:linear-gradient(145deg,rgba(17,43,69,.96),rgba(9,29,49,.96)); box-shadow:0 14px 35px rgba(0,0,0,.16); }
+.players-season-filter>div:first-child { display:grid; gap:4px; }
+.players-season-filter>div:first-child span { color:#8fb7d4; font-size:.72rem; font-weight:850; letter-spacing:.08em; text-transform:uppercase; }
+.players-season-filter>div:first-child strong { color:#fff; font-size:1.05rem; }
+.players-season-options { display:flex; flex-wrap:wrap; gap:8px; }
+.players-season-options a { min-width:66px; padding:9px 14px; border:1px solid rgba(93,159,203,.28); border-radius:999px; color:#a9cee8; background:rgba(30,84,120,.16); font-size:.82rem; font-weight:850; text-align:center; transition:.18s ease; }
+.players-season-options a:hover { border-color:#63dfbd; color:#fff; transform:translateY(-1px); }
+.players-season-options a.is-active { border-color:#ffad46; color:#071426; background:#ffad46; box-shadow:0 8px 22px rgba(255,173,70,.18); }
+@media(max-width:820px){.players-season-filter{align-items:flex-start;flex-direction:column}.players-season-options{width:100%}.players-season-options a{flex:1}}
