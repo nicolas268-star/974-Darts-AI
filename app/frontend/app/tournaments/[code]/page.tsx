@@ -550,7 +550,8 @@ export default async function TournamentPage({
                   Aucun match trouvé pour ce tournoi.
                 </p>
               )}
-            </section>
+              </div>
+            </details>
           </>
         )}
       </main>
