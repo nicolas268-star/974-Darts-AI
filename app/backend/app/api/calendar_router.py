@@ -29,6 +29,10 @@ class CalendarEventInput(BaseModel):
     id: str | None = None
     title: str = Field(min_length=2, max_length=120)
     event_type: Literal["CHAMPIONSHIP", "TOURNAMENT", "FRIENDLY", "OTHER"]
+    ranking_category: Literal["C", "D", "E"] | None = None
+    ranking_kind: Literal[
+        "COMMITTEE_OPEN", "COMMITTEE_CUP", "CLUB_SINGLE", "CLUB_DOUBLE"
+    ] | None = None
     start_date: date
     start_time: str | None = Field(default=None, pattern=r"^([01]\d|2[0-3]):[0-5]\d$")
     end_date: date | None = None
