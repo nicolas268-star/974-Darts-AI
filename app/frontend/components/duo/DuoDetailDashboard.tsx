@@ -198,10 +198,22 @@ export function DuoDetailDashboard({ data }: { data: DuoDashboardResponse }) {
     <header className="card duo-detail-hero">
       <div className="duo-avatar-stack"><span>{duo.player_1.name.slice(0,2).toUpperCase()}</span><span>{duo.player_2.name.slice(0,2).toUpperCase()}</span></div>
       <div className="duo-detail-identity"><div className="duo-wow-badges"><span className="badge">Fiche duo · Saison {data.season?.name ?? "—"}</span><span className={`duo-tier-badge duo-tier-${duoTier.tone}`}>{duoTier.icon} {duoTier.label}</span></div><h2>{duo.player_1.name} <i>+</i> {duo.player_2.name}</h2><p>{duo.team ?? "Équipe non renseignée"}</p></div>
-      <div className="duo-hero-score"><span>Performance collective</span><strong>{fmt(duo.win_rate,1)}%</strong><small>{duo.legs_won} legs gagnés · fiabilité {reliabilityIndex}/100</small></div>
+      <div className="duo-hero-score"><span>Performance collective</span><strong>{fmt(duo.win_rate,1)}%</strong><small>{duo.matches_played} matchs · {duo.legs_won}/{duo.legs_played} legs gagnés</small></div>
     </header>
 
-    <section className="duo-wow-strip" aria-label="Indices analytiques du duo">
+    <section className="duo-detail-kpis">{kpis.map(({ label, value, detail, icon: Icon }) => <article className="card duo-detail-kpi" key={label}><span className="duo-detail-kpi-icon"><Icon size={20}/></span><small>{label}</small><strong>{value}</strong><em>{detail}</em></article>)}</section>
+
+    <details className="card duo-index-disclosure">
+      <summary>
+        <span><b>Comprendre les indices du duo</b><small>{duo.matches_played} matchs · {duo.legs_played} legs observés</small></span>
+        <strong>Afficher</strong>
+      </summary>
+      <div className="duo-index-disclosure-content">
+        <p className="duo-wow-method-note">
+          Indice global = résultat sportif (40 %) + fiabilité Wilson (25 %) + capacité à finir (15 %) + puissance offensive (10 %) + forme récente (10 %).
+          La fiabilité Wilson est une borne basse à 95 %. Confiance indicative : <b>{duo.legs_played >= 20 ? "élevée" : duo.legs_played >= 8 ? "modérée" : "faible"}</b>.
+        </p>
+        <section className="duo-wow-strip" aria-label="Détail des indices analytiques du duo">
       <article className="card duo-wow-index duo-wow-index-primary">
         <span>Indice global</span>
         <strong>{performanceIndex}</strong>
@@ -244,8 +256,8 @@ export function DuoDetailDashboard({ data }: { data: DuoDashboardResponse }) {
         <small>{formDelta == null ? "Données limitées" : `${formDelta >= 0 ? "+" : ""}${fmt(formDelta)} sur la moyenne`}</small>
       </article>
     </section>
-
-    <section className="duo-detail-kpis">{kpis.map(({ label, value, detail, icon: Icon }) => <article className="card duo-detail-kpi" key={label}><span className="duo-detail-kpi-icon"><Icon size={20}/></span><small>{label}</small><strong>{value}</strong><em>{detail}</em></article>)}</section>
+      </div>
+    </details>
 
     <section className="duo-detail-grid">
       <article className="card duo-panel duo-panel-wide duo-wow-analysis">
