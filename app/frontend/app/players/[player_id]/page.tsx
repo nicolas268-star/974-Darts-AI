@@ -167,26 +167,39 @@ export default async function PlayerDashboardPage({ params, searchParams }: { pa
       </div>
     </header>
 
-    <section className="player-premium-index-grid" aria-label="Indices du joueur">
-      {[
-        ["Performance globale", playerIndex, tier.label],
-        ["Scoring", scoringIndex, "Moyenne et gros scores"],
-        ["Résultats", resultIndex, `${number(data.kpis.win_rate,1)} % de réussite`],
-        ["Régularité", consistency == null ? "—" : consistencyIndex, "Dispersion par journée"],
-        ["Finishes", finishIndex, `Best ${data.kpis.best_finish ?? "—"}`],
-        ["Dynamique", progressionIndex, formLabel],
-      ].map(([label, value, detail], index) => (
-        <article className={`card player-premium-index ${index === 0 ? "player-premium-index-main" : ""}`} key={String(label)}>
-          <span>{label}</span><strong>{value}</strong>
-          {typeof value === "number" && <div className="player-premium-mini-track"><i style={{ width: `${value}%` }}/></div>}
-          <small>{detail}</small>
-        </article>
-      ))}
-    </section>
+    <section className="player-kpi-grid">{kpis.map(({ label, value, icon: Icon, tone, detail }) => <article className={`card player-kpi player-kpi-${tone}`} key={label}><div className="player-kpi-icon"><Icon size={21}/></div><span>{label}</span><strong>{value}</strong><small>{detail}</small></article>)}</section>
 
     <PlayerCompareLauncher currentPlayerId={player_id} currentPlayerName={data.player.name} players={players.map((player) => ({ player_id: player.player_id, name: player.name, team: player.team, average_3_darts: player.average_3_darts, win_rate: player.win_rate }))} season={selectedSeason}/>
 
-    <section className="player-kpi-grid">{kpis.map(({ label, value, icon: Icon, tone, detail }) => <article className={`card player-kpi player-kpi-${tone}`} key={label}><div className="player-kpi-icon"><Icon size={21}/></div><span>{label}</span><strong>{value}</strong><small>{detail}</small></article>)}</section>
+    <details className="card player-index-disclosure">
+      <summary>
+        <span><b>Comprendre les indices</b><small>${data.kpis.legs_played} legs · ${data.recent_matches.length} matchs récents analysés</small></span>
+        <strong>Afficher</strong>
+      </summary>
+      <div className="player-index-disclosure-content">
+        <p className="player-index-method">
+          L’indice global combine scoring (30 %), résultats (30 %), régularité (20 %), finishes (10 %) et dynamique récente (10 %).
+          Confiance indicative : <b>{data.kpis.legs_played >= 20 ? "élevée" : data.kpis.legs_played >= 8 ? "modérée" : "faible"}</b>.
+          Une valeur absente reste indisponible et n’est pas inventée.
+        </p>
+        <section className="player-premium-index-grid" aria-label="Détail des indices du joueur">
+          {[
+            ["Performance globale", playerIndex, tier.label],
+            ["Scoring", scoringIndex, "Moyenne et gros scores"],
+            ["Résultats", resultIndex, `${number(data.kpis.win_rate,1)} % de réussite`],
+            ["Régularité", consistency == null ? "—" : consistencyIndex, "Dispersion par journée"],
+            ["Finishes", finishIndex, `Best ${data.kpis.best_finish ?? "—"}`],
+            ["Dynamique", progressionIndex, formLabel],
+          ].map(([label, value, detail], index) => (
+            <article className={`card player-premium-index ${index === 0 ? "player-premium-index-main" : ""}`} key={String(label)}>
+              <span>{label}</span><strong>{value}</strong>
+              {typeof value === "number" && <div className="player-premium-mini-track"><i style={{ width: `${value}%` }}/></div>}
+              <small>{detail}</small>
+            </article>
+          ))}
+        </section>
+      </div>
+    </details>
 
     <section className="player-insight-grid">
       <article className="card insight-card"><span>Régularité</span><strong>{consistency == null ? "—" : `${number(consistency,0)} / 100`}</strong><div className="insight-progress"><i style={{ width: `${consistency ?? 0}%` }}/></div><small>Basée sur la dispersion des moyennes par journée.</small></article>
