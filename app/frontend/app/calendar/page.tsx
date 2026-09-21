@@ -99,9 +99,10 @@ async function getEvents(): Promise<CalendarEvent[]> {
       : event
   );
 
-  const existing = new Set(dynamicEvents.map(eventKey));
+  const existingIds = new Set(dynamicEvents.map((event) => event.id));
+  const existingKeys = new Set(dynamicEvents.map(eventKey));
   const officialFallbacks = committeeCalendarEvents
-    .filter((event) => !existing.has(eventKey(event)))
+    .filter((event) => !existingIds.has(event.id) && !existingKeys.has(eventKey(event)))
     .map((event) => ({ ...event } satisfies CalendarEvent));
 
   return [...dynamicEvents, ...officialFallbacks].sort((a, b) =>
