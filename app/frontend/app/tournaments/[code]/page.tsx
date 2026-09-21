@@ -440,7 +440,12 @@ export default async function TournamentPage({
             />
 
             {!!data.round_robin?.length && (
-              <section className="hub-panel tournament-visual-panel round-robin-panel">
+              <details className="hub-panel tournament-disclosure">
+                <summary>
+                  <span><b>Phase de poules</b><small>{data.round_robin.length} poule{data.round_robin.length > 1 ? "s" : ""} · matrices et classements</small></span>
+                  <strong>Consulter</strong>
+                </summary>
+                <div className="tournament-disclosure-content tournament-visual-panel round-robin-panel">
                 <div className="tournament-panel-heading">
                   <div>
                     <span>PHASE DE POULES</span>
@@ -453,7 +458,8 @@ export default async function TournamentPage({
                     <RoundRobinTable group={group} key={group.code} />
                   ))}
                 </div>
-              </section>
+                </div>
+              </details>
             )}
 
             {!data.round_robin?.length && !!data.pools?.length && (
@@ -462,7 +468,12 @@ export default async function TournamentPage({
               </div>
             )}
 
-            <div className="tournament-statistics-stack">
+            <details className="hub-panel tournament-disclosure">
+              <summary>
+                <span><b>Statistiques complètes</b><small>Joueurs et duos · mesures issues des matchs validés</small></span>
+                <strong>Consulter</strong>
+              </summary>
+              <div className="tournament-disclosure-content tournament-statistics-stack">
               <section className="hub-panel">
                 <span className="competition-eyebrow">PERFORMANCES INDIVIDUELLES</span>
                 <h2>Statistiques des joueurs</h2>
@@ -482,7 +493,8 @@ export default async function TournamentPage({
                   emptyMessage="Les données Duos ne sont pas disponibles pour ce tournoi."
                 />
               </section>
-            </div>
+              </div>
+            </details>
 
             {!!data.data_quality_notes.length && (
               <div className="competition-notice">
@@ -490,8 +502,12 @@ export default async function TournamentPage({
               </div>
             )}
 
-            <section className="hub-panel">
-              <h2>Détail complet des matchs</h2>
+            <details className="hub-panel tournament-disclosure">
+              <summary>
+                <span><b>Détail complet des matchs</b><small>{data.matches.length} rencontre{data.matches.length > 1 ? "s" : ""} · scores, legs et qualité</small></span>
+                <strong>Consulter</strong>
+              </summary>
+              <div className="tournament-disclosure-content">
               {data.matches.length ? (
                 <div className="hub-table-scroll">
                   <table className="hub-table">
