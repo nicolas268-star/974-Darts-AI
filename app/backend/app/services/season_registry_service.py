@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from app.services.nakka_sync_agent import collect_nakka_snapshot, validate_source_url
-from app.services.calendar_service import list_events, upsert_event
+from app.services.calendar_service import list_events, upsert_event, update_titles
 
 STATE_PATH = Path(os.getenv("SEASON_REGISTRY_STATE_PATH", "/app/data/season_registry.json"))
 _lock = threading.Lock()
@@ -149,8 +149,22 @@ def calendar_preview(key: str) -> dict[str, Any]:
             "id": event.get("id"), "title": title, "startDate": event_date,
             "sourceUrl": source_url, "status": "ALREADY_IMPORTED" if duplicate else ("READY" if event_date else "DATE_REQUIRED"),
             "aliasLinks": links, "calendarEventId": duplicate.get("id") if duplicate else None,
+            "previousTitle": duplicate.get("title") if duplicate else None,
+            "titleChanged": bool(duplicate and duplicate.get("event_type") == "CHAMPIONSHIP" and duplicate.get("title") != title),
         })
     return {"season": {"key": season["key"], "label": season["label"]}, "events": rows, "summary": {"total": len(rows), "ready": sum(r["status"] == "READY" for r in rows), "duplicates": sum(r["status"] == "ALREADY_IMPORTED" for r in rows), "dateRequired": sum(r["status"] == "DATE_REQUIRED" for r in rows)}}
+
+def update_calendar_titles(key: str, confirmed: bool, changes: list[dict[str, Any]], user_id: str | None) -> dict[str, Any]:
+    if not confirmed or key != "2026-2027":
+        raise ValueError("Confirmation requise pour le championnat 2026–2027 uniquement.")
+    preview = calendar_preview(key)
+    expected = [{"id": row["calendarEventId"], "previousTitle": row["previousTitle"],
+                 "title": row["title"], "sourceUrl": row["sourceUrl"]}
+                for row in preview["events"] if row["titleChanged"]]
+    if changes != expected:
+        raise ValueError("L’aperçu a changé. Analysez et préparez à nouveau le calendrier.")
+    return update_titles(expected, user_id)
+
 
 def import_calendar(key: str, confirmed: bool, user_id: str | None) -> dict[str, Any]:
     if not confirmed: raise ValueError("La confirmation explicite est obligatoire.")

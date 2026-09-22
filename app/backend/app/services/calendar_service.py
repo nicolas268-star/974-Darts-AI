@@ -89,6 +89,30 @@ def upsert_event(payload: dict[str, Any], user_id: str | None) -> dict[str, Any]
     return {"event": event, "created": existing is None}
 
 
+def update_titles(changes: list[dict[str, Any]], user_id: str | None) -> dict[str, Any]:
+    """Validate the whole preview before an atomic, title-only update."""
+    with _state_lock:
+        state = _load_unlocked()
+        by_id = {event['id']: event for event in state['events']}
+        if len({change['id'] for change in changes}) != len(changes):
+            raise ValueError("Rencontres ambiguës. Rechargez l’aperçu.")
+        for change in changes:
+            event = by_id.get(change['id'])
+            if (not event or event.get('title') != change['previousTitle']
+                    or event.get('source_url') != change['sourceUrl']
+                    or event.get('event_type') != 'CHAMPIONSHIP'):
+                raise ValueError("Le calendrier a changé. Rechargez l’aperçu avant de confirmer.")
+        for change in changes:
+            event = by_id[change['id']]
+            event.setdefault('title_history', []).append({
+                'title': event['title'], 'changed_at': _now(), 'changed_by': user_id,
+            })
+            event.update(title=change['title'], updated_at=_now(), updated_by=user_id)
+        if changes:
+            _write_unlocked(state)
+    return {'updatedCount': len(changes)}
+
+
 def delete_event(event_id: str) -> dict[str, Any]:
     with _state_lock:
         state = _load_unlocked()

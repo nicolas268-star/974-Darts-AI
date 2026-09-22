@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException
 from pydantic import BaseModel, Field
 
 from app.api.calendar_router import verify_internal_token
-from app.services.season_registry_service import calendar_preview, import_calendar, public_seasons, registry_status, scan_season
+from app.services.season_registry_service import calendar_preview, import_calendar, public_seasons, registry_status, scan_season, update_calendar_titles
 
 router = APIRouter(prefix="/api/v1/seasons", tags=["Seasons"])
 
@@ -11,6 +11,22 @@ class ScanRequest(BaseModel):
 
 class ImportRequest(ScanRequest):
     confirmed: bool = False
+
+class TitleChange(BaseModel):
+    id: str
+    previousTitle: str
+    title: str
+    sourceUrl: str
+
+class UpdateTitlesRequest(ImportRequest):
+    changes: list[TitleChange] = Field(max_length=500)
+
+@router.post("/calendar/update-titles", dependencies=[Depends(verify_internal_token)])
+def season_update_titles(payload: UpdateTitlesRequest, x_user_id: str | None = Header(default=None)):
+    try:
+        return update_calendar_titles(payload.key, payload.confirmed, [c.model_dump() for c in payload.changes], x_user_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
 
 @router.get("")
 def seasons_public():
