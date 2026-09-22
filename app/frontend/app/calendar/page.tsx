@@ -10,6 +10,7 @@ import {
   type CalendarEvent,
   type CalendarPayload,
 } from "@/lib/calendar/types";
+import { TEAM_ROSTERS_2027 } from "@/lib/team-rosters-2027";
 import "./calendar.css";
 import "./calendar-team-filter.css";
 
@@ -62,17 +63,34 @@ function eventFilter(event: CalendarEvent): Exclude<CalendarFilter, "all"> | nul
   return null;
 }
 
+function officialCalendarTeam(value: string): string {
+  const normalized = normalizedTitle(value).replace(/[^a-z0-9]/g, "");
+  const aliases: Record<string, string[]> = {
+    "pdc-neige": ["PDC A", "PDC Neige", "Papangue DC - Neige"],
+    "pdc-fournaise": ["PDC B", "PDC Fournaise", "Papangue DC - Fournaise"],
+    "tdc-zarboutan": ["TDC Zarboutan", "Tampon DC - Zarboutan"],
+    "tdc-zarlor": ["TDC Zarlor", "Tampon DC - Zarlor"],
+    "kaz-a": ["KAD A", "Kaz A Darts A"],
+    "kaz-b": ["KAD B", "Kaz A Darts B"],
+    "3bdc-ambre": ["3BDC A", "3B DC A", "3B Darts Club A", "3B Darts Club Ambré"],
+    "3bdc-blonde": ["3BDC B", "3B DC B", "3B Darts Club B", "3B Darts Club Blonde"],
+  };
+  return TEAM_ROSTERS_2027.find((team) =>
+    [team.name, ...(aliases[team.id] ?? [])].some((name) =>
+      normalizedTitle(name).replace(/[^a-z0-9]/g, "") === normalized
+    )
+  )?.name ?? value.trim();
+}
+
 function championshipTeamsForEvent(event: CalendarEvent): string[] {
   if (event.event_type !== "CHAMPIONSHIP") return [];
-  if (event.championship_teams?.length) return event.championship_teams;
-
-  const fixture = event.title
-    .replace(/^\s*J\s*\d+\s*[·:–—-]?\s*/iu, "")
-    .split(/\s+(?:vs\.?|contre|–|—|-|\/)\s+/iu)
-    .map((team) => team.trim())
-    .filter(Boolean);
-
-  return fixture.length === 2 ? fixture : [];
+  const title = event.title.replace(/^\s*J\s*\d+\s*[·:–—-]?\s*/iu, "");
+  // Explicit opponent separators take priority: official names contain hyphens.
+  const opponents = title.split(/\s+(?:vs\.?|contre)\s+/iu).map((team) => team.trim()).filter(Boolean);
+  if (opponents.length === 2) return opponents.map(officialCalendarTeam);
+  if (event.championship_teams?.length) return event.championship_teams.map(officialCalendarTeam);
+  const fixture = title.split(/\s+(?:–|—|-|\/)\s+/u).map((team) => team.trim()).filter(Boolean);
+  return fixture.length === 2 ? fixture.map(officialCalendarTeam) : [];
 }
 
 function isCalendarFilter(value: string | undefined): value is CalendarFilter {
@@ -143,7 +161,8 @@ type CalendarPageProps = {
 export default async function CalendarPage({ searchParams }: CalendarPageProps) {
   const query = await searchParams;
   const requestedFilter = Array.isArray(query?.filter) ? query.filter[0] : query?.filter;
-  const requestedTeam = Array.isArray(query?.team) ? query.team[0] : query?.team;
+  const rawTeam = Array.isArray(query?.team) ? query.team[0] : query?.team;
+  const requestedTeam = rawTeam ? officialCalendarTeam(rawTeam) : undefined;
   const activeFilter: CalendarFilter = isCalendarFilter(requestedFilter) ? requestedFilter : "all";
   const events = await getEvents();
   const championshipTeams = [...new Set(events.flatMap(championshipTeamsForEvent))].sort((a, b) => a.localeCompare(b, "fr"));
