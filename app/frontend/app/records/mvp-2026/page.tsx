@@ -9,7 +9,7 @@ const backend = process.env.PYTHON_API_URL ?? "http://127.0.0.1:8000";
 const MINIMUM_LEGS = 20;
 
 export const metadata: Metadata = {
-  title: "MVP 2026 | 974 Darts AI",
+  title: "MVP 2026",
   description: "Classement analytique MVP du championnat 974 pour la saison 2026.",
 };
 

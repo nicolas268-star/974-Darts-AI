@@ -12,7 +12,7 @@ import "../competition-badges.css";
 const backend = process.env.PYTHON_API_URL ?? "http://127.0.0.1:8000";
 
 export const metadata: Metadata = {
-  title: "Club des 180 | 974 Darts AI",
+  title: "Club des 180",
   description: "Classement des scores de 180 réalisés en championnat et en tournoi.",
 };
 

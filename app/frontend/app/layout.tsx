@@ -54,7 +54,20 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
           "@context": "https://schema.org",
           "@graph": [
-            { "@type": "Person", "@id": "https://974darts.re/#publisher", name: "Nicolas Dupont", url: "https://974darts.re" },
+            {
+              "@type": "Organization",
+              "@id": "https://974darts.re/#publisher",
+              name: "NDX Performance Lab",
+              url: "https://974darts.re",
+              logo: "https://974darts.re/brand/ndx-performance-lab.png",
+              legalRepresentative: { "@id": "https://974darts.re/#legal-representative" },
+            },
+            {
+              "@type": "Person",
+              "@id": "https://974darts.re/#legal-representative",
+              name: "Nicolas Dupont",
+              jobTitle: "Responsable de la publication",
+            },
             { "@type": "WebSite", "@id": "https://974darts.re/#website", url: "https://974darts.re", name: "974 Darts AI", inLanguage: "fr-RE", publisher: { "@id": "https://974darts.re/#publisher" }, areaServed: { "@type": "AdministrativeArea", name: "La Réunion" } }
           ]
         }).replace(/</g, "\\u003c") }} />

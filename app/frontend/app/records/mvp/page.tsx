@@ -6,7 +6,7 @@ import "../record-pages.css";
 import "./mvp-seasons.css";
 
 export const metadata: Metadata = {
-  title: "MVP | 974 Darts AI",
+  title: "MVP",
   description: "Retrouvez les classements MVP de chaque saison du championnat 974.",
 };
 
