@@ -4,7 +4,7 @@ import { BookOpenCheck, FileBadge2, Landmark, MapPinned, Scale, ShieldCheck } fr
 import "./comite.css";
 
 export const metadata = {
-  title: "Comité de fléchettes de La Réunion | 974Darts",
+  title: "Comité de fléchettes de La Réunion",
   description: "Espace public du Comité de fléchettes de La Réunion : charte, règlement sportif et informations fédérales.",
 };
 

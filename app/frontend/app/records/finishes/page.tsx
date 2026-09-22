@@ -11,7 +11,7 @@ import "../competition-badges.css";
 const backend = process.env.PYTHON_API_URL ?? "http://127.0.0.1:8000";
 
 export const metadata: Metadata = {
-  title: "Meilleurs finishs | 974 Darts AI",
+  title: "Meilleurs finishs",
   description: "Classement des plus hauts finishs réalisés en championnat et en tournoi.",
 };
 

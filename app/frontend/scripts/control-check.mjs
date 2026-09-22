@@ -1,4 +1,4 @@
-import { access, readFile } from "node:fs/promises";
+import { access, readFile, readdir } from "node:fs/promises";
 import { constants } from "node:fs";
 
 const requiredPages = [
@@ -42,6 +42,34 @@ if (!layout.includes('metadataBase: new URL("https://974darts.re")')) {
 }
 if (!layout.includes('<html lang="fr-RE">')) {
   errors.push("Langue fr-RE absente.");
+}
+if (!layout.includes('"@type": "Organization"') || !layout.includes('name: "NDX Performance Lab"')) {
+  errors.push("Publisher Schema.org NDX Performance Lab absent.");
+}
+if (!layout.includes('legalRepresentative: { "@id": "https://974darts.re/#legal-representative" }')) {
+  errors.push("Responsable légal Schema.org absent du publisher NDX.");
+}
+if (!layout.includes('name: "Nicolas Dupont"') || !layout.includes('jobTitle: "Responsable de la publication"')) {
+  errors.push("Identité du responsable de publication absente du Schema.org.");
+}
+
+async function listSourceFiles(directory) {
+  const entries = await readdir(directory, { withFileTypes: true });
+  const files = [];
+  for (const entry of entries) {
+    const path = `${directory}/${entry.name}`;
+    if (entry.isDirectory()) files.push(...await listSourceFiles(path));
+    else if (/\.(?:ts|tsx)$/.test(entry.name)) files.push(path);
+  }
+  return files;
+}
+
+for (const pagePath of await listSourceFiles("app")) {
+  if (pagePath === "app/layout.tsx") continue;
+  const pageSource = await readFile(pagePath, "utf8");
+  if (/title\s*:\s*["'`][^"'`]*(?:974\s*Darts\s*AI|974Darts)/i.test(pageSource)) {
+    errors.push(`Titre de page avec marque dupliquée : ${pagePath}`);
+  }
 }
 if (/contrat\s+(Coach|Player DNA)/i.test(playerPage)) {
   errors.push("Un numéro de contrat reste visible sur la page joueur.");
