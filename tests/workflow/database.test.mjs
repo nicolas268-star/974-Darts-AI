@@ -27,7 +27,6 @@ try {
  for (const [i,points] of [10,8,6,6,4,4,4,4,2,2,0,0,0,0,0,0].entries()) await query("insert into committee_ranking_results(event_id,player_name,club,gender,placement,points,display_order,identity_id) values('club-open-kaz-2026-09-13',$1,'Kaz A Darts 974','M','ROUND_OF_16',$2,$3,$4)",['Historique '+i,points,i+1,i<13?randomUUID():null]);
  await db.exec("insert into player_identities select identity_id,'Nom officiel historique','ACTIVE' from committee_ranking_results where display_order=1");
  for(const file of readdirSync(resolve(root,'supabase/migrations')).sort()) await db.exec(read('supabase/migrations/'+file));
- await query("update profiles set role='SPORTS_DIRECTOR' where user_id in ($1,$2)",[ds,otherDS]);
  const initial=await pub();
  check(initial.events[0].results.length===16 && initial.events[0].results.reduce((a,b)=>a+b.points,0)===50,'Historical 16 rows / 50 points preserved');
  check(initial.events[0].results[0].player_name==='Nom officiel historique','Previously displayed canonical name preserved');
@@ -43,14 +42,25 @@ try {
  }
  await db.exec('set role service_role');
  await expectError(()=>command('unauthorized',null,'CREATE',{},player),/FORBIDDEN/);
- let created=await command('event-test',null,'CREATE',{source_id:'t_fixture',discipline:'SINGLE',season_key:'2026-2027',snapshot:{...snapshot,results:[],blockers:['Analyse requise']},director_id:ds});
+ let created=await command('event-test',null,'CREATE',{source_id:'t_fixture',discipline:'SINGLE',season_key:'2026-2027',snapshot:{...snapshot,results:[],blockers:['Analyse requise']}});
  let id=created.revision_id;
+ check((await rev(id)).director_id===null && (await rev(id)).status==='DRAFT','Draft can be created before the director account is available');
  await expectError(()=>command('event-test',id,'PUBLISH',{confirmed:true}),/INVALID_TRANSITION/);
  await expectError(()=>command('event-test',id,'SAVE',{reason:'changement',snapshot,director_id:ds},ds),/FORBIDDEN/);
  await expectError(()=>command('event-test',id,'SAVE',{snapshot,director_id:ds}),/REASON_REQUIRED/);
  await expectError(()=>query("update ranking_workflow_revisions set snapshot='{}'::jsonb where id=$1",[id]),/IMMUTABLE_REVISION/);
- let saved=await command('event-test',id,'SAVE',{reason:'Contrôle de la source',snapshot,director_id:ds});
+ let saved=await command('event-test',id,'SAVE',{reason:'Contrôle de la source',snapshot});
  id=saved.revision_id;
+ check((await rev(id)).director_id===null && (await rev(id)).status==='ANALYZED','Prepared results can be saved without an assigned director');
+ await expectError(()=>command('event-test',id,'SUBMIT',{confirmed:true}),/INVALID_DIRECTOR/);
+ check((await rev(id)).status==='ANALYZED' && (await query('select count(*) as n from ranking_notification_outbox'))[0].n===0,'Missing director leaves the prepared version intact and queues no email');
+ check((await pub()).events.length===1,'Prepared results remain private until reviewed');
+ await db.exec('reset role');
+ await query("update profiles set role='SPORTS_DIRECTOR' where user_id in ($1,$2)",[ds,otherDS]);
+ await db.exec('set role service_role');
+ saved=await command('event-test',id,'SAVE',{reason:'Affectation du Directeur sportif après création de son accès',snapshot,director_id:ds});
+ id=saved.revision_id;
+ assert.deepEqual((await rev(id)).snapshot,snapshot);checks++;
  await expectError(()=>command('event-test',created.revision_id,'SUBMIT',{confirmed:true}),/STALE_REVISION/);
  await expectError(()=>command('event-test',id,'SUBMIT',{}),/CONFIRMATION_REQUIRED/);
  await command('event-test',id,'SUBMIT',{confirmed:true});

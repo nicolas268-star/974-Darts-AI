@@ -44,7 +44,7 @@ Le scénario navigateur utilise le vrai frontend, les vrais endpoints FastAPI et
 
 Les tests n’attestent pas encore une connexion sur un compte DS réel, la délivrabilité SMTP ou le comportement d’un nouveau tournoi Nakka en conditions réelles. PGlite vérifie les transactions et droits PostgreSQL, mais ne remplace pas un test de charge multi-connexions sur le projet Supabase cible.
 
-Vérifications locales réalisées : **86 tests backend**, **45 contrôles SQL**, parcours navigateur complet sur écran large et mobile (390 px), lint/typecheck et build Next.js. Le lint ne comporte aucune erreur ; les avertissements existants du dépôt restent hors de ce chantier. Docker Compose a été vérifié syntaxiquement ; Docker n’est pas disponible dans cet environnement.
+Vérifications locales réalisées : **86 tests backend**, **51 contrôles SQL**, parcours navigateur complet sur écran large et mobile (390 px), lint/typecheck et build Next.js. Le lint ne comporte aucune erreur ; les avertissements existants du dépôt restent hors de ce chantier. Docker Compose a été vérifié syntaxiquement ; Docker n’est pas disponible dans cet environnement.
 
 ## Rejouer les vérifications
 
@@ -77,7 +77,11 @@ Le scénario navigateur démarre et arrête ses propres services de test : ports
 
 ## Compte DS et activation future
 
-Le nom et l’adresse du Directeur sportif restent à confirmer par Nicolas. L’invitation utilise Supabase Auth ; ensuite, attribuer explicitement `SPORTS_DIRECTOR` à son profil vérifié. Ne pas déduire ce rôle de son email ou de métadonnées modifiables par l’utilisateur. Les mises à jour personnelles de `profiles` sont limitées à `display_name` ; les associations sportives et rôles restent administrés côté serveur.
+Le Directeur sportif désigné par Nicolas est **Corentin Bouazin** ; son adresse email reste à recevoir. Cette attente ne bloque pas la préparation technique ni celle des compétitions : laisser le champ Directeur sportif sur **À désigner** pour créer, analyser et enregistrer les résultats. L’envoi au DS attend l’affectation d’un compte actif ; les nouvelles publications exigent toujours ses validations et le contrôle final de l’administrateur. Aucun compte provisoire ni adresse fictive ne sont nécessaires.
+
+Quand Nicolas transmettra l’adresse : vérifier le compte correspondant, utiliser Supabase Auth pour l’accès personnel, puis attribuer explicitement `SPORTS_DIRECTOR` au profil vérifié. Affecter ensuite Corentin aux compétitions préparées et enregistrer une nouvelle version avant l’envoi. Les résultats préparés sont conservés ; il n’est pas nécessaire de recréer les compétitions. Ne pas déduire le rôle de son email ou de métadonnées modifiables par l’utilisateur. Les mises à jour personnelles de `profiles` sont limitées à `display_name` ; les associations sportives et rôles restent administrés côté serveur.
+
+Le test SQL couvre la création et l’enregistrement sans DS, le refus d’envoi sans compte affecté, l’absence d’email et de publication à ce stade, puis l’affectation ultérieure sans perte des résultats et le parcours complet de validation.
 
 Après recette et autorisation de mise en production : appliquer les deux migrations, configurer le même administrateur dans les deux services, activer `RANKING_WORKFLOW_ENABLED=true` dans frontend/backend/worker, puis lancer le service Compose optionnel `ranking-worker` avec le profil `ranking-workflow`. Le frontend doit être reconstruit avec les bonnes valeurs publiques Supabase. L’activation des emails nécessite séparément `RANKING_EMAIL_ENABLED=true`, `RANKING_SITE_ORIGIN` HTTPS et SMTP TLS valide.
 
