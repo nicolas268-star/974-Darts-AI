@@ -57,7 +57,8 @@ export default function LoginPage() {
       return;
     }
 
-    router.push("/player");
+    const next = new URLSearchParams(window.location.search).get("next");
+    router.push("/auth/landing" + (next ? `?next=${encodeURIComponent(next)}` : ""));
     router.refresh();
   }
 

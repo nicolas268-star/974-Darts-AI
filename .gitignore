@@ -7,3 +7,6 @@ npm-debug.log*
 __pycache__/
 *.pyc
 *.tsbuildinfo
+
+# Supabase CLI local metadata
+supabase/.temp/

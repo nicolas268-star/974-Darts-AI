@@ -57,8 +57,6 @@ const allowedPostPaths = [
   /^\/api\/v1\/seasons\/calendar\/update-titles$/,
   /^\/api\/v1\/player-transfers\/upsert$/,
   /^\/api\/v1\/player-transfers\/cancel$/,
-  /^\/api\/v1\/committee-ranking\/validate$/,
-  /^\/api\/v1\/committee-ranking\/publish$/,
 ];
 
 function jsonError(status: number, error: string) {

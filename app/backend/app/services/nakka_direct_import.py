@@ -665,12 +665,14 @@ def analyze_direct_event(
     source_url: str,
     season: int,
     identity_candidates: list[dict[str, Any]] | None = None,
+    *, persist: bool = True, request_json=None,
 ) -> dict[str, Any]:
     canonical_url, source_id = validate_direct_event_url(source_url)
     data_url = f"{TOURNAMENT_API}?{urlencode({'cmd': 'get_data', 'tdid': source_id})}"
     stats_url = f"{TOURNAMENT_STATS_API}?{urlencode({'cmd': 'stats_list', 'tdid': source_id})}"
-    event_payload = _request_json(data_url)
-    stats_payload = _request_json(stats_url, method="POST")
+    fetch_json = request_json or _request_json
+    event_payload = fetch_json(data_url)
+    stats_payload = fetch_json(stats_url, method="POST")
     if not isinstance(event_payload, dict) or event_payload.get("tdid") != source_id:
         raise NakkaDirectImportError("La réponse Nakka ne correspond pas au tournoi demandé.")
     if not isinstance(stats_payload, dict):
@@ -681,6 +683,8 @@ def analyze_direct_event(
         for item in event_payload.get("entry_list") or []
         if isinstance(item, dict) and item.get("tpid")
     ]
+    if len(entries) > 256:
+        raise NakkaDirectImportError("La compétition dépasse la limite de 256 participants ou duos.")
     names = {
         str(item.get("tpid")): str(item.get("name") or item.get("tpid"))
         for item in entries
@@ -708,6 +712,8 @@ def analyze_direct_event(
             event_payload, names, canonical_url, source_id
         )
     matches = knockout_matches + pool_matches
+    if len(matches) > 4096:
+        raise NakkaDirectImportError("La compétition dépasse la limite de rencontres.")
     for match_number, match in enumerate(matches, start=1):
         match["match_number"] = match_number
     event_date, date_label = _date_payload(event_payload.get("t_date"))
@@ -770,8 +776,11 @@ def analyze_direct_event(
             "publicationExecuted": False,
         },
     }
-    preview.update(TOURNAMENT_EDITORIALS.get(source_id, {}))
+    if persist:
+        preview.update(TOURNAMENT_EDITORIALS.get(source_id, {}))
     preview["snapshotHash"] = _snapshot_hash(preview)
+    if not persist:
+        return preview
     with _STATE_LOCK:
         state = load_direct_state()
         state["lastPreview"] = preview

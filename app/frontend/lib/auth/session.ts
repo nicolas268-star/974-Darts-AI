@@ -2,7 +2,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
-export type AppRole = "VISITOR" | "PLAYER" | "CAPTAIN" | "ADMIN";
+export type AppRole = "VISITOR" | "PLAYER" | "CAPTAIN" | "ADMIN" | "SPORTS_DIRECTOR";
 
 export type AuthContext = {
   user: { id: string; email?: string | null } | null;
@@ -99,11 +99,11 @@ export async function getCurrentUser(): Promise<AuthContext> {
   };
 }
 
-export async function requireUser() {
+export async function requireUser(returnTo?: string) {
   const auth = await getCurrentUser();
 
   if (!auth.user) {
-    redirect("/login");
+    redirect(returnTo ? `/login?next=${encodeURIComponent(returnTo)}` : "/login");
   }
 
   if (!auth.profile) {

@@ -1,0 +1,13 @@
+{
+  "name": "974darts-workflow-database-tests",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node database.test.mjs && node preview-bootstrap.test.mjs && python3 setup-preview.test.py",
+    "test:browser": "node run-browser.mjs"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.3.14",
+    "@playwright/test": "1.55.0"
+  }
+}

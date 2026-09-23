@@ -1,5 +1,6 @@
 
 import { createClient } from "@/lib/supabase/server";
+import { safeReturnPath } from "@/lib/auth/return-path";
 import { getSiteOrigin } from "@/lib/site-url";
 import { NextResponse } from "next/server";
 
@@ -7,10 +8,7 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
   const requestedNext = url.searchParams.get("next");
-  const next =
-    requestedNext?.startsWith("/") && !requestedNext.startsWith("//")
-      ? requestedNext
-      : "/player";
+  const next = safeReturnPath(requestedNext) ?? "/auth/landing";
   const siteOrigin = getSiteOrigin(request);
 
   if (!code) {
