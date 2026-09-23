@@ -1,7 +1,7 @@
 # Isolated pre-production stack. Never pass production credentials or volume paths.
 name: darts974-ranking-preview
 services:
-  backend:
+  ranking-backend:
     build:
       context: ../app/backend
       target: api
@@ -13,7 +13,13 @@ services:
     expose: ["8000"]
     volumes: ["ranking_preview_data:/app/data"]
     restart: unless-stopped
-  frontend:
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3).read()"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+  ranking-frontend:
     build:
       context: ../app/frontend
       args:
@@ -27,10 +33,19 @@ services:
       NEXT_PUBLIC_DEMO_MODE: "false"
       RANKING_WORKFLOW_ENABLED: "true"
       NEXT_PUBLIC_SITE_URL: ${RANKING_PREVIEW_ORIGIN:?Provide the HTTPS origin of the isolated preview}
-      BACKEND_API_URL: http://backend:8000
-      PYTHON_API_URL: http://backend:8000
+      BACKEND_API_URL: http://ranking-backend:8000
+      PYTHON_API_URL: http://ranking-backend:8000
     ports: ["127.0.0.1:3080:3000"]
-    depends_on: [backend]
+    depends_on:
+      ranking-backend:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
   ranking-worker:
     build:
       context: ../app/backend
@@ -40,6 +55,9 @@ services:
     environment:
       RANKING_WORKFLOW_ENABLED: "true"
       RANKING_EMAIL_ENABLED: "false"
-    depends_on: [backend]
+    depends_on:
+      ranking-backend:
+        condition: service_healthy
+    restart: unless-stopped
 volumes:
   ranking_preview_data:

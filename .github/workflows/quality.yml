@@ -88,12 +88,20 @@ jobs:
         run: |
           sudo install -d -m 755 /etc/974darts
           sudo touch /etc/974darts/production.env
+          sudo touch /etc/974darts/ranking-preview.env
       - name: Valider la configuration Compose
         env:
           SITE_DOMAIN: example.test
           NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder
         run: docker compose -f deploy/compose.yaml config --quiet
+      - name: Valider la configuration isolée du classement
+        env:
+          RANKING_PREVIEW_ENV_FILE: /etc/974darts/ranking-preview.env
+          RANKING_PREVIEW_ORIGIN: https://preview-ds.example.test
+          RANKING_PREVIEW_SUPABASE_URL: https://example.supabase.co
+          RANKING_PREVIEW_SUPABASE_ANON_KEY: ci-placeholder
+        run: docker compose -f deploy/compose.ranking-preview.yaml config --quiet
       - name: Construire l'image API sans navigateur
         run: docker build --target api -t darts974-api-ci app/backend
       - name: Construire l'image worker légère

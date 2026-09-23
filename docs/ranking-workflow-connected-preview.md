@@ -26,6 +26,29 @@ Les versions enregistrées par le connecteur diffèrent des horodatages génér�
 
 ## Prochaine action sur le VPS
 
+Le retour VPS confirme que **3080 est libre** ; les anciennes prévisualisations restent sur 3100–3800. Le projet Compose `darts974-ranking-preview` utilise uniquement `127.0.0.1:3080` et son propre volume. Les services s’appellent `ranking-frontend` et `ranking-backend` : ces noms distincts évitent une collision avec les noms Docker `frontend`/`backend` de production si Caddy rejoint ensuite le réseau de recette.
+
+Origine choisie : **https://preview-ds.974darts.re**. Au contrôle DNS du 23 septembre, le domaine principal pointe vers `137.74.163.25` et le sous-domaine n’existe pas encore. Ajouter dans la zone `974darts.re` une entrée **A**, sous-domaine **preview-ds**, cible **137.74.163.25**, TTL par défaut. Laisser les entrées du domaine principal inchangées.
+
+La construction/démarrage local peut commencer avant la propagation DNS. Depuis le VPS, après récupération du commit validé, créer un worktree dédié `/opt/974darts/ranking-ds-preview` à ce commit, puis :
+
+```sh
+sudo env RANKING_PREVIEW_ORIGIN=https://preview-ds.974darts.re \
+  docker compose --env-file /etc/974darts/ranking-preview.env \
+  -f /opt/974darts/ranking-ds-preview/deploy/compose.ranking-preview.yaml \
+  up -d --build --wait --wait-timeout 180
+
+curl -fsS http://127.0.0.1:3080/api/health
+
+sudo docker ps --filter name=darts974-ranking-preview \
+  --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'
+
+sudo docker inspect darts974-caddy-1 \
+  --format '{{range .Mounts}}{{if eq .Destination "/etc/caddy/Caddyfile"}}Caddyfile={{.Source}}{{end}}{{end}}'
+```
+
+Les contrôles de santé attendent le backend puis le frontend. L’origine est passée explicitement à Compose ; aucune lecture/exécution du fichier d’environnement comme script shell n’est nécessaire. À ce stade, Caddy n’est pas rechargé, aucun port public n’est ajouté et l’URL HTTPS de recette n’est pas encore accessible. Le raccordement au proxy et son certificat suivront après confirmation du DNS, du chemin Caddyfile et du démarrage local.
+
 `deploy/check-ranking-preview.py` produit un rapport en lecture seule : version installée, conteneurs, ports concernés et présence des paramètres de préproduction. Il n’affiche aucune valeur d’environnement. Le lancer avec Python 3 depuis la branche de revue, sans changer le checkout de production.
 
 Ce rapport permettra de choisir l’origine HTTPS et de raccorder le conteneur isolé au proxy existant. L’application attend une origine HTTPS réelle dans `RANKING_PREVIEW_ORIGIN` : une simple visite de `http://IP:3080` ne suffit pas pour le parcours sécurisé de connexion et d’envoi.
