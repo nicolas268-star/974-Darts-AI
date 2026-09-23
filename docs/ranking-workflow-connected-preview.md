@@ -1,6 +1,6 @@
 # Préproduction connectée — classement individuel
 
-État vérifié le **23 septembre 2026**. Projet Supabase : **974 Darts Preview Licencies** (`yndxyiaclzcfyqrxdxdo`, eu-west-3). Le projet de production et le VPS de production n’ont pas été modifiés par cette étape.
+État vérifié le **23 septembre 2026 après publication de la version 5**. Projet Supabase : **974 Darts Preview Licencies** (`yndxyiaclzcfyqrxdxdo`, eu-west-3). La recette est accessible sur **https://preview-ds.974darts.re**. Les migrations et l’application de production n’ont pas été déployées par cette étape ; le proxy Caddy commun a reçu un hôte supplémentaire pour la prévisualisation, avec sauvegarde, validation et rechargement.
 
 ## Base préparée
 
@@ -14,7 +14,7 @@ Le projet isolé possède maintenant les profils compatibles avec la connexion N
 
 Les versions enregistrées par le connecteur diffèrent des horodatages générés localement. Les contenus correspondent aux fichiers cités. Ne pas rejouer ces migrations sur ce projet ni utiliser un `db push` global pour synchroniser ces historiques différents.
 
-## Vérifications réalisées
+## Contrôles réalisés à la préparation de la base
 
 - Les anciennes tables de classement sont inchangées : comparaison des événements complets et de l’empreinte de toutes les lignes de résultats avant/après (`3429a715302ebcc83d152d196dff5a7b`).
 - La reprise historique comprend **T5 : 16 résultats / 50 points**. Aucune signature DS n’est inventée.
@@ -24,13 +24,13 @@ Les versions enregistrées par le connecteur diffèrent des horodatages génér�
 - Security Advisors : aucune erreur ni alerte WARN. Huit informations « RLS sans politique » correspondent aux tables intentionnellement fermées aux clients, dont sept nouvelles tables privées. [Explication Supabase](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy).
 - Performance Advisors : une alerte WARN préexistante sur la politique de `players`, sans rapport avec ce changement. [Explication Supabase](https://supabase.com/docs/guides/database/database-linter?lint=0003_auth_rls_initplan). Les informations d’index inutilisés sont attendues sur une base de recette. Les trois informations de clés étrangères propres au workflow concernent une configuration limitée à une ligne et les pointeurs d’événement déjà recherchables par leur clé primaire `id` ; elles ne bloquent pas cette recette.
 
-## Prochaine action sur le VPS
+## Prévisualisation démarrée sur le VPS
 
-Le retour VPS confirme que **3080 est libre** ; les anciennes prévisualisations restent sur 3100–3800. Le projet Compose `darts974-ranking-preview` utilise uniquement `127.0.0.1:3080` et son propre volume. Les services s’appellent `ranking-frontend` et `ranking-backend` : ces noms distincts évitent une collision avec les noms Docker `frontend`/`backend` de production si Caddy rejoint ensuite le réseau de recette.
+Le worktree `/opt/974darts/ranking-ds-preview` a été démarré au commit **`3df24b7692ac0d00b1b63f94b3227d6639975621`**, dont les quatre jobs CI ont réussi. Le projet Compose `darts974-ranking-preview` utilise uniquement `127.0.0.1:3080` et son propre volume. Les anciennes prévisualisations restent sur 3100–3800. Les services `ranking-frontend` et `ranking-backend` ont des noms distincts de `frontend`/`backend` en production, pour éviter une collision DNS Docker.
 
-Origine choisie : **https://preview-ds.974darts.re**. Au contrôle DNS du 23 septembre, le domaine principal pointe vers `137.74.163.25` et le sous-domaine n’existe pas encore. Ajouter dans la zone `974darts.re` une entrée **A**, sous-domaine **preview-ds**, cible **137.74.163.25**, TTL par défaut. Laisser les entrées du domaine principal inchangées.
+Nicolas a créé l’entrée DNS **A** `preview-ds` vers **`137.74.163.25`**, TTL par défaut. Les contrôles locaux puis HTTPS de `/api/health` ont renvoyé `status: ok`, `demoMode: false`, `supabaseUrlConfigured: true` et `publicKeyConfigured: true`. Les connexions réelles aux comptes Auth de recette administrateur et DS ont ensuite réussi dans le navigateur.
 
-La construction/démarrage local peut commencer avant la propagation DNS. Depuis le VPS, après récupération du commit validé, créer un worktree dédié `/opt/974darts/ranking-ds-preview` à ce commit, puis :
+Commande de référence utilisée pour démarrer cette instance ; il n’est pas nécessaire de la rejouer pour consulter la recette :
 
 ```sh
 sudo env RANKING_PREVIEW_ORIGIN=https://preview-ds.974darts.re \
@@ -47,32 +47,56 @@ sudo docker inspect darts974-caddy-1 \
   --format '{{range .Mounts}}{{if eq .Destination "/etc/caddy/Caddyfile"}}Caddyfile={{.Source}}{{end}}{{end}}'
 ```
 
-Les contrôles de santé attendent le backend puis le frontend. L’origine est passée explicitement à Compose ; aucune lecture/exécution du fichier d’environnement comme script shell n’est nécessaire. À ce stade, Caddy n’est pas rechargé, aucun port public n’est ajouté et l’URL HTTPS de recette n’est pas encore accessible. Le raccordement au proxy et son certificat suivront après confirmation du DNS, du chemin Caddyfile et du démarrage local.
+Les contrôles de santé ont validé le backend puis le frontend. Le worker a réellement collecté et analysé la source Nakka du T5. L’origine est passée explicitement à Compose ; le fichier d’environnement n’est pas exécuté comme script shell.
+
+Le conteneur `darts974-caddy-1` a rejoint le réseau `darts974-ranking-preview_default`. Un hôte `preview-ds.974darts.re` relaie vers `ranking-frontend:3000` avec l’en-tête `X-Robots-Tag: noindex, nofollow`. Le fichier monté est `/opt/974darts/releases/20260914T111500Z/deploy/Caddyfile` ; sa sauvegarde est `Caddyfile.before-preview.e5lNZy` dans le même répertoire. Le candidat a été validé avant écriture ; l’écriture a conservé l’inode du fichier monté, puis Caddy a été rechargé. Le contrôle HTTPS du site principal a réussi après rechargement.
+
+Cette connexion réseau a été ajoutée au conteneur Caddy existant. Si un futur déploiement recrée ce conteneur ou remplace le fichier de configuration par celui d’une nouvelle release, il faudra conserver ou rétablir le raccordement de la prévisualisation. Aucun changement de la configuration de déploiement de production n’a été ajouté pour le rendre permanent.
 
 `deploy/check-ranking-preview.py` produit un rapport en lecture seule : version installée, conteneurs, ports concernés et présence des paramètres de préproduction. Il n’affiche aucune valeur d’environnement. Le lancer avec Python 3 depuis la branche de revue, sans changer le checkout de production.
 
-Ce rapport permettra de choisir l’origine HTTPS et de raccorder le conteneur isolé au proxy existant. L’application attend une origine HTTPS réelle dans `RANKING_PREVIEW_ORIGIN` : une simple visite de `http://IP:3080` ne suffit pas pour le parcours sécurisé de connexion et d’envoi.
+L’application utilise l’origine HTTPS de recette dans `RANKING_PREVIEW_ORIGIN` pour le parcours sécurisé de connexion et d’envoi.
 
-## Ce qui reste à raccorder
+## Configuration et comptes de recette
 
-### Configuration guidée sur le VPS
+Nicolas a exécuté `deploy/setup-ranking-preview.py`. Les fichiers `/etc/974darts/ranking-preview.env` et `/etc/974darts/ranking-preview-access.json` sont présents en droits `600`. Le contrôle de configuration confirme le projet isolé, la présence des paramètres requis et les emails désactivés, sans afficher leurs valeurs.
 
-Le retour VPS de Nicolas confirme l’absence de `/etc/974darts/ranking-preview.env` et de `/etc/974darts/preview.env`. Le script `deploy/setup-ranking-preview.py` est préparé pour la prochaine action, **pas encore exécuté sur le VPS**.
+Le script demande sur le terminal la clé publique (`publishable` ou `anon`) et la clé serveur (`secret` ou `service_role`) du seul projet `yndxyiaclzcfyqrxdxdo`. Les saisies sont masquées ; les clés sont contrôlées auprès de l’URL fixe du projet, sans redirection HTTP. Les valeurs ne doivent pas être collées dans la conversation.
 
-Lancer ce script avec `sudo python3`. Il demande sur le terminal la clé publique (`publishable` ou `anon`) et la clé serveur (`secret` ou `service_role`) du seul projet `yndxyiaclzcfyqrxdxdo`. Les saisies sont masquées ; les clés sont contrôlées auprès de l’URL fixe du projet, sans redirection HTTP. Les valeurs ne doivent pas être collées dans la conversation.
+Le script a créé deux comptes techniques de recette à des adresses réservées `.invalid`, puis leurs profils `ADMIN` et `SPORTS_DIRECTOR`. Il utilise l’API Auth administrateur avec confirmation de ces identités de test, **sans invitation ni email**, jamais les coordonnées de Corentin. Il vérifie chaque connexion par mot de passe et la lecture de son propre profil avant de fermer les sessions de contrôle. Les rôles sont affectés dans `profiles`, jamais depuis les métadonnées utilisateur. [Référence Supabase](https://supabase.com/docs/reference/python/auth-admin-createuser).
 
-Le script crée deux comptes techniques de recette à des adresses réservées `.invalid`, puis leurs profils `ADMIN` et `SPORTS_DIRECTOR`. Il utilise l’API Auth administrateur avec confirmation de ces identités de test, **sans invitation ni email**, jamais les coordonnées de Corentin. Il vérifie chaque connexion par mot de passe et la lecture de son propre profil avant de fermer les sessions de contrôle. Les rôles sont affectés dans `profiles`, jamais depuis les métadonnées utilisateur. [Référence Supabase](https://supabase.com/docs/reference/python/auth-admin-createuser).
-
-Le fichier `ranking-preview.env` et les identifiants de recette `ranking-preview-access.json` sont conservés uniquement sur le serveur en droits `600`. Aucun fichier existant de configuration n’est écrasé ; une interruption après création d’un compte peut être reprise avec les identifiants déjà enregistrés. Le script ne démarre aucun service et laisse les emails désactivés. L’origine HTTPS sera définie à l’étape suivante, après lecture du rapport de ports/conteneurs complet. Ne pas partager le contenu du fichier d’identifiants.
+Les identifiants de recette sont conservés uniquement sur le serveur. Aucun fichier existant de configuration n’est écrasé ; une interruption après création d’un compte peut être reprise avec les identifiants déjà enregistrés. Le script de configuration ne démarre aucun service et laisse les emails désactivés. Ne pas partager le contenu du fichier d’identifiants. Ces comptes de test ne doivent pas être repris comme comptes personnels en production.
 
 Neuf tests sans réseau couvrent la préparation, la reprise après interruption, la preuve de possession du mot de passe, les fichiers existants, les liens symboliques, les redirections et le refus d’une clé de production ou d’une clé privée à la place de la clé publique.
 
-### Raccordements restants
+## Recette connectée du T5 : publication confirmée
 
-1. Fichier serveur isolé `/etc/974darts/ranking-preview.env` avec les clés du projet de préproduction et des droits `600`. Ne jamais recopier le fichier de production ni transmettre de clé privée dans la conversation.
-2. Accès administrateur de recette via Supabase Auth, puis profil `ADMIN` et ligne `ranking_workflow_config.administrator_id` avec le même UUID que `ADMIN_USER_ID` dans frontend/backend/worker. Il n’existe actuellement aucun compte Auth dans ce projet : l’administrateur de production n’y est pas automatiquement reconnu.
-3. Démarrage de `deploy/compose.ranking-preview.yaml` dans un checkout isolé avec l’origine HTTPS vérifiée ; les emails restent forcés à `false`.
-4. Recette par vraie connexion administrateur : historique, création sans DS, analyse Nakka, enregistrement et refus d’envoi tant que le DS manque. Puis recette avec un compte DS de test explicitement créé pour ce projet.
-5. Lorsque son email sera disponible : préparation de l’accès personnel de **Corentin Bouazin**, indépendamment des comptes de test. La mise en production reste une étape distincte après recette.
+Compétition : `club-open-kaz-2026-09-13`, source Nakka `t_aKyY_3246`. La collecte réelle a récupéré **35 participants et 90 rencontres**, dont 60 de poules et 30 de tableaux. La version 2 a demandé les classements et pièces de contrôle ; les versions 3 à 5 correspondent aux corrections enregistrées par Nicolas. Les classements ambigus et les identités non rapprochées n’ont pas été validés automatiquement.
 
-Aucun test de connexion réelle, SMTP ou tournoi Nakka en conditions réelles n’est encore attesté par cette préparation de base.
+La version 5 a franchi les quatre décisions sur les comptes Auth distincts de recette :
+
+| Étape | Rôle | 23 septembre 2026, heure Réunion |
+|---|---|---|
+| Envoi au DS | ADMIN | 21:46:23 |
+| Validation sportive | SPORTS_DIRECTOR | 21:58:26 |
+| Contrôle final | ADMIN | 22:05:14 |
+| Publication | ADMIN | 22:05:26 |
+
+La vérification SQL après publication confirme :
+
+- version courante et version publiée **5**, statut **PUBLISHED**, aucune anomalie bloquante ;
+- les quatre décisions portent sur l’empreinte de cette même version ;
+- projection publique `ranking_published_snapshot('2026-2027')` : **une compétition, 35 lignes, 50 points** ;
+- **13 joueurs avec des points** ; aucune différence de points par identité avec le T5 historique, aucune addition de l’ancienne version ;
+- cinq versions conservées et audit des étapes ;
+- deux notifications (`SUBMIT`, `APPROVE_DS`) en état **QUEUED**, **zéro tentative**, aucune acceptation SMTP : l’envoi est volontairement désactivé.
+
+La publication est celle du projet de prévisualisation. Elle ne constitue ni une validation personnelle de Corentin ni une publication sur la base de production.
+
+## Étapes restantes
+
+1. Préparer puis autoriser séparément la mise en production de la branche et de ses deux migrations. Ne pas copier les comptes, secrets, décisions ou fichiers de configuration de recette vers la production.
+2. À réception de l’email de **Corentin Bouazin**, préparer son accès personnel vérifié et son rôle `SPORTS_DIRECTOR`, puis l’affecter aux dossiers. Les brouillons peuvent être préparés avant cette affectation.
+3. Configurer et tester les notifications SMTP avec des destinataires autorisés avant activation. La recette actuelle ne démontre pas la délivrabilité des emails. Ne pas activer l’envoi de la file de recette aux adresses fictives `.invalid`.
+
+Le parcours de demande de correction par le DS et de nouvelle validation a été vérifié dans les tests automatisés isolés ; ce compte rendu connecté atteste le parcours complet d’analyse, corrections administrateur, validation DS et publication du T5. La connexion personnelle de Corentin, un nouveau tournoi distinct et la charge multi-connexions restent hors de cette recette.

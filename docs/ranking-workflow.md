@@ -42,7 +42,7 @@ Le scénario navigateur utilise le vrai frontend, les vrais endpoints FastAPI et
 - [Classement public](ranking-workflow-preview/04-classement-public.webp)
 - [Mobile](ranking-workflow-preview/05-mobile.webp)
 
-Les tests n’attestent pas encore une connexion sur un compte DS réel, la délivrabilité SMTP ou le comportement d’un nouveau tournoi Nakka en conditions réelles. PGlite vérifie les transactions et droits PostgreSQL, mais ne remplace pas un test de charge multi-connexions sur le projet Supabase cible.
+Le 23 septembre 2026, une recette supplémentaire sur le VPS et le projet Supabase isolé a confirmé les connexions Auth administrateur/DS de test, la collecte Nakka réelle du T5 et la publication de sa version 5 après validation sportive et contrôle final. Sa projection publique comporte 35 lignes et 50 points, identiques par identité aux points historiques. Voir le [compte rendu connecté](ranking-workflow-connected-preview.md). La connexion personnelle de Corentin, la délivrabilité SMTP et un nouveau tournoi distinct restent à vérifier. PGlite ne remplace pas un test de charge multi-connexions sur le projet cible.
 
 Vérifications locales réalisées : **86 tests backend**, **51 contrôles SQL**, parcours navigateur complet sur écran large et mobile (390 px), lint/typecheck et build Next.js. Le lint ne comporte aucune erreur ; les avertissements existants du dépôt restent hors de ce chantier. Docker Compose a été vérifié syntaxiquement ; Docker n’est pas disponible dans cet environnement.
 
@@ -66,7 +66,7 @@ Le scénario navigateur démarre et arrête ses propres services de test : ports
 
 ## Préparer un environnement connecté isolé
 
-**Avancement du 23 septembre 2026 :** la base du projet « Preview Licenciés » a été préparée et ses droits contrôlés. Voir le [compte rendu de préproduction connectée](ranking-workflow-connected-preview.md) avant toute exécution : les étapes SQL ci-dessous sont déjà réalisées sur ce projet. Le démarrage sur VPS et la vraie connexion restent à effectuer.
+**Avancement du 23 septembre 2026 :** la base du projet « Preview Licenciés », le démarrage isolé sur VPS et le raccordement HTTPS sont réalisés. Le T5 a été analysé, contrôlé, validé par le compte DS de recette puis publié en version 5. Voir le [compte rendu de préproduction connectée](ranking-workflow-connected-preview.md) avant toute exécution : les étapes SQL ci-dessous sont déjà réalisées sur ce projet.
 
 1. Utiliser un projet Supabase de préproduction avec le schéma Auth/profiles et le référentiel existants. Le projet « Preview Licenciés » possède désormais les profils grâce au bootstrap spécifique de préproduction ; ne pas appliquer ce bootstrap en production.
 2. Vérifier les prérequis : migrations historiques du classement et registre appliquées, `profiles.user_id`, enum `app_role`, référentiel canonique et comptes de test.
