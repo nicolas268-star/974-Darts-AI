@@ -342,104 +342,20 @@ def build_event_preview(event_id: str, db: Client | None = None) -> dict[str, An
     }
 
 
-def validate_event(db: Client, event_id: str, results: list[dict[str, Any]], user_id: str | None) -> dict[str, Any]:
-    event = EVENTS.get(event_id)
-    if not event:
-        raise ValueError("Compétition de classement inconnue.")
-    if not results:
-        raise ValueError("Aucun joueur à valider.")
-
-    official_preview = build_event_preview(event_id)
-    expected = {
-        unicodedata.normalize("NFKC", str(row["player_name"])).casefold(): row["placement"]
-        for row in official_preview["results"]
-    }
-
-    licensed_identities = _licensed_identity_map(
-        db,
-        [str(row.get("player_name") or "") for row in results],
-    )
-    normalized = []
-    names: set[str] = set()
-    for index, row in enumerate(results):
-        name = str(row.get("player_name") or "").strip()
-        placement = str(row.get("placement") or "")
-        gender = str(row.get("gender") or "X").upper()
-        club = str(row.get("club") or "").strip()
-        if not name or placement not in POINTS or gender not in {"M", "F", "X"}:
-            raise ValueError("Une ligne de résultat est invalide.")
-        if club not in CLUBS:
-            raise ValueError(f"Le club de {name} doit être confirmé dans la liste officielle.")
-        key = unicodedata.normalize("NFKC", name).casefold()
-        if key in names:
-            raise ValueError(f"Le joueur {name} apparaît plusieurs fois.")
-        if expected.get(key) != placement:
-            raise ValueError(f"Le résultat de {name} ne correspond pas à la source T5.")
-        official = licensed_identities.get(_normalized_name(name))
-        if club != "Non licencié":
-            if not official:
-                raise ValueError(f"{name} n'est pas relié au registre officiel des licenciés.")
-            if official["club"] != club:
-                raise ValueError(
-                    f"Le club de {name} ne correspond pas au registre officiel "
-                    f"({official['club']})."
-                )
-        names.add(key)
-        normalized.append({
-            "event_id": event_id,
-            "identity_id": official["identity_id"] if official else None,
-            "player_name": name,
-            "club": club,
-            "gender": gender,
-            "placement": placement,
-            "points": _points_for(placement, club),
-            "display_order": index + 1,
-        })
-
-    if names != set(expected):
-        raise ValueError("La liste validée ne correspond pas à l'ensemble des joueurs classés dans T5.")
-
-    now = datetime.now(timezone.utc).isoformat()
-    db.table("committee_ranking_events").upsert({
-        "id": event_id,
-        **event,
-        "status": "VALIDATED",
-        "validated_by": user_id,
-        "validated_at": now,
-        "published_by": None,
-        "published_at": None,
-        "updated_at": now,
-    }).execute()
-    db.table("committee_ranking_results").delete().eq("event_id", event_id).execute()
-    db.table("committee_ranking_results").insert(normalized).execute()
-    return {"event_id": event_id, "status": "VALIDATED", "validated_at": now, "results": len(normalized)}
+def validate_event(*args, **kwargs):
+    raise ValueError("Validation historique désactivée. Utiliser le workflow Directeur sportif.")
 
 
-def publish_event(db: Client, event_id: str, user_id: str | None) -> dict[str, Any]:
-    existing = _rows(
-        db.table("committee_ranking_events")
-        .select("status")
-        .eq("id", event_id)
-        .limit(1)
-        .execute()
-    )
-    if not existing or existing[0].get("status") != "VALIDATED":
-        raise ValueError("La validation du Directeur sportif doit être enregistrée avant publication.")
-    now = datetime.now(timezone.utc).isoformat()
-    db.table("committee_ranking_events").update({
-        "status": "PUBLISHED",
-        "published_by": user_id,
-        "published_at": now,
-        "updated_at": now,
-    }).eq("id", event_id).execute()
-    return {"event_id": event_id, "status": "PUBLISHED", "published_at": now}
+def publish_event(*args, **kwargs):
+    raise ValueError("Publication historique désactivée. Utiliser une révision approuvée.")
 
 
-def public_ranking(db: Client) -> dict[str, Any]:
+def public_ranking(db: Client, season: str = SEASON_KEY) -> dict[str, Any]:
     events = _rows(
         db.table("committee_ranking_events")
         .select("id,title,event_date,status")
         .eq("status", "PUBLISHED")
+        .eq("season_key", season)
         .order("event_date")
         .execute()
     )
@@ -489,7 +405,7 @@ def public_ranking(db: Client) -> dict[str, Any]:
         player["total"] += points
 
     return {
-        "season": "2026-2027",
+        "season": season,
         "events": events,
         "rankings": {
             "mixed": _rank_players(players, None),

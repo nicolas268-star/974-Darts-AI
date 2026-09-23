@@ -429,3 +429,11 @@ p { color: var(--muted); line-height: 1.65; }
 @media (max-width:1150px){.duo-premium-radar-layout{grid-template-columns:1fr 1.7fr}.duo-radar-side-notes{grid-column:1/-1;grid-template-columns:1fr 1fr}.duo-radar-premium-chart{height:390px}}
 @media (max-width:760px){.duo-premium-radar{padding:16px}.duo-premium-radar-layout{grid-template-columns:1fr}.duo-radar-main{order:1}.duo-radar-explanation{order:2}.duo-radar-side-notes{order:3;grid-template-columns:1fr}.duo-radar-player-chip{min-width:0;flex:1 1 145px}.duo-radar-premium-chart{height:360px}.duo-radar-table-wrap{margin-top:14px}}
 .nav-wip{display:inline-flex!important;align-items:center;gap:5px;border-left:1px solid rgba(148,163,184,.28);padding-left:14px!important}.nav-wip small{padding:2px 5px;border:1px solid rgba(56,230,170,.4);border-radius:999px;color:#38e6aa;font-size:8px;letter-spacing:.08em}.sidebar-wip-zone{margin-top:18px;padding-top:14px;border-top:1px dashed rgba(56,230,170,.32);display:grid;gap:4px}.sidebar-wip-zone span{padding:0 12px;color:#59d9b1;font-size:9px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}.sidebar-wip-zone a{color:#b9eedf!important}
+
+/* Keep account navigation usable on narrow screens, including the DS workspace. */
+@media (max-width:560px) {
+  .nav-inner { height:auto; min-height:72px; flex-wrap:wrap; gap:8px; padding-top:10px; padding-bottom:10px; }
+  .nav-inner .brand { width:100%; white-space:nowrap; }
+  .nav-links { width:100%; flex-wrap:wrap; gap:4px; }
+  .nav-links .btn { margin-left:auto; padding:9px 12px; }
+}

@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from pydantic import BaseModel, Field
 from supabase import create_client
+from postgrest.exceptions import APIError
 
 from app.api.calendar_router import verify_internal_token
 from app.config import settings
@@ -8,8 +9,6 @@ from app.services.committee_ranking_service import (
     build_event_preview,
     licensed_players,
     public_ranking,
-    publish_event,
-    validate_event,
 )
 
 
@@ -39,8 +38,20 @@ class PublicationInput(BaseModel):
 
 
 @router.get("")
-def ranking_public():
-    return public_ranking(db_client())
+def ranking_public(season: str = Query("2026-2027", pattern=r"^20\d{2}-20\d{2}$")):
+    from app.api.ranking_workflow_router import enabled
+    from app.services.ranking_workflow import aggregate_public
+    db = db_client()
+    try:
+        data = db.rpc("ranking_published_snapshot", {"p_season": season}).execute().data
+        return aggregate_public(data, season)
+    except APIError as exc:
+        # Legacy fallback is allowed only before the new schema is installed.
+        # Suspending actions must never revert published points to old tables.
+        if str(exc.code) in {"PGRST202", "42883"} and not enabled():
+            return public_ranking(db, season)
+        raise HTTPException(503, "Le classement est temporairement indisponible.") from exc
+
 
 
 @router.get("/licensed-players")
@@ -57,20 +68,10 @@ def event_preview(event_id: str):
 
 
 @router.post("/validate", dependencies=[Depends(verify_internal_token)])
-def event_validate(payload: ValidationInput, x_user_id: str | None = Header(default=None)):
-    if not payload.confirmed:
-        raise HTTPException(status_code=400, detail="La validation officielle doit être confirmée.")
-    try:
-        return validate_event(db_client(), payload.event_id, [row.model_dump() for row in payload.results], x_user_id)
-    except ValueError as exc:
-        raise HTTPException(status_code=409, detail=str(exc)) from exc
+def event_validate(payload: ValidationInput):
+    raise HTTPException(410, "Utilisez le workflow avec validation du Directeur sportif connecté.")
 
 
 @router.post("/publish", dependencies=[Depends(verify_internal_token)])
-def event_publish(payload: PublicationInput, x_user_id: str | None = Header(default=None)):
-    if not payload.confirmed:
-        raise HTTPException(status_code=400, detail="La publication doit être confirmée.")
-    try:
-        return publish_event(db_client(), payload.event_id, x_user_id)
-    except ValueError as exc:
-        raise HTTPException(status_code=409, detail=str(exc)) from exc
+def event_publish(payload: PublicationInput):
+    raise HTTPException(410, "La publication exige une révision validée par le Directeur sportif.")

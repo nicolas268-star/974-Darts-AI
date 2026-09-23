@@ -5,7 +5,6 @@ import { Sidebar } from "@/components/Sidebar";
 import {
   committeeCalendarEvents,
   pointScales,
-  rankingColumnLabels,
 } from "@/lib/committee-ranking";
 import "./individual-ranking.css";
 
@@ -25,6 +24,7 @@ type RankingRow = {
 };
 
 type RankingPayload = {
+  events: { id: string; title: string; event_date: string }[];
   rankings: { mixed: RankingRow[]; men: RankingRow[]; women: RankingRow[] };
 };
 
@@ -44,6 +44,7 @@ export default async function IndividualRankingPage({ searchParams }: { searchPa
   const category = requested === "hommes" ? "men" : requested === "femmes" ? "women" : "mixed";
   const payload = await loadRanking();
   const rows = payload?.rankings?.[category] ?? [];
+  const rankingColumnLabels = (payload?.events ?? []).map((event) => ({ key: event.id, label: event.title, short: event.title }));
 
   return (
     <div className="dashboard">
@@ -112,7 +113,7 @@ export default async function IndividualRankingPage({ searchParams }: { searchPa
                     })}
                     <td className="ranking-total"><strong>{row.total}</strong></td>
                   </tr>
-                )) : <tr className="committee-ranking-empty"><td colSpan={10}><strong>Résultats du premier Open de club en cours de validation</strong><span>Le classement sera publié dès validation officielle des points du tournoi Kaz A Darts du 13 septembre.</span><Link href="/tournaments/t5">Consulter les résultats du tournoi →</Link></td></tr>}
+                )) : <tr className="committee-ranking-empty"><td colSpan={rankingColumnLabels.length + 4}><strong>{payload ? "Aucun résultat publié pour cette catégorie" : "Le classement est temporairement indisponible"}</strong><span>{payload ? "Les résultats apparaîtront après validation et publication." : "Les données publiées sont conservées. Réessayez dans quelques instants."}</span></td></tr>}
               </tbody>
             </table>
           </div>

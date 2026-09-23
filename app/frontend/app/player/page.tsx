@@ -6,6 +6,10 @@ export const dynamic = "force-dynamic";
 export default async function PlayerPage() {
   const auth = await requireUser();
 
+  if (auth.profile?.role === "SPORTS_DIRECTOR") {
+    redirect("/directeur-sportif");
+  }
+
   // L'administrateur arrive dans son espace de gestion. Cette redirection ne
   // dépend d'aucun identifiant joueur et reste donc valide après une fusion.
   if (auth.profile?.role === "ADMIN") {

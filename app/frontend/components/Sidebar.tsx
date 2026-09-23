@@ -25,7 +25,7 @@ export async function Sidebar() {
 
       {auth.user ? (
         <div className="sidebar-account-zone">
-          <Link href="/player">Mon espace</Link>
+          <Link href={auth.profile?.role === "SPORTS_DIRECTOR" ? "/directeur-sportif" : "/player"}>Mon espace</Link>
           {showAdministration ? <span className="sidebar-admin-badge">Administrateur</span> : null}
           <LogoutButton />
         </div>

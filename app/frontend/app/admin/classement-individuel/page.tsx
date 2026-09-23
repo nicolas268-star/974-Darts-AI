@@ -1,5 +1,4 @@
-import CommitteeRankingPublication from "@/components/admin/CommitteeRankingPublication";
-
+import RankingWorkflow from "@/components/ranking/RankingWorkflow";
 export default function CommitteeRankingAdminPage() {
-  return <CommitteeRankingPublication />;
+  return <RankingWorkflow role="ADMIN" enabled={process.env.RANKING_WORKFLOW_ENABLED === "true"} />;
 }

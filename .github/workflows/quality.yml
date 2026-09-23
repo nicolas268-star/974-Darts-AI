@@ -46,6 +46,39 @@ jobs:
       - run: python -m compileall -q app
       - run: python -m unittest discover -s tests -p "test_*.py"
 
+  ranking-workflow:
+    name: Classement — intégrité transactionnelle
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tests/workflow
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: tests/workflow/package-lock.json
+      - run: npm ci
+      - run: npm test
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: app/backend/requirements.txt
+      - run: python -m pip install -r ../../app/backend/requirements.txt
+      - run: npm ci --prefix ../../app/frontend
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:browser
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ranking-workflow-preview
+          path: |
+            docs/ranking-workflow-preview/
+            /tmp/974darts-*.log
+          retention-days: 7
+
   containers:
     name: Conteneurs — architecture et images
     runs-on: ubuntu-latest
