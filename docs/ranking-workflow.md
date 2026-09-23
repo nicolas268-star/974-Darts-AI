@@ -66,7 +66,9 @@ Le scénario navigateur démarre et arrête ses propres services de test : ports
 
 ## Préparer un environnement connecté isolé
 
-1. Utiliser un projet Supabase de préproduction avec le schéma Auth/profiles et le référentiel existants. Le projet « Preview Licenciés » seul ne possède pas encore `profiles` : ne pas y appliquer aveuglément ces migrations.
+**Avancement du 23 septembre 2026 :** la base du projet « Preview Licenciés » a été préparée et ses droits contrôlés. Voir le [compte rendu de préproduction connectée](ranking-workflow-connected-preview.md) avant toute exécution : les étapes SQL ci-dessous sont déjà réalisées sur ce projet. Le démarrage sur VPS et la vraie connexion restent à effectuer.
+
+1. Utiliser un projet Supabase de préproduction avec le schéma Auth/profiles et le référentiel existants. Le projet « Preview Licenciés » possède désormais les profils grâce au bootstrap spécifique de préproduction ; ne pas appliquer ce bootstrap en production.
 2. Vérifier les prérequis : migrations historiques du classement et registre appliquées, `profiles.user_id`, enum `app_role`, référentiel canonique et comptes de test.
 3. Sauvegarder le schéma et le contenu historique. Exécuter puis **committer séparément** `20260923103732_sports_director_role.sql`, avant `20260923103743_ranking_workflow.sql`. Le rôle enum doit être disponible dans la transaction suivante.
 4. La configuration sélectionne l’ADMIN unique si présent. Sinon, renseigner explicitement `ranking_workflow_config.administrator_id` avec l’administrateur autorisé. Il doit également être `ADMIN_USER_ID` dans le backend et le frontend.
