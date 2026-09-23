@@ -32,6 +32,20 @@ Ce rapport permettra de choisir l’origine HTTPS et de raccorder le conteneur i
 
 ## Ce qui reste à raccorder
 
+### Configuration guidée sur le VPS
+
+Le retour VPS de Nicolas confirme l’absence de `/etc/974darts/ranking-preview.env` et de `/etc/974darts/preview.env`. Le script `deploy/setup-ranking-preview.py` est préparé pour la prochaine action, **pas encore exécuté sur le VPS**.
+
+Lancer ce script avec `sudo python3`. Il demande sur le terminal la clé publique (`publishable` ou `anon`) et la clé serveur (`secret` ou `service_role`) du seul projet `yndxyiaclzcfyqrxdxdo`. Les saisies sont masquées ; les clés sont contrôlées auprès de l’URL fixe du projet, sans redirection HTTP. Les valeurs ne doivent pas être collées dans la conversation.
+
+Le script crée deux comptes techniques de recette à des adresses réservées `.invalid`, puis leurs profils `ADMIN` et `SPORTS_DIRECTOR`. Il utilise l’API Auth administrateur avec confirmation de ces identités de test, **sans invitation ni email**, jamais les coordonnées de Corentin. Il vérifie chaque connexion par mot de passe et la lecture de son propre profil avant de fermer les sessions de contrôle. Les rôles sont affectés dans `profiles`, jamais depuis les métadonnées utilisateur. [Référence Supabase](https://supabase.com/docs/reference/python/auth-admin-createuser).
+
+Le fichier `ranking-preview.env` et les identifiants de recette `ranking-preview-access.json` sont conservés uniquement sur le serveur en droits `600`. Aucun fichier existant de configuration n’est écrasé ; une interruption après création d’un compte peut être reprise avec les identifiants déjà enregistrés. Le script ne démarre aucun service et laisse les emails désactivés. L’origine HTTPS sera définie à l’étape suivante, après lecture du rapport de ports/conteneurs complet. Ne pas partager le contenu du fichier d’identifiants.
+
+Neuf tests sans réseau couvrent la préparation, la reprise après interruption, la preuve de possession du mot de passe, les fichiers existants, les liens symboliques, les redirections et le refus d’une clé de production ou d’une clé privée à la place de la clé publique.
+
+### Raccordements restants
+
 1. Fichier serveur isolé `/etc/974darts/ranking-preview.env` avec les clés du projet de préproduction et des droits `600`. Ne jamais recopier le fichier de production ni transmettre de clé privée dans la conversation.
 2. Accès administrateur de recette via Supabase Auth, puis profil `ADMIN` et ligne `ranking_workflow_config.administrator_id` avec le même UUID que `ADMIN_USER_ID` dans frontend/backend/worker. Il n’existe actuellement aucun compte Auth dans ce projet : l’administrateur de production n’y est pas automatiquement reconnu.
 3. Démarrage de `deploy/compose.ranking-preview.yaml` dans un checkout isolé avec l’origine HTTPS vérifiée ; les emails restent forcés à `false`.

@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node database.test.mjs && node preview-bootstrap.test.mjs",
+    "test": "node database.test.mjs && node preview-bootstrap.test.mjs && python3 setup-preview.test.py",
     "test:browser": "node run-browser.mjs"
   },
   "devDependencies": {
