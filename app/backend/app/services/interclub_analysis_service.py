@@ -59,7 +59,7 @@ def event_key(event):
 
 
 def signature(event):
-    return hashlib.sha256(json.dumps({k: event.get(k) for k in ("id", "start_date", "source_url", "status")}, sort_keys=True).encode()).hexdigest()
+    return hashlib.sha256(json.dumps({k: event.get(k) for k in ("id", "start_date", "source_url")}, sort_keys=True).encode()).hexdigest()
 
 
 def due_at(event):

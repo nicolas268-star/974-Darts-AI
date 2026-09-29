@@ -114,6 +114,8 @@ class ScheduleTests(unittest.TestCase):
         cancelled = {**EVENT, "status": "CANCELLED"}
         self.assertEqual(self.run_at(self.due, [cancelled, {**EVENT, "event_type": "FRIENDLY"}]), 0)
         self.run_at(self.due)
+        with patch.object(service, "_events", return_value=[{**EVENT, "status": "COMPLETED"}]):
+            self.assertEqual(len(service.available_records()), 1)
         with patch.object(service, "_events", return_value=[]):
             self.assertEqual(service.available_records(), [])
         postponed = {**EVENT, "start_date": "2026-10-02"}
