@@ -3,3 +3,4 @@
 
 /* Let grid content shrink to the viewport and keep Search Console steps readable. */
 .grid>*,.composeGrid>*{min-width:0}.card{overflow-wrap:anywhere}.card ol{padding-left:22px}.card ol li{margin:12px 0}.networks{flex-wrap:wrap}.composeGrid input,.composeGrid textarea,.composeGrid select{min-width:0;width:100%}
+.automation{padding:16px;border:1px solid #396b66;border-radius:12px;background:#08232b;overflow-wrap:anywhere}.automation b{color:#b2f4d6;font-size:14px}.automation p{margin:8px 0 0;color:#b7cee0;font-size:13px;line-height:1.5}

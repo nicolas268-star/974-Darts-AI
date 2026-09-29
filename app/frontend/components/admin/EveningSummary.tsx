@@ -7,6 +7,8 @@ import styles from "@/app/admin/visibility/visibility.module.css";
 type Evening = { id: string; round: string; date: string | null; home: string; away: string; home_score: number; away_score: number };
 type Summary = { whatsapp: string; facebook: string; mode: "ai" | "statistics"; note: string; ai_available: boolean;
   evening: { url: string; matches: number; legs: number; players: number }; fingerprint: string };
+type Automation = { running: boolean; next_at: string | null;
+  recent: { title: string; status: string; message: string; retry_expired: boolean }[] };
 
 async function responseJson<T>(response: Response): Promise<T> {
   const data = await response.json();
@@ -16,6 +18,7 @@ async function responseJson<T>(response: Response): Promise<T> {
 
 export default function EveningSummary({ onFacebookReady }: { onFacebookReady: (text: string) => void }) {
   const [evenings, setEvenings] = useState<Evening[]>([]);
+  const [automation, setAutomation] = useState<Automation | null>(null);
   const [selected, setSelected] = useState("");
   const [summary, setSummary] = useState<Summary | null>(null);
   const [draft, setDraft] = useState("");
@@ -40,8 +43,8 @@ export default function EveningSummary({ onFacebookReady }: { onFacebookReady: (
   useEffect(() => {
     const controller = new AbortController();
     fetch("/api/admin/visibility/evenings", { signal: controller.signal, cache: "no-store" })
-      .then(responseJson<{ evenings: Evening[] }>)
-      .then((data) => { setEvenings(data.evenings); if (!data.evenings.length) setBusy(false); setSelected((current) => data.evenings.some((item) => item.id === current) ? current : data.evenings[0]?.id ?? ""); })
+      .then(responseJson<{ evenings: Evening[]; automation?: Automation }>)
+      .then((data) => { setEvenings(data.evenings); setAutomation(data.automation ?? null); if (!data.evenings.length) setBusy(false); setSelected((current) => data.evenings.some((item) => item.id === current) ? current : data.evenings[0]?.id ?? ""); })
       .catch((reason) => { if (!controller.signal.aborted) { setBusy(false); setError(reason instanceof Error ? reason.message : "Impossible de charger les rencontres."); } })
       .finally(() => { if (!controller.signal.aborted) setLoading(false); });
     return () => controller.abort();
@@ -108,7 +111,13 @@ export default function EveningSummary({ onFacebookReady }: { onFacebookReady: (
 
   return <section className={`${styles.composer} ${styles.whatsapp}`} aria-labelledby="evening-title">
     <header><div><span>Groupe interne · Fléchettes Réunion</span><h2 id="evening-title"><MessageCircle size={26}/> Résumé de soirée WhatsApp</h2></div><span className={styles.badge}>{summary?.mode === "ai" ? "Synthèse IA" : "Analyse statistique"}</span></header>
-    <p className={styles.intro}>Choisis une rencontre publiée. Retrouve le résultat, les temps forts et les performances à partager au groupe.</p>
+    <p className={styles.intro}>Choisis une rencontre terminée. Retrouve le résultat, les temps forts et les performances à partager au groupe.</p>
+    {automation && <div className={styles.automation}>
+      <b>Préparation automatique · 23 h 50 · heure de La Réunion</b>
+      <p>{automation.running ? "Active : les soirs de match du calendrier, le résumé se prépare sans intervention." : "Le traitement automatique n’a pas confirmé son activité récemment."}
+        {automation.next_at && <> Prochaine soirée : {new Date(automation.next_at).toLocaleDateString("fr-FR", { timeZone: "Indian/Reunion" })}.</>}</p>
+      {automation.recent.filter((item) => item.status !== "READY").map((item) => <p key={item.title}><strong>{item.title}</strong> — {item.message} {item.retry_expired ? "Contrôle nécessaire après 48 h d’attente." : "Nouvelle vérification toutes les 5 minutes."}</p>)}
+    </div>}
     <div className={styles.eventChoice}><label htmlFor="visibility-evening">Rencontre interclubs<select id="visibility-evening" value={selected} disabled={busy || loading} onChange={(event) => { resetPreview(); setSelected(event.target.value); }}>
       {!evenings.length && <option value="">{loading ? "Chargement…" : "Aucune rencontre publiée disponible"}</option>}
       {evenings.map((evening) => <option key={evening.id} value={evening.id}>{evening.round} · {evening.date ? new Date(`${evening.date}T12:00:00`).toLocaleDateString("fr-FR") : "Date à confirmer"} · {evening.home} {evening.home_score}–{evening.away_score} {evening.away}</option>)}
@@ -116,7 +125,7 @@ export default function EveningSummary({ onFacebookReady }: { onFacebookReady: (
     {summary && <div className={styles.summaryNumbers}><span><b>{summary.evening.matches}</b> matchs</span><span><b>{summary.evening.legs}</b> legs</span><span><b>{summary.evening.players}</b> joueurs</span><a href={summary.evening.url} target="_blank" rel="noopener noreferrer">Voir les statistiques <ExternalLink size={14}/></a></div>}
     {busy && <p className={styles.progress} role="status"><LoaderCircle className={styles.spin} size={18}/> Préparation du résumé…</p>}
     {error && <p className={styles.error} role="alert">{error}</p>}
-    {!loading && !evenings.length && !error && <p className={styles.intro}>Les rencontres apparaissent ici après publication et validation de leurs statistiques.</p>}
+    {!loading && !evenings.length && !error && <p className={styles.intro}>Les rencontres apparaissent ici dès que leurs données complètes ont été contrôlées.</p>}
     {summary && <>
       <label className={styles.draftLabel} htmlFor="whatsapp-draft">Texte pour le groupe <small>Tu peux le modifier avant de partager.</small></label>
       <textarea id="whatsapp-draft" className={styles.summaryDraft} value={draft} rows={15} maxLength={6000} disabled={busy} onChange={(event) => { setDraft(event.target.value); setEdited(true); setStatus(""); }}/>

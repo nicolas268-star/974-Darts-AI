@@ -23,12 +23,19 @@ class SummaryRequest(BaseModel):
 def evenings(x_internal_token: str | None = Header(default=None)):
     require_internal(x_internal_token)
     from app.main import db_client
-    return list_evenings(db_client())
+    from ..services.interclub_analysis_service import extend_catalog
+    from ..services.ranking_service import _all
+    db = db_client()
+    return extend_catalog(list_evenings(db), _all(db, "championship_results", "id,source_sheet"))
 
 
 def summary_payload(result_id, use_ai):
     from app.main import db_client
+    from ..services.interclub_analysis_service import automatic_summary
     try:
+        prepared = automatic_summary(result_id, use_ai=use_ai)
+        if prepared:
+            return prepared
         return compose_summary(load_evening(db_client(), str(result_id)), use_ai=use_ai)
     except SummaryUnavailable as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc

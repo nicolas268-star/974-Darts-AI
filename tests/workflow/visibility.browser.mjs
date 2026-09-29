@@ -7,17 +7,19 @@ export async function testVisibility(admin, director, screenshot) {
   const evening={id,round:'J1',date:'2026-09-28',home:'Kaz A Darts - A',away:'Kaz A Darts - B',home_score:17,away_score:3};
   const summary={whatsapp:'🎯 Kaz A Darts - A 17–3 Kaz A Darts - B\n45 legs · 10 joueurs\nPlus haut finish : Emmanuel GRASSET, 88.',facebook:'🎯 J1 · Kaz A Darts - A 17–3 Kaz A Darts - B\nBravo aux deux équipes !',mode:'statistics',note:'Résumé statistique prêt.',ai_available:true,fingerprint:'fixture',evening:{url:`https://974darts.re/matches/${id}`,matches:20,legs:45,players:10}};
   let generated=0;
+  let automaticReady=false;
   await admin.route('**/api/admin/visibility/**',async route=>{
     const url=new URL(route.request().url());
-    if(url.pathname.endsWith('/evenings'))return route.fulfill({json:{evenings:[evening],ai_available:true}});
+    if(url.pathname.endsWith('/evenings'))return route.fulfill({json:{evenings:[evening],ai_available:true,automation:{running:true,next_at:'2026-09-30T23:50:00+04:00',recent:[{title:'J1 · rencontre tardive',status:'WAITING',message:'Le match est encore en cours.',retry_expired:false}]}}});
     if(route.request().method()==='POST'){
       expect(route.request().postDataJSON()).toEqual({result_id:id});generated++;
       return route.fulfill({json:{...summary,mode:'ai',note:'Analyse éditoriale IA : faits vérifiés.'}});
     }
-    return route.fulfill({json:summary});
+    return route.fulfill({json:automaticReady?{...summary,mode:'ai',note:'Analyse préparée automatiquement.'}:summary});
   });
   await admin.goto(origin+'/admin/visibility');
   await expect(admin.getByLabel('Texte pour le groupe',{exact:false})).toHaveValue(summary.whatsapp,{timeout:30000});
+  await expect(admin.getByText('Préparation automatique · 23 h 50 · heure de La Réunion')).toBeVisible();
   await admin.evaluate(()=>{
     window.__visibilityShares=[];
     window.open=()=>({opener:null,document:{title:''},closed:false,close(){this.closed=true},location:{replace(url){window.__visibilityShares.push(url)}}});
@@ -60,6 +62,12 @@ export async function testVisibility(admin, director, screenshot) {
   const anonymous=await admin.context().browser().newContext();
   expect((await anonymous.request.get(origin+'/api/admin/visibility/evenings')).status()).toBe(401);
   await anonymous.close();
+  automaticReady=true;
+  await admin.reload();
+  await expect(admin.getByLabel('Texte pour le groupe',{exact:false})).toHaveValue(summary.whatsapp);
+  await expect(admin.getByText('Synthèse IA',{exact:true})).toBeVisible();
+  await expect(admin.getByRole('button',{name:'Ouvrir dans WhatsApp',exact:true})).toBeEnabled();
+  expect(generated).toBe(1); // Reading a prepared nightly analysis never triggers another AI request.
   await admin.unroute('**/api/admin/visibility/**');
   console.log('PASS: visibility summary, AI selection, WhatsApp text preservation, Facebook copy, API authorization, CSRF and mobile. No message sent.');
 }

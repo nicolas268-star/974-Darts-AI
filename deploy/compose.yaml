@@ -86,6 +86,29 @@ services:
       start_period: 20s
     logging: *default-logging
 
+  interclub-analysis:
+    build:
+      context: ../app/backend
+      dockerfile: Dockerfile
+      target: worker
+    command: ["python", "-m", "app.services.interclub_analysis_worker"]
+    env_file:
+      - /etc/974darts/production.env
+    environment:
+      PYTHONDONTWRITEBYTECODE: "1"
+      PYTHONUNBUFFERED: "1"
+    volumes:
+      - /var/lib/974darts/backend-data:/app/data
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    logging: *default-logging
+
   scraper:
     build:
       context: ../app/backend
