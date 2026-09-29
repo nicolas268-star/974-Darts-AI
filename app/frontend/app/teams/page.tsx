@@ -60,7 +60,7 @@ export default async function TeamsPage() {
             <h1>Les équipes</h1>
             <p>Classement, bilan collectif et effectifs officiellement publiés pour la saison active.</p>
           </div>
-          <strong>{standings.length} équipe(s)</strong>
+            <strong>{activeSeason?.year === 2027 ? TEAM_ROSTERS_2027.length : standings.length} équipe(s)</strong>
         </header>
 
         {ranking?.data_quality_notes?.length ? (
@@ -73,7 +73,7 @@ export default async function TeamsPage() {
           </section>
         ) : null}
 
-        {activeSeason && !activeSeason.has_data ? (
+        {activeSeason?.year === 2027 ? (
           <section className="teams-rosters-2027">
             <div className="teams-rosters-heading">
               <div><strong>{activeSeason.name}</strong><h2>8 équipes officielles</h2><p>{TEAM_ROSTERS_2027_PLAYER_COUNT} joueurs inscrits pour la saison 2026/2027.</p></div>
@@ -88,7 +88,9 @@ export default async function TeamsPage() {
               ))}
             </div>
           </section>
-        ) : !ranking ? (
+        ) : null}
+
+        {!ranking ? (
           <section className="teams-empty">
             Le classement des équipes est momentanément indisponible.
           </section>
