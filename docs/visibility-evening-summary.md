@@ -10,6 +10,20 @@ La dernière rencontre interclubs publiée, détaillée et vérifiée de la sais
 
 L’application n’envoie pas de message directement et ne prétend pas connaître l’état de publication. Aucune intégration non officielle de WhatsApp Web n’est utilisée.
 
+## Préparation automatique les soirs de championnat
+
+Le service Compose `interclub-analysis` vérifie le calendrier du site au début de chaque minute. Pour chaque événement `CHAMPIONSHIP` non annulé, il déclenche la préparation à **23 h 50, heure de La Réunion (UTC+4)**, à la date effectivement enregistrée au calendrier. Il relit ce calendrier à chaque passage ; un report ou une annulation invalide une analyse préparée pour l’ancienne date.
+
+Il collecte directement le lien Nakka de la rencontre, dans la ligue de la saison active. Aucun clic d’import n’est nécessaire pour obtenir le résumé dans Visibilité. Il exige 16 simples et 4 doubles terminés, des legs complets, et la concordance des statistiques individuelles et collectives avec les volées. Les identifiants de participants propres à la rencontre sont utilisés ; un identifiant canonique Nakka erroné ne fusionne pas deux joueurs. Les faits viennent de Nakka et le lien de détail conduit à cette source.
+
+Si le match est encore en cours, la source indisponible ou incohérente, nouvelle tentative **toutes les 5 minutes pendant 48 heures**, y compris après minuit. Un redémarrage reprend les tentatives en attente. Au-delà de 48 heures, Visibilité indique qu’un contrôle est nécessaire. 23 h 50 est l’heure de déclenchement : le texte est disponible après la collecte et, si configurée, la réponse de l’IA.
+
+Les analyses prêtes sont conservées dans `/app/data/interclub_analysis.json`, sur le volume persistant existant. Un verrou entre processus évite deux traitements simultanés. Une analyse prête est réutilisée ; si seule l’IA est indisponible, le résumé statistique est conservé et la sélection IA est retentée sans recollecter le match. Le statut visible dans Visibilité inclut l’activité du service, la prochaine soirée et les rencontres en attente.
+
+Cette préparation concerne les analyses privées et les textes de communication. Elle ne modifie pas les tables officielles de championnat, les classements ni les identités, et ne publie aucun message sur un réseau social. Les procédures de publication des statistiques restent distinctes. Aucune migration Supabase n’est nécessaire.
+
+Déploiement : reconstruire `backend frontend interclub-analysis` et démarrer les trois services. Le service de nuit nécessite une clé OpenAI dans le même fichier d’environnement que le backend pour produire la sélection IA ; sans clé, il prépare une analyse statistique explicite. Après modification de cette clé, recréer **backend et interclub-analysis**. Le bouton de partage WhatsApp conserve son fonctionnement.
+
 ## Données et IA
 
 Les données proviennent exclusivement de résultats interclubs publiés, vérifiés et détaillés. Les matchs doivent concorder avec le score collectif ; chaque leg doit être valide et avoir tous ses participants. Les moyennes sont calculées avec la somme des scores et des fléchettes, sans moyenne de moyennes. Les joueurs sans participation ne sont pas inclus.
