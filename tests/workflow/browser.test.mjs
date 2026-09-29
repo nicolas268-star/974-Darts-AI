@@ -3,6 +3,7 @@ import {createRequire} from 'node:module';
 import {mkdir} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import {resolve,dirname} from 'node:path';
+import {testVisibility} from './visibility.browser.mjs';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'../..');
 const output=resolve(root,'docs/ranking-workflow-preview');
 const sharp=createRequire(resolve(root,'app/frontend/package.json'))('sharp');
@@ -78,4 +79,5 @@ try{
  await ds.getByRole('button',{name:'Open Club Double · Démonstration',exact:true}).click();
  await expect(ds.getByRole('heading',{name:'Open Club Double · Démonstration'})).toBeVisible();
  console.log('PASS: browser admin → correction DS → v3 → approval DS → final admin → publication; direct permissions, CSRF, public double points and mobile layout.');
+ await testVisibility(admin,ds,screenshot);
 }catch(e){console.error(e.message);console.error('Admin URL:',admin.url(),'DS URL:',ds.url());await screenshot(admin,'failure.png');process.exitCode=1;}finally{await browser.close()}
