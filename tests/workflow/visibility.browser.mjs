@@ -44,8 +44,12 @@ export async function testVisibility(admin, director, screenshot) {
   expect(await admin.evaluate(()=>window.__visibilityShares.at(-1))).toBe('https://www.facebook.com/');
   await screenshot(admin,'06-visibilite.png');
   await admin.setViewportSize({width:390,height:844});
-  expect(await admin.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
   await screenshot(admin,'07-visibilite-mobile.png');
+  const overflow=await admin.evaluate(()=>({
+    width:window.innerWidth,scrollWidth:document.documentElement.scrollWidth,
+    elements:[...document.querySelectorAll('main *')].filter(el=>el.getBoundingClientRect().right>window.innerWidth).map(el=>({tag:el.tagName,className:el.className})),
+  }));
+  expect(overflow.scrollWidth,JSON.stringify(overflow)).toBeLessThanOrEqual(overflow.width);
   // APIRequestContext bypasses the browser route mocks, exercising the real proxy guards.
   const denied=await director.request.get(origin+'/api/admin/visibility/evenings');
   expect(denied.status()).toBe(403);
