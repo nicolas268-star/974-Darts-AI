@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Sidebar } from "@/components/Sidebar";
-import { sameTeam } from "@/lib/team-identity";
+import { officialTeamRoster, teamPlayers } from "@/lib/team-roster";
 import { getTeamTheme } from "@/lib/team-themes";
 import type { PlayerOverview } from "@/lib/types/sprint4";
 import type { ChampionshipHub, CompetitionCatalog } from "@/lib/types/sprint14";
@@ -97,7 +97,8 @@ export default async function TeamsPage() {
         ) : (
           <section className="teams-grid">
             {standings.map((team) => {
-              const roster = players.filter((player) => sameTeam(player.team, team.name));
+              const roster = teamPlayers(players, team.name, activeSeason?.year);
+              const rosterCount = officialTeamRoster(team.name, activeSeason?.year)?.players.length ?? roster.length;
               const theme = getTeamTheme(team.name);
 
               return (
@@ -108,7 +109,7 @@ export default async function TeamsPage() {
                 >
                   <div className="team-card-top">
                     <span>#{team.rank}</span>
-                    <small>{roster.length} joueur(s)</small>
+                    <small>{rosterCount} joueur(s)</small>
                   </div>
 
                   <h2>{team.name}</h2>

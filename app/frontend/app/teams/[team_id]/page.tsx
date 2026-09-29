@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Sidebar } from "@/components/Sidebar";
-import { sameTeam } from "@/lib/team-identity";
+import { officialTeamRoster, teamPlayers } from "@/lib/team-roster";
 import { getTeamTheme } from "@/lib/team-themes";
 import type { PlayerOverview } from "@/lib/types/sprint4";
 import type { ChampionshipHub, CompetitionCatalog } from "@/lib/types/sprint14";
@@ -36,9 +36,10 @@ async function getRanking(): Promise<ChampionshipHub | null> {
   }
 }
 
-async function getPlayers(): Promise<PlayerOverview[]> {
+async function getPlayers(year?: number): Promise<PlayerOverview[]> {
   try {
-    const response = await fetch(`${backend}/api/v1/players`, {
+    const query = year ? `?season_id=${year}` : "";
+    const response = await fetch(`${backend}/api/v1/players${query}`, {
       cache: "no-store",
       signal: AbortSignal.timeout(5000),
     });
@@ -96,9 +97,8 @@ export default async function TeamDetailPage({
   params: Promise<{ team_id: string }>;
 }) {
   const { team_id } = await params;
-  const [ranking, players, history] = await Promise.all([
+  const [ranking, history] = await Promise.all([
     getRanking(),
-    getPlayers(),
     getTeamHistory(team_id),
   ]);
   const team = ranking?.standings.find((item) => item.team_id === team_id);
@@ -107,9 +107,11 @@ export default async function TeamDetailPage({
 
   const theme = getTeamTheme(team.name);
 
-  const roster = players
-    .filter((player) => sameTeam(player.team, team.name))
+  const seasonYear = ranking?.championship.year;
+  const players = await getPlayers(seasonYear);
+  const roster = teamPlayers(players, team.name, seasonYear)
     .sort((a, b) => (b.average_3_darts ?? 0) - (a.average_3_darts ?? 0));
+  const rosterCount = officialTeamRoster(team.name, seasonYear)?.players.length ?? roster.length;
 
   const average = roster.length
     ? roster
@@ -198,10 +200,10 @@ export default async function TeamDetailPage({
           </article>
           <article>
             <span>Effectif</span>
-            <strong>{roster.length}</strong>
+            <strong>{rosterCount}</strong>
           </article>
           <article>
-            <span>Moyenne équipe</span>
+            <span>Moyenne des joueurs</span>
             <strong>{number(average)}</strong>
           </article>
         </section>
@@ -298,13 +300,13 @@ export default async function TeamDetailPage({
                 <span>EFFECTIF</span>
                 <h2>Joueurs de l’équipe</h2>
               </div>
-              <small>{roster.length} joueur(s)</small>
+              <small>{rosterCount} joueur(s)</small>
             </div>
 
             <div className="team-roster">
               {roster.map((player) => (
                 <Link
-                  href={`/players/${player.player_id}`}
+                  href={`/players/${player.player_id}${seasonYear ? `?season=${seasonYear}` : ""}`}
                   key={player.player_id}
                 >
                   <div className="team-player-avatar">

@@ -25,7 +25,7 @@ const normalize = (value: string) =>
 export function getTeamTheme(teamName: string): TeamTheme {
   const name = normalize(teamName);
 
-  if (name.includes("kazadarts") || name.includes("kazadart")) {
+  if (name.includes("kazadarts") || name.includes("kazadart") || name.includes("kaz a darts")) {
     const isB = /(?:^|\s)b(?:\s|$)/.test(name);
     return {
       key: isB ? "kazadarts-b" : "kazadarts-a",
