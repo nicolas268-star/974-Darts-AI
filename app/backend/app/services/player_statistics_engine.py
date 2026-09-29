@@ -406,6 +406,29 @@ class PlayerStatisticsEngine:
         for row in dataset.stats:
             self.stats_by_leg[str(row.get("leg_id"))].append(row)
 
+        # A player's global team can belong to an earlier season. Resolve
+        # affiliations from the teams actually represented in published play.
+        self.played_team_by_season: dict[tuple[str, str], tuple[tuple, str]] = {}
+        affiliation_rows = []
+        for row in dataset.stats:
+            leg = self.leg_by_id.get(str(row.get("leg_id")), {})
+            if leg.get("status") != "VALID":
+                continue
+            match = self.match_by_id.get(str(leg.get("match_id")), {})
+            encounter = self.encounter_by_id.get(str(match.get("encounter_id")), {})
+            affiliation_rows.append((row, encounter.get("round_id")))
+        affiliation_rows.extend((row, row.get("round_id")) for row in dataset.daily_stats)
+        for row, round_id in affiliation_rows:
+            round_row = self.round_by_id.get(str(round_id), {})
+            team_id = str(row.get("team_id") or "")
+            if not round_row.get("published") or team_id not in self.team_by_id:
+                continue
+            key = (self._canonical_id(str(row.get("player_id"))), str(round_row.get("season_id")))
+            order = (str(round_row.get("played_on") or ""), _round_number(round_row.get("code")))
+            previous = self.played_team_by_season.get(key)
+            if previous is None or order > previous[0]:
+                self.played_team_by_season[key] = (order, team_id)
+
     @classmethod
     def from_db(cls, db: Client) -> "PlayerStatisticsEngine":
         return cls(PlayerStatisticsDataset.load(db))
@@ -580,7 +603,11 @@ class PlayerStatisticsEngine:
         player: dict[str, Any],
         season: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        raw_team = self.team_by_id.get(str(player.get("team_id")))
+        affiliation = self.played_team_by_season.get(
+            (self._canonical_id(str(player.get("id"))), str((season or {}).get("id")))
+        )
+        team_id = affiliation[1] if affiliation else str(player.get("team_id"))
+        raw_team = self.team_by_id.get(team_id)
         team = self._canonical_team(raw_team, self._season_year(season))
         club = self.club_by_id.get(str(team.get("club_id"))) if team else None
         return {
@@ -836,7 +863,10 @@ class PlayerStatisticsEngine:
                 match = matches[match_id]
                 encounter = encounters[str(match.get("encounter_id"))]
                 rr = rounds[str(encounter.get("round_id"))]
-                player_team_id = str(player.get("team_id"))
+                player_team_id = str(next(
+                    (row["team_id"] for row in group if row.get("team_id")),
+                    player.get("team_id"),
+                ))
                 team_1 = str(match.get("team_1_id")) if match.get("team_1_id") else None
                 team_2 = str(match.get("team_2_id")) if match.get("team_2_id") else None
                 opponent = team_2 if team_1 == player_team_id else team_1
