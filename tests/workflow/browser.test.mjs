@@ -6,6 +6,9 @@ import {resolve,dirname} from 'node:path';
 import {testVisibility} from './visibility.browser.mjs';
 import {testMobileStatistics} from './mobile-statistics.browser.mjs';
 import {testChampionshipCharts} from './championship-charts.browser.mjs';
+import {testPlayUniverse} from './play-universe.browser.mjs';
+import {testPlayPersistence} from './play-persistence.browser.mjs';
+import {testPlaySync} from './play-sync.browser.mjs';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'../..');
 const output=resolve(root,'docs/ranking-workflow-preview');
 const sharp=createRequire(resolve(root,'app/frontend/package.json'))('sharp');
@@ -13,6 +16,7 @@ await mkdir(output,{recursive:true});
 const browser=await chromium.launch({headless:true,args:['--no-sandbox']});
 const adminContext=await browser.newContext({bypassCSP:true,viewport:{width:1440,height:1100}});
 const dsContext=await browser.newContext({bypassCSP:true,viewport:{width:1440,height:1100}});
+adminContext.setDefaultTimeout(30000);dsContext.setDefaultTimeout(30000);
 const admin=await adminContext.newPage(),ds=await dsContext.newPage();
 async function screenshot(page,name,options={fullPage:true}){await page.addStyleTag({content:'nextjs-portal{display:none!important}'});await sharp(await page.screenshot(options)).webp({lossless:true}).toFile(output+'/'+name.replace(/\.png$/,'.webp'));}
 async function login(page,role){
@@ -24,6 +28,9 @@ async function login(page,role){
 }
 try{
  await login(admin,'admin');
+ await testPlayUniverse(admin,screenshot);
+ await testPlayPersistence(admin,screenshot);
+ await testPlaySync(browser,admin,screenshot);
  await admin.goto('http://127.0.0.1:3008/admin/classement-individuel');
  await expect(admin.getByText('Open Club Double · Démonstration',{exact:true})).toBeVisible({timeout:30000});
  await screenshot(admin,'01-administration.png');

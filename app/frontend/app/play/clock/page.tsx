@@ -6,4 +6,4 @@ import "../play-game-shared.css";
 import "../bob27/bob27.css";
 export const dynamic="force-dynamic";
 export const metadata:Metadata={title:"Tour de l’horloge",description:"Around the Clock dans 974Darts Play.",robots:{index:false,follow:false}};
-export default async function ClockPage(){const auth=await requireUser();return <div className="dashboard"><Sidebar/><main className="main practice-page"><ClockGame currentDisplayName={auth.profile?.display_name??auth.user?.email??"Joueur 1"}/></main></div>;}
+export default async function ClockPage({ searchParams }: { searchParams: Promise<{ sync?: string }> }){const sync=(await searchParams).sync==="1";const auth=await requireUser("/play/clock"+(sync?"?sync=1":""));return <div className="dashboard"><Sidebar/><main className="main practice-page"><ClockGame key={auth.user!.id} userId={auth.user!.id} currentDisplayName={auth.profile?.display_name??auth.user?.email??"Joueur 1"}/></main></div>;}

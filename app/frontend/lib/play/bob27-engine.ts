@@ -13,11 +13,11 @@ function cloneState(s:Bob27State):Bob27State{return {...s,participants:s.partici
 function eligibleSides(state:Bob27State){return new Set(state.sides.map((side,index)=>!side.finished?index:-1).filter(index=>index>=0));}
 function finishIfDone(state:Bob27State){if(!state.sides.every(side=>side.finished))return;state.finished=true;const best=Math.max(...state.sides.map(side=>side.score));state.winnerSides=state.sides.map((side,index)=>side.score===best?index:-1).filter(index=>index>=0);}
 export function applyBob27Dart(current:Bob27State,value:number,multiplier:Bob27Multiplier){
-  if(current.finished)return current;const state=cloneState(current);const pi=state.activeParticipant;const p=state.participants[pi];const side=state.sides[p.side];if(side.finished)return state;
+  if(current.finished || current.dartsInVisit>=3)return current;const state=cloneState(current);const pi=state.activeParticipant;const p=state.participants[pi];const side=state.sides[p.side];if(side.finished)return state;
   const hit=value===side.target&&multiplier===2;let result=hit?`D${side.target} touché · +${side.target*2}`:`Cible D${side.target} manquée`;
   if(hit){side.score+=side.target*2;side.visitHits+=1;}state.dartsInVisit+=1;
   const dart=value===0?"MISS":`${multiplier===1?"S":multiplier===2?"D":"T"}${value}`;
-  if(state.dartsInVisit>=3){if(side.visitHits===0){side.score-=side.target*2;result+=` · aucun double : -${side.target*2}`;}else result+=` · ${side.visitHits} hit${side.visitHits>1?"s":""}`;side.target+=1;side.visitHits=0;state.dartsInVisit=0;if(side.target>20){side.finished=true;side.target=20;result+=" · parcours terminé";}finishIfDone(state);if(!state.finished)state.activeParticipant=nextParticipantIndex(pi,state.participants,eligibleSides(state));}
+  if(state.dartsInVisit>=3){if(side.visitHits===0){side.score-=side.target*2;result+=` · aucun double : -${side.target*2}`;}else result+=` · ${side.visitHits} hit${side.visitHits>1?"s":""}`;side.target+=1;side.visitHits=0;if(side.target>20){side.finished=true;side.target=20;result+=" · parcours terminé";}finishIfDone(state);}
   state.log.unshift({id:`${Date.now()}-${Math.random()}`,participant:pi,dart,result});state.log=state.log.slice(0,24);return state;
 }
-export function endBob27Visit(current:Bob27State){if(current.finished)return current;let state=cloneState(current);const p=state.participants[state.activeParticipant];const side=state.sides[p.side];const remaining=Math.max(0,3-state.dartsInVisit);for(let i=0;i<remaining;i+=1)state=applyBob27Dart(state,0,1);return state;}
+export function endBob27Visit(current:Bob27State){if(current.finished || current.dartsInVisit!==3)return current;const state=cloneState(current);state.activeParticipant=nextParticipantIndex(state.activeParticipant,state.participants,eligibleSides(state));state.dartsInVisit=0;return state;}

@@ -7,3 +7,10 @@ insert into public.profiles values('00000000-0000-0000-0000-000000000001','ADMIN
 grant select on public.profiles to service_role;
 
 create table public.player_identities(id uuid primary key,canonical_display_name text,status text);
+
+-- Supabase Auth primitives for the isolated game-sync tests and fixture.
+create table auth.users(id uuid primary key);
+insert into auth.users select user_id from public.profiles;
+create function auth.uid() returns uuid language sql stable as
+  $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
+grant usage on schema auth to authenticated;

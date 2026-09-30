@@ -1,15 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { ChevronDown, Crosshair, Eye, Gauge, Hash, LogIn, Play, Plus, RotateCcw, Save, Target, Trophy, Undo2, Users, Zap } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ChevronDown, Crosshair, Eye, Gauge, Hash, LogIn, Play, Plus, RotateCcw, Target, Trophy, Undo2, Users, Zap } from "lucide-react";
+import { DartEntry } from "@/components/play/DartEntry";
+import { VisitProgress } from "@/components/play/VisitProgress";
+import { parseVisitScore, isPossibleVisitScore, isPossibleDoubleCheckout } from "@/lib/play/dart-input";
 import { createClient } from "@/lib/supabase/client";
 import { PLAY_FORMATS, participantCount, sideForSeat, type PlayFormat } from "@/lib/play/format";
 import {
-  checkoutRoute,
   checkoutSuggestions,
   evaluateDarts,
   evaluateQuickScore,
-  makeDart,
   type DartThrow,
   type InRule,
   type InputMode,
@@ -74,7 +75,6 @@ type Props = { currentPlayerId: string | null; currentDisplayName: string };
 
 const scoreChoices = [301, 501, 701];
 const legChoices = [1, 3, 5, 7, 9];
-const segmentNumbers = Array.from({ length: 20 }, (_, index) => index + 1);
 
 function averageFromPlayers(playerIds: string[], visits: VisitRow[]) {
   const rows = visits.filter((visit) => playerIds.includes(visit.game_player_id));
@@ -122,11 +122,12 @@ export function X01Game({ currentPlayerId, currentDisplayName }: Props) {
   const [starterPlayerId, setStarterPlayerId] = useState<string | null>(null);
   const [visits, setVisits] = useState<VisitRow[]>([]);
 
-  const [quickScore, setQuickScore] = useState(60);
+  const [quickScore, setQuickScore] = useState("");
+  const quickInput = useRef<HTMLInputElement>(null);
+  const saveInFlight = useRef(false);
   const [quickDarts, setQuickDarts] = useState(3);
   const [quickDoubleIn, setQuickDoubleIn] = useState(false);
   const [quickCheckoutDouble, setQuickCheckoutDouble] = useState(false);
-  const [multiplier, setMultiplier] = useState<1 | 2 | 3>(1);
   const [draftDarts, setDraftDarts] = useState<DartThrow[]>([]);
 
   const selectedStart = customEnabled ? Math.max(2, Math.min(5001, customScore)) : startingScore;
@@ -141,7 +142,6 @@ export function X01Game({ currentPlayerId, currentDisplayName }: Props) {
   }, [game, livePlayers, starterPlayerId]);
 
   const activePlayer = livePlayers[activePlayerIndex] ?? null;
-  const checkout = activePlayer && game ? checkoutRoute(activePlayer.remaining, game.out_rule) : null;
   const finishSuggestions = activePlayer && game ? checkoutSuggestions(activePlayer.remaining, game.out_rule, 3) : [];
   const sideSummaries = useMemo(() => {
     if (!game) return [] as Array<{ side: number; name: string; subtitle: string; remaining: number; legs: number; average: string; opened: boolean; isActive: boolean; total: number; }>;
@@ -164,8 +164,6 @@ export function X01Game({ currentPlayerId, currentDisplayName }: Props) {
       };
     });
   }, [activePlayer, game, livePlayers, visits]);
-  const leftSummaries = sideSummaries.slice(0, Math.ceil(sideSummaries.length / 2));
-  const rightSummaries = sideSummaries.slice(Math.ceil(sideSummaries.length / 2));
   const visitTableRows = useMemo(() => {
     const playerCount = Math.max(1, livePlayers.length);
     const rows = new Map<number, Record<string, VisitRow>>();
@@ -189,6 +187,16 @@ export function X01Game({ currentPlayerId, currentDisplayName }: Props) {
     });
   }, [activePlayer, draftDarts, game]);
 
+  const quickValue = parseVisitScore(quickScore);
+  const quickIsFinish = quickValue !== null && activePlayer?.remaining === quickValue;
+  const dartVisitComplete = draftDarts.length === 3 || Boolean(dartPreview?.bust || dartPreview?.checkout);
+
+  useEffect(() => {
+    if (!saving && !isReadOnly && game?.status === "IN_PROGRESS" && window.matchMedia("(pointer: fine)").matches) {
+      quickInput.current?.focus({ preventScroll: true });
+    }
+  }, [saving, isReadOnly, game?.status, game?.current_turn, game?.current_leg_number, game?.input_mode]);
+
   const refreshActiveSessions = useCallback(async () => {
     if (!supabase) return;
     const { data, error: sessionsError } = await supabase.rpc("list_my_live_game_sessions");
@@ -196,7 +204,7 @@ export function X01Game({ currentPlayerId, currentDisplayName }: Props) {
     setActiveSessions((data ?? []) as ActiveSession[]);
   }, [supabase]);
 
-  const hydrateSession = useCallback(async (rawCode: string) => {
+  const hydrateSession = useCallback(async (rawCode: string, stillActive: () => boolean = () => true) => {
     if (!supabase) return false;
     const sessionCode = rawCode.trim().toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6);
     if (sessionCode.length !== 6) return false;
@@ -205,7 +213,6 @@ export function X01Game({ currentPlayerId, currentDisplayName }: Props) {
       .from("live_games")
       .select("id,session_code,starting_score,in_rule,out_rule,input_mode,play_format,best_of_legs,status,current_leg_number,current_turn")
       .eq("session_code", sessionCode)
-      .eq("status", "IN_PROGRESS")
       .maybeSingle();
 
     if (gameError) throw gameError;
@@ -213,7 +220,7 @@ export function X01Game({ currentPlayerId, currentDisplayName }: Props) {
 
     const [{ data: playerRows, error: playerError }, { data: legRow, error: legError }] = await Promise.all([
       supabase.from("live_game_players").select("id,player_id,display_name,seat,side,legs_won,sets_won").eq("game_id", gameRow.id).order("seat"),
-      supabase.from("live_legs").select("id,starting_game_player_id").eq("game_id", gameRow.id).eq("leg_number", gameRow.current_leg_number).eq("status", "IN_PROGRESS").maybeSingle(),
+      supabase.from("live_legs").select("id,starting_game_player_id").eq("game_id", gameRow.id).eq("leg_number", gameRow.current_leg_number).maybeSingle(),
     ]);
     if (playerError) throw playerError;
     if (legError) throw legError;
@@ -239,6 +246,7 @@ export function X01Game({ currentPlayerId, currentDisplayName }: Props) {
       } as LivePlayer;
     });
 
+    if (!stillActive()) return false;
     setGame(typedGame);
     setLivePlayers(reconstructed);
     setLegId(legRow.id);
@@ -250,9 +258,9 @@ export function X01Game({ currentPlayerId, currentDisplayName }: Props) {
     return true;
   }, [supabase]);
 
-  function writeSessionToUrl(code?: string) {
+  function writeSessionToUrl(code?: string, screen = false) {
     if (typeof window === "undefined") return;
-    const nextUrl = code ? `/play/501?session=${encodeURIComponent(code)}` : "/play/501";
+    const nextUrl = code ? `/play/501?session=${encodeURIComponent(code)}${screen ? "&view=screen" : ""}` : "/play/501";
     window.history.replaceState({}, "", nextUrl);
   }
 
@@ -271,9 +279,10 @@ export function X01Game({ currentPlayerId, currentDisplayName }: Props) {
       const resolvedRole = ((joinRows as Array<{ role?: SessionRole }> | null)?.[0]?.role ?? requestedRole) as SessionRole;
       const loaded = await hydrateSession(code);
       if (!loaded) throw new Error("Session introuvable ou déjà terminée.");
-      setSessionRole(resolvedRole);
+      // A host account can deliberately use this browser as a read-only display.
+      setSessionRole(requestedRole === "SPECTATOR" ? "SPECTATOR" : resolvedRole);
       setPendingSessionCode(null);
-      writeSessionToUrl(code);
+      writeSessionToUrl(code, requestedRole === "SPECTATOR");
       await refreshActiveSessions();
       return true;
     } catch (reason) {
@@ -296,7 +305,11 @@ export function X01Game({ currentPlayerId, currentDisplayName }: Props) {
         setPlayers((data ?? []) as PlayerOption[]);
         await refreshActiveSessions();
         const initialCode = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("session") : null;
-        if (initialCode && active) setPendingSessionCode(initialCode.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6));
+        if (typeof window !== "undefined" && window.location.hash === "#sessions" && active) setSessionsExpanded(true);
+        if (initialCode && active) {
+          if (new URLSearchParams(window.location.search).get("view") === "screen") await openSession(initialCode, "SPECTATOR");
+          else setPendingSessionCode(initialCode.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6));
+        }
       } catch (reason) {
         if (active) setError(reason instanceof Error ? reason.message : "Chargement impossible.");
       } finally {
@@ -310,8 +323,17 @@ export function X01Game({ currentPlayerId, currentDisplayName }: Props) {
   useEffect(() => {
     if (!game || !isReadOnly) return;
     const code = game.session_code;
-    const timer = window.setInterval(() => { void hydrateSession(code); }, 2000);
-    return () => window.clearInterval(timer);
+    let active = true, reading = false;
+    const refresh = async () => {
+      if (reading || document.visibilityState !== "visible") return;
+      reading = true;
+      try { if (await hydrateSession(code, () => active)) { if (active) setError(null); } }
+      catch { if (active) setError("Connexion interrompue. Le dernier score affiché est conservé ; nouvelle tentative automatique."); }
+      finally { reading = false; }
+    };
+    const timer = window.setInterval(() => { void refresh(); }, 2000);
+    window.addEventListener("online", refresh); window.addEventListener("focus", refresh);
+    return () => { active = false; window.clearInterval(timer); window.removeEventListener("online", refresh); window.removeEventListener("focus", refresh); };
   }, [game?.session_code, hydrateSession, isReadOnly]);
 
   function setupName(playerId: string, guestName: string) {
@@ -367,6 +389,10 @@ export function X01Game({ currentPlayerId, currentDisplayName }: Props) {
       setStarterPlayerId(newLeg.starting_game_player_id);
       setVisits([]);
       setDraftDarts([]);
+      setQuickScore("");
+      setQuickDarts(3);
+      setQuickDoubleIn(false);
+      setQuickCheckoutDouble(false);
       setSessionCodeInput(gameRow.session_code);
       writeSessionToUrl(gameRow.session_code);
       await refreshActiveSessions();
@@ -377,7 +403,7 @@ export function X01Game({ currentPlayerId, currentDisplayName }: Props) {
   }
 
   async function changeMode(nextMode: InputMode) {
-    if (isReadOnly) return;
+    if (isReadOnly || saving || draftDarts.length > 0 || quickScore.trim()) return;
     setInputMode(nextMode);
     setDraftDarts([]);
     if (!game || !supabase) return;
@@ -451,7 +477,8 @@ export function X01Game({ currentPlayerId, currentDisplayName }: Props) {
   }
 
   async function saveVisit(result: VisitResult, darts: DartThrow[] = []) {
-    if (!supabase || !game || !legId || !activePlayer || saving || isReadOnly) return;
+    if (!supabase || !game || !legId || !activePlayer || saving || saveInFlight.current || isReadOnly || game.status !== "IN_PROGRESS") return;
+    saveInFlight.current = true;
     setSaving(true); setError(null);
     try {
       const visitPayload = {
@@ -498,6 +525,8 @@ export function X01Game({ currentPlayerId, currentDisplayName }: Props) {
       } : player));
       setMessage(result.message);
       setDraftDarts([]);
+      setQuickScore("");
+      setQuickDarts(3);
       setQuickDoubleIn(false);
       setQuickCheckoutDouble(false);
 
@@ -511,14 +540,27 @@ export function X01Game({ currentPlayerId, currentDisplayName }: Props) {
       }
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Enregistrement impossible.");
-    } finally { setSaving(false); }
+    } finally { saveInFlight.current = false; setSaving(false); }
   }
 
-  async function submitQuick() {
-    if (!game || !activePlayer) return;
+  async function submitQuick(forceBust = false) {
+    if (!game || !activePlayer || saving || isReadOnly) return;
+    const score = parseVisitScore(quickScore);
+    if (score === null || !isPossibleVisitScore(score, quickDarts)) {
+      setError("Saisis un score réalisable avec le nombre de fléchettes indiqué (0 à 180).");
+      return;
+    }
+    if (!forceBust && game.out_rule === "DOUBLE_OUT" && score === activePlayer.remaining && !isPossibleDoubleCheckout(score, quickDarts)) {
+      setError("Cette sortie n’est pas réalisable sur un double avec ce nombre de fléchettes.");
+      return;
+    }
+    if (!forceBust && game.out_rule === "DOUBLE_OUT" && score === activePlayer.remaining && !quickCheckoutDouble) {
+      setError("Confirme le double ou Bull final pour valider la sortie, ou corrige le score.");
+      return;
+    }
     const result = evaluateQuickScore({
       scoreBefore: activePlayer.remaining,
-      score: quickScore,
+      score,
       dartsThrown: quickDarts,
       opened: activePlayer.opened,
       inRule: game.in_rule,
@@ -526,16 +568,31 @@ export function X01Game({ currentPlayerId, currentDisplayName }: Props) {
       opensScoringConfirmed: quickDoubleIn,
       checkoutDoubleConfirmed: quickCheckoutDouble,
     });
+    if (forceBust && !(score > activePlayer.remaining || (game.out_rule === "DOUBLE_OUT" && score >= activePlayer.remaining - 1))) {
+      setError("Ce score ne produit pas de bust. Corrige le score tenté ou valide la volée normalement.");
+      return;
+    }
+    if (forceBust) {
+      result.bust = true;
+      result.checkout = false;
+      result.creditedScore = 0;
+      result.scoreAfter = activePlayer.remaining;
+      result.message = "BUST — le score revient au début de la volée.";
+    }
+    if (quickDarts < 3 && !result.checkout && !result.bust) {
+      setError("Une volée non terminée doit contenir trois fléchettes. Utilise le mode fléchette pour une saisie progressive.");
+      return;
+    }
     await saveVisit(result);
   }
 
   function addDart(dart: DartThrow) {
-    if (draftDarts.length >= 3 || dartPreview?.bust || dartPreview?.checkout) return;
+    if (saving || isReadOnly || draftDarts.length >= 3 || dartPreview?.bust || dartPreview?.checkout) return;
     setDraftDarts((current) => [...current, dart]);
   }
 
   async function submitDarts() {
-    if (!dartPreview || draftDarts.length === 0) return;
+    if (!dartPreview || !dartVisitComplete) return;
     await saveVisit(dartPreview, draftDarts);
   }
 
@@ -578,7 +635,7 @@ export function X01Game({ currentPlayerId, currentDisplayName }: Props) {
       setInputMode(last.input_mode);
       setGame((current) => current ? { ...current, input_mode: last.input_mode, current_turn: nextTurn } : current);
       if (last.input_mode === "QUICK_SCORE") {
-        setQuickScore(last.attempted_score ?? last.score_scored);
+        setQuickScore(String(last.attempted_score ?? last.score_scored));
         setQuickDarts(last.darts_thrown);
         setQuickDoubleIn(last.opens_scoring);
         setQuickCheckoutDouble(last.checkout_verified);
@@ -600,6 +657,10 @@ export function X01Game({ currentPlayerId, currentDisplayName }: Props) {
     setStarterPlayerId(null);
     setDraftDarts([]);
     setSessionCodeInput("");
+    setQuickScore("");
+    setQuickDarts(3);
+    setQuickDoubleIn(false);
+    setQuickCheckoutDouble(false);
     setSessionRole("HOST");
     writeSessionToUrl();
     try { await refreshActiveSessions(); } catch { /* la liste se rechargera au prochain accès */ }
@@ -625,7 +686,7 @@ export function X01Game({ currentPlayerId, currentDisplayName }: Props) {
   if (!game) {
     return <div className="x01-shell">
       <section className="x01-hero">
-        <div><span className="x01-kicker">974Darts Play · V19 Sessions</span><h1>Jouer au 501</h1><p>Chaque partie possède maintenant sa propre session. Plusieurs cibles et plusieurs téléphones peuvent jouer en parallèle sans se mélanger.</p></div>
+        <div><span className="x01-kicker">974Darts · Univers Jeux</span><h1>Jouer au 501</h1><p>Chaque partie possède maintenant sa propre session. Plusieurs cibles et plusieurs téléphones peuvent jouer en parallèle sans se mélanger.</p></div>
         <div className="x01-hero-icon"><Target /></div>
       </section>
 
@@ -641,7 +702,7 @@ export function X01Game({ currentPlayerId, currentDisplayName }: Props) {
           </div>
         </article>
 
-        <article className={`x01-session-list-card ${sessionsExpanded ? "expanded" : "collapsed"}`}>
+        <article id="sessions" className={`x01-session-list-card ${sessionsExpanded ? "expanded" : "collapsed"}`}>
           <button className="x01-session-toggle" type="button" onClick={() => setSessionsExpanded((current) => !current)} aria-expanded={sessionsExpanded}>
             <Users /><div><span>Mes sessions</span><h2>Parties en cours</h2></div><b>{activeSessions.length}</b><ChevronDown className={sessionsExpanded ? "open" : ""} />
           </button>
@@ -684,7 +745,7 @@ export function X01Game({ currentPlayerId, currentDisplayName }: Props) {
             <button type="button" className={inputMode === "QUICK_SCORE" ? "active" : ""} onClick={() => setInputMode("QUICK_SCORE")}><Zap /><strong>Score par volée</strong><small>Ex. 60, 85, 100…</small></button>
             <button type="button" className={inputMode === "DART_BY_DART" ? "active" : ""} onClick={() => setInputMode("DART_BY_DART")}><Target /><strong>Flèche par flèche</strong><small>S20 · T20 · D10…</small></button>
           </div>
-          <p className="x01-info">Le mode peut être changé pendant la partie. Une volée garde toujours son mode d’origine dans Supabase.</p>
+          <p className="x01-info">Le mode peut être changé entre deux volées. Chaque volée conserve son mode de saisie dans l’historique.</p>
         </article>
 
         <article className="x01-panel x01-players-setup">
@@ -701,112 +762,65 @@ export function X01Game({ currentPlayerId, currentDisplayName }: Props) {
     </div>;
   }
 
-  return <div className="x01-shell">
+  return <div className="x01-shell x01-universe">
     <section className="x01-matchbar">
-      <div><span>974Darts Play · Session {game.session_code}</span><strong>{game.starting_score} · {game.play_format === "TEAMS_2V2" ? "2 vs 2" : `${livePlayers.length} joueur${livePlayers.length > 1 ? "s" : ""}`} · {game.in_rule === "DOUBLE_IN" ? "Double In" : "Straight In"} · {game.out_rule === "DOUBLE_OUT" ? "Double Out" : "Straight Out"}</strong></div>
-      <div className="x01-session-badge"><Hash />{game.session_code}</div><div className={`x01-role-badge ${isReadOnly ? "spectator" : "player"}`}>{isReadOnly ? <><Eye />Observateur</> : <><Target />Joueur</>}</div>
+      <div><span>SESSION {game.session_code}</span><strong>{game.starting_score} · {game.play_format === "TEAMS_2V2" ? "2 vs 2" : livePlayers.length + " joueur(s)"} · {game.in_rule === "DOUBLE_IN" ? "Double In" : "Straight In"} · {game.out_rule === "DOUBLE_OUT" ? "Double Out" : "Straight Out"}</strong></div>
       <div className="x01-leg-pill">LEG {game.current_leg_number} · BO{game.best_of_legs}</div>
-      <div className="x01-match-actions"><button type="button" className="x01-leave" onClick={() => void leaveSession()} disabled={saving}><Users />Mes parties</button>{!isReadOnly ? <button type="button" className="x01-cancel" onClick={cancelGame} disabled={saving}><RotateCcw />Annuler</button> : null}</div>
+      <div className="x01-match-actions"><button type="button" onClick={() => void leaveSession()} disabled={saving}><Users />Mes parties</button>{!isReadOnly ? <button type="button" onClick={cancelGame} disabled={saving}><RotateCcw />Annuler la partie</button> : null}</div>
     </section>
 
-    {error && <div className="x01-alert error">{error}</div>}
-    <div className={`x01-alert ${message.includes("BUST") ? "bust" : message.includes("CHECKOUT") || message.includes("gagne") || message.includes("remporte") ? "success" : ""}`}>{message}</div>
+    <section className="play-save-panel" aria-label="Synchronisation X01">
+      <strong>{isReadOnly ? "Écran de score" : "Saisie des scores"} · session {game.session_code}</strong>
+      <p>Sur l’autre appareil, ouvrez ce lien pour afficher les scores automatiquement.</p>
+      <div className="play-save-actions"><button type="button" onClick={() => {
+        const url = window.location.origin + "/play/501?session=" + encodeURIComponent(game.session_code) + "&view=screen";
+        void navigator.clipboard?.writeText(url).then(() => setMessage("Lien de l’écran de score copié.")).catch(() => setMessage("Ouvrez la session " + game.session_code + " en mode Observateur sur l’autre appareil."));
+      }}>Copier le lien de l’écran de score</button>
+      {!isReadOnly ? <button type="button" disabled={saving || draftDarts.length > 0 || Boolean(quickScore.trim())} onClick={() => { setSessionRole("SPECTATOR"); writeSessionToUrl(game.session_code, true); }}>Passer en écran de score</button> : null}</div>
+      <small>Pour changer d’appareil de saisie en X01, passez d’abord celui-ci en écran de score, puis reprenez la session en mode Joueur sur l’autre.</small>
+    </section>
+    {error ? <div className="x01-alert error" role="alert">{error}</div> : null}
+    <div className="x01-alert" role="status">{message}</div>
 
-    {!isReadOnly && game.status === "IN_PROGRESS" && game.input_mode === "QUICK_SCORE" ? <section className="x01-mobile-score-entry">
-      <div><span>VOLÉE {game.current_turn}</span><strong>{activePlayer?.display_name}</strong><small>Reste {activePlayer?.remaining ?? game.starting_score}</small></div>
-      <input aria-label="Score de la volée" type="text" inputMode="numeric" pattern="[0-9]*" enterKeyHint="done" value={quickScore} onFocus={(event) => event.currentTarget.select()} onChange={(event) => { const digits = event.target.value.replace(/\D/g, "").slice(0, 3); setQuickScore(Math.max(0, Math.min(180, Number(digits || 0)))); }} />
-      <button type="button" onClick={submitQuick} disabled={saving}><Save />Valider</button>
-    </section> : null}
-
-    <section className="x01-scoreboard-board">
-      <div className="x01-board-column">
-        {leftSummaries.map((summary) => <article className={`x01-board-side ${summary.isActive ? "active" : ""}`} key={`left-${summary.side}`}>
-          <div className="x01-board-side-top"><span>{summary.isActive ? "AU PAS DE TIR" : summary.name}</span><strong>{summary.legs} / {winnerTarget} legs</strong></div>
-          <h2>{summary.name}</h2>
-          <p>{summary.subtitle}</p>
-          <div className="x01-board-values">
-            <div><span>PLAYER SCORE</span><strong>{summary.total}</strong></div>
-            <div><span>SCORE LEFT</span><strong>{summary.remaining}</strong></div>
-          </div>
-          <div className="x01-board-meta"><span>AVG 3D <b>{summary.average}</b></span><span>{game.in_rule === "DOUBLE_IN" ? (summary.opened ? "IN ✓" : "DOUBLE IN…") : "STRAIGHT IN"}</span></div>
-          {summary.isActive && checkout ? <div className="x01-board-checkout">Finish prioritaire : <strong>{checkout}</strong></div> : null}
-        </article>)}
-      </div>
-
-      <div className="x01-board-center">
-        <div className="x01-board-clip" />
-        <div className="x01-board-title"><span>974Darts Play</span><h2>Darts Scoreboard</h2><p>{game.starting_score} · {game.play_format === "TEAMS_2V2" ? "2 vs 2" : `${livePlayers.length} joueur${livePlayers.length > 1 ? "s" : ""}`} · {game.in_rule === "DOUBLE_IN" ? "Double In" : "Straight In"} · {game.out_rule === "DOUBLE_OUT" ? "Double Out" : "Straight Out"}</p></div>
-        <div className={`x01-finish-box ${finishSuggestions.length ? "" : "empty"}`}>
-          <span>Finitions possibles</span>
-          {finishSuggestions.length ? <><strong>{activePlayer?.display_name}</strong><ol>{finishSuggestions.map((suggestion, index) => <li key={suggestion}><b>{index + 1}.</b><span>{suggestion}</span></li>)}</ol></> : <p>Aucune finition immédiate pour le moment.</p>}
-        </div>
-      </div>
-
-      <div className="x01-board-column">
-        {rightSummaries.map((summary) => <article className={`x01-board-side ${summary.isActive ? "active" : ""}`} key={`right-${summary.side}`}>
-          <div className="x01-board-side-top"><span>{summary.isActive ? "AU PAS DE TIR" : summary.name}</span><strong>{summary.legs} / {winnerTarget} legs</strong></div>
-          <h2>{summary.name}</h2>
-          <p>{summary.subtitle}</p>
-          <div className="x01-board-values">
-            <div><span>PLAYER SCORE</span><strong>{summary.total}</strong></div>
-            <div><span>SCORE LEFT</span><strong>{summary.remaining}</strong></div>
-          </div>
-          <div className="x01-board-meta"><span>AVG 3D <b>{summary.average}</b></span><span>{game.in_rule === "DOUBLE_IN" ? (summary.opened ? "IN ✓" : "DOUBLE IN…") : "STRAIGHT IN"}</span></div>
-          {summary.isActive && checkout ? <div className="x01-board-checkout">Finish prioritaire : <strong>{checkout}</strong></div> : null}
-        </article>)}
-      </div>
-
-      <div className="x01-visit-board">
-        <div className="x01-visit-table" style={{ gridTemplateColumns: `74px repeat(${Math.max(1, livePlayers.length)}, minmax(120px, 1fr))` }}>
-          <strong className="x01-visit-head">VOLÉE</strong>
-          {livePlayers.map((player) => <strong className="x01-visit-head" key={`head-${player.id}`}>{player.display_name}</strong>)}
-          {visitTableRows.length ? visitTableRows.flatMap((row) => [
-            <strong className="x01-visit-round" key={`round-${row.round}`}>{row.round}</strong>,
-            ...livePlayers.map((player) => {
-              const visit = row.cells[player.id];
-              return <div className={`x01-visit-cell ${visit?.is_bust ? "bust" : visit?.is_checkout ? "checkout" : ""}`} key={`round-${row.round}-${player.id}`}>
-                {visit ? <><b>{visit.is_bust ? "BUST" : visit.score_scored}</b><small>reste {visit.score_after}</small></> : <span>—</span>}
-              </div>;
-            }),
-          ]) : <div className="x01-visit-empty" style={{ gridColumn: `1 / span ${livePlayers.length + 1}` }}>Les volées s’afficheront ici, ligne par ligne.</div>}
-        </div>
-        <div className="x01-visit-mobile">
-          {visitTableRows.length ? visitTableRows.map((row) => <article key={`mobile-round-${row.round}`}><strong>VOLÉE {row.round}</strong><div>{livePlayers.map((player) => { const visit = row.cells[player.id]; return <span key={`mobile-${row.round}-${player.id}`}><b>{player.display_name}</b><em className={visit?.is_bust ? "bust" : visit?.is_checkout ? "checkout" : ""}>{visit ? (visit.is_bust ? "BUST" : `${visit.score_scored} · reste ${visit.score_after}`) : "—"}</em></span>; })}</div></article>) : <p>Les volées s’afficheront ici.</p>}
-        </div>
-      </div>
+    <section className="play-score-strip" aria-label="Scores des joueurs">
+      {sideSummaries.map((summary) => <article key={summary.side} className={summary.isActive ? "active" : ""}>
+        <small>{summary.isActive && game.status === "IN_PROGRESS" ? "AU LANCER" : summary.legs + " / " + winnerTarget + " legs"}</small>
+        <h2>{summary.name}</h2><strong>{summary.remaining}</strong><span>points restants</span>
+        <p>{summary.subtitle}</p><small>Moy. 3 flèches : {summary.average} · {summary.legs} leg(s)</small>
+      </article>)}
     </section>
 
-    {isReadOnly && game.status === "IN_PROGRESS" ? <div className="x01-spectator-note"><Eye />Mode observateur · lecture seule · actualisation automatique</div> : null}
+    {game.status === "COMPLETED" ? <section className="x01-winner"><Trophy /><div><span>Match terminé</span><h2>{sideDisplayName(livePlayers.slice().sort((a, b) => b.legs_won - a.legs_won)[0]?.side ?? 1)}</h2><p>La partie est enregistrée.</p></div><button type="button" onClick={() => void leaveSession()}>Mes parties</button></section>
+    : isReadOnly ? <section className="x01-observer-panel"><Eye /><div><strong>Mode observateur</strong><span>Les scores se mettent à jour automatiquement.</span></div></section>
+    : <section className="play-turn-panel">
+      <header><div><small>AU LANCER · VOLÉE {game.current_turn}</small><h2>{activePlayer?.display_name}</h2><p>Reste <b>{activePlayer?.remaining}</b></p></div><span>Ensuite : <b>{livePlayers[(activePlayerIndex + 1) % livePlayers.length]?.display_name}</b></span></header>
+      <div className="play-mode-toggle" aria-label="Mode de saisie">{(["QUICK_SCORE", "DART_BY_DART"] as InputMode[]).map((mode) => <button key={mode} type="button" aria-pressed={game.input_mode === mode} disabled={saving || draftDarts.length > 0 || Boolean(quickScore.trim())} onClick={() => void changeMode(mode)}>{modeLabel(mode)}</button>)}</div>
+      {game.input_mode === "QUICK_SCORE" ? <form className="play-quick-form" onSubmit={(event) => { event.preventDefault(); void submitQuick(); }}>
+        <label htmlFor="x01-visit-score">Score de la volée</label>
+        <div className="play-input-row"><input ref={quickInput} id="x01-visit-score" value={quickScore} type="text" inputMode="numeric" enterKeyHint="done" autoComplete="off" placeholder="Ex. 100" maxLength={3} disabled={saving} onChange={(event) => { setQuickScore(event.target.value); setError(null); }} onFocus={(event) => event.currentTarget.select()} aria-describedby="x01-entry-help" /><button type="submit" disabled={saving || quickValue === null}>{saving ? "Enregistrement…" : "Valider la volée"}</button></div>
+        <p id="x01-entry-help" className="play-input-hint">Tape le total puis Entrée. 0 enregistre une volée sans point.</p>
+        <button type="button" disabled={saving || quickValue === null} onClick={() => void submitQuick(true)}>Enregistrer cette volée comme bust</button>
+        <label className="play-dart-count">Fléchettes jouées<select value={quickDarts} disabled={saving} onChange={(event) => setQuickDarts(Number(event.target.value))}><option value={3}>3</option><option value={2}>2 — sortie / bust</option><option value={1}>1 — sortie / bust</option></select></label>
+        {game.in_rule === "DOUBLE_IN" && !activePlayer?.opened ? <label className="x01-check"><input type="checkbox" disabled={saving} checked={quickDoubleIn} onChange={(event) => setQuickDoubleIn(event.target.checked)} /><span><b>Double In touché</b><small>Saisis les points à partir du double d’entrée.</small></span></label> : null}
+        {game.out_rule === "DOUBLE_OUT" && quickIsFinish ? <label className="x01-check"><input type="checkbox" disabled={saving} checked={quickCheckoutDouble} onChange={(event) => setQuickCheckoutDouble(event.target.checked)} /><span><b>Dernière fléchette : Double / Bull</b><small>Confirme la sortie et le nombre de fléchettes jouées.</small></span></label> : null}
+      </form> : <>
+        <VisitProgress darts={draftDarts.map((dart) => dart.label)} complete={dartVisitComplete} />
+        <DartEntry onDart={addDart} disabled={saving || dartVisitComplete} focusKey={game.current_turn + "-" + draftDarts.length} />
+        {dartPreview ? <div className={"x01-preview " + (dartPreview.bust ? "bust" : dartPreview.checkout ? "checkout" : "")}><strong>{dartPreview.bust ? "BUST" : dartPreview.creditedScore + " pts → reste " + dartPreview.scoreAfter}</strong><small>{dartPreview.message}</small></div> : null}
+        <div className="play-turn-actions"><button type="button" disabled={!draftDarts.length || saving} onClick={() => setDraftDarts((current) => current.slice(0, -1))}>Annuler la dernière fléchette</button><button className="play-next" type="button" disabled={saving || !dartVisitComplete} onClick={() => void submitDarts()}>{saving ? "Enregistrement…" : "Valider la volée"}</button></div>
+      </>}
+    </section>}
 
-    {game.status === "COMPLETED" ? <section className="x01-winner"><Trophy /><div><span>Match terminé</span><h2>{sideDisplayName(livePlayers.slice().sort((a, b) => b.legs_won - a.legs_won)[0]?.side ?? 1)}</h2><p>La partie est enregistrée dans 974Darts AI.</p></div><button type="button" onClick={() => void leaveSession()}>Mes parties</button></section> : isReadOnly ? <section className="x01-observer-panel"><Eye /><div><strong>Tu observes cette partie</strong><span>Les scores se mettent à jour automatiquement. Aucun contrôle de saisie n’est affiché.</span></div></section> : <>
-      <section className="x01-mode-switch"><span>Mode de saisie</span><div><button type="button" className={game.input_mode === "QUICK_SCORE" ? "active" : ""} onClick={() => changeMode("QUICK_SCORE")}><Zap />Score</button><button type="button" className={game.input_mode === "DART_BY_DART" ? "active" : ""} onClick={() => changeMode("DART_BY_DART")}><Target />Flèches</button></div></section>
+    {game.status === "IN_PROGRESS" && finishSuggestions.length ? <section className="x01-finish-box"><span>Finitions possibles · {activePlayer?.display_name}</span><ol>{finishSuggestions.map((suggestion, index) => <li key={suggestion}><b>{index + 1}.</b><span>{suggestion}</span></li>)}</ol></section> : null}
 
-      {game.input_mode === "QUICK_SCORE" ? <section className="x01-entry-panel">
-        <header><div><span>VOLÉE {game.current_turn}</span><h2>{activePlayer?.display_name}</h2></div><strong>{modeLabel(game.input_mode)}</strong></header>
-        <div className="x01-quick-entry">
-          <label><span>Score</span><input type="text" inputMode="numeric" pattern="[0-9]*" enterKeyHint="done" value={quickScore} onFocus={(event) => event.currentTarget.select()} onChange={(event) => { const digits = event.target.value.replace(/\D/g, "").slice(0, 3); setQuickScore(Math.max(0, Math.min(180, Number(digits || 0)))); }} /></label>
-          <label><span>Flèches</span><select value={quickDarts} onChange={(event) => setQuickDarts(Number(event.target.value))}><option value={3}>3</option><option value={2}>2</option><option value={1}>1</option></select></label>
-        </div>
-        {game.in_rule === "DOUBLE_IN" && !activePlayer?.opened && <label className="x01-check"><input type="checkbox" checked={quickDoubleIn} onChange={(event) => setQuickDoubleIn(event.target.checked)} /><span><b>Double In touché dans cette volée</b><small>Le score saisi doit correspondre aux points valides à partir du double d’entrée.</small></span></label>}
-        {game.out_rule === "DOUBLE_OUT" && activePlayer && activePlayer.remaining - quickScore === 0 && <label className="x01-check"><input type="checkbox" checked={quickCheckoutDouble} onChange={(event) => setQuickCheckoutDouble(event.target.checked)} /><span><b>Dernière flèche = Double / Bull</b><small>Obligatoire pour valider le checkout en mode score rapide.</small></span></label>}
-        <button className="x01-save" type="button" onClick={submitQuick} disabled={saving}><Save />{saving ? "Enregistrement…" : "Valider la volée"}</button>
-      </section> : <section className="x01-entry-panel">
-        <header><div><span>VOLÉE {game.current_turn}</span><h2>{activePlayer?.display_name}</h2></div><strong>{modeLabel(game.input_mode)}</strong></header>
-        <div className="x01-dart-slots">{[0,1,2].map((index) => <div className={draftDarts[index] ? "filled" : ""} key={index}><span>DART {index + 1}</span><strong>{draftDarts[index]?.label ?? "—"}</strong><small>{draftDarts[index] ? `${draftDarts[index].score} pts` : "en attente"}</small></div>)}</div>
-        <div className="x01-multipliers"><button type="button" className={multiplier === 1 ? "active" : ""} onClick={() => setMultiplier(1)}>SINGLE</button><button type="button" className={multiplier === 2 ? "active" : ""} onClick={() => setMultiplier(2)}>DOUBLE</button><button type="button" className={multiplier === 3 ? "active" : ""} onClick={() => setMultiplier(3)}>TRIPLE</button></div>
-        <div className="x01-segments">{segmentNumbers.map((segment) => <button type="button" key={segment} disabled={draftDarts.length >= 3 || Boolean(dartPreview?.bust || dartPreview?.checkout)} onClick={() => addDart(makeDart(segment, multiplier))}>{segment}</button>)}</div>
-        <div className="x01-specials"><button type="button" onClick={() => addDart(makeDart(25,1))}>25</button><button type="button" className="bull" onClick={() => addDart(makeDart(25,2))}>BULL 50</button><button type="button" onClick={() => addDart(makeDart(0,0))}>MISS</button></div>
-        {dartPreview && <div className={`x01-preview ${dartPreview.bust ? "bust" : dartPreview.checkout ? "checkout" : ""}`}><span>Cette volée</span><strong>{dartPreview.bust ? "BUST" : `${dartPreview.creditedScore} pts → reste ${dartPreview.scoreAfter}`}</strong><small>{dartPreview.message}</small></div>}
-        <div className="x01-entry-actions"><button type="button" className="x01-undo-dart" disabled={!draftDarts.length || saving} onClick={() => setDraftDarts((current) => current.slice(0,-1))}><Undo2 />Dernière flèche</button><button className="x01-save" type="button" onClick={submitDarts} disabled={saving || draftDarts.length === 0}><Save />{saving ? "Enregistrement…" : "Valider la volée"}</button></div>
-      </section>}
-
-      <section className="x01-history">
-        <header><div><span>LEG {game.current_leg_number}</span><h2>Historique des volées</h2></div><button type="button" disabled={!visits.length || saving} onClick={correctLastVisit}><Undo2 />Corriger la dernière</button></header>
-        {visits.length === 0 ? <p>Aucune volée enregistrée dans ce leg.</p> : <div className="x01-history-list">{[...visits].reverse().map((visit) => {
-          const player = livePlayers.find((item) => item.id === visit.game_player_id);
-          return <div key={visit.id}><span>#{visit.turn_number}</span><strong>{player?.display_name ?? "Joueur"}</strong><b className={visit.is_bust ? "bust" : visit.is_checkout ? "checkout" : ""}>{visit.is_bust ? "BUST" : visit.score_scored}</b><small>{visit.score_before} → {visit.score_after} · {visit.darts_thrown} dart{visit.darts_thrown > 1 ? "s" : ""}</small></div>;
-        })}</div>}
-      </section>
-    </>}
+    <details className="play-history" open={game.status === "COMPLETED"}>
+      <summary>Historique des volées · leg {game.current_leg_number}</summary>
+      {!isReadOnly && game.status === "IN_PROGRESS" ? <button type="button" disabled={!visits.length || saving || draftDarts.length > 0 || Boolean(quickScore.trim())} onClick={() => void correctLastVisit()}><Undo2 />Corriger la dernière volée</button> : null}
+      <div className="play-table-scroll" role="region" aria-label="Historique de tous les joueurs" tabIndex={0}><table>
+        <thead><tr><th scope="col">Volée</th>{livePlayers.map((player) => <th scope="col" key={player.id}>{player.display_name}</th>)}</tr></thead>
+        <tbody>{visitTableRows.map((row) => <tr key={row.round}><th scope="row">{row.round}</th>{livePlayers.map((player) => { const visit = row.cells[player.id]; return <td key={player.id}>{visit ? <><b>{visit.is_bust ? "BUST" : visit.score_scored}</b><small>reste {visit.score_after} · {visit.darts_thrown} fl.</small></> : "—"}</td>; })}</tr>)}</tbody>
+      </table></div>
+      {!visits.length ? <p>Aucune volée enregistrée dans ce leg.</p> : null}
+    </details>
   </div>;
 }

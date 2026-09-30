@@ -54,6 +54,24 @@ const server=createServer(async(req,res)=>{
   }
   if(url.pathname==='/auth/v1/user')return role?send(200,user(role)):send(401,{msg:'Invalid test token'});
   if(url.pathname==='/auth/v1/logout')return send(200,{});
+  if(url.pathname === '/rest/v1/play_cloud_sessions' || url.pathname === '/rest/v1/rpc/play_cloud_command'){
+   if(!role) return send(401,{message:'Authentication required'});
+   const data=await db.transaction(async tx=>{
+     await tx.exec('set local role authenticated');
+     await tx.query("select set_config('request.jwt.claim.sub',$1,true)",[ids[role]]);
+     if(url.pathname.endsWith('/play_cloud_command')){
+       if(req.method!=='POST') throw new Error('Invalid command method');
+       return (await tx.query('select public.play_cloud_command($1,$2,$3,$4,$5,$6::jsonb) as data',
+         [body.p_kind,body.p_expected,body.p_device,body.p_command,body.p_action,JSON.stringify(body.p_record)])).rows[0].data;
+     }
+     if(req.method!=='GET') throw new Error('Direct writes forbidden');
+     const kind=url.searchParams.get('kind')?.replace(/^eq\./,'') ?? null;
+     const owner=url.searchParams.get('owner_id')?.replace(/^eq\./,'') ?? ids[role];
+     const after=Number(url.searchParams.get('revision')?.replace(/^gt\./,'') ?? 0);
+     return (await tx.query('select kind,revision,writer_device,record,updated_at from public.play_cloud_sessions where owner_id=$1 and ($2::text is null or kind=$2) and revision>$3 order by kind limit 7',[owner,kind,after])).rows.map(row=>({...row,revision:Number(row.revision)}));
+   });
+   return send(200,data);
+  }
   if(url.pathname.startsWith('/rest/v1/rpc/')){
    if(!service)return send(403,{message:'Denied'});
    const name=url.pathname.split('/').at(-1);

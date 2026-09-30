@@ -111,7 +111,7 @@ export function cricketWinner(state: CricketState, sideIndex: number) {
 }
 
 export function applyCricketDart(current: CricketState, value: number, multiplier: CricketMultiplier, random = Math.random): CricketState {
-  if (current.winnerSide != null) return current;
+  if (current.winnerSide != null || current.dartsInVisit >= 3) return current;
   const state = cloneState(current);
   const participantIndex = state.activeParticipant;
   const participant = state.participants[participantIndex];
@@ -160,17 +160,13 @@ export function applyCricketDart(current: CricketState, value: number, multiplie
   state.dartsInVisit += 1;
 
   if (cricketWinner(state, sideIndex)) { state.winnerSide = sideIndex; return state; }
-  if (state.dartsInVisit >= 3) {
-    finishMagicVisit(state, participantIndex, random);
-    state.activeParticipant = nextParticipantIndex(participantIndex, state.participants);
-    state.dartsInVisit = 0;
-    state.visitNumber += 1;
-  }
+  // Keep all three darts visible; Magic targets change only on confirmed handover.
+  void random;
   return state;
 }
 
 export function endCricketVisit(current: CricketState, random = Math.random): CricketState {
-  if (current.winnerSide != null) return current;
+  if (current.winnerSide != null || current.dartsInVisit !== 3) return current;
   const state = cloneState(current);
   const participantIndex = state.activeParticipant;
   finishMagicVisit(state, participantIndex, random);

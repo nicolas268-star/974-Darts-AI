@@ -3,6 +3,7 @@ import { Sidebar } from "@/components/Sidebar";
 import { requireUser } from "@/lib/auth/session";
 import { X01Game } from "./X01Game";
 import "./x01.css";
+import "../play-game-shared.css";
 
 export const dynamic = "force-dynamic";
 
@@ -12,8 +13,11 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function Play501Page() {
-  const auth = await requireUser();
+export default async function Play501Page({ searchParams }: { searchParams: Promise<{ session?: string; view?: string }> }) {
+  const params = await searchParams;
+  const code = typeof params.session === "string" ? params.session.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6) : "";
+  const returnTo = "/play/501" + (code.length === 6 ? "?session=" + code + (params.view === "screen" ? "&view=screen" : "") : "");
+  const auth = await requireUser(returnTo);
 
   return (
     <div className="dashboard">

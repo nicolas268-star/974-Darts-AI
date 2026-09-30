@@ -42,7 +42,7 @@ function winnerFor(cells:TicTacToeCell[],side:number){return WIN_LINES.some(line
 function cloneState(state:TicTacToeState):TicTacToeState{return {...state,cells:state.cells.map(c=>({...c})),participants:state.participants.map(p=>({...p})),sideNames:[...state.sideNames],log:state.log.map(e=>({...e}))};}
 function dartLabel(target:number,m:TicTacToeMultiplier){if(target===0)return"MISS";if(target===25)return m===2?"BULL 50":"25";return `${m===1?"S":m===2?"D":"T"}${target}`;}
 export function applyTicTacToeDart(current:TicTacToeState,target:number,multiplier:TicTacToeMultiplier){
-  if(current.winnerSide!=null)return current;
+  if(current.winnerSide!=null || current.dartsInVisit>=3)return current;
   const state=cloneState(current);const participantIndex=state.activeParticipant;const participant=state.participants[participantIndex];const side=participant.side;const cell=state.cells.find(item=>item.target===target);const validHardHit=state.mode!=="HARD"||multiplier===2;let result="Pas de case correspondante";
   if(!validHardHit)result="Hard : seul un double compte";
   else if(cell&&cell.owner==null){cell.owner=side;result=`Case ${targetLabel(target)} gagnée`;}
@@ -50,7 +50,7 @@ export function applyTicTacToeDart(current:TicTacToeState,target:number,multipli
   state.log.unshift({id:`${Date.now()}-${Math.random()}`,participant:participantIndex,side,dart:dartLabel(target,multiplier),result});state.log=state.log.slice(0,24);state.dartsInVisit+=1;
   if(winnerFor(state.cells,side)){state.winnerSide=side;return state;}
   if(state.cells.every(item=>item.owner!=null)){state.winnerSide="DRAW";return state;}
-  if(state.dartsInVisit>=3){state.activeParticipant=nextParticipantIndex(participantIndex,state.participants);state.dartsInVisit=0;}
+  // Handover is explicit so the three impacts remain visible.
   return state;
 }
-export function endTicTacToeVisit(current:TicTacToeState){if(current.winnerSide!=null)return current;const state=cloneState(current);state.activeParticipant=nextParticipantIndex(state.activeParticipant,state.participants);state.dartsInVisit=0;return state;}
+export function endTicTacToeVisit(current:TicTacToeState){if(current.winnerSide!=null || current.dartsInVisit!==3)return current;const state=cloneState(current);state.activeParticipant=nextParticipantIndex(state.activeParticipant,state.participants);state.dartsInVisit=0;return state;}
