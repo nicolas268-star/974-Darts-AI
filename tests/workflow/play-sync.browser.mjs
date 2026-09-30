@@ -37,14 +37,26 @@ export async function testPlaySync(browser, source, screenshot) {
     await expect(phone.getByLabel('Fléchette',{exact:true})).toBeFocused();
     await expect(phone.getByRole('button',{name:'Raté / 0',exact:true})).toBeDisabled();
     await counter(phone,1);await phone.unroute('**/api/play/sync*');
-   } else { await enter(phone,'0');await counter(phone,1); }
+   } else { await enter(phone,kind==='conquest'?'T20':'0');await counter(phone,1); }
    await counter(pc,1);
-   await enter(phone,'0');await counter(phone,2);await counter(pc,2);
+   if(kind==='conquest'){
+    await expect(pc.locator('.conquest-scores article').first()).toHaveAttribute('aria-label','Téléphone Alice · 2');
+    await pc.getByRole('button',{name:'Agrandir la carte',exact:true}).click();
+   }
+   await enter(phone,kind==='conquest'?'T19':'0');await counter(phone,2);
+   if(kind==='conquest'){
+    const screenMap=pc.getByRole('dialog',{name:'Conquête, carte agrandie'});
+    await expect(screenMap.locator('.conquest-scores article').first()).toHaveAttribute('aria-label','Téléphone Alice · 5');
+    await expect(screenMap.getByRole('button',{name:'Territoire 19 : Téléphone Alice',exact:true})).toBeVisible();
+    await screenMap.getByRole('button',{name:'Fermer la vue agrandie',exact:true}).click();
+   }
+   await counter(pc,2);
    await pc.getByRole('button',{name:'Saisir sur cet appareil',exact:true}).click();
    await writing(pc);
    // Submit immediately on the old device if it has not polled yet: CAS still prevents a stale save.
    await expect(phone.getByLabel('Fléchette',{exact:true})).toBeDisabled({timeout:15000});
-   await enter(pc,'0');await counter(pc,3);await counter(phone,3);
+   await enter(pc,kind==='conquest'?'T18':'0');await counter(pc,3);await counter(phone,3);
+   if(kind==='conquest')await expect(phone.locator('.conquest-scores article').first()).toHaveAttribute('aria-label','Téléphone Alice · 8');
    await pc.getByRole('button',{name:/Joueur suivant/}).click();await counter(pc,0);await counter(phone,0);
    await pc.getByRole('button',{name:'Annuler la dernière action',exact:true}).click();await counter(pc,3);await counter(phone,3);
    await pc.reload();await counter(pc,3);await screen(pc);

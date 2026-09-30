@@ -4,9 +4,10 @@ import { requireUser } from "@/lib/auth/session";
 import { FunGame } from "@/components/play/FunGame";
 import "../play-game-shared.css";
 import "../fun-game.css";
+import "./conquest.css";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Jouer à Conquête", description: "Prenez et reprenez les territoires en solo ou entre amis.", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Jouer à Conquête", description: "Conquérez un monde de 20 territoires et reliez vos positions pour gagner des points.", robots: { index: false, follow: false } };
 
 export default async function Page({ searchParams }: { searchParams: Promise<{ sync?: string }> }) {
   const sync = (await searchParams).sync === "1";

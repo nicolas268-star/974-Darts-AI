@@ -33,7 +33,7 @@ export async function testPlayPersistence(page, screenshot) {
     if(kind === "tictactoe") await page.locator(".ttt-mode-grid button.hard").click();
     if(kind === "clock") await page.getByRole("button",{name:/^Triple/}).click();
     if(kind === "connect4") await page.getByLabel("Impacts acceptés").selectOption("DOUBLE");
-    if(kind === "conquest") await page.getByLabel("Territoires pour gagner").selectOption("10");
+    if(kind === "conquest") { await page.getByLabel("Mode de conquête").selectOption("CLASSIC");await page.getByLabel("Territoires pour gagner").selectOption("10"); }
     if(kind === "bull500") {
       await page.getByLabel("Déblocage du score").selectOption("25_OR_50");
       await page.getByLabel("Secteurs pour marquer").selectOption("19_OR_20");

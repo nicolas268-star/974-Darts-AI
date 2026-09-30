@@ -1,10 +1,13 @@
 import type { DartThrow } from "../x01/engine";
 import { buildParticipants, participantCount, sideCount, sideName, type PlayFormat, type PlayParticipant } from "./format";
+import { CONQUEST_LINKS, conquestNeighbors } from "./conquest-map";
 
 export type FunKind = "connect4" | "conquest" | "bull500";
 export type FunOptions = {
   connectRule?: "ANY" | "DOUBLE";
   conquestGoal?: 5 | 7 | 10;
+  conquestMode?: "CLASSIC" | "CONNECTED";
+  conquestPointsGoal?: 12 | 18 | 24;
   bullUnlock?: "50" | "25_OR_50";
   bullTarget?: "20" | "19" | "19_OR_20";
 };
@@ -27,6 +30,7 @@ export type Connect4State = BaseState & {
 export type Territory = { target: number; owner: number | null; marks: number[] };
 export type ConquestState = BaseState & {
   kind: "conquest"; goal: 5 | 7 | 10; territories: Territory[];
+  strategy?: { version: 1; goal: 12 | 18 | 24 };
 };
 export type Bull500State = BaseState & {
   kind: "bull500"; unlock: "50" | "25_OR_50"; target: "20" | "19" | "19_OR_20";
@@ -44,6 +48,7 @@ export function createFunGame(kind: FunKind, format: PlayFormat, names: string[]
   if (kind === "connect4") return { ...base, kind, rule: options.connectRule ?? "ANY", board: Array(42).fill(null), winningCells: [] };
   if (kind === "conquest") return {
     ...base, kind, goal: options.conquestGoal ?? 7,
+    ...(options.conquestMode === "CONNECTED" ? { strategy: { version: 1 as const, goal: options.conquestPointsGoal ?? 18 } } : {}),
     territories: Array.from({ length: 20 }, (_, i) => ({ target: i + 1, owner: null, marks: Array(sides).fill(0) })),
   };
   return { ...base, kind, unlock: options.bullUnlock ?? "50", target: options.bullTarget ?? "20", unlocked: false, scores: Array(sides).fill(0) };
@@ -67,6 +72,17 @@ function findFour(board: (number | null)[], index: number, side: number): number
 
 export function conquestCounts(state: ConquestState): number[] {
   return state.sideNames.map((_, side) => state.territories.filter((t) => t.owner === side).length);
+}
+
+export function conquestAlliedLinks(state: ConquestState, side: number): number {
+  return CONQUEST_LINKS.filter(([a,b]) => state.territories[a-1].owner === side && state.territories[b-1].owner === side).length;
+}
+export function conquestScores(state: ConquestState): number[] {
+  return conquestCounts(state).map((count, side) => state.strategy ? count * 2 + conquestAlliedLinks(state, side) : count);
+}
+export function conquestCaptureValue(state: ConquestState, target: number, side: number): number {
+  if (!state.territories[target-1] || state.territories[target-1].owner === side) return 0;
+  return state.strategy ? 2 + conquestNeighbors(target).filter((id) => state.territories[id-1].owner === side).length : 1;
 }
 
 export function applyFunDart(state: FunState, dart: DartThrow): FunState {
@@ -100,9 +116,14 @@ export function applyFunDart(state: FunState, dart: DartThrow): FunState {
         const territories = [...state.territories];
         territories[index] = { ...territory, marks: captured ? marks.map(() => 0) : marks, owner: captured ? side : territory.owner };
         const conquest: ConquestState = { ...state, territories };
-        if (conquestCounts(conquest)[side] >= state.goal) conquest.winnerSide = side;
+        if (conquestScores(conquest)[side] >= (state.strategy?.goal ?? state.goal)) conquest.winnerSide = side;
         next = conquest;
         result = captured ? (territory.owner === null ? "Territoire conquis : " : "Territoire repris : ") + dart.segment : marks[side] + "/3 marques sur le " + dart.segment;
+        if (captured && state.strategy) {
+          const gain = conquestCaptureValue(state, dart.segment, side);
+          result += " · +" + gain + " points" + (gain > 2 ? " dont " + (gain - 2) + " de liaison" : "");
+          if (territory.owner !== null) result += " · " + state.sideNames[territory.owner] + " perd " + (conquestScores(state)[territory.owner] - conquestScores(conquest)[territory.owner]) + " points";
+        }
       }
     }
   } else {
