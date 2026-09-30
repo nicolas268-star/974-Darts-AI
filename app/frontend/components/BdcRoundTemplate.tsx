@@ -1,3 +1,4 @@
+import { StatsTable } from "@/components/stats/StatsTable";
 import Link from "next/link";
 import { BDC_RESULTS, BDC_URL, bdcPoints } from "@/lib/bdc";
 
@@ -55,7 +56,7 @@ function BdcRoundRobinMatrix({
       <div className="round-robin-badges"><b>8 doublettes</b><b className="complete">28/28 matchs</b></div>
     </div>
     <div className="round-robin-scroll" role="region" aria-label="Diagramme Round Robin de la Manche 01" tabIndex={0}>
-      <table className="round-robin-table">
+      <StatsTable className="round-robin-table" mobileSummaryColumns={[entries.length + 6, entries.length + 7, entries.length + 2, entries.length + 3]}>
         <thead><tr><th className="rr-rank-index">#</th><th className="rr-player-name">Doublette</th>{entries.map((entry, index) => <th className="rr-opponent" key={entry.tpid} title={entry.name}>{index + 1}</th>)}<th>MJ</th><th>V</th><th>D</th><th>+/-</th><th>Pts</th><th>Rang</th></tr></thead>
         <tbody>{entries.map((entry, rowIndex) => {
           const standing = standingByTeam.get(entry.tpid);
@@ -76,7 +77,7 @@ function BdcRoundRobinMatrix({
             <td><strong>{standing?.points ?? 0}</strong></td><td><span className={`rr-final-rank rank-${standing?.rank ?? 0}`}>{standing?.rank ?? "—"}</span></td>
           </tr>;
         })}</tbody>
-      </table>
+      </StatsTable>
     </div>
     <footer className="round-robin-legend"><span><i className="rr-legend-win" /> Victoire</span><span><i className="rr-legend-loss" /> Défaite</span><span>Moyenne 3 darts affichée sous le score</span></footer>
   </article>;
@@ -159,12 +160,12 @@ export function BdcRoundTemplate({ details, source }: { details: RoundDetails; s
     <section id="m1-poule" className="bdc-report-block">
       <div className="bdc-report-title"><div><span>02</span><h3>Phase de poule · Round Robin</h3></div><small>28 rencontres · scores corrigés validés</small></div>
       <BdcRoundRobinMatrix matches={poolMatches} standings={details.poolStandings} entries={source.entries} />
-      <details className="bdc-data-disclosure"><summary>Afficher la liste chronologique des 28 rencontres</summary><div className="bdc-table-scroll" role="region" aria-label="Rencontres du Round Robin" tabIndex={0}><table className="bdc-table bdc-match-table"><thead><tr><th>#</th><th>Doublette A</th><th>Moy. A</th><th>Score</th><th>Doublette B</th><th>Moy. B</th></tr></thead><tbody>
+      <details className="bdc-data-disclosure"><summary>Afficher la liste chronologique des 28 rencontres</summary><div className="bdc-table-scroll" role="region" aria-label="Rencontres du Round Robin" tabIndex={0}><StatsTable className="bdc-table bdc-match-table"><thead><tr><th>#</th><th>Doublette A</th><th>Moy. A</th><th>Score</th><th>Doublette B</th><th>Moy. B</th></tr></thead><tbody>
         {poolMatches.map((match, index) => <tr key={match.id}><td>{index + 1}</td><th scope="row">{match.teamA.name}</th><td>{fmt(match.teamA.average3)}</td><td><strong>{match.teamA.score} – {match.teamB.score}</strong></td><td>{match.teamB.name}</td><td>{fmt(match.teamB.average3)}</td></tr>)}
-      </tbody></table></div></details>
-      <h4 className="bdc-subtitle">Classement final de la poule</h4><div className="bdc-table-scroll" role="region" aria-label="Classement final de la poule" tabIndex={0}><table className="bdc-table"><thead><tr><th>Rang</th><th>Doublette</th><th>J</th><th>V</th><th>D</th><th>Diff. sets</th><th>Legs</th><th>Diff. legs</th><th>Pts</th><th>Moy. 3 darts</th></tr></thead><tbody>
+      </tbody></StatsTable></div></details>
+      <h4 className="bdc-subtitle">Classement final de la poule</h4><div className="bdc-table-scroll" role="region" aria-label="Classement final de la poule" tabIndex={0}><StatsTable className="bdc-table"><thead><tr><th>Rang</th><th>Doublette</th><th>J</th><th>V</th><th>D</th><th>Diff. sets</th><th>Legs</th><th>Diff. legs</th><th>Pts</th><th>Moy. 3 darts</th></tr></thead><tbody>
         {details.poolStandings.map(row => <tr key={row.teamId} className={row.rank <= 4 ? "is-qualified" : ""}><td><strong>{row.rank}</strong></td><th scope="row">{row.name}</th><td>{row.played}</td><td>{row.wins}</td><td>{row.losses}</td><td>{signed(row.setsDiff)}</td><td>{row.legsFor}–{row.legsAgainst}</td><td>{signed(row.legsDiff)}</td><td><strong>{row.points}</strong></td><td>{fmt(row.average3)}</td></tr>)}
-      </tbody></table></div><p className="bdc-note">Les quatre premières doublettes sont qualifiées pour les demi-finales.</p>
+      </tbody></StatsTable></div><p className="bdc-note">Les quatre premières doublettes sont qualifiées pour les demi-finales.</p>
     </section>
 
     <section id="m1-finale" className="bdc-report-block">
@@ -175,26 +176,26 @@ export function BdcRoundTemplate({ details, source }: { details: RoundDetails; s
 
     <section id="m1-tournoi" className="bdc-report-block">
       <div className="bdc-report-title"><div><span>04</span><h3>Statistiques générales du tournoi</h3></div><small>Données collectives publiées · inchangées</small></div>
-      <div className="bdc-table-scroll" role="region" aria-label="Statistiques générales des doublettes" tabIndex={0}><table className="bdc-table"><thead><tr><th>Doublette</th><th>Matchs</th><th>Victoires</th><th>Legs</th><th>Legs gagnés</th><th>Score</th><th>Fléchettes</th><th>Moy. 3 darts</th><th>First 9</th><th>100–139</th><th>140–169</th><th>170–179</th><th>180</th><th>Meilleure sortie</th></tr></thead><tbody>
+      <div className="bdc-table-scroll" role="region" aria-label="Statistiques générales des doublettes" tabIndex={0}><StatsTable className="bdc-table"><thead><tr><th>Doublette</th><th>Matchs</th><th>Victoires</th><th>Legs</th><th>Legs gagnés</th><th>Score</th><th>Fléchettes</th><th>Moy. 3 darts</th><th>First 9</th><th>100–139</th><th>140–169</th><th>170–179</th><th>180</th><th>Meilleure sortie</th></tr></thead><tbody>
         {result.teams.map(team => { const stats = source.stats[team.id]; return <tr key={team.id}><th scope="row">{names[team.id]}</th><td>{stats.match}</td><td>{stats.winMatch}</td><td>{stats.leg}</td><td>{stats.winLeg}</td><td>{fmt(stats.score)}</td><td>{stats.darts}</td><td>{fmt(average(stats.score, stats.darts))}</td><td>{fmt(average(stats.f9Score, stats.f9Darts))}</td><td>{stats.ton00}</td><td>{stats.ton40}</td><td>{stats.ton70}</td><td>{stats.ton80}</td><td>{stats.highOut || "—"}</td></tr>; })}
-      </tbody></table></div>
+      </tbody></StatsTable></div>
     </section>
 
     <section id="m1-joueurs" className="bdc-report-block">
       <div className="bdc-report-title"><div><span>05</span><h3>Performances individuelles disponibles</h3></div><small>{details.quality.individualMatches} matchs sur {details.quality.totalMatches}</small></div>
       <p>Les résultats ci-dessous ont été recalculés volée par volée selon l’ordre confirmé des joueurs. Ils couvrent 31 rencontres ; les trois matchs interrompus utilisent seulement les legs enregistrés.</p>
       <div className="bdc-leaders"><LeaderCard label="Meilleur scoreur" rows={details.playerStats} value={row => row.score} /><LeaderCard label="Meilleure moyenne 3 darts" rows={details.playerStats} value={row => row.average3} /><LeaderCard label="Meilleure moyenne First 9" rows={first9Rows} value={row => row.first9} /><LeaderCard label="Plus grand nombre de finishes" rows={details.playerStats} value={row => row.finishes.length} /><LeaderCard label="Plus haut finish" rows={details.playerStats.filter(row => row.bestFinish !== null)} value={row => row.bestFinish} /><LeaderCard label="Total grosses volées" rows={details.playerStats} value={totalBigScores} /><LeaderCard label="Plus de 100–139" rows={details.playerStats} value={row => row.visits100} /><LeaderCard label="Plus de 140–169" rows={details.playerStats} value={row => row.visits140} /><LeaderCard label="Plus de 170–179" rows={details.playerStats} value={row => row.visits170} /><LeaderCard label="Plus de 180" rows={details.playerStats} value={row => row.visits180} /></div>
-      <div className="bdc-table-scroll" role="region" aria-label="Classement des performances individuelles disponibles" tabIndex={0}><table className="bdc-table"><thead><tr><th>Joueur</th><th>Matchs couverts</th><th>Score</th><th>Part du duo</th><th>Moy. 3 darts</th><th>First 9</th><th>Finishes</th><th>Haut finish</th><th>Tours à 0</th><th>100–139</th><th>140–169</th><th>170–179</th><th>180</th></tr></thead><tbody>
+      <div className="bdc-table-scroll" role="region" aria-label="Classement des performances individuelles disponibles" tabIndex={0}><StatsTable className="bdc-table"><thead><tr><th>Joueur</th><th>Matchs couverts</th><th>Score</th><th>Part du duo</th><th>Moy. 3 darts</th><th>First 9</th><th>Finishes</th><th>Haut finish</th><th>Tours à 0</th><th>100–139</th><th>140–169</th><th>170–179</th><th>180</th></tr></thead><tbody>
         {details.playerStats.map(row => { const playerId = playerIds[row.name]; return <tr key={row.name}><th scope="row">{playerId ? <Link className="bdc-player-link" href={`${BDC_URL}/manche-${details.round}/joueurs/${playerId}`}>{row.name}<span aria-hidden="true">→</span></Link> : row.name}</th><td>{row.matches}</td><td><strong>{fmt(row.score)}</strong></td><td>{fmt(row.contribution, "%")}</td><td>{fmt(row.average3)}</td><td>{row.first9 === null ? UNAVAILABLE : fmt(row.first9)}</td><td>{row.finishes.length}</td><td>{row.bestFinish ?? "—"}</td><td>{row.zeroVisits}</td><td>{row.visits100}</td><td>{row.visits140}</td><td>{row.visits170}</td><td>{row.visits180}</td></tr>; })}
-      </tbody></table></div><p className="bdc-note">First 9 : moyenne calculée sur les neuf premières fléchettes disponibles de chaque joueur dans chaque leg enregistré. Un leg terminé plus tôt utilise uniquement les fléchettes réellement jouées.</p>
+      </tbody></StatsTable></div><p className="bdc-note">First 9 : moyenne calculée sur les neuf premières fléchettes disponibles de chaque joueur dans chaque leg enregistré. Un leg terminé plus tôt utilise uniquement les fléchettes réellement jouées.</p>
     </section>
 
     <section id="m1-matchs" className="bdc-report-block"><div className="bdc-report-title"><div><span>06</span><h3>Fiches détaillées des rencontres</h3></div><small>Sections dépliables</small></div><div className="bdc-match-list">{details.matches.map(match => <MatchDetail match={match} key={match.id} />)}</div></section>
 
     <section className="bdc-source-limits"><h3>Source et limites</h3><p>Les 16 feuilles déjà détaillées ont été revérifiées sans écart. Les séquences de 15 autres feuilles ont permis de recalculer le score, les fléchettes, les moyennes, le First 9, les grosses volées, les 180, les tours sans score et les finishes de chaque joueur.</p><p>Trois matchs ont été terminés hors système : seuls leurs deux legs enregistrés alimentent les statistiques. Une feuille ne contient plus aucune volée individuelle. Le classement et les scores finaux validés manuellement restent conservés.</p></section>
 
-    <section className="bdc-report-block"><div className="bdc-report-title"><div><span>07</span><h3>Classement de la manche et points BDC</h3></div><small>Points attribués à chaque joueur</small></div><div className="bdc-table-scroll" role="region" aria-label="Classement de la manche 1 et points BDC" tabIndex={0}><table className="bdc-table"><thead><tr><th>Place</th><th>Doublette</th><th>Victoires de poule</th><th>Base</th><th>Bonus</th><th>Points par joueur</th></tr></thead><tbody>
+    <section className="bdc-report-block"><div className="bdc-report-title"><div><span>07</span><h3>Classement de la manche et points BDC</h3></div><small>Points attribués à chaque joueur</small></div><div className="bdc-table-scroll" role="region" aria-label="Classement de la manche 1 et points BDC" tabIndex={0}><StatsTable className="bdc-table"><thead><tr><th>Place</th><th>Doublette</th><th>Victoires de poule</th><th>Base</th><th>Bonus</th><th>Points par joueur</th></tr></thead><tbody>
       {result.teams.map(team => <tr key={team.id}><td>{team.place}</td><th scope="row">{names[team.id]}</th><td>{team.poolWins}/7</td><td>{bdcPoints(team.place!, 0, 8)}</td><td>+{Math.min(team.poolWins!, 3)}</td><td><strong>{bdcPoints(team.place!, team.poolWins!, 8)}</strong></td></tr>)}
-    </tbody></table></div><p className="bdc-note">Le résultat officiel et son classement restent détenus par le directeur sportif du Tampon Darts Club.</p></section>
+    </tbody></StatsTable></div><p className="bdc-note">Le résultat officiel et son classement restent détenus par le directeur sportif du Tampon Darts Club.</p></section>
   </section>;
 }

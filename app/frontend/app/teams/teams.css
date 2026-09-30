@@ -24,7 +24,7 @@
 .team-detail-hero span,
 .team-detail-heading span {
   color: #ff9b52;
-  font-size: 0.72rem;
+  font-size: max(var(--stats-text-floor, 0px), 0.72rem);
   font-weight: 900;
   letter-spacing: 0.12em;
 }
@@ -141,7 +141,7 @@
 .team-card-stats span {
   display: block;
   color: #8fa6bf;
-  font-size: 0.65rem;
+  font-size: max(var(--stats-text-floor, 0px), 0.65rem);
 }
 
 .team-card footer {
@@ -165,14 +165,14 @@
 
 .teams-rosters-2027 { display:grid; gap:18px; }
 .teams-rosters-heading { display:flex; align-items:end; justify-content:space-between; gap:18px; padding:20px; border:1px solid rgba(255,177,59,.2); border-radius:18px; background:rgba(255,177,59,.055); }
-.teams-rosters-heading strong { color:#ffb13b; font-size:.72rem; letter-spacing:.08em; text-transform:uppercase; }
+.teams-rosters-heading strong { color:#ffb13b; font-size:max(var(--stats-text-floor, 0px), .72rem); letter-spacing:.08em; text-transform:uppercase; }
 .teams-rosters-heading h2 { margin:6px 0; color:#f7fbff; }
 .teams-rosters-heading p { margin:0; color:#91a5bd; }
 .teams-rosters-heading a { color:#ff9b52; font-weight:850; }
 .teams-rosters-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
 .team-roster-card { overflow:hidden; border:1px solid rgba(255,255,255,.08); border-radius:18px; background:linear-gradient(180deg,rgba(17,31,51,.95),rgba(8,18,32,.95)); }
 .team-roster-card header { position:relative; padding:18px 20px; border-bottom:1px solid rgba(255,255,255,.07); }
-.team-roster-card header span { color:#ff9b52; font-size:.66rem; font-weight:850; letter-spacing:.06em; text-transform:uppercase; }
+.team-roster-card header span { color:#ff9b52; font-size:max(var(--stats-text-floor, 0px), .66rem); font-weight:850; letter-spacing:.06em; text-transform:uppercase; }
 .team-roster-card header h3 { margin:6px 54px 0 0; color:#f7fbff; font-size:1.15rem; }
 .team-roster-card header small { position:absolute; top:18px; right:20px; color:#8498af; }
 .team-roster-card ul { display:grid; margin:0; padding:10px 20px 16px; list-style:none; }
@@ -242,7 +242,7 @@
 
 .team-detail-kpis span {
   color: #8fa6bf;
-  font-size: 0.65rem;
+  font-size: max(var(--stats-text-floor, 0px), 0.65rem);
   text-transform: uppercase;
 }
 
@@ -308,7 +308,7 @@
   border-radius: 999px;
   color: #a5b6c8;
   background: rgba(249, 178, 51, 0.05);
-  font-size: 0.7rem;
+  font-size: max(var(--stats-text-floor, 0px), 0.7rem);
 }
 
 .team-private-notice {
@@ -348,7 +348,7 @@
   padding: 6px 8px;
   border-radius: 999px;
   background: rgba(59, 130, 246, 0.08);
-  font-size: 0.68rem;
+  font-size: max(var(--stats-text-floor, 0px), 0.68rem);
 }
 
 .team-summary {
@@ -403,7 +403,7 @@
 .team-match-round small,
 .team-match-opponent span {
   color: #8fa6bf;
-  font-size: 0.72rem;
+  font-size: max(var(--stats-text-floor, 0px), 0.72rem);
 }
 
 .team-match-score {
@@ -416,7 +416,7 @@
   width: fit-content;
   padding: 6px 9px;
   border-radius: 999px;
-  font-size: 0.7rem;
+  font-size: max(var(--stats-text-floor, 0px), 0.7rem);
   font-weight: 800;
 }
 
@@ -447,7 +447,7 @@
 
 .team-match-cta {
   color: #ff9b52;
-  font-size: 0.78rem;
+  font-size: max(var(--stats-text-floor, 0px), 0.78rem);
   font-weight: 900;
   text-align: right;
 }
@@ -973,7 +973,7 @@
   min-height: 1.1rem;
   margin: -1px 0 7px;
   color: #8fa6bf;
-  font-size: 0.68rem;
+  font-size: max(var(--stats-text-floor, 0px), 0.68rem);
   font-weight: 750;
   letter-spacing: 0.05em;
   text-transform: uppercase;

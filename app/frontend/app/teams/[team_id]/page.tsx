@@ -124,7 +124,7 @@ export default async function TeamDetailPage({
     <div className="dashboard teams-shell">
       <Sidebar />
 
-      <main className={`main teams-main team-theme team-theme-${theme.key}`}>
+      <main className={`stats-responsive main teams-main team-theme team-theme-${theme.key}`}>
         <Link href="/teams" className="teams-back">
           ← Retour aux équipes
         </Link>

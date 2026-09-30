@@ -88,7 +88,7 @@
 .competition-eyebrow,
 .competition-section-title span {
   color: #ff9a38;
-  font-size: 12px;
+  font-size: max(var(--stats-text-floor, 0px), 12px);
   font-weight: 900;
   letter-spacing: .12em;
 }
@@ -123,7 +123,7 @@
 
 .competition-hero-badge span {
   color: #9ecbf0;
-  font-size: 12px;
+  font-size: max(var(--stats-text-floor, 0px), 12px);
 }
 
 .competition-section {
@@ -180,7 +180,7 @@
   align-items: center;
   color: #93c9f2;
   display: flex;
-  font-size: 11px;
+  font-size: max(var(--stats-text-floor, 0px), 11px);
   justify-content: space-between;
   text-transform: uppercase;
 }
@@ -229,7 +229,7 @@
 }
 
 .committee-ranking-card:hover { transform: translateY(-3px); border-color: #e2b33f; }
-.committee-ranking-card > div:first-child > span { color:#ffd36d; font-size:11px; font-weight:900; letter-spacing:.1em; }
+.committee-ranking-card > div:first-child > span { color:#ffd36d; font-size:max(var(--stats-text-floor, 0px), 11px); font-weight:900; letter-spacing:.1em; }
 .committee-ranking-card > div:first-child > strong { display:block; margin:10px 0 6px; font-size:42px; }
 .committee-ranking-card p { color:#9ecbf0; }
 .committee-ranking-card small { color:#ffad46; font-weight:900; }
@@ -270,7 +270,7 @@
 
 .bdc-feature-intro > span {
   color: #ffad66;
-  font-size: 11px;
+  font-size: max(var(--stats-text-floor, 0px), 11px);
   font-weight: 900;
   letter-spacing: .1em;
 }
@@ -322,7 +322,7 @@
 
 .bdc-next-round small {
   color: #ff9a43;
-  font-size: 10px;
+  font-size: max(var(--stats-text-floor, 0px), 10px);
   font-weight: 900;
   letter-spacing: .09em;
 }
@@ -334,7 +334,7 @@
 
 .bdc-next-round em {
   color: #8ebce0;
-  font-size: 12px;
+  font-size: max(var(--stats-text-floor, 0px), 12px);
   font-style: normal;
 }
 
@@ -385,7 +385,7 @@
 
 .tournament-card > div:first-child span {
   color: #6ff2c3;
-  font-size: 11px;
+  font-size: max(var(--stats-text-floor, 0px), 11px);
   font-weight: 800;
   text-transform: uppercase;
 }
@@ -402,13 +402,13 @@
 
 .tournament-event-name {
   color: #8ebce0;
-  font-size: 12px;
+  font-size: max(var(--stats-text-floor, 0px), 12px);
   margin: 0 0 16px;
 }
 
 .tournament-winner {
   color: #c9fbed;
-  font-size: 13px;
+  font-size: max(var(--stats-text-floor, 0px), 13px);
   margin: -8px 0 12px;
 }
 
@@ -513,7 +513,7 @@
 .championship-schedule-heading > span,
 .championship-schedule-source {
   color: #8ebce0;
-  font-size: 13px;
+  font-size: max(var(--stats-text-floor, 0px), 13px);
 }
 
 .championship-schedule .hub-table tbody tr:nth-child(3n) td {
@@ -550,7 +550,7 @@
 
 .hub-table th {
   color: #ff9a38;
-  font-size: 11px;
+  font-size: max(var(--stats-text-floor, 0px), 11px);
   letter-spacing: .05em;
   text-align: left;
   text-transform: uppercase;
@@ -665,7 +665,7 @@
 
 .tournament-highlights-grid span {
   color: #8fbddd;
-  font-size: 11px;
+  font-size: max(var(--stats-text-floor, 0px), 11px);
   font-weight: 800;
   letter-spacing: .04em;
   text-transform: uppercase;
@@ -697,7 +697,7 @@
 
 .tournament-panel-heading > div > span {
   color: #ff9a38;
-  font-size: 11px;
+  font-size: max(var(--stats-text-floor, 0px), 11px);
   font-weight: 900;
   letter-spacing: .1em;
 }
@@ -753,7 +753,7 @@
 .visual-match-card > header {
   color: #78a9cf;
   display: flex;
-  font-size: 9px;
+  font-size: max(var(--stats-text-floor, 0px), 9px);
   justify-content: space-between;
   margin-bottom: 6px;
   text-transform: uppercase;
@@ -795,7 +795,7 @@
 .visual-match-card > div > span small {
   color: #84acce;
   display: block;
-  font-size: 9px;
+  font-size: max(var(--stats-text-floor, 0px), 9px);
   font-weight: 600;
   margin-top: 2px;
 }
@@ -879,7 +879,7 @@
 .bracket-coverage {
   border-top: 1px solid #29445e;
   color: #91bee1;
-  font-size: 12px;
+  font-size: max(var(--stats-text-floor, 0px), 12px);
   margin: 8px 0 0;
   padding-top: 13px;
 }
@@ -912,7 +912,7 @@
 
 .round-robin-heading span {
   color: #ff9a38;
-  font-size: 10px;
+  font-size: max(var(--stats-text-floor, 0px), 10px);
   font-weight: 900;
   letter-spacing: .1em;
 }
@@ -925,7 +925,7 @@
 
 .round-robin-heading p {
   color: #91bee1;
-  font-size: 12px;
+  font-size: max(var(--stats-text-floor, 0px), 12px);
   margin: 0;
 }
 
@@ -941,7 +941,7 @@
   border: 1px solid #335875;
   border-radius: 999px;
   color: #cfe9fd;
-  font-size: 11px;
+  font-size: max(var(--stats-text-floor, 0px), 11px);
   padding: 7px 10px;
   white-space: nowrap;
 }
@@ -967,7 +967,7 @@
   border-collapse: separate;
   border-spacing: 0;
   color: #e9f6ff;
-  font-size: 12px;
+  font-size: max(var(--stats-text-floor, 0px), 12px);
   min-width: max-content;
   width: 100%;
 }
@@ -986,7 +986,7 @@
 .round-robin-table thead th {
   background: #102a42;
   color: #ffb263;
-  font-size: 10px;
+  font-size: max(var(--stats-text-floor, 0px), 10px);
   font-weight: 900;
   height: 42px;
   letter-spacing: .04em;
@@ -1040,13 +1040,13 @@
 
 .rr-player-name strong {
   color: #f5fbff;
-  font-size: 13px;
+  font-size: max(var(--stats-text-floor, 0px), 13px);
 }
 
 .rr-player-name small,
 .rr-result small {
   color: #84acce;
-  font-size: 10px;
+  font-size: max(var(--stats-text-floor, 0px), 10px);
   font-weight: 500;
   margin-top: 3px;
 }
@@ -1058,7 +1058,7 @@
 
 .rr-result strong {
   color: #f9fcff;
-  font-size: 13px;
+  font-size: max(var(--stats-text-floor, 0px), 13px);
 }
 
 .rr-result.won {
@@ -1134,7 +1134,7 @@
   color: #8fb8d8;
   display: flex;
   flex-wrap: wrap;
-  font-size: 10px;
+  font-size: max(var(--stats-text-floor, 0px), 10px);
   gap: 16px;
   padding: 11px 18px;
 }
@@ -1244,8 +1244,8 @@
 .tournament-disclosure>summary::-webkit-details-marker{display:none}
 .tournament-disclosure>summary span{display:grid;gap:4px}
 .tournament-disclosure>summary b{color:#f8fafc;font-size:1rem}
-.tournament-disclosure>summary small{color:#94a3b8;font-size:.76rem;font-weight:600}
-.tournament-disclosure>summary strong{display:inline-flex;align-items:center;gap:7px;color:#fdba74;font-size:.75rem}
+.tournament-disclosure>summary small{color:#94a3b8;font-size:max(var(--stats-text-floor, 0px), .76rem);font-weight:600}
+.tournament-disclosure>summary strong{display:inline-flex;align-items:center;gap:7px;color:#fdba74;font-size:max(var(--stats-text-floor, 0px), .75rem)}
 .tournament-disclosure>summary strong:after{content:"+";font-size:1.15rem}
 .tournament-disclosure[open]>summary{border-bottom:1px solid rgba(148,163,184,.15)}
 .tournament-disclosure[open]>summary strong:after{content:"−"}

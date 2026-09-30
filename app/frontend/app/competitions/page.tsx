@@ -90,7 +90,7 @@ export default async function CompetitionsPage() {
   return (
     <div className="dashboard">
       <Sidebar />
-      <main className="main competition-page competition-overview-theme">
+      <main className="stats-responsive main competition-page competition-overview-theme">
         <header className="competition-hero">
           <div>
             <span className="competition-eyebrow">

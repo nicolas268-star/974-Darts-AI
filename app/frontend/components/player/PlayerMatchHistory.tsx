@@ -1,5 +1,7 @@
 "use client";
 
+import { StatsTable } from "@/components/stats/StatsTable";
+
 import { useMemo, useState } from "react";
 import type { PlayerDashboard } from "@/lib/player/dashboard-types";
 
@@ -29,7 +31,7 @@ export function PlayerMatchHistory({ matches }: { matches: Match[] }) {
         </div>
       </div>
       <div className="table-scroll">
-        <table className="table player-match-table">
+        <StatsTable className="table player-match-table">
           <thead><tr><th>Journée</th><th>Adversaire</th><th>Mode</th><th>Legs</th><th>Résultat</th><th>Moyenne</th><th>Finish</th><th>100+</th><th>140+</th></tr></thead>
           <tbody>
             {displayed.map((match) => (
@@ -41,7 +43,7 @@ export function PlayerMatchHistory({ matches }: { matches: Match[] }) {
             ))}
             {!displayed.length && <tr><td colSpan={9} className="empty-cell">Aucun match ne correspond aux filtres.</td></tr>}
           </tbody>
-        </table>
+        </StatsTable>
       </div>
     </section>
   );

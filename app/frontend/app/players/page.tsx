@@ -1,3 +1,4 @@
+import { StatsTable } from "@/components/stats/StatsTable";
 import Link from "next/link";
 import { Activity, ShieldCheck, Users } from "lucide-react";
 import { Sidebar } from "@/components/Sidebar";
@@ -36,7 +37,7 @@ export default async function PlayersPage({ searchParams }: { searchParams: Prom
   return (
     <div className="dashboard">
       <Sidebar />
-      <main className="main players-page">
+      <main className="stats-responsive main players-page">
         <header className="players-hero">
           <div>
             <span>PERFORMANCES OFFICIELLES · 974 DARTS</span>
@@ -74,10 +75,10 @@ export default async function PlayersPage({ searchParams }: { searchParams: Prom
         <section className="players-table-panel">
           <div className="players-table-heading">
             <div><span>SAISON OFFICIELLE</span><h2>Classement des performances — Saison {selectedSeason}</h2></div>
-            <p>Les colonnes sont alignées par nature : identité à gauche, indicateurs au centre.</p>
+            <p>Comparez les moyennes, les legs gagnés et les meilleures performances de chaque joueur.</p>
           </div>
-          <p className="table-scroll-hint">Faites glisser le tableau horizontalement pour consulter tous les indicateurs.</p><div className="players-table-scroll" tabIndex={0} role="region" aria-label="Tableau des statistiques joueurs, défilement horizontal">
-            <table className="players-table">
+          <p className="table-scroll-hint">Faites glisser le tableau horizontalement pour consulter tous les indicateurs.</p><div className="players-table-scroll" tabIndex={0} role="region" aria-label="Statistiques des joueurs">
+            <StatsTable className="players-table">
               <colgroup>
                 <col className="players-col-name" />
                 <col className="players-col-team" />
@@ -106,7 +107,7 @@ export default async function PlayersPage({ searchParams }: { searchParams: Prom
                   <tr className="players-empty"><td colSpan={10}><strong>Aucune statistique publiée pour la saison {selectedSeason}</strong><span>Les joueurs apparaîtront ici dès que les données officielles de la saison seront disponibles.</span></td></tr>
                 )}
               </tbody>
-            </table>
+            </StatsTable>
           </div>
         </section>
       </main>

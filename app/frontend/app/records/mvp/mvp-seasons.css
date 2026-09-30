@@ -38,7 +38,7 @@
   align-items: center;
   gap: 7px;
   color: #9eb0c4;
-  font-size: 0.7rem;
+  font-size: max(var(--stats-text-floor, 0px), 0.7rem);
   font-weight: 850;
   text-transform: uppercase;
   letter-spacing: 0.07em;
@@ -61,14 +61,14 @@
 
 .mvp-season-card p {
   margin: 0;
-  font-size: 0.78rem;
+  font-size: max(var(--stats-text-floor, 0px), 0.78rem);
 }
 
 .mvp-season-card > b {
   margin-top: auto;
   padding-top: 20px;
   color: #d8b4fe;
-  font-size: 0.75rem;
+  font-size: max(var(--stats-text-floor, 0px), 0.75rem);
 }
 
 .mvp-season-card.is-active > b {

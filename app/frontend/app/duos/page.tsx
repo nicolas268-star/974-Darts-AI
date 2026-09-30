@@ -33,7 +33,7 @@ export default async function DuosPage() {
   return (
     <div className="dashboard">
       <Sidebar />
-      <main className="main duo-page duo-synergy-theme">
+      <main className="stats-responsive main duo-page duo-synergy-theme">
         <header className="duo-page-header">
           <div>
             <span className="badge">SYNERGIE · DUOS 974</span>

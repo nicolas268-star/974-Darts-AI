@@ -21,7 +21,7 @@
 
 .hub-topline span {
   color: #8fa6bf;
-  font-size: 0.8rem;
+  font-size: max(var(--stats-text-floor, 0px), 0.8rem);
 }
 
 .match-hub-hero {
@@ -51,7 +51,7 @@
 .hub-section-title span,
 .hub-empty-detail > span {
   color: #ff9b52;
-  font-size: 0.7rem;
+  font-size: max(var(--stats-text-floor, 0px), 0.7rem);
   font-weight: 900;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -187,7 +187,7 @@
 
 .hub-kpis span {
   color: #8fb0cf;
-  font-size: 0.66rem;
+  font-size: max(var(--stats-text-floor, 0px), 0.66rem);
   text-transform: uppercase;
 }
 
@@ -285,14 +285,14 @@
 
 .hub-table-scroll th {
   color: #ffb13b;
-  font-size: 0.68rem;
+  font-size: max(var(--stats-text-floor, 0px), 0.68rem);
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 
 .hub-table-scroll td {
   color: #c8d5e5;
-  font-size: 0.82rem;
+  font-size: max(var(--stats-text-floor, 0px), 0.82rem);
 }
 
 .hub-table-scroll tbody tr:hover {

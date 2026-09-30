@@ -1,6 +1,6 @@
 .stats-hub { min-height: calc(100vh - 72px); padding: 62px clamp(22px,5vw,72px) 90px; background: radial-gradient(circle at 84% 8%,rgba(255,122,49,.11),transparent 26rem),#061321; }
 .stats-hub-hero { display:flex; align-items:flex-end; justify-content:space-between; gap:30px; max-width:1280px; margin:0 auto 34px; }
-.stats-hub-kicker { color:#ffad4e; font-size:.72rem; font-weight:900; letter-spacing:.14em; }
+.stats-hub-kicker { color:#ffad4e; font-size:max(var(--stats-text-floor, 0px), .72rem); font-weight:900; letter-spacing:.14em; }
 .stats-hub h1 { margin:12px 0 12px; font-size:clamp(3rem,7vw,6.5rem); }
 .stats-hub-hero p { max-width:720px; margin:0; font-size:1.02rem; }
 .stats-hub-switch { padding:12px 15px; border:1px solid rgba(255,173,78,.26); border-radius:12px; color:#ffb45c; white-space:nowrap; }

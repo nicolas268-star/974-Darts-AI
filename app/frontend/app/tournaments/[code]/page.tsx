@@ -1,3 +1,4 @@
+import { StatsTable } from "@/components/stats/StatsTable";
 import Link from "next/link";
 import { Sidebar } from "@/components/Sidebar";
 import type {
@@ -138,7 +139,7 @@ function ParticipantTable({
   }
   return (
     <div className="hub-table-scroll">
-      <table className="hub-table">
+      <StatsTable className="hub-table">
         <thead>
           <tr>
             <th>{duo ? "Duo" : "Joueur"}</th>
@@ -183,7 +184,7 @@ function ParticipantTable({
             </tr>
           ))}
         </tbody>
-      </table>
+      </StatsTable>
     </div>
   );
 }
@@ -210,7 +211,7 @@ function RoundRobinTable({ group }: { group: TournamentRoundRobinGroup }) {
       </div>
 
       <p className="table-scroll-hint">Faites glisser le tableau horizontalement pour consulter toutes les confrontations.</p><div className="round-robin-scroll" tabIndex={0} role="region" aria-label={`Tableau de poule ${group.name}, défilement horizontal`}>
-        <table className="round-robin-table">
+        <StatsTable className="round-robin-table" mobileSummaryColumns={[group.matrix.length + 7, group.matrix.length + 8, group.matrix.length + 2, group.matrix.length + 3]}>
           <thead>
             <tr>
               <th className="rr-rank-index">#</th>
@@ -283,7 +284,7 @@ function RoundRobinTable({ group }: { group: TournamentRoundRobinGroup }) {
               );
             })}
           </tbody>
-        </table>
+        </StatsTable>
       </div>
       <footer className="round-robin-legend">
         <span><i className="rr-legend-win" /> Victoire</span>
@@ -322,7 +323,7 @@ export default async function TournamentPage({
   return (
     <div className="dashboard">
       <Sidebar />
-      <main className="main competition-page tournament-theme">
+      <main className="stats-responsive main competition-page tournament-theme">
         <Link href={data?.affects_committee_ranking ? "/competitions" : "/tournaments"} className="hub-back">
           ← Retour {data?.affects_committee_ranking ? "aux compétitions Comité" : "aux tournois amicaux"}
         </Link>
@@ -510,7 +511,7 @@ export default async function TournamentPage({
               <div className="tournament-disclosure-content">
               {data.matches.length ? (
                 <div className="hub-table-scroll">
-                  <table className="hub-table">
+                  <StatsTable className="hub-table">
                     <thead>
                       <tr>
                         <th>Match</th>
@@ -543,7 +544,7 @@ export default async function TournamentPage({
                         </tr>
                       ))}
                     </tbody>
-                  </table>
+                  </StatsTable>
                 </div>
               ) : (
                 <p className="hub-empty">

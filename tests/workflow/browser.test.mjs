@@ -4,6 +4,7 @@ import {mkdir} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import {resolve,dirname} from 'node:path';
 import {testVisibility} from './visibility.browser.mjs';
+import {testMobileStatistics} from './mobile-statistics.browser.mjs';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'../..');
 const output=resolve(root,'docs/ranking-workflow-preview');
 const sharp=createRequire(resolve(root,'app/frontend/package.json'))('sharp');
@@ -12,7 +13,7 @@ const browser=await chromium.launch({headless:true,args:['--no-sandbox']});
 const adminContext=await browser.newContext({bypassCSP:true,viewport:{width:1440,height:1100}});
 const dsContext=await browser.newContext({bypassCSP:true,viewport:{width:1440,height:1100}});
 const admin=await adminContext.newPage(),ds=await dsContext.newPage();
-async function screenshot(page,name){await page.addStyleTag({content:'nextjs-portal{display:none!important}'});await sharp(await page.screenshot({fullPage:true})).webp({lossless:true}).toFile(output+'/'+name.replace(/\.png$/,'.webp'));}
+async function screenshot(page,name,options={fullPage:true}){await page.addStyleTag({content:'nextjs-portal{display:none!important}'});await sharp(await page.screenshot(options)).webp({lossless:true}).toFile(output+'/'+name.replace(/\.png$/,'.webp'));}
 async function login(page,role){
  await page.goto('http://127.0.0.1:3008/login');
  await page.locator('input[type=email]').fill(role+'@example.invalid');
@@ -80,4 +81,5 @@ try{
  await expect(ds.getByRole('heading',{name:'Open Club Double · Démonstration'})).toBeVisible();
  console.log('PASS: browser admin → correction DS → v3 → approval DS → final admin → publication; direct permissions, CSRF, public double points and mobile layout.');
  await testVisibility(admin,ds,screenshot);
+ await testMobileStatistics(ds,screenshot);
 }catch(e){console.error(e.message);console.error('Admin URL:',admin.url(),'DS URL:',ds.url());await screenshot(admin,'failure.png');process.exitCode=1;}finally{await browser.close()}

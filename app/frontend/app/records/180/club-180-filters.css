@@ -22,14 +22,14 @@
   border-radius: 999px;
   background: rgba(9, 18, 32, .58);
   color: #9fb1c6;
-  font-size: .74rem;
+  font-size: max(var(--stats-text-floor, 0px), .74rem);
   font-weight: 850;
   transition: .16s ease;
 }
 
 .club180-filter-actions a:hover { border-color: rgba(255, 154, 79, .45); color: #fff; }
 .club180-filter-actions a.active { border-color: rgba(255, 154, 79, .55); background: linear-gradient(135deg, #ff793c, #f9b233); color: #07111f; }
-.club180-detail-intro { margin: -5px 22px 18px; color: #91a5bd; font-size: .76rem; }
+.club180-detail-intro { margin: -5px 22px 18px; color: #91a5bd; font-size: max(var(--stats-text-floor, 0px), .76rem); }
 .club180-detail { margin-top: 18px; }
 .club180-detail .club180-table { min-width: 900px; }
 

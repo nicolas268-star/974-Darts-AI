@@ -141,7 +141,7 @@ export default async function BdcPlayerRoundPage({
 
   return <div className="dashboard">
     <Sidebar />
-    <main className="main competition-page tournament-theme bdc-page bdc-player-page">
+    <main className="stats-responsive main competition-page tournament-theme bdc-page bdc-player-page">
       <Link href={backHref} className="hub-back bdc-player-back">← Retour aux performances individuelles de la Manche 01</Link>
 
       <header className="bdc-player-hero">

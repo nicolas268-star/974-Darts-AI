@@ -1,3 +1,4 @@
+import { StatsTable } from "@/components/stats/StatsTable";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Sidebar } from "@/components/Sidebar";
@@ -93,7 +94,7 @@ export default async function MatchHubPage({
     <div className="dashboard match-hub-shell">
       <Sidebar />
 
-      <main className="main match-hub-main">
+      <main className="stats-responsive main match-hub-main">
         <div className="hub-topline">
           <Link href={`/teams/${backTeamId}`}>← Retour à l’équipe</Link>
           <span>
@@ -242,7 +243,7 @@ export default async function MatchHubPage({
                 <h2>Performance des joueurs</h2>
               </div>
               <div className="hub-table-scroll">
-                <table>
+                <StatsTable>
                   <thead>
                     <tr>
                       <th>Joueur</th>
@@ -271,7 +272,7 @@ export default async function MatchHubPage({
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                </StatsTable>
               </div>
             </section>
 
@@ -281,7 +282,7 @@ export default async function MatchHubPage({
                 <h2>Legs de double</h2>
               </div>
               <div className="hub-table-scroll">
-                <table>
+                <StatsTable>
                   <thead>
                     <tr>
                       <th>Match</th>
@@ -311,7 +312,7 @@ export default async function MatchHubPage({
                       </tr>
                     ) : null}
                   </tbody>
-                </table>
+                </StatsTable>
               </div>
             </section>
 
@@ -321,7 +322,7 @@ export default async function MatchHubPage({
                 <h2>Tous les legs de la soirée</h2>
               </div>
               <div className="hub-table-scroll">
-                <table>
+                <StatsTable>
                   <thead>
                     <tr>
                       <th>Match</th>
@@ -352,7 +353,7 @@ export default async function MatchHubPage({
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                </StatsTable>
               </div>
             </section>
           </>

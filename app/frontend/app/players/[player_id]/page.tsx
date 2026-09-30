@@ -132,7 +132,7 @@ export default async function PlayerDashboardPage({ params, searchParams }: { pa
     { label: "Classement moyenne", value: rank ? `#${rank}` : "—", icon: Medal, tone: "purple", detail: rank ? `sur ${ranked.length} joueurs classés` : "Classement indisponible" },
   ];
 
-  return <div className="dashboard"><Sidebar/><main className="main player-dashboard-page">
+  return <div className="dashboard"><Sidebar/><main className="stats-responsive main player-dashboard-page">
     <Link href="/players" className="back-link"><ArrowLeft size={17}/> Retour aux joueurs</Link>
     <Link href={`/players/${player_id}/career`} className="career-link">Identité & carrière · équipes, saisons et alias</Link>
     <PlayerDashboardControls players={players.map((player) => ({ player_id: player.player_id, name: player.name, team: player.team }))} currentPlayerId={player_id} season={selectedSeason}/>

@@ -1,3 +1,4 @@
+import { StatsTable } from "@/components/stats/StatsTable";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { Activity, Award, Crown, Gauge, Medal, ShieldCheck, Target, Trophy } from "lucide-react";
@@ -141,7 +142,7 @@ export default async function Mvp2026Page() {
   return (
     <div className="dashboard">
       <Sidebar />
-      <main className="main record-page mvp-page">
+      <main className="stats-responsive main record-page mvp-page">
         <section className="record-hero mvp-hero">
           <div className="record-hero-icon mvp-crown" aria-hidden="true">
             <Crown size={44} />
@@ -245,7 +246,7 @@ export default async function Mvp2026Page() {
                 <span className="record-count">{mvpPlayers.length} joueurs éligibles</span>
               </div>
               <div className="table-scroll">
-                <table className="table record-table mvp-table">
+                <StatsTable className="table record-table mvp-table">
                   <thead>
                     <tr>
                       <th>Rang</th>
@@ -283,7 +284,7 @@ export default async function Mvp2026Page() {
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                </StatsTable>
               </div>
             </section>
 
