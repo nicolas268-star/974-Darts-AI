@@ -546,4 +546,110 @@ test("Conquest v2: reject corrupt mapping, Bull, pending defense, modes and mixe
  for(const goal of [5,7,10])assert.equal(local.validGame("conquest",legacyConquest("DUEL",names,{conquestGoal:goal})),true);
  assert.match(local.describeGame(valid),/Full conquête/);
 });
+function ultraGame(target = 40, format = "DUEL", owner = null) {
+ let game=fun.createFunGame("conquest",format,names,{conquestMode:"ULTRA"},()=>0.999999);
+ const region=target===50?21:1, existing=game.territories.findIndex(t=>t.target===target);
+ if(existing>=0) [game.territories[region-1].target,game.territories[existing].target]=[game.territories[existing].target,game.territories[region-1].target];
+ else game.territories[region-1].target=target;
+ game.territories[region-1].owner=owner;
+ return fun.selectConquestAttack(game,region);
+}
+const ultraDart=(game,label)=>fun.applyFunDart(game,input.parseDartInput(label));
+test("Conquest Ultra: 20 unique finishes in 2–78 plus fixed Bull 50, fresh draw and stable links",()=>{
+ const first=fun.createFunGame("conquest","DUEL",names,{conquestMode:"ULTRA"},()=>0.2);
+ const second=fun.createFunGame("conquest","DUEL",names,{conquestMode:"ULTRA"},()=>0.8);
+ assert.equal(first.campaign.version,3);assert.equal(first.campaign.attackRegion,null);
+ assert.equal(first.territories.length,21);assert.equal(new Set(first.territories.map(t=>t.target)).size,21);
+ assert.ok(first.territories.every(t=>t.target>=2&&t.target<=78&&input.isPossibleDoubleCheckout(t.target,3)));
+ assert.equal(first.territories[20].target,50);assert.notDeepEqual(first.territories,second.territories);
+ assert.deepEqual(fun.conquestNeighborRegions(first,21),[6,9,11,13]);assert.equal(fun.conquestGoal(first),null);
+ assert.equal(fun.conquestTargetLabel(25,true),"25");assert.equal(fun.conquestTargetLabel(50,true),"Bull · 50");
+ assert.equal(local.validGame("conquest",first),true);assert.match(local.describeGame(first),/Ultra.*2–78/);
+});
+test("Conquest Ultra: every finish 2–78 is capturable with a real double-out checkout",()=>{
+ for(let target=2;target<=78;target++){
+  let game=ultraGame(target);const original=JSON.stringify(game),region=game.campaign.attackRegion;
+  const route=x01.checkoutRoute(target,"DOUBLE_OUT");assert.ok(route,String(target));
+  for(const label of route.split(" · ")){game=ultraDart(game,label);assert.equal(local.validGame("conquest",game),true,`${target} after ${label}`);}
+  assert.equal(game.territories[region-1].owner,0);assert.equal(game.visitClosed,true);assert.equal(game.winnerSide,null);
+  assert.equal(fun.conquestUltraAttempt(game).remaining,0);assert.equal(fun.conquestScores(game)[0],2);
+  assert.equal(game.totalDarts,route.split(" · ").length);assert.equal(game.territories[region-1].marks.every(m=>m===0),true);
+  assert.equal(JSON.parse(original).territories[region-1].owner,null);
+  assert.equal(ultraDart(game,"D1"),game,"A checkout ends the visit immediately");
+ }
+});
+test("Conquest Ultra: choose before first dart, no own attack, lock after any dart, immutable selection",()=>{
+ const initial=fun.createFunGame("conquest","DUEL",names,{conquestMode:"ULTRA"});
+ assert.equal(ultraDart(initial,"T20"),initial);
+ for(const invalid of [0,22,-1,1.5,NaN])assert.equal(fun.selectConquestAttack(initial,invalid),initial);
+ let game=fun.selectConquestAttack(initial,1);assert.equal(initial.campaign.attackRegion,null);assert.equal(local.validGame("conquest",game),true);
+ game=fun.selectConquestAttack(game,2);assert.equal(game.campaign.attackRegion,2);
+ game=ultraDart(game,"0");assert.equal(fun.selectConquestAttack(game,1),game);
+ game=completeVisit(game);assert.equal(fun.selectConquestAttack(game,3),game);
+ game=fun.endFunVisit(game);assert.equal(game.campaign.attackRegion,null);assert.equal(local.validGame("conquest",game),true);
+ game.territories[0].owner=1;assert.equal(fun.selectConquestAttack(game,1),game);
+ assert.equal(fun.selectConquestAttack(campaignGame("FULL"),1).campaign.attackRegion,undefined);
+});
+for(const [title,target,throws] of [["overshoot",40,["T20"]],["one remaining",40,["T13"]],["zero without a double",20,["S20"]],["simple Bull is not a double",25,["25"]],["triple cannot finish",60,["T20"]]]){
+ test("Conquest Ultra: bust closes the visit / "+title,()=>{
+  let game=ultraGame(target,"DUEL",1);for(const label of throws)game=ultraDart(game,label);
+  assert.equal(game.visitClosed,true);assert.equal(fun.conquestUltraAttempt(game).bust,true);assert.equal(fun.conquestUltraAttempt(game).remaining,target);
+  assert.equal(game.territories[0].owner,1);assert.deepEqual(game.campaign.bonuses,[0,1]);assert.deepEqual(game.campaign.pending,[]);
+  assert.equal(local.validGame("conquest",game),true);assert.equal(ultraDart(game,"0"),game);
+ });
+}
+test("Conquest Ultra: third dart settles one defense bonus; no progress carries to next visit",()=>{
+ let game=ultraGame(40,"DUEL",1);game=ultraDart(game,"S1");const pending=game;
+ assert.equal(fun.conquestUltraAttempt(game).remaining,39);assert.deepEqual(game.campaign.pending,[1]);assert.equal(local.validGame("conquest",game),true);
+ game=ultraDart(game,"S1");game=ultraDart(game,"0");assert.equal(game.visitClosed,true);assert.deepEqual(game.campaign.bonuses,[0,1]);
+ assert.deepEqual(pending.campaign.bonuses,[0,0]);assert.equal(pending.visitDarts.length,1);
+ game=fun.endFunVisit(game);assert.equal(game.campaign.attackRegion,null);
+ game=fun.selectConquestAttack(game,2);game=completeVisit(game);game=fun.endFunVisit(game);game=fun.selectConquestAttack(game,1);
+ assert.equal(fun.conquestUltraAttempt(game).remaining,40);assert.deepEqual(game.territories[0].marks,[0,0]);assert.equal(local.validGame("conquest",game),true);
+});
+test("Conquest Ultra: a successful recapture cancels pending defense and preserves geographic scoring",()=>{
+ let game=ultraGame(40,"DUEL",1);game.territories[1].owner=0;
+ game=ultraDart(game,"S20");assert.deepEqual(game.campaign.pending,[1]);const before=game;
+ game=ultraDart(game,"D10");assert.equal(game.territories[0].owner,0);assert.deepEqual(game.campaign.bonuses,[0,0]);assert.deepEqual(game.campaign.pending,[]);
+ assert.equal(fun.conquestScores(game)[0],5);assert.equal(game.visitDarts.length,2);assert.equal(local.validGame("conquest",game),true);
+ assert.equal(before.territories[0].owner,1);assert.deepEqual(before.campaign.pending,[1]);
+});
+test("Conquest Ultra: misses alone and unowned territory failures do not give defense points",()=>{
+ for(const owner of [null,1]){let game=ultraGame(40,"DUEL",owner);game=completeVisit(game);assert.deepEqual(game.campaign.bonuses,[0,0]);assert.equal(local.validGame("conquest",game),true);}
+ let free=ultraGame(40);free=ultraDart(free,"T20");assert.deepEqual(free.campaign.bonuses,[0,0]);
+});
+for(const format of ["SOLO","DUEL","THREE","FOUR","TEAMS_2V2"]){
+ test("Conquest Ultra: formats, shared team ownership and explicit handover / "+format,()=>{
+  let game=ultraGame(2,format);if(format==="TEAMS_2V2")game.activeParticipant=2;
+  game=ultraDart(game,"D1");assert.equal(game.territories[0].owner,0);assert.equal(local.validGame("conquest",game),true);
+  const next=fun.endFunVisit(game);assert.equal(next.activeParticipant,(game.activeParticipant+1)%game.participants.length);assert.equal(next.campaign.attackRegion,null);assert.equal(local.validGame("conquest",next),true);
+ });
+}
+test("Conquest Ultra: Bull closes the full map, highest score wins, including a draw",()=>{
+ let game=ultraGame(50);for(let i=0;i<20;i++)game.territories[i].owner=1;
+ game=ultraDart(game,"0");assert.equal(game.winnerSide,null);const before=game;
+ game=ultraDart(game,"50");assert.equal(game.winnerSide,1);assert.equal(game.visitDarts.length,2);assert.equal(local.validGame("conquest",game),true);
+ assert.equal(before.territories[20].owner,null);assert.equal(fun.endFunVisit(game),game);
+ let tie=ultraGame(50);tie.totalDarts=100;for(let i=0;i<20;i++)tie.territories[i].owner=i%2;
+ const final=structuredClone(tie);final.territories[20].owner=0;const [a,b]=fun.conquestScores(final);
+ tie.campaign.bonuses[a>b?1:0]=Math.abs(a-b);tie=ultraDart(tie,"50");assert.equal(tie.winnerSide,"DRAW");assert.equal(local.validGame("conquest",tie),true);
+});
+test("Conquest Ultra: declared target, partial checkout, defense and undo survive local/cloud serialization",()=>{
+ const selected=ultraGame(40,"DUEL",1), partial=ultraDart(selected,"S20");
+ const storage=memoryStorage();assert.equal(local.saveRecord(storage,"alice","conquest",0,savedSession(partial,"ultra-save",[selected])).ok,true);
+ const loaded=local.readRecord(storage,"alice","conquest");assert.equal(loaded.ok,true);assert.deepEqual(loaded.record.current.game,partial);
+ assert.deepEqual(loaded.record.current.history,[selected]);assert.equal(fun.conquestUltraAttempt(loaded.record.current.game).remaining,20);
+ const won=ultraDart(loaded.record.current.game,"D10");assert.equal(won.territories[0].owner,0);assert.deepEqual(won.campaign.bonuses,[0,0]);
+ const restored=loaded.record.current.history[0];assert.equal(fun.conquestUltraAttempt(restored).remaining,40);assert.equal(restored.territories[0].owner,1);
+ assert.equal(local.validRecord("conquest",JSON.parse(JSON.stringify(loaded.record))),true);
+});
+test("Conquest Ultra: reject malformed targets, versions, marks, attacks, pending points and premature results",()=>{
+ const base=ultraGame(40,"DUEL",1);
+ const mutations=[g=>g.campaign.version=2,g=>g.campaign.mode="FULL",g=>g.territories[0].target=1,g=>g.territories[0].target=79,g=>g.territories[0].target=50,g=>g.territories[20].target=25,g=>g.territories[0].marks[0]=1,g=>delete g.campaign.attackRegion,g=>g.campaign.attackRegion=22,g=>g.campaign.attackRegion=1.2,g=>g.territories[0].owner=0,g=>g.campaign.pending=[1],g=>g.visitClosed=true,g=>g.winnerSide=0];
+ for(const mutate of mutations){const bad=structuredClone(base);mutate(bad);assert.equal(local.validGame("conquest",bad),false);}
+ const partial=ultraDart(base,"S20");
+ for(const mutate of [g=>g.campaign.attackRegion=null,g=>g.campaign.pending=[],g=>g.campaign.pending=[2],g=>g.visitDarts[0]="invalid",g=>g.totalDarts=0]){const bad=structuredClone(partial);mutate(bad);assert.equal(local.validGame("conquest",bad),false);}
+ const closed=ultraDart(partial,"D10");closed.visitDarts.push("MISS");closed.log.push({...closed.log[0]});closed.totalDarts++;assert.equal(local.validGame("conquest",closed),false,"No darts after checkout");
+ const normal=campaignGame("FULL");normal.campaign.attackRegion=1;assert.equal(local.validGame("conquest",normal),false);
+});
 console.log(count + " play engine tests passed.");

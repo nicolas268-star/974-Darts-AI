@@ -81,6 +81,36 @@ export async function testPlaySync(browser, source, screenshot) {
     await enter(pc,'T'+conquestLabels[19]);await counter(pc,3);await counter(phone,3);
     await expect(phone.locator('.conquest-defense-pending')).toHaveCount(0);
     await expect(phone.locator('.conquest-scores article').first()).toHaveAttribute('aria-label','Téléphone Alice · 5');
+    // Ultra synchronizes the declared finish and remaining score as well as territory ownership.
+    await pc.getByRole('button',{name:'Nouvelle partie',exact:true}).click();await pc.getByRole('button',{name:'Confirmer la nouvelle partie',exact:true}).click();
+    await pc.getByLabel('Mode de conquête').selectOption('ULTRA');await pc.getByRole('button',{name:/^1 vs 1/}).click();
+    await pc.getByLabel('Joueur 1',{exact:true}).fill('Ultra Alice');await pc.getByLabel('Joueur 2',{exact:true}).fill('Ultra Bruno');
+    await pc.getByRole('button',{name:'Lancer la partie →',exact:true}).click();await counter(pc,0);await counter(phone,0);
+    await expect(phone.getByRole('heading',{name:'Ultra conquête · terminez vos finishes.',exact:true})).toBeVisible();
+    const ultraTargets=await pc.locator('.conquest-region').evaluateAll(nodes=>nodes.map(n=>Number(n.getAttribute('data-target'))));
+    expect(await phone.locator('.conquest-region').evaluateAll(nodes=>nodes.map(n=>Number(n.getAttribute('data-target'))))).toEqual(ultraTargets);expect(ultraTargets[20]).toBe(50);
+    const ultraScore=(page,side,points)=>expect(page.locator('.conquest-scores article').nth(side)).toHaveAttribute('aria-label',`${side?'Ultra Bruno':'Ultra Alice'} · ${points}`);
+    const attackBull=async()=>{await pc.locator('.conquest-selector button').nth(20).click();await pc.getByRole('button',{name:'Attaquer ce finish',exact:true}).click();await expect(pc.getByLabel('Fléchette',{exact:true})).toBeEnabled();};
+    await attackBull();await expect(phone.locator('.fun-controls .conquest-ultra-status')).toContainText('FINISH Bull · 50');
+    await enter(pc,'50');await counter(pc,1);await counter(phone,1);await ultraScore(phone,0,2);
+    await pc.getByRole('button',{name:/Joueur suivant/}).click();await counter(pc,0);await counter(phone,0);
+    await attackBull();await enter(pc,'S10');await counter(pc,1);await counter(phone,1);
+    await expect(phone.locator('.fun-controls .conquest-ultra-status strong').first()).toContainText('40');
+    await expect(phone.locator('.conquest-defense-pending')).toContainText('Ultra Alice recevra +1 point');
+    await phone.locator('.conquest-selector button').first().click();await expect(phone.getByRole('button',{name:'Attaquer ce finish',exact:true})).toBeDisabled();
+    await phone.reload();await screen(phone);await expect(phone.locator('.fun-controls .conquest-ultra-status strong').first()).toContainText('40');
+    expect(await phone.locator('.conquest-region').evaluateAll(nodes=>nodes.map(n=>Number(n.getAttribute('data-target'))))).toEqual(ultraTargets);
+    await phone.getByRole('button',{name:'Saisir sur cet appareil',exact:true}).click();await writing(phone);
+    await pc.getByRole('button',{name:'Agrandir la carte',exact:true}).click();const ultraScreen=pc.getByRole('dialog',{name:'Conquête, carte agrandie'});
+    await expect(ultraScreen.locator('.conquest-ultra-status strong').first()).toContainText('40');
+    await enter(phone,'0');await counter(phone,2);await enter(phone,'0');await counter(phone,3);
+    await expect(ultraScreen.locator('.conquest-scores article').first()).toHaveAttribute('aria-label','Ultra Alice · 3');
+    await phone.getByRole('button',{name:'Annuler la dernière action',exact:true}).click();await counter(phone,2);
+    await expect(ultraScreen.locator('.conquest-scores article').first()).toHaveAttribute('aria-label','Ultra Alice · 2');
+    await enter(phone,'D20');await counter(phone,3);await expect(ultraScreen.locator('.conquest-ultra-status')).toContainText('Conquis !');
+    await expect(ultraScreen.getByRole('button',{name:'Territoire Bull · 50 : Ultra Bruno',exact:true})).toBeVisible();
+    await ultraScreen.getByRole('button',{name:'Fermer la vue agrandie',exact:true}).click();await ultraScore(pc,0,0);await ultraScore(pc,1,2);
+    await expect(phone.locator('.conquest-defense-pending')).toHaveCount(0);
    }
    if(kind==='cricket'){
     await screenshot(phone,'play-sync-phone-390.png');
@@ -189,5 +219,8 @@ export async function testPlaySync(browser, source, screenshot) {
   await expect(pc.getByRole('link',{name:'Ouvrir Cricket sur cet appareil →',exact:true})).toHaveCount(0);
   expect(errors).toEqual([]);
   console.log('PASS: PC/phone sync — 7 games, independent browser storage, handover, undo, hub, reload, lost acknowledgement, reconnect, deletion without resurrection and API access boundaries');
+ }catch(error){
+  await Promise.allSettled([screenshot(phone,'play-sync-failure-phone.png'),screenshot(pc,'play-sync-failure-pc.png')]);
+  throw error;
  }finally{await phoneContext.close();await pcContext.close();}
 }
