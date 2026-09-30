@@ -17,6 +17,7 @@ export async function testPlaySync(browser, source, screenshot) {
  try{
   for(const [kind,start] of [['cricket','Lancer la partie'],['tictactoe','Créer la grille'],['clock','Lancer le tour'],['bob27','Commencer Bob’s 27'],['connect4','Lancer la partie'],['conquest','Lancer la partie'],['bull500','Lancer la partie']]){
    console.log('SYNC browser scenario:',kind);
+   let conquestLabels=[];
    await phone.goto(base+'/play/'+kind);
    await phone.getByRole('button',{name:/^4 joueurs/}).click();
    await phone.getByLabel('Joueur 1',{exact:true}).fill('Téléphone Alice');
@@ -26,6 +27,11 @@ export async function testPlaySync(browser, source, screenshot) {
    await writing(phone);
    await pc.goto(base+'/play/'+kind+'?sync=1');
    await counter(pc,0);await screen(pc);await expect(pc.getByLabel('Fléchette',{exact:true})).toBeDisabled();
+   if(kind==='conquest'){
+    conquestLabels=await phone.locator('.conquest-region').evaluateAll(nodes=>nodes.map(n=>Number(n.getAttribute('data-target'))));
+    expect(await pc.locator('.conquest-region').evaluateAll(nodes=>nodes.map(n=>Number(n.getAttribute('data-target'))))).toEqual(conquestLabels);
+    expect(conquestLabels[20]).toBe(25);
+   }
    if(kind==='cricket'){
     await phone.route('**/api/play/sync*',async route=>{
      if(route.request().method()==='POST'&&route.request().postDataJSON().action==='SAVE'){
@@ -37,17 +43,17 @@ export async function testPlaySync(browser, source, screenshot) {
     await expect(phone.getByLabel('Fléchette',{exact:true})).toBeFocused();
     await expect(phone.getByRole('button',{name:'Raté / 0',exact:true})).toBeDisabled();
     await counter(phone,1);await phone.unroute('**/api/play/sync*');
-   } else { await enter(phone,kind==='conquest'?'T20':'0');await counter(phone,1); }
+   } else { await enter(phone,kind==='conquest'?'T'+conquestLabels[19]:'0');await counter(phone,1); }
    await counter(pc,1);
    if(kind==='conquest'){
     await expect(pc.locator('.conquest-scores article').first()).toHaveAttribute('aria-label','Téléphone Alice · 2');
     await pc.getByRole('button',{name:'Agrandir la carte',exact:true}).click();
    }
-   await enter(phone,kind==='conquest'?'T19':'0');await counter(phone,2);
+   await enter(phone,kind==='conquest'?'T'+conquestLabels[18]:'0');await counter(phone,2);
    if(kind==='conquest'){
     const screenMap=pc.getByRole('dialog',{name:'Conquête, carte agrandie'});
     await expect(screenMap.locator('.conquest-scores article').first()).toHaveAttribute('aria-label','Téléphone Alice · 5');
-    await expect(screenMap.getByRole('button',{name:'Territoire 19 : Téléphone Alice',exact:true})).toBeVisible();
+    await expect(screenMap.getByRole('button',{name:`Territoire ${conquestLabels[18]} : Téléphone Alice`,exact:true})).toBeVisible();
     await screenMap.getByRole('button',{name:'Fermer la vue agrandie',exact:true}).click();
    }
    await counter(pc,2);
@@ -55,12 +61,27 @@ export async function testPlaySync(browser, source, screenshot) {
    await writing(pc);
    // Submit immediately on the old device if it has not polled yet: CAS still prevents a stale save.
    await expect(phone.getByLabel('Fléchette',{exact:true})).toBeDisabled({timeout:15000});
-   await enter(pc,kind==='conquest'?'T18':'0');await counter(pc,3);await counter(phone,3);
+   await enter(pc,kind==='conquest'?'T'+conquestLabels[17]:'0');await counter(pc,3);await counter(phone,3);
    if(kind==='conquest')await expect(phone.locator('.conquest-scores article').first()).toHaveAttribute('aria-label','Téléphone Alice · 8');
    await pc.getByRole('button',{name:/Joueur suivant/}).click();await counter(pc,0);await counter(phone,0);
    await pc.getByRole('button',{name:'Annuler la dernière action',exact:true}).click();await counter(pc,3);await counter(phone,3);
    await pc.reload();await counter(pc,3);await screen(pc);
    await pc.getByRole('button',{name:'Saisir sur cet appareil',exact:true}).click();await writing(pc);
+   if(kind==='conquest'){
+    // Attacking the previous player's territory creates one pending defense point on both screens.
+    await pc.getByRole('button',{name:/Joueur suivant/}).click();await counter(pc,0);await counter(phone,0);
+    await enter(pc,'S'+conquestLabels[19]);await counter(pc,1);await counter(phone,1);
+    await expect(phone.locator('.conquest-defense-pending')).toContainText('Téléphone Alice recevra +1 point');
+    await pc.reload();await screen(pc);await expect(pc.locator('.conquest-defense-pending')).toBeVisible();
+    await pc.getByRole('button',{name:'Saisir sur cet appareil',exact:true}).click();await writing(pc);
+    await enter(pc,'0');await counter(pc,2);await enter(pc,'0');await counter(pc,3);await counter(phone,3);
+    await expect(phone.locator('.conquest-scores article').first()).toHaveAttribute('aria-label','Téléphone Alice · 9');
+    await pc.getByRole('button',{name:'Annuler la dernière action',exact:true}).click();await counter(pc,2);await counter(phone,2);
+    await expect(phone.locator('.conquest-scores article').first()).toHaveAttribute('aria-label','Téléphone Alice · 8');
+    await enter(pc,'T'+conquestLabels[19]);await counter(pc,3);await counter(phone,3);
+    await expect(phone.locator('.conquest-defense-pending')).toHaveCount(0);
+    await expect(phone.locator('.conquest-scores article').first()).toHaveAttribute('aria-label','Téléphone Alice · 5');
+   }
    if(kind==='cricket'){
     await screenshot(phone,'play-sync-phone-390.png');
     await screenshot(pc,'play-sync-pc-1440.png');

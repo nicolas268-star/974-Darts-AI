@@ -42,3 +42,16 @@ export const CONQUEST_LINKS: readonly (readonly [number, number])[] = [
 export function conquestNeighbors(target: number): number[] {
   return CONQUEST_LINKS.flatMap(([a,b]) => a === target ? [b] : b === target ? [a] : []).sort((a,b) => a-b);
 }
+
+// Version 2 adds a fixed strategic Bull hub. IDs locate regions; their dart
+// numbers are shuffled separately and saved once when a new game is created.
+export const CONQUEST_BULL_REGION = { id: 21, name: "Bull · Carrefour des océans", x: 454, y: 234, path: "M454 195 484 211 489 242 469 270 437 270 418 243 423 211Z" } as const;
+export const CONQUEST_BULL_ROUTES = [
+  { a: 6, b: 21, path: "M325 225 Q372 192 423 221" },
+  { a: 9, b: 21, path: "M391 355 Q446 321 449 266" },
+  { a: 11, b: 21, path: "M538 209 Q513 202 483 221" },
+  { a: 13, b: 21, path: "M522 283 Q497 275 479 249" },
+] as const;
+export const CONQUEST_WORLD_REGIONS = [...CONQUEST_REGIONS, CONQUEST_BULL_REGION];
+export const CONQUEST_WORLD_ROUTES = [...CONQUEST_SEA_LINKS, ...CONQUEST_BULL_ROUTES];
+export const CONQUEST_WORLD_LINKS: readonly (readonly [number, number])[] = [...CONQUEST_LINKS, ...CONQUEST_BULL_ROUTES.map(({a,b}) => [a,b] as const)];
