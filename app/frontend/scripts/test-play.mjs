@@ -9,11 +9,11 @@ const cache = new Map();
 function load(path) {
   const file = resolve(root, path.endsWith(".ts") ? path : path + ".ts");
   if (cache.has(file)) return cache.get(file).exports;
-  const module = { exports: {} };
-  cache.set(file, module);
+  const loadedModule = { exports: {} };
+  cache.set(file, loadedModule);
   const source = ts.transpileModule(readFileSync(file, "utf8"), { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS } }).outputText;
-  new Function("require", "module", "exports", source)((p) => load(resolve(dirname(file), p)), module, module.exports);
-  return module.exports;
+  new Function("require", "module", "exports", source)((p) => load(resolve(dirname(file), p)), loadedModule, loadedModule.exports);
+  return loadedModule.exports;
 }
 const input = load("lib/play/dart-input");
 const x01 = load("lib/x01/engine");
@@ -124,6 +124,14 @@ test("Bob 27: complete solo course, no extra dart or handover after end", () => 
   assert.equal(s.finished,true);assert.equal(s.dartsInVisit,3);
   assert.deepEqual(s.winnerSides,[0]);assert.equal(s.sides[0].score,27+6*210);
   assert.equal(bob.endBob27Visit(s),s);
+});
+test("X01 quick checkout rejects impossible finish combinations", () => {
+  assert.equal(input.isPossibleDoubleCheckout(170,3),true);
+  assert.equal(input.isPossibleDoubleCheckout(169,3),false);
+  assert.equal(input.isPossibleDoubleCheckout(159,3),false);
+  assert.equal(input.isPossibleDoubleCheckout(60,1),false);
+  assert.equal(input.isPossibleDoubleCheckout(50,1),true);
+  assert.equal(input.isPossibleDoubleCheckout(40,1),true);
 });
 test("X01: double entry, early checkout and bust restore the initial score", () => {
   const args={scoreBefore:40,opened:true,inRule:"STRAIGHT_IN",outRule:"DOUBLE_OUT"};

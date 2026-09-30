@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, Crosshair, Eye, Gauge, Hash, LogIn, Play, Plus, RotateCcw, Target, Trophy, Undo2, Users, Zap } from "lucide-react";
 import { DartEntry } from "@/components/play/DartEntry";
 import { VisitProgress } from "@/components/play/VisitProgress";
-import { parseVisitScore, isPossibleVisitScore } from "@/lib/play/dart-input";
+import { parseVisitScore, isPossibleVisitScore, isPossibleDoubleCheckout } from "@/lib/play/dart-input";
 import { createClient } from "@/lib/supabase/client";
 import { PLAY_FORMATS, participantCount, sideForSeat, type PlayFormat } from "@/lib/play/format";
 import {
@@ -531,6 +531,10 @@ export function X01Game({ currentPlayerId, currentDisplayName }: Props) {
     const score = parseVisitScore(quickScore);
     if (score === null || !isPossibleVisitScore(score, quickDarts)) {
       setError("Saisis un score réalisable avec le nombre de fléchettes indiqué (0 à 180).");
+      return;
+    }
+    if (game.out_rule === "DOUBLE_OUT" && score === activePlayer.remaining && !isPossibleDoubleCheckout(score, quickDarts)) {
+      setError("Cette sortie n’est pas réalisable sur un double avec ce nombre de fléchettes.");
       return;
     }
     if (game.out_rule === "DOUBLE_OUT" && score === activePlayer.remaining && !quickCheckoutDouble) {

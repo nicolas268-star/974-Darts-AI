@@ -34,3 +34,9 @@ export function isPossibleVisitScore(score: number, darts: number): boolean {
   for (let i = 0; i < darts; i += 1) totals = new Set([...totals].flatMap((total) => singles.map((dart) => total + dart)));
   return totals.has(score);
 }
+
+export function isPossibleDoubleCheckout(score: number, darts: number): boolean {
+  if (![1, 2, 3].includes(darts)) return false;
+  const doubles = [50, ...Array.from({ length: 20 }, (_, i) => (i + 1) * 2)];
+  return doubles.some((last) => darts === 1 ? score === last : isPossibleVisitScore(score - last, darts - 1));
+}
