@@ -94,7 +94,7 @@ export function CricketGame({ currentDisplayName, userId }: Props) {
         <div className="cricket-match-actions"><button type="button" onClick={undo} disabled={!history.length || controls.blocked || controls.busy}><Undo2 /> Annuler</button></div>
       </section>
 
-      <TurnPanel blocked={controls.problem==="conflict" || controls.blocked || controls.busy} player={participant.name} nextPlayer={game.participants[(game.activeParticipant + 1) % game.participants.length].name}
+      <TurnPanel blocked={controls.problem==="conflict" || controls.blocked} pending={controls.busy} player={participant.name} nextPlayer={game.participants[(game.activeParticipant + 1) % game.participants.length].name}
         darts={game.log.slice(0, game.dartsInVisit).reverse().map((entry) => entry.dart)} finished={Boolean(winner)}
         onDart={(dart) => throwDart(dart.segment, (dart.multiplier || 1) as CricketMultiplier)} onNext={passVisit} onUndo={undo} canUndo={history.length > 0}
         hint={activeSide.name + " · " + activeSide.score + " points · un triple utilise une seule fléchette"} />

@@ -5,7 +5,7 @@ export async function testPlaySync(browser, source, screenshot) {
  expect(new URL(source.url()).origin).toBe(base);
  const auth=await source.context().storageState();
  // Separate devices share only authentication, never their local/session storage.
- const phoneContext=await browser.newContext({bypassCSP:true,storageState:{cookies:auth.cookies,origins:[]},viewport:{width:390,height:1000}});
+ const phoneContext=await browser.newContext({bypassCSP:true,storageState:{cookies:auth.cookies,origins:[]},viewport:{width:390,height:1000},isMobile:true,hasTouch:true});
  const pcContext=await browser.newContext({bypassCSP:true,storageState:{cookies:auth.cookies,origins:[]},viewport:{width:1440,height:1100}});
  const phone=await phoneContext.newPage(),pc=await pcContext.newPage();
  const errors=[];phone.on('pageerror',e=>errors.push(e.message));pc.on('pageerror',e=>errors.push(e.message));
@@ -24,7 +24,19 @@ export async function testPlaySync(browser, source, screenshot) {
    await writing(phone);
    await pc.goto(base+'/play/'+kind+'?sync=1');
    await counter(pc,0);await screen(pc);await expect(pc.getByLabel('Fléchette',{exact:true})).toBeDisabled();
-   await enter(phone,'0');await counter(phone,1);await counter(pc,1);
+   if(kind==='cricket'){
+    await phone.route('**/api/play/sync*',async route=>{
+     if(route.request().method()==='POST'&&route.request().postDataJSON().action==='SAVE'){
+      const response=await route.fetch();await new Promise(resolve=>setTimeout(resolve,1000));await route.fulfill({response});return;
+     } await route.continue();
+    });
+    await enter(phone,'0');
+    await expect(phone.getByText('Enregistrement en cours…',{exact:true})).toBeVisible();
+    await expect(phone.getByLabel('Fléchette',{exact:true})).toBeFocused();
+    await expect(phone.getByRole('button',{name:'Raté / 0',exact:true})).toBeDisabled();
+    await counter(phone,1);await phone.unroute('**/api/play/sync*');
+   } else { await enter(phone,'0');await counter(phone,1); }
+   await counter(pc,1);
    await enter(phone,'0');await counter(phone,2);await counter(pc,2);
    await pc.getByRole('button',{name:'Saisir sur cet appareil',exact:true}).click();
    await writing(pc);

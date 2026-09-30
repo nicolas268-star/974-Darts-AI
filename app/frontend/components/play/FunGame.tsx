@@ -102,7 +102,7 @@ export function FunGame({ kind, currentDisplayName, userId }: { kind: FunKind; c
         </div>)}</div>
       </section> : null}
       <div className="fun-controls">
-        <TurnPanel blocked={controls.problem==="conflict" || controls.blocked || controls.busy} player={participant.name} nextPlayer={game.participants[(game.activeParticipant + 1) % game.participants.length].name} darts={game.visitDarts} complete={game.visitClosed} finished={finished} onDart={(dart) => act((current) => applyFunDart(current, dart))} onNext={() => act(endFunVisit)} onUndo={undo} canUndo={history.length>0} hint={hint} defaultMultiplier={game.kind === "connect4" && game.rule === "DOUBLE" ? 2 : 1} />
+        <TurnPanel blocked={controls.problem==="conflict" || controls.blocked} pending={controls.busy} player={participant.name} nextPlayer={game.participants[(game.activeParticipant + 1) % game.participants.length].name} darts={game.visitDarts} complete={game.visitClosed} finished={finished} onDart={(dart) => act((current) => applyFunDart(current, dart))} onNext={() => act(endFunVisit)} onUndo={undo} canUndo={history.length>0} hint={hint} defaultMultiplier={game.kind === "connect4" && game.rule === "DOUBLE" ? 2 : 1} />
         <p className="fun-last-action" role="status" aria-live="polite">{game.log[0] ? game.log[0].dart + " · " + game.log[0].result : "À vous de jouer."}</p>
       </div>
     </div>

@@ -160,7 +160,7 @@ export function useSyncedGame<G extends LocalGame>(kind: LocalKind, userId: stri
   };
   const session = view.row?.record.current as LocalSession<G> | null;
   const controls: LocalControls = {
-    ready: view.ready, hasGame: Boolean(session), problem: null, busy: view.busy, blocked: !canWrite,
+    ready: view.ready, hasGame: Boolean(session), problem: null, busy: view.busy, blocked: !isScorer || !view.ready || view.error,
     updatedAt: session?.updatedAt ?? null, sync, reload: sync.retry, retry: sync.retry, reset: () => change(() => null), discardInvalid: () => {},
   };
   return { game: session?.game ?? null, history: session?.history ?? [], start, act, undo, controls, record: view.row?.record ?? local.record };
