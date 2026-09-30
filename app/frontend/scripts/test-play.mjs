@@ -335,6 +335,32 @@ test("Local archive: completed game deduplication, undo win, replay, ten-result 
 
 
 const cloud = load("lib/play/cloud-sessions");
+for (const [kind, create] of Object.entries(savedFixtures)) {
+  test("Deleting a local game is isolated and rejects stale or failed writes: " + kind, () => {
+    const storage = memoryStorage(), first = savedSession(create(), "delete-me");
+    let record = local.saveRecord(storage, "owner", kind, 0, first).record;
+    record.completed = [
+      { id: "delete-me", endedAt: first.updatedAt, players: ["Alice"], outcome: "Alice gagne" },
+      { id: "keep-me", endedAt: first.updatedAt, players: ["Bruno"], outcome: "Bruno gagne" },
+    ];
+    storage.setItem(local.storageKey("owner", kind), JSON.stringify(record));
+    local.saveRecord(storage, "other", kind, 0, savedSession(create(), "other-account"));
+    const before = storage.getItem(local.storageKey("owner", kind));
+    assert.deepEqual(local.saveRecord(storage,"owner",kind,0,null,"delete-me"), {ok:false,problem:"conflict"});
+    assert.deepEqual(local.saveRecord(storage,"owner",kind,record.revision,null,"wrong-id"), {ok:false,problem:"conflict"});
+    const setItem = storage.setItem;
+    storage.setItem = () => { throw Error("QuotaExceededError"); };
+    assert.deepEqual(local.saveRecord(storage,"owner",kind,record.revision,null,"delete-me"), {ok:false,problem:"unavailable"});
+    storage.setItem = setItem;
+    assert.equal(storage.getItem(local.storageKey("owner", kind)), before);
+    const result = local.saveRecord(storage,"owner",kind,record.revision,null,"delete-me");
+    assert.equal(result.ok,true); assert.equal(result.record.current,null);
+    assert.deepEqual(result.record.completed.map(entry=>entry.id),["keep-me"]);
+    assert.equal(result.record.revision,record.revision+1);
+    assert.equal(local.readRecord(storage,"other",kind).record.current.id,"other-account");
+    assert.deepEqual(local.saveRecord(storage,"owner",kind,record.revision,first),{ok:false,problem:"conflict"},"A stale tab cannot resurrect the game");
+  });
+}
 test("Cloud commands validate identifiers, revision and the full game before upload", () => {
   const id="00000000-0000-4000-8000-000000000001";
   const command={kind:"cricket",expected:0,device:id,command:id,action:"ENABLE",record:{version:1,revision:0,current:null,completed:[]}};

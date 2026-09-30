@@ -151,7 +151,7 @@ export async function testPlayUniverse(page, screenshot) {
     else if(table==="list_my_live_game_sessions")data=game?[game]:[];
     else if(table==="join_live_game_session")data=[{role:"HOST"}];
     else if(table==="live_games"){
-      if(method==="POST")game={...body,id:"game-1",session_code:"PLAY01"};
+      if(method==="POST")game={...body,id:"game-1",created_by:"00000000-0000-0000-0000-000000000001",session_code:"PLAY01"};
       if(method==="PATCH")Object.assign(game,body);
       data=game?[game]:[];
     }else if(table==="live_game_players"){

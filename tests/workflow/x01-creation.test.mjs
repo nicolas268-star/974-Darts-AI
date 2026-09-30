@@ -35,6 +35,8 @@ try {
     grant select,insert,update,delete on all tables in schema public to authenticated,anon;
     create policy "owners insert live games" on public.live_games
       for insert to authenticated with check (created_by=(select auth.uid()));
+    create policy "owners delete live games" on public.live_games
+      for delete to authenticated using (created_by=(select auth.uid()));
     alter table public.live_game_members drop constraint live_game_members_role_check;
     alter table public.live_game_members add constraint live_game_members_role_check
       check (role in ('HOST','SCORER','SPECTATOR'));
@@ -92,6 +94,7 @@ try {
     }
   }
   await as(outsider);
+  assert.equal((await db.query('delete from public.live_games where id=$1 returning id',[target.id])).rows.length,0,'An outsider cannot delete a game');
   assert.equal((await db.query('select id from public.live_games')).rows.length,0,'Other accounts see no games');
   assert.equal((await db.query('update public.live_games set current_turn=3 where id=$1 returning id',[target.id])).rows.length,0);
   await assert.rejects(()=>db.query('insert into public.live_games(created_by) values($1) returning id',[owner]),e=>e.code==='42501');
@@ -100,11 +103,25 @@ try {
   await db.exec('reset role');
   await db.query("insert into public.live_game_members(game_id,user_id,role) values($1,$2,'SCORER'),($1,$3,'SPECTATOR')",[target.id,scorer,spectator]);
   await as(spectator);
+  assert.equal((await db.query('delete from public.live_games where id=$1 returning id',[target.id])).rows.length,0,'A spectator cannot delete a game');
   assert.equal((await db.query('select id from public.live_games')).rows.length,1,'Spectator sees the shared session');
   assert.equal((await db.query('update public.live_games set current_turn=3 where id=$1 returning id',[target.id])).rows.length,0,'Spectator cannot score');
   await as(scorer);
+  assert.equal((await db.query('delete from public.live_games where id=$1 returning id',[target.id])).rows.length,0,'A scorer cannot delete another account’s game');
   assert.equal((await db.query('update public.live_games set current_turn=3 where id=$1 returning current_turn',[target.id])).rows[0].current_turn,3,'Scorer keeps write access');
+  await as(owner);
+  const legId=(await db.query('select id from public.live_legs where game_id=$1',[target.id])).rows[0].id;
+  const playerId=(await db.query('select id from public.live_game_players where game_id=$1 order by seat limit 1',[target.id])).rows[0].id;
+  const visitId=(await db.query(`insert into public.live_visits(leg_id,game_player_id,turn_number,score_before,score_scored,score_after,input_mode)
+    values($1,$2,1,501,60,441,'DART_BY_DART') returning id`,[legId,playerId])).rows[0].id;
+  await db.query('insert into public.live_throws(visit_id,dart_number,segment,multiplier,score) values($1,1,20,3,60)',[visitId]);
+  assert.equal((await db.query('delete from public.live_games where id=$1 and created_by=$2 returning id',[target.id,owner])).rows.length,1);
+  await db.exec('reset role');
+  for(const [table,column,id] of [['live_game_players','game_id',target.id],['live_game_members','game_id',target.id],['live_legs','game_id',target.id],['live_visits','leg_id',legId],['live_throws','visit_id',visitId]]) {
+    assert.equal((await db.query(`select count(*)::int as n from public.${table} where ${column}=$1`,[id])).rows[0].n,0,table+' is removed by cascade');
+  }
+  assert.equal((await db.query('select count(*)::int as n from public.live_games')).rows[0].n,9,'Other games remain');
   await db.exec('reset role; set role anon');
   await assert.rejects(()=>create(),e=>e.code==='42501');
-  console.log('PASS: X01 creation in five formats and both input modes; host, players, first leg, account isolation and scorer/spectator rights');
+  console.log('PASS: X01 creation in five formats and both input modes; owner-only deletion and full cascade, account isolation and scorer/spectator rights');
 } finally {await db.close();}

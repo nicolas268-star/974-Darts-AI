@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import type { SyncControls } from "./useSyncedGame";
 
-export function CloudSessionBar({ sync, reset, hasGame }: { sync: SyncControls; reset: () => void; hasGame: boolean }) {
+export function CloudSessionBar({ sync, reset, hasGame, deletion }: { sync: SyncControls; reset: () => void; hasGame: boolean; deletion: ReactNode }) {
   const [confirming, setConfirming] = useState(false), [copied, setCopied] = useState(false);
   return <section className="play-save-panel play-cloud-panel" aria-label="Synchronisation PC téléphone">
     <strong>{sync.isScorer ? "Saisie sur cet appareil" : "Écran de score · lecture seule"}</strong>
@@ -16,6 +16,7 @@ export function CloudSessionBar({ sync, reset, hasGame }: { sync: SyncControls; 
           <button type="button" disabled={sync.busy} onClick={sync.claim}>Saisir sur cet appareil</button>}
       <Link href="/play" aria-disabled={sync.busy || sync.error} onClick={(e) => { if (sync.busy || sync.error) e.preventDefault(); }}>Mettre en pause</Link>
       {sync.canWrite && hasGame ? <button type="button" onClick={() => setConfirming(true)}>Nouvelle partie</button> : null}
+      {sync.isScorer && hasGame ? deletion : null}
     </div>
     <details><summary>Ouvrir sur l’autre appareil</summary>
       <p>Ouvrez ce lien sur l’autre appareil, puis connectez-vous au même compte. Il affichera le score sans modifier la partie.</p>

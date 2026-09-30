@@ -3,7 +3,7 @@
 @media(max-width:580px){.play-player-inputs,.play-player-inputs.count-3,.play-player-inputs.count-4{grid-template-columns:1fr}.play-format-grid{grid-template-columns:1fr 1fr}.play-participant-panel{padding:15px}}
 
 /* Common play controls: keyboard first, three darts and explicit handover. */
-.play-turn-panel{min-width:0;padding:20px;border:1px solid #31505e;border-radius:18px;background:#0b1d2d;display:grid;gap:14px}
+.play-turn-panel{min-width:0;padding:20px;border:1px solid #31505e;border-radius:18px;background:#0b1d2d;display:grid;grid-template-columns:minmax(0,1fr);gap:14px}
 .play-turn-panel>header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .play-turn-panel>header>div{min-width:0}.play-turn-panel h2{margin:4px 0;font-size:1.45rem;overflow-wrap:anywhere}
 .play-turn-panel header small{color:#82ecd0;letter-spacing:.1em;font-weight:800}.play-turn-panel header p{margin:4px 0;color:#a8c1d5}
@@ -14,7 +14,7 @@
 .play-darts li{display:grid;justify-items:center;gap:3px;padding:9px 4px;border:1px dashed #526779;border-radius:12px;color:#adbece;background:#0a1726;text-align:center}
 .play-darts li.played{color:#a0f9db;border-style:solid;border-color:#3cb996;background:#12362f}
 .play-darts li.unused{opacity:.65}.play-darts svg{width:32px;height:32px}.play-darts span{font-size:.67rem}.play-darts b{font-size:.98rem}
-.play-dart-entry fieldset{padding:0;margin:0;border:0;min-width:0}.play-dart-entry legend{position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip-path:inset(50%)}
+.play-dart-entry{min-width:0}.play-dart-entry fieldset{padding:0;margin:0;border:0;min-width:0}.play-dart-entry legend{position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip-path:inset(50%)}
 .play-dart-entry label,.play-quick-form>label{display:block;margin:10px 0 6px;font-size:.9rem;color:#dce9f3}
 .play-factors,.play-mode-toggle{display:flex;gap:6px}.play-factors button,.play-mode-toggle button{flex:1;min-width:0}
 .play-turn-panel button,.play-history>button{min-height:44px;border:1px solid #40566c;border-radius:10px;padding:8px 12px;background:#14263a;color:#e2ecf6;font:inherit;font-weight:700;cursor:pointer}
@@ -67,6 +67,11 @@
 .play-save-panel a,.play-save-panel button{min-height:44px;display:inline-flex;align-items:center;justify-content:center;padding:8px 12px;border-radius:9px;border:1px solid #577569;background:#17352e;color:#e1f6ee;text-decoration:none;font:inherit;font-weight:700;cursor:pointer}
 .play-save-panel a[aria-disabled="true"],.play-save-panel button:disabled{opacity:.5;cursor:not-allowed}.play-save-panel a:focus-visible,.play-save-panel button:focus-visible{outline:2px solid #a2efd2;outline-offset:3px}
 .play-save-confirm{padding-top:8px;border-top:1px solid #52675f}.play-save-confirm p{margin:5px 0 10px}.play-save-confirm button{margin:0 6px 6px 0}
+.play-save-panel button.play-delete-button,.play-delete-button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:44px;padding:9px 12px;border:1px solid #af6568;border-radius:9px;background:#3d202a;color:#ffd8db;font:inherit;font-weight:700;cursor:pointer}
+.play-delete-button:disabled{opacity:.5;cursor:not-allowed}.play-delete-button:focus-visible{outline:2px solid #ffd8db;outline-offset:3px}
+.play-delete-dialog{box-sizing:border-box;width:min(460px,calc(100vw - 32px));max-height:calc(100dvh - 32px);overflow:auto;margin:auto;padding:24px;border:1px solid #af6568;border-radius:18px;background:#142033;color:#eef3fb;box-shadow:0 20px 80px #0009}
+.play-delete-dialog::backdrop{background:#050a14bd}.play-delete-dialog h2{margin:0 0 14px;font-size:1.3rem}.play-delete-dialog p{font-size:.9rem;line-height:1.6;overflow-wrap:anywhere;color:#c6d1e1}
+.play-delete-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}.play-delete-actions button{flex:1 1 170px;min-height:46px;padding:10px 14px;border:1px solid #52627a;border-radius:9px;background:#243349;color:#eef3fb;font:inherit;font-weight:700;cursor:pointer}.play-delete-actions button.play-delete-button{background:#682c39;border-color:#dc8391;color:#fff0f2}.play-delete-dialog p.play-delete-error{color:#ffb7c1}.play-delete-actions button:disabled{opacity:.5;cursor:wait}
 @media(max-width:640px){.play-save-panel{padding:11px;font-size:.78rem}.play-save-actions{gap:6px}.play-save-panel a,.play-save-panel button{font-size:.78rem;padding:8px}}
 
 .play-cloud-panel { border-color: #448b80; }
