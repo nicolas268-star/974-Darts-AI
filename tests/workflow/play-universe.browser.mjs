@@ -216,6 +216,7 @@ export async function testPlayUniverse(page, screenshot) {
     }
     const auth=await page.context().storageState();
     const displayContext=await page.context().browser().newContext({bypassCSP:true,storageState:{cookies:auth.cookies,origins:[]},viewport:{width:1440,height:1000}});
+    displayContext.setDefaultTimeout(20000);
     const display=await displayContext.newPage();
     await display.route(endpoint,x01Route);
     try {

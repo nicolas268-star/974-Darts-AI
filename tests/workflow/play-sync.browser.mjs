@@ -7,6 +7,7 @@ export async function testPlaySync(browser, source, screenshot) {
  // Separate devices share only authentication, never their local/session storage.
  const phoneContext=await browser.newContext({bypassCSP:true,storageState:{cookies:auth.cookies,origins:[]},viewport:{width:390,height:1000},isMobile:true,hasTouch:true});
  const pcContext=await browser.newContext({bypassCSP:true,storageState:{cookies:auth.cookies,origins:[]},viewport:{width:1440,height:1100}});
+ phoneContext.setDefaultTimeout(20000);pcContext.setDefaultTimeout(20000);
  const phone=await phoneContext.newPage(),pc=await pcContext.newPage();
  const errors=[];phone.on('pageerror',e=>errors.push(e.message));pc.on('pageerror',e=>errors.push(e.message));
  const enter=async(page,value)=>{const input=page.getByLabel('Fléchette',{exact:true});await expect(input).toBeEnabled();await input.fill(value);await input.press('Enter');};
@@ -15,6 +16,7 @@ export async function testPlaySync(browser, source, screenshot) {
  const screen=page=>expect(page.getByText('Écran de score · lecture seule',{exact:true})).toBeVisible();
  try{
   for(const [kind,start] of [['cricket','Lancer la partie'],['tictactoe','Créer la grille'],['clock','Lancer le tour'],['bob27','Commencer Bob’s 27'],['connect4','Lancer la partie'],['conquest','Lancer la partie'],['bull500','Lancer la partie']]){
+   console.log('SYNC browser scenario:',kind);
    await phone.goto(base+'/play/'+kind);
    await phone.getByRole('button',{name:/^4 joueurs/}).click();
    await phone.getByLabel('Joueur 1',{exact:true}).fill('Téléphone Alice');

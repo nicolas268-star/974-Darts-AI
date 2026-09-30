@@ -16,6 +16,7 @@ await mkdir(output,{recursive:true});
 const browser=await chromium.launch({headless:true,args:['--no-sandbox']});
 const adminContext=await browser.newContext({bypassCSP:true,viewport:{width:1440,height:1100}});
 const dsContext=await browser.newContext({bypassCSP:true,viewport:{width:1440,height:1100}});
+adminContext.setDefaultTimeout(30000);dsContext.setDefaultTimeout(30000);
 const admin=await adminContext.newPage(),ds=await dsContext.newPage();
 async function screenshot(page,name,options={fullPage:true}){await page.addStyleTag({content:'nextjs-portal{display:none!important}'});await sharp(await page.screenshot(options)).webp({lossless:true}).toFile(output+'/'+name.replace(/\.png$/,'.webp'));}
 async function login(page,role){
