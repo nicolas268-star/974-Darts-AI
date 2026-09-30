@@ -60,3 +60,11 @@
  .cricket-game-shell .cricket-game-hero,.ttt-shell .ttt-hero,.practice-shell .practice-hero{padding:18px}
 }
 @media(prefers-reduced-motion:reduce){.play-darts *{transition:none!important}}
+
+/* Durable local sessions, kept separate from the scoring panel. */
+.play-save-panel{min-width:0;display:grid;gap:8px;border:1px solid #416454;border-radius:14px;padding:13px 16px;background:#102720;color:#cfeee3;font-size:.85rem}
+.play-save-panel>small{color:#a9c5bd;font-size:.72rem;line-height:1.5}.play-save-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.play-save-panel a,.play-save-panel button{min-height:44px;display:inline-flex;align-items:center;justify-content:center;padding:8px 12px;border-radius:9px;border:1px solid #577569;background:#17352e;color:#e1f6ee;text-decoration:none;font:inherit;font-weight:700;cursor:pointer}
+.play-save-panel a[aria-disabled="true"],.play-save-panel button:disabled{opacity:.5;cursor:not-allowed}.play-save-panel a:focus-visible,.play-save-panel button:focus-visible{outline:2px solid #a2efd2;outline-offset:3px}
+.play-save-confirm{padding-top:8px;border-top:1px solid #52675f}.play-save-confirm p{margin:5px 0 10px}.play-save-confirm button{margin:0 6px 6px 0}
+@media(max-width:640px){.play-save-panel{padding:11px;font-size:.78rem}.play-save-actions{gap:6px}.play-save-panel a,.play-save-panel button{font-size:.78rem;padding:8px}}

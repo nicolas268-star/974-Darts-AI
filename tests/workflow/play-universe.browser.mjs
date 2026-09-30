@@ -113,6 +113,8 @@ export async function testPlayUniverse(page, screenshot) {
   // Finish a real game, then correct the winning dart and check exit confirmation.
   await page.setViewportSize({ width: 390, height: 1000 });
   await page.goto("http://127.0.0.1:3008/play/connect4");
+  await page.getByRole("button", { name: "Nouvelle partie", exact: true }).click();
+  await page.getByRole("button", { name: "Confirmer la nouvelle partie", exact: true }).click();
   await page.getByRole("button", { name: /^Solo/ }).click();
   await page.getByLabel("Joueur 1", { exact: true }).fill("Alice");
   await page.getByRole("button", { name: "Lancer la partie →", exact: true }).click();
@@ -126,11 +128,11 @@ export async function testPlayUniverse(page, screenshot) {
   await page.getByRole("button", { name: "Annuler la dernière action", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Alice gagne !", exact: true })).toHaveCount(0);
   await expect(page.getByLabel("Fléchette", { exact: true })).toBeEnabled();
-  await page.getByRole("button", { name: "Quitter la partie", exact: true }).click();
+  await page.getByRole("button", { name: "Nouvelle partie", exact: true }).click();
   await page.getByRole("button", { name: "Continuer la partie", exact: true }).click();
   await expect(page.locator(".fun-connect-cell.fun-owner-0")).toHaveCount(3);
-  await page.getByRole("button", { name: "Quitter la partie", exact: true }).click();
-  await page.getByRole("button", { name: "Confirmer et quitter", exact: true }).click();
+  await page.getByRole("button", { name: "Nouvelle partie", exact: true }).click();
+  await page.getByRole("button", { name: "Confirmer la nouvelle partie", exact: true }).click();
   await expect(page.getByRole("button", { name: "Lancer la partie →", exact: true })).toBeVisible();
 
   // Browser-only X01 fixture. It never writes to a real Supabase database.

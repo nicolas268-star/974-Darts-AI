@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Crosshair, RotateCcw, Sparkles, Target, Trophy, Undo2 } from "lucide-react";
+import { useLocalGame } from "@/components/play/useLocalGame";
+import { LocalSessionBar } from "@/components/play/LocalSessionBar";
+import { Crosshair, Sparkles, Target, Trophy, Undo2 } from "lucide-react";
 import { TurnPanel } from "@/components/play/TurnPanel";
 import { ParticipantSetup } from "@/components/play/ParticipantSetup";
 import { type PlayFormat } from "@/lib/play/format";
@@ -16,7 +18,7 @@ import {
   type CricketState,
 } from "@/lib/play/cricket-engine";
 
-type Props = { currentDisplayName: string };
+type Props = { currentDisplayName: string; userId: string };
 
 const modes: Array<{ id: CricketMode; title: string; subtitle: string; description: string }> = [
   { id: "BASIC", title: "Basic", subtitle: "15 → 20 + Bull", description: "Le Cricket classique avec les cibles officielles." },
@@ -29,15 +31,13 @@ const scoringModes: Array<{ id: CricketScoring; title: string; subtitle: string;
   { id: "CUT_THROAT", title: "Cut Throat", subtitle: "Points aux adversaires", description: "Les points supplémentaires sont donnés aux adversaires encore ouverts. Le score le plus bas gagne." },
 ];
 
-function deepCopy(state: CricketState) { return JSON.parse(JSON.stringify(state)) as CricketState; }
 
-export function CricketGame({ currentDisplayName }: Props) {
+export function CricketGame({ currentDisplayName, userId }: Props) {
   const [mode, setMode] = useState<CricketMode>("BASIC");
   const [scoring, setScoring] = useState<CricketScoring>("STANDARD");
   const [format, setFormat] = useState<PlayFormat>("DUEL");
   const [names, setNames] = useState([currentDisplayName || "Joueur 1", "Adversaire", "Joueur 3", "Joueur 4"]);
-  const [game, setGame] = useState<CricketState | null>(null);
-  const [history, setHistory] = useState<CricketState[]>([]);
+  const { game, history, start: saveStart, act, undo, controls } = useLocalGame<CricketState>("cricket", userId);
 
   const updateName = (index: number, value: string) => setNames((current) => current.map((name, i) => i === index ? value : name));
 
@@ -45,27 +45,15 @@ export function CricketGame({ currentDisplayName }: Props) {
     setFormat(nextFormat);
     if (nextFormat === "SOLO") setScoring("STANDARD");
   }
-  function start(selectedMode = mode, selectedScoring = scoring) {
-    setGame(createCricketGame(selectedMode, selectedScoring, format, names));
-    setHistory([]);
+  function start(selectedMode = game?.mode ?? mode, selectedScoring = game?.scoring ?? scoring) {
+    saveStart(createCricketGame(selectedMode, selectedScoring, game?.format ?? format, game?.participants.map(p => p.name) ?? names));
   }
-  function throwDart(value: number, forcedMultiplier?: CricketMultiplier) {
-    if (!game || game.winnerSide != null || game.dartsInVisit >= 3) return;
-    setHistory((items) => [...items.slice(-49), deepCopy(game)]);
-    setGame(applyCricketDart(game, value, forcedMultiplier ?? 1));
-  }
-  function passVisit() {
-    if (!game || game.winnerSide != null || game.dartsInVisit !== 3) return;
-    setHistory((items) => [...items.slice(-49), deepCopy(game)]);
-    setGame(endCricketVisit(game));
-  }
-  function undo() {
-    const previous = history.at(-1); if (!previous) return;
-    setGame(previous); setHistory((items) => items.slice(0, -1));
-  }
+  function throwDart(value: number, forcedMultiplier?: CricketMultiplier) { act(current => applyCricketDart(current, value, forcedMultiplier ?? 1)); }
+  function passVisit() { act(endCricketVisit); }
+  if (!controls.ready) return <LocalSessionBar controls={controls} />;
 
   if (!game) return (
-    <div className="cricket-game-shell">
+    <div className="cricket-game-shell"><LocalSessionBar controls={controls} />
       <section className="cricket-game-hero"><div><span className="cricket-kicker">974DARTS PLAY · CRICKET</span><h1>Cricket</h1><p>Choisissez les participants, les cibles et le mode de points avant de lancer la partie.</p></div><Target aria-hidden="true" /></section>
       <ParticipantSetup format={format} onFormatChange={changeFormat} names={names} onNameChange={updateName} note="Solo, chacun pour soi ou 2 vs 2. En équipe, les marques et le score sont partagés." />
 
@@ -98,14 +86,14 @@ export function CricketGame({ currentDisplayName }: Props) {
   const scoringLabel = scoringModes.find((item) => item.id === game.scoring)?.title ?? game.scoring;
 
   return (
-    <div className="cricket-game-shell">
+    <div className="cricket-game-shell"><LocalSessionBar controls={controls} />
       <section className="cricket-matchbar">
         <div><span>{modeLabel} · {scoringLabel}</span><strong>Cricket · {game.format === "TEAMS_2V2" ? "2 vs 2" : `${game.participants.length} joueur${game.participants.length > 1 ? "s" : ""}`}</strong></div>
         <div className="cricket-turn"><span>Au lancer</span><strong>{participant.name}</strong><small>{activeSide.name} · {game.dartsInVisit}/3 fléchettes jouées</small></div>
-        <div className="cricket-match-actions"><button type="button" onClick={undo} disabled={!history.length}><Undo2 /> Annuler</button><button type="button" onClick={() => { setGame(null); setHistory([]); }}><RotateCcw /> Quitter</button></div>
+        <div className="cricket-match-actions"><button type="button" onClick={undo} disabled={!history.length}><Undo2 /> Annuler</button></div>
       </section>
 
-      <TurnPanel player={participant.name} nextPlayer={game.participants[(game.activeParticipant + 1) % game.participants.length].name}
+      <TurnPanel blocked={controls.problem==="conflict"} player={participant.name} nextPlayer={game.participants[(game.activeParticipant + 1) % game.participants.length].name}
         darts={game.log.slice(0, game.dartsInVisit).reverse().map((entry) => entry.dart)} finished={Boolean(winner)}
         onDart={(dart) => throwDart(dart.segment, (dart.multiplier || 1) as CricketMultiplier)} onNext={passVisit} onUndo={undo} canUndo={history.length > 0}
         hint={activeSide.name + " · " + activeSide.score + " points · un triple utilise une seule fléchette"} />

@@ -19,7 +19,7 @@ export default async function TicTacToePage() {
     <div className="dashboard">
       <Sidebar />
       <main className="main ttt-page">
-        <TicTacToeGame currentDisplayName={auth.profile?.display_name ?? auth.user?.email ?? "Joueur 1"} />
+        <TicTacToeGame key={auth.user!.id} userId={auth.user!.id} currentDisplayName={auth.profile?.display_name ?? auth.user?.email ?? "Joueur 1"} />
       </main>
     </div>
   );

@@ -19,7 +19,7 @@ export default async function PlayCricketPage() {
     <div className="dashboard">
       <Sidebar />
       <main className="main cricket-game-page">
-        <CricketGame currentDisplayName={auth.profile?.display_name ?? auth.user?.email ?? "Joueur 1"} />
+        <CricketGame key={auth.user!.id} userId={auth.user!.id} currentDisplayName={auth.profile?.display_name ?? auth.user?.email ?? "Joueur 1"} />
       </main>
     </div>
   );

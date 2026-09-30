@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useLocalGame } from "./useLocalGame";
+import { LocalSessionBar } from "./LocalSessionBar";
 import { Flag, Grid3X3, Target, Trophy } from "lucide-react";
 import { ParticipantSetup } from "./ParticipantSetup";
 import { TurnPanel } from "./TurnPanel";
@@ -37,29 +39,18 @@ function Rules({ kind }: { kind: FunKind }) {
   </div>;
 }
 
-export function FunGame({ kind, currentDisplayName }: { kind: FunKind; currentDisplayName: string }) {
+export function FunGame({ kind, currentDisplayName, userId }: { kind: FunKind; currentDisplayName: string; userId: string }) {
   const config = games[kind];
   const [format, setFormat] = useState<PlayFormat>("DUEL");
   const [names, setNames] = useState([currentDisplayName || "Joueur 1", "Adversaire", "Joueur 3", "Joueur 4"]);
   const [options, setOptions] = useState<FunOptions>({ connectRule: "ANY", conquestGoal: 7, bullUnlock: "50", bullTarget: "20" });
-  const [session, setSession] = useState<{ game: FunState; history: FunState[] } | null>(null);
-  const [quitting, setQuitting] = useState(false);
-  const game = session?.game;
-  function start() { setSession({ game: createFunGame(kind, format, names, options), history: [] }); setQuitting(false); }
-  function act(action: (current: FunState) => FunState) {
-    setSession((current) => {
-      if (!current) return current;
-      const next = action(current.game);
-      return next === current.game ? current : { game: next, history: [...current.history.slice(-49), current.game] };
-    });
+  const {game,history,start:saveStart,act,undo,controls}=useLocalGame<FunState>(kind,userId);
+  function start() {
+    const selected: FunOptions = game?.kind === "connect4" ? {connectRule:game.rule} : game?.kind === "conquest" ? {conquestGoal:game.goal} : game?.kind === "bull500" ? {bullUnlock:game.unlock,bullTarget:game.target} : options;
+    saveStart(createFunGame(kind,game?.format??format,game?.participants.map(p=>p.name)??names,selected));
   }
-  function undo() {
-    setSession((current) => {
-      const previous = current?.history.at(-1);
-      return current && previous ? { game: previous, history: current.history.slice(0, -1) } : current;
-    });
-  }
-  if (!game) return <div className="fun-shell">
+  if (!controls.ready) return <LocalSessionBar controls={controls}/>;
+  if (!game) return <div className="fun-shell"><LocalSessionBar controls={controls}/>
     <Link className="fun-back" href="/play">← Univers Jeux</Link>
     <header className="fun-hero"><div><span>JEUX FUN · 974DARTS</span><h1>{config.title}</h1><p>{config.subtitle}</p></div><config.icon aria-hidden="true" /></header>
     <ParticipantSetup format={format} onFormatChange={setFormat} names={names} onNameChange={(index, value) => setNames((current) => current.map((name, i) => i === index ? value : name))} note="Solo, jusqu’à 4 joueurs ou 2 vs 2. Les joueurs d’une même équipe partagent leur progression." />
@@ -73,7 +64,7 @@ export function FunGame({ kind, currentDisplayName }: { kind: FunKind; currentDi
     </section>
     <Rules kind={kind} />
     <button className="fun-primary" type="button" onClick={start}>Lancer la partie →</button>
-    <p className="fun-local-note">Partie locale : gardez cet onglet ouvert pour conserver la partie en cours.</p>
+
   </div>;
 
   const participant = game.participants[game.activeParticipant];
@@ -83,9 +74,8 @@ export function FunGame({ kind, currentDisplayName }: { kind: FunKind; currentDi
     ? "Visez de 14 à 20" + (game.rule === "DOUBLE" ? " en double" : "") + ". Un pion posé termine la volée."
     : game.kind === "conquest" ? "Objectif : " + game.goal + " territoires. Simple = 1 marque, double = 2, triple = 3."
       : game.unlocked ? "Score débloqué : visez " + game.target.replace("_OR_", " ou ") + "." : "Commencez par le " + (game.unlock === "50" ? "Bull 50" : "25 ou Bull 50") + " à chaque volée.";
-  return <div className="fun-shell">
-    <header className="fun-matchbar"><div><span>JEUX FUN · VOLÉE {game.visitNumber}</span><h1>{config.title}</h1></div><button type="button" onClick={() => setQuitting(true)}>Quitter la partie</button></header>
-    {quitting ? <section className="fun-exit" role="alert"><p>Quitter effacera cette partie locale.</p><div><button type="button" onClick={() => setQuitting(false)}>Continuer la partie</button><button type="button" onClick={() => { setSession(null); setQuitting(false); }}>Confirmer et quitter</button></div></section> : null}
+  return <div className="fun-shell"><LocalSessionBar controls={controls}/>
+    <header className="fun-matchbar"><div><span>JEUX FUN · VOLÉE {game.visitNumber}</span><h1>{config.title}</h1></div></header>
     {finished ? <section className="fun-winner" role="status"><Trophy aria-hidden="true" /><div><h2>{game.winnerSide === "DRAW" ? "Match nul" : game.sideNames[game.winnerSide as number] + " gagne !"}</h2><p>{game.winnerSide === "DRAW" ? "La grille est complète sans alignement." : "Partie terminée · " + game.totalDarts + " fléchettes jouées"}</p></div><button type="button" onClick={start}>Rejouer</button></section> : null}
     <section className="play-score-strip fun-scores" aria-label="Scores des joueurs">
       {game.sideNames.map((name, side) => <article key={side} className={participant.side === side ? "active" : ""} aria-label={name + " · " + counts[side]}>
@@ -111,7 +101,7 @@ export function FunGame({ kind, currentDisplayName }: { kind: FunKind; currentDi
         </div>)}</div>
       </section> : null}
       <div className="fun-controls">
-        <TurnPanel player={participant.name} nextPlayer={game.participants[(game.activeParticipant + 1) % game.participants.length].name} darts={game.visitDarts} complete={game.visitClosed} finished={finished} onDart={(dart) => act((current) => applyFunDart(current, dart))} onNext={() => act(endFunVisit)} onUndo={undo} canUndo={Boolean(session?.history.length)} hint={hint} defaultMultiplier={game.kind === "connect4" && game.rule === "DOUBLE" ? 2 : 1} />
+        <TurnPanel blocked={controls.problem==="conflict"} player={participant.name} nextPlayer={game.participants[(game.activeParticipant + 1) % game.participants.length].name} darts={game.visitDarts} complete={game.visitClosed} finished={finished} onDart={(dart) => act((current) => applyFunDart(current, dart))} onNext={() => act(endFunVisit)} onUndo={undo} canUndo={history.length>0} hint={hint} defaultMultiplier={game.kind === "connect4" && game.rule === "DOUBLE" ? 2 : 1} />
         <p className="fun-last-action" role="status" aria-live="polite">{game.log[0] ? game.log[0].dart + " · " + game.log[0].result : "À vous de jouer."}</p>
       </div>
     </div>

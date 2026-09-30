@@ -1,4 +1,4 @@
-# Univers Jeux — lots 1 et 2
+# Univers Jeux — lots 1 à 3
 
 ## Objectif
 
@@ -20,7 +20,7 @@ Un nombre de 1 à 20 désigne le secteur, associé au bouton Simple/Double/Tripl
 
 ## Conservation des données
 
-Aucune migration. Les appels et droits des sessions X01 restent ceux de l’application existante. Les sept autres jeux sont des parties locales en mémoire. La configuration des nouveaux jeux signale de conserver l’onglet ouvert ; Quitter demande une confirmation dans l’écran. Cette version n’ajoute pas de sauvegarde distante ni d’autoscoring à ces jeux.
+Aucune migration. Les appels et droits des sessions X01 restent ceux de l’application existante. Les sept autres jeux sont automatiquement sauvegardés dans le navigateur, séparément pour chaque compte authentifié et chaque jeu. Ils se restaurent après rechargement et depuis le hub. La synchronisation entre appareils et l’autoscoring ne sont pas ajoutés dans cette version.
 
 Le workflow de publication des résultats officiels et de validation par le Directeur sportif est indépendant.
 
@@ -34,7 +34,7 @@ Le workflow de publication des résultats officiels et de validation par le Dire
 
 ## Lots suivants
 
-Organisation de tournois ; historique de progression ; sauvegarde/reprise des autres jeux ; intégration éventuelle d’un autoscoring. Ces fonctions ne sont pas présentées comme disponibles dans le catalogue de cette version.
+Organisation de tournois ; historique de progression ; synchronisation des parties entre appareils ; intégration éventuelle d’un autoscoring. Ces fonctions ne sont pas présentées comme disponibles dans le catalogue de cette version.
 
 ## Lot 2 — variantes proposées
 
@@ -48,3 +48,18 @@ Aucune règle détaillée n’avait été validée pour les trois nouveaux jeux.
 - Références de règles pour Bull 500 et le passage de main au Puissance 4 : [GoDartsPro Fun Games](https://www.godartspro.com/gameon/fun-games/) et [Bull 500](https://www.godartspro.com/gameon/bull-500/), consultées le 30 septembre 2026. Le code, les interfaces et les variantes de cette implémentation sont propres au projet ; Conquête n’est pas présentée comme une règle universelle.
 
 Les tests couvrent les quatre directions de victoire, la gravité, le nul, les colonnes pleines, les reprises de territoire, les variantes du Bull, les fins anticipées, l’immutabilité, tous les formats et l’annulation depuis l’interface.
+
+## Lot 3 — sauvegarde et reprise locales
+
+- Sept jeux : Cricket, Morpion, Horloge, Bob’s 27, Puissance 4, Conquête et Bull 500.
+- Le serveur fournit l’identifiant du compte via l’authentification existante. Aucune nouvelle API Supabase, migration ou modification des droits.
+- Une sauvegarde versionnée par compte, navigateur et jeu. État complet, participants, variantes, cibles aléatoires, volée partielle ou terminée et 50 dernières actions annulables.
+- Les enregistrements sont validés avant lecture et écriture : version, structure de chaque moteur, indices des participants, tailles des tableaux et états précédents. Une donnée illisible est conservée jusqu’à une réinitialisation explicitement confirmée.
+- Écriture après chaque action. Si le stockage est bloqué ou plein, la partie reste jouable en mémoire avec un avertissement et un bouton Réessayer. Le dernier enregistrement valide est conservé ; une fermeture d’onglet avec données non enregistrées déclenche la protection du navigateur.
+- Web Locks sérialise les écritures entre onglets ; une révision différente bloque l’onglet obsolète jusqu’à relecture explicite. Sur les navigateurs sans Web Locks, la comparaison de révision reste active ; éviter les saisies simultanées dans plusieurs onglets.
+- Mettre en pause retourne au hub. Nouvelle partie demande confirmation et garde les résultats déjà terminés.
+- Le hub affiche les parties en cours, les derniers résultats encore consultables et un historique : dix résultats par jeu, vingt résultats récents affichés. Une victoire annulée retire son résultat de l’historique ; rejouer ne crée pas de doublon et conserve le format, les joueurs et les variantes.
+- La séparation par compte est une séparation fonctionnelle dans le navigateur, pas un coffre chiffré : les données restent accessibles à la personne qui dispose de ce profil de navigateur. Aucun résultat local n’alimente le classement officiel.
+- Les données ne suivent pas l’utilisateur sur un autre navigateur ou appareil et sont perdues si les données du site sont effacées. Les sessions X01 gardent leur mécanisme existant.
+
+Validation : tests de sérialisation des sept moteurs, séparation des comptes/jeux, corruption/version incompatible, quota, révisions concurrentes et historique borné. Playwright couvre chaque reprise avec correction, le hub mobile, deux onglets, une victoire annulée, la revanche et les échecs de stockage.

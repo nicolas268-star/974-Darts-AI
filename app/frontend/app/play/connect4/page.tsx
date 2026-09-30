@@ -10,5 +10,5 @@ export const metadata: Metadata = { title: "Jouer au Puissance 4", description: 
 
 export default async function Page() {
   const auth = await requireUser();
-  return <div className="dashboard"><Sidebar /><main className="main fun-page"><FunGame kind="connect4" currentDisplayName={auth.profile?.display_name ?? auth.user?.email ?? "Joueur 1"} /></main></div>;
+  return <div className="dashboard"><Sidebar /><main className="main fun-page"><FunGame key={auth.user!.id} userId={auth.user!.id} kind="connect4" currentDisplayName={auth.profile?.display_name ?? auth.user?.email ?? "Joueur 1"} /></main></div>;
 }

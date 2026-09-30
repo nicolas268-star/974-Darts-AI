@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { getCurrentUser } from "@/lib/auth/session";
+import { SavedGames } from "@/components/play/SavedGames";
 import { ArrowUpRight, Crosshair, Gamepad2, Target, Trophy } from "lucide-react";
 import "./play-hub.css";
 
@@ -25,14 +27,16 @@ const universes = [
     ] },
 ];
 
-export default function PlayHubPage() {
+export default async function PlayHubPage() {
+  const auth = await getCurrentUser();
   return <main className="play-hub">
     <section className="play-hub-hero">
       <div><span className="play-hub-kicker">974DARTS · À VOUS DE JOUER</span><h1>Univers <em>Jeux</em></h1><p>Un match sérieux, un défi entre amis ou une séance pour progresser. Choisissez votre terrain de jeu.</p>
-        <div className="play-hub-actions"><Link className="play-hub-primary" href="/play/501"><Target size={18} />Jouer au 501</Link><Link href="/play/501#sessions">Reprendre une session X01 →</Link></div>
+        <div className="play-hub-actions"><Link className="play-hub-primary" href="/play/501"><Target size={18} />Jouer au 501</Link><Link href="#parties">Retrouver mes parties →</Link></div>
       </div>
       <div className="play-hub-roundel" aria-hidden="true"><Target /><b>3</b><span>FLÉCHETTES.<br />À VOUS DE JOUER.</span></div>
     </section>
+    {auth.user ? <SavedGames key={auth.user.id} userId={auth.user.id} /> : <section id="parties" className="play-saved"><h2>Retrouver mes parties</h2><p><Link href="/login?next=%2Fplay">Connectez-vous</Link> pour jouer et retrouver vos parties sur ce navigateur.</p></section>}
     <nav className="play-universe-nav" aria-label="Choisir un univers">{universes.map((item) => <a key={item.id} href={"#" + item.id}><item.icon size={18} />{item.title}</a>)}</nav>
     <div className="play-universe-grid">{universes.map((universe) => <section id={universe.id} key={universe.id} className={"play-universe " + universe.tone}>
       <header><universe.icon aria-hidden="true" /><small>{universe.label}</small><h2>{universe.title}</h2><p>{universe.description}</p></header>

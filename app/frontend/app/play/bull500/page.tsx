@@ -10,5 +10,5 @@ export const metadata: Metadata = { title: "Jouer Ã  Bull 500", description: "DÃ
 
 export default async function Page() {
   const auth = await requireUser();
-  return <div className="dashboard"><Sidebar /><main className="main fun-page"><FunGame kind="bull500" currentDisplayName={auth.profile?.display_name ?? auth.user?.email ?? "Joueur 1"} /></main></div>;
+  return <div className="dashboard"><Sidebar /><main className="main fun-page"><FunGame key={auth.user!.id} userId={auth.user!.id} kind="bull500" currentDisplayName={auth.profile?.display_name ?? auth.user?.email ?? "Joueur 1"} /></main></div>;
 }

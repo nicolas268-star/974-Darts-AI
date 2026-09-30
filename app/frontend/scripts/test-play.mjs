@@ -253,4 +253,84 @@ test("Bull 500: 25 option, 19 / both targets, team score and winning overshoot",
   assert.equal(s.scores[0], 97);
 });
 
+
+const local = load("lib/play/local-sessions");
+function memoryStorage() {
+  const data = new Map();
+  return { getItem: key => data.get(key) ?? null, setItem: (key, value) => data.set(key, value), removeItem: key => data.delete(key) };
+}
+const savedSession = (game, id = "session-1", history = []) => ({ id, startedAt: "2026-09-30T10:00:00Z", updatedAt: "2026-09-30T10:01:00Z", game, history });
+const savedFixtures = {
+  cricket: () => cricket.createCricketGame("MAGIC", "CUT_THROAT", "FOUR", names, () => 0.5),
+  tictactoe: () => ttt.createTicTacToeGame("HARD", "TEAMS_2V2", names, 2, () => 0.5),
+  clock: () => clock.createClockGame("DOUBLE", "THREE", names),
+  bob27: () => bob.createBob27Game("FOUR", names),
+  connect4: () => fun.createFunGame("connect4", "TEAMS_2V2", names, { connectRule: "DOUBLE" }),
+  conquest: () => fun.createFunGame("conquest", "FOUR", names, { conquestGoal: 5 }),
+  bull500: () => fun.createFunGame("bull500", "SOLO", names, { bullUnlock: "25_OR_50", bullTarget: "19_OR_20" }),
+};
+const applyMiss = (kind, game) => kind === "cricket" ? cricket.applyCricketDart(game, 0, 1) :
+  kind === "tictactoe" ? ttt.applyTicTacToeDart(game, 0, 1) : kind === "clock" ? clock.applyClockDart(game, 0, 1) :
+    kind === "bob27" ? bob.applyBob27Dart(game, 0, 1) : fun.applyFunDart(game, dart(0));
+for (const [kind, create] of Object.entries(savedFixtures)) {
+  test("Local save roundtrip preserves players, variants, board, 3/3 and undo: " + kind, () => {
+    const storage = memoryStorage();
+    let game = create(); const history = [];
+    for (let i = 0; i < 3; i++) { history.push(game); game = applyMiss(kind, game); }
+    const session = savedSession(game, "session-1", history);
+    assert.equal(local.validGame(kind, game), true);
+    const written = local.saveRecord(storage, "account-a", kind, 0, session);
+    assert.equal(written.ok, true); assert.equal(written.record.revision, 1);
+    const restored = local.readRecord(storage, "account-a", kind);
+    assert.deepEqual(restored.record.current, session);
+    assert.equal(restored.record.current.history.length, 3);
+    assert.equal(local.readRecord(storage, "account-b", kind).record.current, null);
+    const wrong = JSON.parse(JSON.stringify(game)); wrong.activeParticipant = 99;
+    assert.equal(local.validGame(kind, wrong), false);
+  });
+}
+test("Local saves: stale revision cannot overwrite a newer tab or another game", () => {
+  const storage = memoryStorage(), first = savedSession(savedFixtures.cricket());
+  assert.equal(local.saveRecord(storage, "a", "cricket", 0, first).ok, true);
+  const before = storage.getItem(local.storageKey("a", "cricket"));
+  assert.deepEqual(local.saveRecord(storage, "a", "cricket", 0, null), { ok: false, problem: "conflict" });
+  assert.equal(storage.getItem(local.storageKey("a", "cricket")), before);
+  assert.equal(local.saveRecord(storage, "a", "clock", 0, savedSession(savedFixtures.clock())).ok, true);
+  assert.equal(storage.getItem(local.storageKey("a", "cricket")), before);
+});
+test("Local saves: malformed, incompatible and structurally invalid records are retained without writes", () => {
+  const storage = memoryStorage(), key = local.storageKey("a", "connect4");
+  const malformed = [ "{broken", JSON.stringify({version:2}), JSON.stringify({...local.emptyRecord(),current:savedSession({...savedFixtures.connect4(),board:[]})}) ];
+  for (const raw of malformed) {
+    storage.setItem(key, raw);
+    assert.deepEqual(local.readRecord(storage, "a", "connect4"), { ok:false, problem:"invalid" });
+    assert.deepEqual(local.saveRecord(storage, "a", "connect4", 0, savedSession(savedFixtures.connect4())), { ok:false, problem:"invalid" });
+    assert.equal(storage.getItem(key), raw);
+  }
+});
+test("Local saves: quota and access errors keep the last good save", () => {
+  const storage = memoryStorage();
+  const session = savedSession(savedFixtures.bull500());
+  assert.equal(local.saveRecord(storage, "a", "bull500", 0, session).ok, true);
+  const before = storage.getItem(local.storageKey("a", "bull500"));
+  storage.setItem = () => { throw Error("QuotaExceededError"); };
+  assert.deepEqual(local.saveRecord(storage, "a", "bull500", 1, null), {ok:false,problem:"unavailable"});
+  assert.equal(storage.getItem(local.storageKey("a", "bull500")), before);
+  storage.getItem = () => { throw Error("SecurityError"); };
+  assert.deepEqual(local.readRecord(storage, "a", "bull500"), {ok:false,problem:"unavailable"});
+});
+test("Local archive: completed game deduplication, undo win, replay, ten-result retention", () => {
+  const storage = memoryStorage();
+  let won = fun.createFunGame("connect4", "SOLO", names), beforeWin;
+  for (const target of [14,15,16,17]) { beforeWin = won; won = fun.applyFunDart(won,dart(target)); if(target !== 17) won = fun.endFunVisit(won); }
+  let r = local.saveRecord(storage,"a","connect4",0,savedSession(won)).record;
+  assert.equal(r.completed.length,1); assert.equal(r.completed[0].outcome,"Alice gagne");
+  r = local.saveRecord(storage,"a","connect4",r.revision,savedSession(won)).record; assert.equal(r.completed.length,1);
+  r = local.saveRecord(storage,"a","connect4",r.revision,savedSession(beforeWin)).record; assert.equal(r.completed.length,0);
+  for(let i=0;i<12;i++)r = local.saveRecord(storage,"a","connect4",r.revision,savedSession(won,"session-"+i)).record;
+  assert.equal(r.completed.length,10); assert.equal(r.completed[0].id,"session-11");
+  r = local.saveRecord(storage,"a","connect4",r.revision,null).record;
+  assert.equal(r.current,null); assert.equal(r.completed.length,10);
+});
+
 console.log(count + " play engine tests passed.");
