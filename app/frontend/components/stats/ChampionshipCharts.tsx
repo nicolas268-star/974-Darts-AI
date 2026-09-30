@@ -54,12 +54,12 @@ export function ChampionshipCharts({ standings, rounds, winPoints }: {
           <p>Les points de classement gagnés à chaque journée.</p>
         </header>
         {historyEmpty ? <p className={styles.empty}>{emptyText}</p> : <>
-          <label className={styles.field}>
-            Journée
-            <select value={selectedRound?.round_id} onChange={event => setRoundId(event.target.value)}>
+          <div className={styles.field}>
+            <label htmlFor={`${id}-round`}>Journée</label>
+            <select id={`${id}-round`} value={selectedRound?.round_id} onChange={event => setRoundId(event.target.value)}>
               {rounds.map(round => <option key={round.round_id} value={round.round_id}>{round.round}</option>)}
             </select>
-          </label>
+          </div>
           <div className={styles.scale} aria-hidden="true"><span>0 pt</span><span>{maximum} pts</span></div>
           <ul className={styles.bars} data-daily-points>
             {teams.map(team => {
@@ -87,13 +87,13 @@ export function ChampionshipCharts({ standings, rounds, winPoints }: {
           <p>Le total cumulé au fil des journées du championnat.</p>
         </header>
         {historyEmpty ? <p className={styles.empty}>{emptyText}</p> : <>
-          <label className={styles.field}>
-            Équipe à suivre
-            <select value={teamId} onChange={event => setTeamId(event.target.value)}>
+          <div className={styles.field}>
+            <label htmlFor={`${id}-team`}>Équipe à suivre</label>
+            <select id={`${id}-team`} value={teamId} onChange={event => setTeamId(event.target.value)}>
               <option value="">Toutes les équipes</option>
               {teams.map(team => <option key={team.team_id} value={team.team_id}>{team.name}</option>)}
             </select>
-          </label>
+          </div>
           <span className={styles.unit}>Points cumulés</span>
           <div className={styles.chart} aria-label="Évolution des points cumulés ; valeurs détaillées ci-dessous">
             <ResponsiveContainer width="100%" height="100%" minWidth={0}>
