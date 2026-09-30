@@ -1,40 +1,41 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+import { ArrowUpRight, Crosshair, Gamepad2, Target, Trophy } from "lucide-react";
 import "./play-hub.css";
 
+export const metadata: Metadata = { title: "Univers Jeux", description: "Choisissez votre partie de fléchettes : X01, Cricket, jeux entre amis et entraînement." };
+
+const universes = [
+  { id: "competition", label: "01 · MATCHS", title: "Match & compétition", description: "Retrouvez vos repères de match : règles, scores et ordre de passage.", icon: Trophy, tone: "gold",
+    games: [
+      { href: "/play/501", name: "301 · 501 · 701", tag: "1–4 joueurs · 2 vs 2", text: "Total de la volée ou fléchette par fléchette. Double In / Out, legs et sessions à reprendre." },
+      { href: "/play/cricket", name: "Cricket", tag: "1–4 joueurs · 2 vs 2", text: "Basic, Tactic ou Magic. Points Standard ou Cut Throat, trois fléchettes bien visibles." },
+    ] },
+  { id: "fun", label: "02 · ENTRE AMIS", title: "Jeux fun", description: "Une cible traditionnelle, des défis et le plaisir de jouer ensemble.", icon: Gamepad2, tone: "violet",
+    games: [
+      { href: "/play/tictactoe", name: "Morpion", tag: "1–4 joueurs · 2 vs 2", text: "Gagnez des cases et alignez-en trois. Grille renouvelée, mode Normal ou Hard." },
+    ] },
+  { id: "training", label: "03 · PROGRESSION", title: "Entraînement", description: "Travaillez votre précision en solo ou lancez un défi à plusieurs.", icon: Crosshair, tone: "mint",
+    games: [
+      { href: "/play/bob27", name: "Bob’s 27", tag: "Solo · jusqu’à 4 joueurs", text: "Trois fléchettes par double, de D1 à D20. Chaque réussite et chaque raté comptent." },
+      { href: "/play/clock", name: "Tour de l’horloge", tag: "Simple · Double · Triple", text: "Progressez de 1 à 20 avec le niveau de précision de votre choix." },
+    ] },
+];
+
 export default function PlayHubPage() {
-  return (
-    <main className="play-hub">
-      <section className="play-hub-hero">
-        <div>
-          <span className="play-hub-kicker">DOMAINE 02 · PLAY</span>
-          <h1>Jeux</h1>
-          <p>Un bloc par jeu. Entrez ensuite dans le jeu pour choisir les participants, les équipes et les options avant de commencer.</p>
-        </div>
-        <Link className="play-hub-switch" href="/stats">← Stats & Données</Link>
-      </section>
-
-      <section className="play-hub-grid" aria-label="Jeux disponibles">
-        <Link className="play-game-card play-game-live" href="/play/501">
-          <div className="play-game-status"><span /> DISPONIBLE</div><span className="play-game-icon">◎</span><small>X01</small><h2>301 · 501 · 701</h2><p>Solo à 4 joueurs ou 2 vs 2. Score par volée ou flèche par flèche, In/Out et formats de legs.</p><strong>Configurer X01 <span>→</span></strong>
-        </Link>
-        <Link className="play-game-card play-game-live cricket-card" href="/play/cricket">
-          <div className="play-game-status"><span /> DISPONIBLE</div><span className="play-game-icon">#</span><small>CRICKET</small><h2>Cricket</h2><p>Solo à 4 joueurs ou 2 vs 2. Choisissez ensuite Basic, Cut Throat, Tactic ou Magic.</p><strong>Configurer Cricket <span>→</span></strong>
-        </Link>
-        <Link className="play-game-card play-game-live ttt-card" href="/play/tictactoe">
-          <div className="play-game-status"><span /> DISPONIBLE</div><span className="play-game-icon">⊞</span><small>TIC TAC TOE</small><h2>Tic Tac Toe</h2><p>Solo à 4 joueurs ou 2 vs 2. Grille renouvelée à chaque partie, Normal ou Hard.</p><strong>Configurer Tic Tac Toe <span>→</span></strong>
-        </Link>
-        <Link className="play-game-card play-game-live bob27-card" href="/play/bob27">
-          <div className="play-game-status"><span /> NOUVEAU</div><span className="play-game-icon">27</span><small>DOUBLES</small><h2>Bob’s 27</h2><p>Travail des doubles D1 à D20, score classique à partir de 27. Solo, multijoueur ou 2 vs 2.</p><strong>Configurer Bob’s 27 <span>→</span></strong>
-        </Link>
-        <Link className="play-game-card play-game-live clock-card" href="/play/clock">
-          <div className="play-game-status"><span /> NOUVEAU</div><span className="play-game-icon">↻</span><small>AROUND THE CLOCK</small><h2>Tour de l’horloge</h2><p>Parcourez 1 à 20 en Simple, Double ou Triple. Solo à 4 joueurs et 2 vs 2.</p><strong>Configurer l’horloge <span>→</span></strong>
-        </Link>
-      </section>
-
-      <section className="play-tools-section">
-        <div><small>OUTIL D’ANALYSE</small><h2>Cricket Lab</h2><p>Le laboratoire de données Cricket reste séparé des jeux live.</p></div>
-        <Link href="/cricket">Ouvrir Cricket Lab →</Link>
-      </section>
-    </main>
-  );
+  return <main className="play-hub">
+    <section className="play-hub-hero">
+      <div><span className="play-hub-kicker">974DARTS · À VOUS DE JOUER</span><h1>Univers <em>Jeux</em></h1><p>Un match sérieux, un défi entre amis ou une séance pour progresser. Choisissez votre terrain de jeu.</p>
+        <div className="play-hub-actions"><Link className="play-hub-primary" href="/play/501"><Target size={18} />Jouer au 501</Link><Link href="/play/501#sessions">Reprendre une session X01 →</Link></div>
+      </div>
+      <div className="play-hub-roundel" aria-hidden="true"><Target /><b>3</b><span>FLÉCHETTES.<br />À VOUS DE JOUER.</span></div>
+    </section>
+    <nav className="play-universe-nav" aria-label="Choisir un univers">{universes.map((item) => <a key={item.id} href={"#" + item.id}><item.icon size={18} />{item.title}</a>)}</nav>
+    <div className="play-universe-grid">{universes.map((universe) => <section id={universe.id} key={universe.id} className={"play-universe " + universe.tone}>
+      <header><universe.icon aria-hidden="true" /><small>{universe.label}</small><h2>{universe.title}</h2><p>{universe.description}</p></header>
+      <div className="play-universe-games">{universe.games.map((game) => <Link key={game.href} href={game.href} className="play-universe-game"><small>{game.tag}</small><h3>{game.name}<ArrowUpRight size={20} /></h3><p>{game.text}</p><span>Choisir les joueurs et jouer →</span></Link>)}</div>
+    </section>)}</div>
+    <section className="play-hub-guide" aria-label="Comment jouer"><div><b>01</b><span>Choisis ton jeu</span></div><div><b>02</b><span>Configure tes joueurs</span></div><div><b>03</b><span>Lance et saisis tes scores</span></div></section>
+    <section className="play-tools-section"><div><small>ANALYSE</small><h2>Cricket Lab</h2><p>Explorez les données Cricket et les analyses de matchs.</p></div><Link href="/cricket">Ouvrir le laboratoire <ArrowUpRight size={18} /></Link></section>
+  </main>;
 }

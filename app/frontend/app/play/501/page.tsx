@@ -3,6 +3,7 @@ import { Sidebar } from "@/components/Sidebar";
 import { requireUser } from "@/lib/auth/session";
 import { X01Game } from "./X01Game";
 import "./x01.css";
+import "../play-game-shared.css";
 
 export const dynamic = "force-dynamic";
 

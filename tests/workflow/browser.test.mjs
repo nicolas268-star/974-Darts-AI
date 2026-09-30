@@ -6,6 +6,7 @@ import {resolve,dirname} from 'node:path';
 import {testVisibility} from './visibility.browser.mjs';
 import {testMobileStatistics} from './mobile-statistics.browser.mjs';
 import {testChampionshipCharts} from './championship-charts.browser.mjs';
+import {testPlayUniverse} from './play-universe.browser.mjs';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'../..');
 const output=resolve(root,'docs/ranking-workflow-preview');
 const sharp=createRequire(resolve(root,'app/frontend/package.json'))('sharp');
@@ -84,4 +85,5 @@ try{
  await testVisibility(admin,ds,screenshot);
  await testMobileStatistics(ds,screenshot);
  await testChampionshipCharts(ds,screenshot);
+ await testPlayUniverse(admin,screenshot);
 }catch(e){console.error(e.message);console.error('Admin URL:',admin.url(),'DS URL:',ds.url());await screenshot(admin,'failure.png');process.exitCode=1;}finally{await browser.close()}
