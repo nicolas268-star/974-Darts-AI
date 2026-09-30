@@ -14,7 +14,14 @@ export async function testConquestUltra(browser,source,screenshot) {
  const context=await browser.newContext({bypassCSP:true,storageState:{cookies:auth.cookies,origins:[]},viewport:{width:390,height:1000}});
  context.setDefaultTimeout(20000);const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
  const status=()=>page.locator('.fun-controls .conquest-ultra-status');
- const enter=async value=>{const input=page.getByLabel('Fléchette',{exact:true});await expect(input).toBeEnabled();await input.fill(value);await input.press('Enter');};
+ const enter=async value=>{
+  await expect(page.locator('.play-dart-entry')).toHaveAttribute('aria-busy','false');
+  const input=page.getByLabel('Fléchette',{exact:true});await expect(input).toBeEnabled();
+  const before=Number((await page.locator('.play-visit-caption > span').innerText()).split('/')[0]);
+  await input.fill(value);await input.press('Enter');
+  // Local saves acquire a Web Lock: wait for the recorded dart before submitting another.
+  await expect(page.getByText(`${before+1}/3 fléchettes jouées`,{exact:true})).toBeVisible();
+ };
  const next=()=>page.getByRole('button',{name:'Volée suivante →',exact:true}).click();
  const attack=async region=>{await page.locator('.conquest-selector button').nth(region-1).click();await page.getByRole('button',{name:'Attaquer ce finish',exact:true}).click();await expect(page.getByLabel('Fléchette',{exact:true})).toBeEnabled();};
  try {
@@ -56,5 +63,8 @@ export async function testConquestUltra(browser,source,screenshot) {
   const replay=await page.locator('.conquest-region').evaluateAll(nodes=>nodes.map(n=>Number(n.getAttribute('data-target'))));expect(replay).not.toEqual(targets);expect(replay[20]).toBe(50);
   await expect(page.getByLabel('Fléchette',{exact:true})).toBeDisabled();expect(errors).toEqual([]);
   console.log('PASS: Conquest Ultra — random finishes, declared/locked attack, double out, bust, partial reload, undo, all 21 checkouts, Bull, replay, five widths and fullscreen winner');
+ } catch(error) {
+  console.error('Ultra attempt at failure:',await status().innerText());
+  await screenshot(page,'conquest-ultra-failure.png',{fullPage:true});throw error;
  } finally {await context.close();}
 }
