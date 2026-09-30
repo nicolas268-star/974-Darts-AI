@@ -5,8 +5,8 @@ export async function testPlaySync(browser, source, screenshot) {
  expect(new URL(source.url()).origin).toBe(base);
  const auth=await source.context().storageState();
  // Separate devices share only authentication, never their local/session storage.
- const phoneContext=await browser.newContext({storageState:{cookies:auth.cookies,origins:[]},viewport:{width:390,height:1000}});
- const pcContext=await browser.newContext({storageState:{cookies:auth.cookies,origins:[]},viewport:{width:1440,height:1100}});
+ const phoneContext=await browser.newContext({bypassCSP:true,storageState:{cookies:auth.cookies,origins:[]},viewport:{width:390,height:1000}});
+ const pcContext=await browser.newContext({bypassCSP:true,storageState:{cookies:auth.cookies,origins:[]},viewport:{width:1440,height:1100}});
  const phone=await phoneContext.newPage(),pc=await pcContext.newPage();
  const errors=[];phone.on('pageerror',e=>errors.push(e.message));pc.on('pageerror',e=>errors.push(e.message));
  const enter=async(page,value)=>{const input=page.getByLabel('Fléchette',{exact:true});await expect(input).toBeEnabled();await input.fill(value);await input.press('Enter');};
@@ -78,9 +78,9 @@ export async function testPlaySync(browser, source, screenshot) {
   // Expired login, foreign origins, invalid payloads and another account.
   expect((await phone.request.post(base+'/api/play/sync',{headers:{Origin:'https://foreign.invalid'},data:{}})).status()).toBe(403);
   expect((await phone.request.post(base+'/api/play/sync',{headers:{Origin:base},data:{kind:'cricket'}})).status()).toBe(400);
-  const anon=await browser.newContext();
+  const anon=await browser.newContext({bypassCSP:true});
   try {expect((await anon.request.get(base+'/api/play/sync')).status()).toBe(401);}finally{await anon.close();}
-  const other=await browser.newContext();const otherPage=await other.newPage();
+  const other=await browser.newContext({bypassCSP:true});const otherPage=await other.newPage();
   try {
    await otherPage.goto(base+'/login');await otherPage.locator('input[type=email]').fill('director@example.invalid');await otherPage.locator('input[type=password]').fill('preview-only');await otherPage.locator('form button').first().click();await otherPage.waitForURL('**/directeur-sportif',{timeout:30000});
    const response=await otherPage.request.get(base+'/api/play/sync');expect(response.ok()).toBe(true);expect((await response.json()).rows).toEqual([]);

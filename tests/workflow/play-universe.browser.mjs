@@ -215,7 +215,7 @@ export async function testPlayUniverse(page, screenshot) {
       await screenshot(page,"play-x01-"+width+".png",{fullPage:false});
     }
     const auth=await page.context().storageState();
-    const displayContext=await page.context().browser().newContext({storageState:{cookies:auth.cookies,origins:[]},viewport:{width:1440,height:1000}});
+    const displayContext=await page.context().browser().newContext({bypassCSP:true,storageState:{cookies:auth.cookies,origins:[]},viewport:{width:1440,height:1000}});
     const display=await displayContext.newPage();
     await display.route(endpoint,x01Route);
     try {

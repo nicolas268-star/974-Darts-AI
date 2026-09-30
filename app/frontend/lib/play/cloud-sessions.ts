@@ -15,8 +15,8 @@ export function validCommand(value: unknown): value is CloudCommand {
     Number.isSafeInteger(value.expected) && (value.expected as number) >= 0 &&
     (value.action === "CLAIM" ? value.record === null : (value.action === "ENABLE" || value.action === "SAVE") && validRecord(value.kind, value.record));
 }
-export async function cloudRequest(kind?: LocalKind, command?: CloudCommand, signal?: AbortSignal): Promise<{ row: CloudRow | null; rows: CloudRow[]; conflict: boolean }> {
-  const response = await fetch("/api/play/sync" + (kind ? "?kind=" + kind : ""), {
+export async function cloudRequest(kind?: LocalKind, command?: CloudCommand, signal?: AbortSignal, after?: number): Promise<{ row: CloudRow | null; rows: CloudRow[]; conflict: boolean; unchanged: boolean }> {
+  const response = await fetch("/api/play/sync" + (kind ? "?kind=" + kind + (after !== undefined ? "&after=" + after : "") : ""), {
     method: command ? "POST" : "GET", cache: "no-store", signal: signal ?? AbortSignal.timeout(12000),
     ...(command ? { headers: { "Content-Type": "application/json" }, body: JSON.stringify(command) } : {}),
   });
@@ -24,5 +24,5 @@ export async function cloudRequest(kind?: LocalKind, command?: CloudCommand, sig
   if (!response.ok && response.status !== 409) throw new Error(value.error || "Synchronisation indisponible.");
   if (!Array.isArray(value.rows) || !value.rows.every(validCloudRow) || (value.row !== null && !validCloudRow(value.row)))
     throw new Error("Sauvegarde distante incompatible. La copie locale est conservée.");
-  return { row: value.row, rows: value.rows, conflict: response.status === 409 };
+  return { row: value.row, rows: value.rows, conflict: response.status === 409, unchanged: value.unchanged === true };
 }

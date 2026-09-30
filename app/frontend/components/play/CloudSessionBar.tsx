@@ -7,12 +7,12 @@ import type { SyncControls } from "./useSyncedGame";
 export function CloudSessionBar({ sync, reset, hasGame }: { sync: SyncControls; reset: () => void; hasGame: boolean }) {
   const [confirming, setConfirming] = useState(false), [copied, setCopied] = useState(false);
   return <section className="play-save-panel play-cloud-panel" aria-label="Synchronisation PC téléphone">
-    <strong>{sync.canWrite ? "Saisie sur cet appareil" : "Écran de score · lecture seule"}</strong>
+    <strong>{sync.isScorer ? "Saisie sur cet appareil" : "Écran de score · lecture seule"}</strong>
     <p role="status">{sync.message || "Partie synchronisée avec votre compte. Les autres écrans suivent automatiquement."}</p>
     <small>Connectez le PC et le téléphone au même compte. Un seul appareil saisit les scores à la fois.</small>
     <div className="play-save-actions">
       {sync.error ? <button type="button" disabled={sync.busy} onClick={sync.retry}>Réessayer la synchronisation</button> :
-        sync.canWrite ? <button type="button" onClick={sync.observe}>Passer en écran de score</button> :
+        sync.isScorer ? <button type="button" disabled={sync.busy} onClick={sync.observe}>Passer en écran de score</button> :
           <button type="button" disabled={sync.busy} onClick={sync.claim}>Saisir sur cet appareil</button>}
       <Link href="/play" aria-disabled={sync.busy || sync.error} onClick={(e) => { if (sync.busy || sync.error) e.preventDefault(); }}>Mettre en pause</Link>
       {sync.canWrite && hasGame ? <button type="button" onClick={() => setConfirming(true)}>Nouvelle partie</button> : null}

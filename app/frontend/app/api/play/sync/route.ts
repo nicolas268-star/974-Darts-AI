@@ -20,10 +20,15 @@ async function handle(request: NextRequest) {
       if (kind !== null && !isKind(kind)) return fail(400, "Jeu inconnu.");
       let query = client.from("play_cloud_sessions").select("kind,revision,writer_device,record,updated_at").eq("owner_id", auth.user.id);
       if (kind) query = query.eq("kind", kind);
+      const after = request.nextUrl.searchParams.get("after");
+      if (after !== null) {
+        if (!kind || !/^\d{1,10}$/.test(after)) return fail(400, "Révision invalide.");
+        query = query.gt("revision", Number(after));
+      }
       const { data, error } = await query.limit(7);
       if (error) return fail(503, "Synchronisation indisponible. Votre sauvegarde locale reste disponible.");
       if (!(data ?? []).every(validCloudRow)) return fail(422, "Sauvegarde distante incompatible.");
-      return json({ row: kind ? data?.[0] ?? null : null, rows: data ?? [] });
+      return json({ row: kind ? data?.[0] ?? null : null, rows: data ?? [], unchanged: after !== null && data?.length === 0 });
     }
     if (request.headers.get("origin") !== getSiteOrigin(request)) return fail(403, "Origine refusée.");
     if (request.headers.get("content-type")?.split(";")[0] !== "application/json") return fail(415, "Format JSON requis.");

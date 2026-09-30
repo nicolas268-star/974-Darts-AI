@@ -67,7 +67,8 @@ const server=createServer(async(req,res)=>{
      if(req.method!=='GET') throw new Error('Direct writes forbidden');
      const kind=url.searchParams.get('kind')?.replace(/^eq\./,'') ?? null;
      const owner=url.searchParams.get('owner_id')?.replace(/^eq\./,'') ?? ids[role];
-     return (await tx.query('select kind,revision,writer_device,record,updated_at from public.play_cloud_sessions where owner_id=$1 and ($2::text is null or kind=$2) order by kind limit 7',[owner,kind])).rows.map(row=>({...row,revision:Number(row.revision)}));
+     const after=Number(url.searchParams.get('revision')?.replace(/^gt\./,'') ?? 0);
+     return (await tx.query('select kind,revision,writer_device,record,updated_at from public.play_cloud_sessions where owner_id=$1 and ($2::text is null or kind=$2) and revision>$3 order by kind limit 7',[owner,kind,after])).rows.map(row=>({...row,revision:Number(row.revision)}));
    });
    return send(200,data);
   }

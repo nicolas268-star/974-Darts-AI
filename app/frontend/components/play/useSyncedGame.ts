@@ -7,7 +7,7 @@ import { useLocalGame, type LocalControls } from "./useLocalGame";
 
 export type SyncControls = {
   active: boolean; busy: boolean; message: string; error: boolean; remoteAvailable: boolean;
-  canWrite: boolean; link: string; enable: () => void; open: () => void; claim: () => void; retry: () => void; observe: () => void;
+  canWrite: boolean; isScorer: boolean; link: string; enable: () => void; open: () => void; claim: () => void; retry: () => void; observe: () => void;
 };
 type SyncView = { row: CloudRow | null; ready: boolean; busy: boolean; error: boolean; message: string; remoteAvailable: boolean; observing: boolean };
 const initial: SyncView = { row: null, ready: false, busy: false, error: false, message: "", remoteAvailable: false, observing: false };
@@ -40,8 +40,9 @@ export function useSyncedGame<G extends LocalGame>(kind: LocalKind, userId: stri
     if (inFlight.current || reading.current || pending.current) return;
     reading.current = true;
     try {
-      const result = await cloudRequest(kind);
+      const result = await cloudRequest(kind, undefined, undefined, state.current.row?.revision);
       if (inFlight.current || pending.current) return;
+      if (result.unchanged) { publish({ ...state.current, ready: true, error: false, message: "" }); return; }
       accept(result.row, { message: result.row ? "" : "Aucune partie synchronisée pour ce jeu. Revenez au jeu local pour en partager une." });
     } catch (reason) {
       publish({ ...state.current, ready: true, error: true, message: reason instanceof Error ? reason.message : "Connexion interrompue." });
@@ -102,7 +103,8 @@ export function useSyncedGame<G extends LocalGame>(kind: LocalKind, userId: stri
     window.addEventListener("online", poll); window.addEventListener("focus", poll); document.addEventListener("visibilitychange", poll);
     return () => { alive = false; window.clearInterval(timer); window.removeEventListener("online", poll); window.removeEventListener("focus", poll); document.removeEventListener("visibilitychange", poll); };
   }, [mode, refresh]);
-  const canWrite = mode === "cloud" && view.ready && !view.busy && !view.error && !view.observing && view.row?.writer_device === device;
+  const isScorer = mode === "cloud" && !view.observing && view.row?.writer_device === device;
+  const canWrite = isScorer && view.ready && !view.busy && !view.error;
   function command(action: CloudCommand["action"], record: CloudCommand["record"] = null) {
     return { kind, expected: state.current.row?.revision ?? 0, device: device, command: crypto.randomUUID(), action, record };
   }
@@ -145,11 +147,17 @@ export function useSyncedGame<G extends LocalGame>(kind: LocalKind, userId: stri
   }
   const sync: SyncControls = {
     active: mode === "cloud", busy: view.busy, message: view.message || (mode === "cloud" && !view.ready ? "Chargement de la partie synchronisée…" : ""), error: view.error, remoteAvailable: view.remoteAvailable,
-    canWrite, link, enable: () => { void enable(); }, open: activate, claim,
+    canWrite, isScorer, link, enable: () => { void enable(); }, open: activate, claim,
     retry: () => { if (pending.current) void send(pending.current); else void refresh(); },
     observe: () => publish({ ...state.current, observing: true }),
   };
-  if (mode !== "cloud") return { ...local, controls: { ...local.controls, ready: mode !== "loading" && local.controls.ready, sync } as LocalControls };
+  if (mode !== "cloud") return {
+    ...local,
+    start: (game: G) => { if (!state.current.busy) local.start(game); },
+    act: (action: (game: G) => G) => { if (!state.current.busy) local.act(action); },
+    undo: () => { if (!state.current.busy) local.undo(); },
+    controls: { ...local.controls, ready: mode !== "loading" && local.controls.ready, busy: local.controls.busy || view.busy, sync } as LocalControls,
+  };
   const session = view.row?.record.current as LocalSession<G> | null;
   const controls: LocalControls = {
     ready: view.ready, hasGame: Boolean(session), problem: null, busy: view.busy, blocked: !canWrite,

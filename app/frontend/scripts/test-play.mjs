@@ -333,7 +333,6 @@ test("Local archive: completed game deduplication, undo win, replay, ten-result 
   assert.equal(r.current,null); assert.equal(r.completed.length,10);
 });
 
-console.log(count + " play engine tests passed.");
 
 const cloud = load("lib/play/cloud-sessions");
 test("Cloud commands validate identifiers, revision and the full game before upload", () => {
@@ -351,3 +350,5 @@ test("Cloud responses must match the record revision and game kind", () => {
   assert.equal(cloud.validCloudRow({...row,writer_device:null}),false);
   assert.equal(cloud.validCloudRow({...row,updated_at:"invalid"}),false);
 });
+
+console.log(count + " play engine tests passed.");

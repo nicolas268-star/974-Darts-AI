@@ -76,7 +76,7 @@ export function CricketGame({ currentDisplayName, userId }: Props) {
       </section>
 
       <section className="cricket-setup-summary"><span>Configuration</span><strong>{modes.find((item) => item.id === mode)?.title} · {scoringModes.find((item) => item.id === scoring)?.title}</strong><small>{format === "TEAMS_2V2" ? "2 vs 2" : format === "SOLO" ? "Solo" : `${format === "DUEL" ? 2 : format === "THREE" ? 3 : 4} joueurs`}</small></section>
-      <button className="cricket-start" type="button" onClick={() => start()}>Lancer la partie <span>→</span></button>
+      <button className="cricket-start" type="button" disabled={controls.blocked || controls.busy} onClick={() => start()}>Lancer la partie <span>→</span></button>
     </div>
   );
 
@@ -99,7 +99,7 @@ export function CricketGame({ currentDisplayName, userId }: Props) {
         onDart={(dart) => throwDart(dart.segment, (dart.multiplier || 1) as CricketMultiplier)} onNext={passVisit} onUndo={undo} canUndo={history.length > 0}
         hint={activeSide.name + " · " + activeSide.score + " points · un triple utilise une seule fléchette"} />
 
-      {winner ? <section className="cricket-winner"><Trophy /><div><span>PARTIE TERMINÉE · {scoringLabel}</span><h2>{winner.name} gagne</h2><p>{game.scoring === "CUT_THROAT" ? "Cibles fermées avec le score le plus bas." : "Cibles fermées avec l’avantage au score."}</p></div><button type="button" onClick={() => start(game.mode, game.scoring)}>Rejouer</button></section> : null}
+      {winner ? <section className="cricket-winner"><Trophy /><div><span>PARTIE TERMINÉE · {scoringLabel}</span><h2>{winner.name} gagne</h2><p>{game.scoring === "CUT_THROAT" ? "Cibles fermées avec le score le plus bas." : "Cibles fermées avec l’avantage au score."}</p></div><button type="button" disabled={controls.blocked || controls.busy} onClick={() => start(game.mode, game.scoring)}>Rejouer</button></section> : null}
 
       <section className="cricket-multi-scoreboard">
         {game.sides.map((side, sideIndex) => <article key={sideIndex} className={participant.side === sideIndex ? "active" : ""}><span>{game.format === "TEAMS_2V2" ? `ÉQUIPE ${sideIndex === 0 ? "A" : "B"}` : `JOUEUR ${sideIndex + 1}`}</span><h2>{side.name}</h2><strong>{side.score}</strong><small>points</small></article>)}

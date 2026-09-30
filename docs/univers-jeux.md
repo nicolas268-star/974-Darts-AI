@@ -71,7 +71,7 @@ Validation : tests de sérialisation des sept moteurs, séparation des comptes/j
 2. Dans Cricket, Morpion, Horloge, Bob’s 27, Puissance 4, Conquête ou Bull 500, cliquez « Synchroniser PC / téléphone ». La partie et son historique passent dans une sauvegarde privée distante.
 3. Sur l’autre appareil, ouvrez la partie dans « Mes parties synchronisées » ou copiez son lien depuis le panneau. Le nouvel écran est toujours en lecture seule, même après rechargement.
 4. « Saisir sur cet appareil » transfère la main. L’ancien appareil suit les scores. Une requête partie de l’ancien appareil est refusée si la version ou le détenteur a changé.
-5. Chaque lancer, changement de joueur, correction et nouvelle partie est confirmé par le serveur. Le PC reçoit les mises à jour par interrogation toutes les deux secondes, au retour au premier plan et après reconnexion.
+5. Chaque lancer, changement de joueur, correction et nouvelle partie est confirmé par le serveur. Le PC reçoit les mises à jour par interrogation toutes les deux secondes (réponse vide si la révision n’a pas changé), au retour au premier plan et après reconnexion.
 6. Une coupure bloque la saisie synchronisée jusqu’à confirmation. Une commande dont l’accusé de réception est perdu peut être réessayée sans doubler le lancer. Elle est conservée dans le stockage de session pour un rechargement ; en cas de stockage bloqué, une protection de fermeture garde l’utilisateur informé.
 7. Les sauvegardes locales précédentes restent intactes. Si une partie distante existe déjà, elle doit être ouverte explicitement ; aucune fusion ni écrasement automatique. Une copie distante récemment reçue est gardée sur l’appareil pour afficher le dernier score hors connexion, sans permettre des écritures hors ligne.
 
