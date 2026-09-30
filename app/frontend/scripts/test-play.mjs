@@ -144,6 +144,13 @@ test("X01: double entry, early checkout and bust restore the initial score", () 
 });
 
 const fun = load("lib/play/fun-engine");
+// Historical saved-state fixture: v1 map and immediate win rules stay supported.
+function legacyConquest(format, playerNames, options = {}) {
+  const game = fun.createFunGame("conquest", format, playerNames, options, () => 0.999999);
+  delete game.campaign; game.territories = game.territories.slice(0,20);
+  if (options.conquestMode === "CONNECTED") game.strategy = {version:1,goal:options.conquestPointsGoal ?? 18};
+  return game;
+}
 const dart = (segment, multiplier = 1) => x01.makeDart(segment, multiplier);
 for (const kind of ["connect4", "conquest", "bull500"]) {
   for (const format of ["SOLO", "DUEL", "THREE", "FOUR", "TEAMS_2V2"]) {
@@ -206,7 +213,7 @@ test("Puissance 4: full board draw, no horizontal wrapping", () => {
   assert.equal(fun.applyFunDart(wrap, dart(15)).winnerSide, null);
 });
 test("Conquest: marks survive visits, capture resets all progress, opponent can recapture", () => {
-  let s = fun.createFunGame("conquest", "THREE", names);
+  let s = legacyConquest( "THREE", names);
   const initial = JSON.stringify(s);
   s = fun.applyFunDart(s, dart(20, 2));
   assert.equal(s.territories[19].marks[0], 2); assert.equal(s.territories[19].owner, null);
@@ -221,7 +228,7 @@ test("Conquest: marks survive visits, capture resets all progress, opponent can 
   assert.equal(JSON.parse(initial).territories[19].owner, null);
 });
 test("Conquest: configured victory before third dart and team ownership", () => {
-  let s = fun.createFunGame("conquest", "TEAMS_2V2", names, { conquestGoal: 5 });
+  let s = legacyConquest( "TEAMS_2V2", names, { conquestGoal: 5 });
   for (let i = 0; i < 4; i++) s.territories[i].owner = 0;
   s.activeParticipant = 2;
   const win = fun.applyFunDart(s, dart(5, 3));
@@ -270,17 +277,17 @@ test("Conquest world: 20 numbered regions, connected undirected graph, visible s
   for(const route of world.CONQUEST_SEA_LINKS)assert.ok(route.path.startsWith("M"));
 });
 test("Conquest strategy: compact territory scores more, each allied border counts only once", () => {
-  const connected=fun.createFunGame("conquest","DUEL",names,{conquestMode:"CONNECTED"});
+  const connected=legacyConquest("DUEL",names,{conquestMode:"CONNECTED"});
   for(const id of [1,2,3])connected.territories[id-1].owner=0;
   assert.deepEqual(fun.conquestScores(connected),[8,0]);assert.equal(fun.conquestAlliedLinks(connected,0),2);
   assert.equal(fun.conquestCaptureValue(connected,5,0),3);assert.equal(fun.conquestCaptureValue(connected,20,0),2);assert.equal(fun.conquestCaptureValue(connected,2,0),0);
-  const isolated=fun.createFunGame("conquest","DUEL",names,{conquestMode:"CONNECTED"});
+  const isolated=legacyConquest("DUEL",names,{conquestMode:"CONNECTED"});
   for(const id of [1,10,20])isolated.territories[id-1].owner=0;
   assert.deepEqual(fun.conquestScores(isolated),[6,0]);
   isolated.territories[18].owner=0;assert.equal(fun.conquestScores(isolated)[0],9,"Maritime neighbor gives one bonus");
 });
 test("Conquest strategy: severing a bridge removes points and recapture cannot farm points", () => {
-  const original=fun.createFunGame("conquest","DUEL",names,{conquestMode:"CONNECTED"});
+  const original=legacyConquest("DUEL",names,{conquestMode:"CONNECTED"});
   for(const id of [1,2,5])original.territories[id-1].owner=0;
   original.activeParticipant=1;
   let cut=fun.applyFunDart(original,dart(2,3));assert.deepEqual(fun.conquestScores(cut),[4,2]);
@@ -291,7 +298,7 @@ test("Conquest strategy: severing a bridge removes points and recapture cannot f
 });
 for(const format of ["SOLO","DUEL","THREE","FOUR","TEAMS_2V2"]){
   test("Conquest strategy: immediate points victory and shared team ownership / "+format,()=>{
-    let game=fun.createFunGame("conquest",format,names,{conquestMode:"CONNECTED",conquestPointsGoal:12});
+    let game=legacyConquest(format,names,{conquestMode:"CONNECTED",conquestPointsGoal:12});
     for(const id of [2,3,5])game.territories[id-1].owner=0;
     if(format==="TEAMS_2V2")game.activeParticipant=2;
     assert.equal(fun.conquestScores(game)[0],8);assert.equal(local.validGame("conquest",game),true);
@@ -302,9 +309,9 @@ for(const format of ["SOLO","DUEL","THREE","FOUR","TEAMS_2V2"]){
   });
 }
 test("Conquest strategy: save validation accepts classic records and rejects unknown rules or inconsistent victories", () => {
-  const classic=fun.createFunGame("conquest","DUEL",names,{conquestGoal:5});
+  const classic=legacyConquest("DUEL",names,{conquestGoal:5});
   assert.equal(classic.strategy,undefined);assert.equal(local.validGame("conquest",classic),true);
-  const game=fun.createFunGame("conquest","DUEL",names,{conquestMode:"CONNECTED",conquestPointsGoal:24});
+  const game=legacyConquest("DUEL",names,{conquestMode:"CONNECTED",conquestPointsGoal:24});
   assert.equal(local.validGame("conquest",game),true);
   for(const strategy of [null,{version:2,goal:24},{version:1,goal:7},{version:1}])assert.equal(local.validGame("conquest",{...game,strategy}),false);
   assert.equal(local.validGame("conquest",{...game,winnerSide:0,visitClosed:true}),false);
@@ -434,4 +441,109 @@ test("Cloud responses must match the record revision and game kind", () => {
   assert.equal(cloud.validCloudRow({...row,updated_at:"invalid"}),false);
 });
 
+
+const campaignGame = (mode = "CONNECTED", format = "DUEL") => fun.createFunGame("conquest", format, names, {conquestMode:mode,conquestGoal:5,conquestPointsGoal:12}, () => 0.999999);
+const completeVisit = game => { while(!game.visitClosed) game=fun.applyFunDart(game,dart(0)); return game; };
+test("Conquest v2: shuffled permutation, fixed Bull, stable geography and four Bull routes",()=>{
+  const a=fun.createFunGame("conquest","DUEL",names,{conquestMode:"FULL"},()=>0);
+  const b=campaignGame("FULL");
+  assert.notDeepEqual(a.territories.map(t=>t.target),b.territories.map(t=>t.target));
+  assert.deepEqual(a.territories.map(t=>t.target).sort((a,b)=>a-b),[...Array.from({length:20},(_,i)=>i+1),25]);
+  assert.equal(a.territories[20].target,25);assert.equal(local.validGame("conquest",a),true);
+  assert.deepEqual(fun.conquestNeighborRegions(a,21),[6,9,11,13]);
+  const edges=fun.conquestLinks(a);assert.equal(new Set(edges.map(([a,b])=>[a,b].sort((x,y)=>x-y).join(":"))).size,edges.length);
+  for(const route of world.CONQUEST_BULL_ROUTES)assert.ok(route.path.startsWith("M"));
+  const target=a.territories[0].target, hit=fun.applyFunDart(a,dart(target,3));
+  assert.equal(hit.territories[0].owner,0);assert.equal(hit.territories[20].owner,null);
+  assert.deepEqual(hit.territories.map(t=>t.target),a.territories.map(t=>t.target));
+});
+for(const mode of ["CLASSIC","CONNECTED","FULL"]){
+ test("Conquest v2: defense awarded once per territory at end of visit / "+mode,()=>{
+  let game=campaignGame(mode);game.territories[1].owner=1;
+  const original=JSON.stringify(game);
+  game=fun.applyFunDart(game,dart(2));assert.deepEqual(game.campaign.pending,[2]);assert.deepEqual(game.campaign.bonuses,[0,0]);
+  game=fun.applyFunDart(game,dart(2));assert.deepEqual(game.campaign.pending,[2]);assert.equal(local.validGame("conquest",game),true);
+  const beforeEnd=game;game=fun.applyFunDart(game,dart(0));
+  assert.deepEqual(game.campaign.bonuses,[0,1]);assert.deepEqual(game.campaign.pending,[]);
+  assert.equal(fun.conquestScores(game)[1],mode==="CLASSIC"?2:3);assert.equal(local.validGame("conquest",game),true);
+  assert.equal(fun.applyFunDart(game,dart(0)),game);assert.deepEqual(beforeEnd.campaign.bonuses,[0,0],"Undo restores pending bonus");
+  const passed=fun.endFunVisit(game);assert.deepEqual(passed.campaign.bonuses,[0,1]);assert.deepEqual(passed.campaign.pending,[]);
+  assert.deepEqual(JSON.parse(original).campaign.bonuses,[0,0]);
+ });
+ test("Conquest v2: taking the attacked territory within the visit cancels defense / "+mode,()=>{
+  let game=campaignGame(mode);game.territories[1].owner=1;
+  game=fun.applyFunDart(game,dart(2));game=fun.applyFunDart(game,dart(2,2));
+  assert.equal(game.territories[1].owner,0);assert.deepEqual(game.campaign.pending,[]);
+  game=completeVisit(game);assert.deepEqual(game.campaign.bonuses,[0,0]);assert.equal(local.validGame("conquest",game),true);
+ });
+}
+test("Conquest v2: misses, free and own territories give no defense; owners each receive their bonuses",()=>{
+ let game=campaignGame("FULL","FOUR");game.territories[0].owner=1;game.territories[1].owner=1;game.territories[2].owner=2;
+ for(const id of [1,2,3])game=fun.applyFunDart(game,dart(id));
+ assert.deepEqual(game.campaign.bonuses,[0,2,1,0]);assert.equal(local.validGame("conquest",game),true);
+ let own=campaignGame("FULL");own.territories[0].owner=0;
+ for(const id of [1,4,0])own=fun.applyFunDart(own,dart(id));
+ assert.deepEqual(own.campaign.bonuses,[0,0]);assert.deepEqual(own.campaign.pending,[]);
+});
+test("Conquest v2: Bull takes three marks, adds strategic links, can be defended and recaptured",()=>{
+ let game=campaignGame("FULL");game.territories[5].owner=0;game.territories[8].owner=0;
+ const before=fun.conquestScores(game)[0];assert.equal(fun.conquestCaptureValue(game,25,0),4);
+ game=fun.applyFunDart(game,dart(25));assert.equal(game.territories[20].owner,null);assert.equal(game.territories[20].marks[0],1);
+ game=fun.applyFunDart(game,dart(25,2));assert.equal(game.territories[20].owner,0);assert.equal(fun.conquestScores(game)[0],before+4);
+ game=fun.endFunVisit(completeVisit(game));game=fun.applyFunDart(game,dart(25,2));game=completeVisit(game);
+ assert.deepEqual(game.campaign.bonuses,[1,0]);assert.equal(game.territories[20].marks[1],2);
+ game=fun.endFunVisit(game);game=fun.endFunVisit(completeVisit(game));game=fun.applyFunDart(game,dart(25));
+ assert.equal(game.territories[20].owner,1);assert.deepEqual(game.campaign.bonuses,[1,0]);assert.equal(local.validGame("conquest",game),true);
+});
+for(const format of ["SOLO","DUEL","THREE","FOUR","TEAMS_2V2"]){
+ test("Conquest v2: threshold waits for all three darts; teams share score / "+format,()=>{
+  let game=campaignGame("CONNECTED",format);for(const id of [2,3,5])game.territories[id-1].owner=0;
+  if(format==="TEAMS_2V2")game.activeParticipant=2;
+  game=fun.applyFunDart(game,dart(6,3));assert.equal(fun.conquestScores(game)[0],12);assert.equal(game.winnerSide,null);
+  assert.equal(local.validGame("conquest",game),true);game=completeVisit(game);
+  assert.equal(game.winnerSide,0);assert.equal(local.validGame("conquest",game),true);assert.equal(fun.endFunVisit(game),game);
+ });
+}
+test("Conquest v2: defender can win at settlement, simultaneous best scores draw",()=>{
+ let game=campaignGame("CLASSIC");for(let i=0;i<4;i++)game.territories[i].owner=1;
+ game=fun.applyFunDart(game,dart(1));assert.equal(game.winnerSide,null);game=completeVisit(game);
+ assert.deepEqual(fun.conquestScores(game),[0,5]);assert.equal(game.winnerSide,1);assert.equal(local.validGame("conquest",game),true);
+ let tie=campaignGame("CLASSIC");for(let i=0;i<4;i++)tie.territories[i].owner=1;for(let i=4;i<8;i++)tie.territories[i].owner=0;
+ tie=fun.applyFunDart(tie,dart(9,3));tie=fun.applyFunDart(tie,dart(1));tie=completeVisit(tie);
+ assert.deepEqual(fun.conquestScores(tie),[5,5]);assert.equal(tie.winnerSide,"DRAW");assert.equal(local.validGame("conquest",tie),true);
+});
+test("Conquest v2: Full waits for every territory including Bull, highest total wins, undo restores game",()=>{
+ let game=campaignGame("FULL");for(let i=0;i<20;i++)game.territories[i].owner=1;
+ game=completeVisit(game);assert.equal(game.winnerSide,null,"High score cannot end Full while Bull is free");
+ game=fun.endFunVisit(game);game.activeParticipant=0;
+ game=fun.applyFunDart(game,dart(25));const beforeFinal=game;
+ game=fun.applyFunDart(game,dart(25,2));assert.equal(game.visitDarts.length,2);assert.equal(game.visitClosed,true);
+ assert.equal(game.winnerSide,1,"Most points, not the final capturer, wins");assert.equal(local.validGame("conquest",game),true);
+ assert.equal(beforeFinal.winnerSide,null);assert.equal(beforeFinal.territories[20].owner,null);assert.equal(fun.applyFunDart(game,dart(0)),game);
+});
+test("Conquest v2: final Full capture settles pending defense before comparing final scores",()=>{
+ let game=campaignGame("FULL");for(let i=0;i<20;i++)game.territories[i].owner=i%2;
+ // Leave the Bull free with two marks already built up by camp 0.
+ game.territories[20].marks[0]=2;game.totalDarts=100;
+ const finalShape=structuredClone(game);finalShape.territories[20].owner=0;
+ const [a,b]=fun.conquestScores(finalShape);game.campaign.bonuses[1]=a-b;
+ assert.ok(game.campaign.bonuses[1]>=0);
+ game=fun.applyFunDart(game,dart(2));game=fun.applyFunDart(game,dart(25));
+ assert.equal(game.winnerSide,1,"The defender's pending point breaks the final tie");assert.equal(local.validGame("conquest",game),true);
+});
+test("Conquest v2: pending bonuses and shuffled map survive save/reload and undo",()=>{
+ let game=fun.createFunGame("conquest","DUEL",names,{conquestMode:"FULL"},()=>0.3);game.territories[4].owner=1;
+ const before=game;game=fun.applyFunDart(game,dart(game.territories[4].target,2));
+ const storage=memoryStorage();const saved=local.saveRecord(storage,"alice","conquest",0,savedSession(game,"full-save",[before]));assert.equal(saved.ok,true);
+ const loaded=local.readRecord(storage,"alice","conquest");assert.equal(loaded.ok,true);assert.deepEqual(loaded.record.current.game,game);
+ assert.deepEqual(loaded.record.current.history[0],before);
+ const finished=completeVisit(loaded.record.current.game);assert.deepEqual(finished.campaign.bonuses,[0,1]);
+});
+test("Conquest v2: reject corrupt mapping, Bull, pending defense, modes and mixed legacy rules",()=>{
+ const valid=campaignGame("FULL");assert.equal(local.validGame("conquest",valid),true);
+ const mutations=[g=>g.territories[0].target=2,g=>g.territories[20].target=20,g=>g.territories.pop(),g=>g.campaign.version=3,g=>g.campaign.mode="OTHER",g=>g.campaign.bonuses[0]=-1,g=>g.campaign.bonuses[0]=1,g=>g.campaign.pending=[1],g=>g.campaign.pending=[22],g=>g.campaign.pending=[1,1],g=>g.strategy={version:1,goal:12},g=>g.winnerSide="DRAW",g=>g.visitClosed=true];
+ for(const mutate of mutations){const bad=structuredClone(valid);mutate(bad);assert.equal(local.validGame("conquest",bad),false);}
+ for(const goal of [5,7,10])assert.equal(local.validGame("conquest",legacyConquest("DUEL",names,{conquestGoal:goal})),true);
+ assert.match(local.describeGame(valid),/Full conquête/);
+});
 console.log(count + " play engine tests passed.");

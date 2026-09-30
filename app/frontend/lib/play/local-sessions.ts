@@ -3,7 +3,7 @@ import type { TicTacToeState } from "./tictactoe-engine";
 import type { ClockState } from "./clock-engine";
 import type { Bob27State } from "./bob27-engine";
 import type { Connect4State, ConquestState, Bull500State, FunState } from "./fun-engine";
-import { conquestScores } from "./fun-engine";
+import { conquestScores, conquestWinner } from "./fun-engine";
 import { participantCount, sideCount, sideForSeat, type PlayFormat } from "./format";
 
 export type LocalGameMap = { cricket: CricketState; tictactoe: TicTacToeState; clock: ClockState; bob27: Bob27State; connect4: Connect4State; conquest: ConquestState; bull500: Bull500State };
@@ -43,10 +43,29 @@ export function validGame<K extends LocalKind>(kind: K, value: unknown): value i
   if (kind === "connect4" || kind === "conquest" || kind === "bull500") {
     if (value.kind !== kind || !names(value.sideNames) || !list(value.visitDarts, 3) || !value.visitDarts.every((d) => text(d, 20)) ||
       value.log.length < value.visitDarts.length || typeof value.visitClosed !== "boolean" || !integer(value.visitNumber, 1) || !integer(value.totalDarts) ||
-      !(owner(value.winnerSide) || (kind === "connect4" && value.winnerSide === "DRAW"))) return false;
+      !(owner(value.winnerSide) || ((kind === "connect4" || kind === "conquest") && value.winnerSide === "DRAW"))) return false;
     if (kind === "connect4") return oneOf(value.rule, ["ANY", "DOUBLE"]) && list(value.board, 42) && value.board.length === 42 && value.board.every(owner) &&
       list(value.winningCells, 7) && value.winningCells.every((i) => integer(i, 0, 41));
     if (kind === "conquest") {
+      if (value.campaign !== undefined) {
+        const campaign = value.campaign;
+        if (value.strategy !== undefined || !oneOf(value.goal, [5, 7, 10]) || !object(campaign) || campaign.version !== 2 ||
+          !oneOf(campaign.mode, ["CLASSIC", "CONNECTED", "FULL"]) || !oneOf(campaign.goal, campaign.mode === "CLASSIC" ? [5, 7, 10] : [12, 18, 24]) ||
+          (campaign.mode === "CLASSIC" && campaign.goal !== value.goal) || !list(campaign.bonuses, count) || campaign.bonuses.length !== count ||
+          !campaign.bonuses.every(b => integer(b, 0, value.totalDarts as number)) || campaign.bonuses.reduce<number>((sum,b) => sum + (b as number), 0) > (value.totalDarts as number) ||
+          !list(value.territories, 21) || value.territories.length !== 21 ||
+          !value.territories.every((t,i) => object(t) && (i === 20 ? t.target === 25 : integer(t.target, 1, 20)) && owner(t.owner) &&
+            list(t.marks, count) && t.marks.length === count && t.marks.every(m => integer(m, 0, 2)) && (t.owner === null || t.marks[t.owner as number] === 0)) ||
+          new Set(value.territories.map(t => (t as Record<string, unknown>).target)).size !== 21 ||
+          !list(campaign.pending, 3) || new Set(campaign.pending).size !== campaign.pending.length ||
+          (value.visitClosed && campaign.pending.length !== 0) || campaign.pending.length > value.visitDarts.length) return false;
+        const game = value as unknown as ConquestState, active = game.participants[game.activeParticipant].side;
+        if (!campaign.pending.every(id => integer(id, 1, 21) && game.territories[id-1].owner !== null && game.territories[id-1].owner !== active && game.territories[id-1].marks[active] > 0)) return false;
+        const full = campaign.mode === "FULL" && game.territories.every(t => t.owner !== null);
+        if (game.visitClosed !== (game.visitDarts.length === 3 || full)) return false;
+        return game.winnerSide === conquestWinner(game);
+      }
+      if (value.winnerSide === "DRAW") return false;
       if (!oneOf(value.goal, [5, 7, 10]) || !list(value.territories, 20) || value.territories.length !== 20 ||
         !value.territories.every((t, i) => object(t) && t.target === i + 1 && owner(t.owner) && list(t.marks, count) && t.marks.length === count && t.marks.every((m) => integer(m, 0, 3)))) return false;
       if (value.strategy === undefined) return true; // Original saves keep their territory-count rules.
@@ -90,6 +109,7 @@ export function outcome(game: LocalGame): string {
 export function describeGame(game: LocalGame): string {
   if ("kind" in game) {
     const fun: FunState = game;
+    if (fun.kind === "conquest" && fun.campaign) return (fun.campaign.mode === "FULL" ? "Full conquête · 21 territoires" : (fun.campaign.mode === "CLASSIC" ? "Classique" : "Monde") + " · " + fun.campaign.goal + " points") + " · Bull et bonus défense";
     return fun.kind === "bull500" ? "Objectif 500 · score sur " + fun.target.replace("_OR_", " / ") : fun.kind === "conquest" ? fun.strategy ? "Monde · " + fun.strategy.goal + " points · bonus de liaison" : fun.goal + " territoires · classique" : fun.rule === "DOUBLE" ? "Doubles uniquement" : "Tous impacts";
   }
   return "mode" in game ? game.mode + ("scoring" in game ? " · " + game.scoring : "") : "D1 → D20";
