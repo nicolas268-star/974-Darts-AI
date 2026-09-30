@@ -12,7 +12,7 @@ L’application n’envoie pas de message directement et ne prétend pas connaî
 
 ## Publication automatique du championnat
 
-Le service Compose `interclub-analysis` vérifie le calendrier au début de chaque minute. Les soirs de rencontre `CHAMPIONSHIP` non annulée, il commence à **23 h 50, heure de La Réunion (UTC+4, soit 19 h 50 UTC)**, puis réessaie toutes les cinq minutes pendant 48 heures si la rencontre est incomplète ou la source indisponible. Un redémarrage reprend ce travail depuis le volume persistant. Un report ou une annulation est relu avant la publication.
+Le service Compose `interclub-analysis` vérifie le calendrier au début de chaque minute. Les soirs de rencontre `CHAMPIONSHIP` non annulée, il commence à **22 h, heure de La Réunion (UTC+4, soit 18 h UTC)**, puis réessaie à **22 h 30, 23 h, 23 h 30 et minuit** si la rencontre est incomplète ou la source indisponible. Après le passage de minuit, aucune nouvelle collecte automatique n’est lancée pour cette rencontre. Les rencontres déjà publiées ne sont plus collectées. Un redémarrage reprend au prochain créneau depuis le volume persistant. Un report ou une annulation est relu avant la publication.
 
 Il lit le détail Nakka de la ligue active, exige les 16 simples et 4 doubles terminés, et recalcule chaque volée. Les résultats, statistiques par joueur et totaux collectifs doivent concorder avec les agrégats Nakka. Les joueurs sont rattachés au registre des licenciés actifs et aux effectifs officiels 2026–2027 : nom complet (ou alias confirmé), équipe et club. Aucun rapprochement approximatif, aucune création de joueur et aucune fusion ne sont effectués. L’identifiant Nakka `opid` est conservé pour audit uniquement ; une erreur comme celle de Yoann/Yvan en J1 ne mélange pas les statistiques.
 
@@ -20,13 +20,14 @@ La fonction Supabase `publish_interclub_match`, accessible uniquement au rôle s
 
 Un verrou de saison protège les cumuls. La même source ne peut être publiée deux fois, y compris après un arrêt survenu entre la validation en base et l’enregistrement du fichier d’état. La J1 déjà publiée est reconnue après comparaison de tous ses détails et enrichie uniquement avec les poids First 9 et l’audit automatique. Un résultat existant divergent n’est jamais écrasé : il reste visible et une anomalie est affichée dans Visibilité. Les données historiques de 2026 sont conservées.
 
-Une fois les résultats publiés, le résumé statistique est préparé. La disponibilité de la clé IA n’a aucune incidence sur les résultats, le classement ou les statistiques. Un échec IA relance uniquement la sélection éditoriale. Les anciens états `READY` de la préparation privée passent aussi par la publication : ils ne peuvent pas court-circuiter cette étape.
+Une fois les résultats publiés, le résumé statistique est préparé. La disponibilité de la clé IA n’a aucune incidence sur les résultats, le classement ou les statistiques. Un échec IA relance uniquement la sélection éditoriale, toutes les cinq minutes pendant 48 heures. Les anciens états `READY` de la préparation privée passent aussi par la publication : ils ne peuvent pas court-circuiter cette étape.
 
 Le statut dans Visibilité indique l’activité de publication, la prochaine soirée et les attentes. Le partage WhatsApp et le bloc Facebook conservent leur fonctionnement : aucun message n’est envoyé automatiquement sur les réseaux sociaux.
 
 ### Déploiement
 
-1. Appliquer `supabase/release_migrations/MIGRATION_SUPABASE_V21_0_24_INTERCLUB_AUTOMATIC.sql` avant le code (migration additive : colonnes First 9, date de rencontre, audit privé et fonction serveur).
+1. Pour une installation initiale, appliquer `supabase/release_migrations/MIGRATION_SUPABASE_V21_0_24_INTERCLUB_AUTOMATIC.sql` avant le code (migration additive : colonnes First 9, date de rencontre, audit privé et fonction serveur).
+   Appliquer ensuite `supabase/migrations/20260930180153_interclub_evening_schedule.sql` pour autoriser la publication dès 22 h (également requis sur une installation existante).
 2. Vérifier/adopter la J1 existante avec le collecteur et `publish_collected`, sans nouvelle rencontre ni doublon.
 3. Reconstruire et démarrer `backend frontend interclub-analysis`. Ils partagent `/var/lib/974darts/backend-data`, accessible à l’UID 10001.
 4. Vérifier le fichier `interclub_analysis.json` : `publication_enabled: true`, `last_check_at` récent ; surveiller les entrées `published_result_id` après les rencontres.

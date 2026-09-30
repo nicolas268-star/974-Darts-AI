@@ -16,8 +16,10 @@ from .season_registry_service import registry_status
 from .visibility_service import SummaryUnavailable, ai_configured, compose_summary
 
 STATE_PATH = Path(os.getenv("INTERCLUB_ANALYSIS_STATE_PATH", "/app/data/interclub_analysis.json"))
-RETRY = timedelta(minutes=5)
-WINDOW = timedelta(hours=48)
+RETRY = timedelta(minutes=30)
+WINDOW = timedelta(hours=2)
+SUMMARY_RETRY = timedelta(minutes=5)
+SUMMARY_WINDOW = timedelta(hours=48)
 
 
 def _load():
@@ -64,7 +66,7 @@ def signature(event):
 
 
 def due_at(event):
-    return datetime.combine(datetime.fromisoformat(event["start_date"]).date(), time(23, 50), REUNION)
+    return datetime.combine(datetime.fromisoformat(event["start_date"]).date(), time(22, 0), REUNION)
 
 
 def _events():
@@ -99,15 +101,26 @@ def run_due_analyses(*, now=None, events=None, seasons=None, collector=collect_p
             record = records.get(key, {})
             if record.get("signature") != signature(event):
                 record = {}
-            if now < due or now > due + WINDOW:
-                continue
+            published = bool(record.get("published_result_id"))
+            if published:
+                # Editorial preparation never recollects published results.
+                if now < due or now > due + SUMMARY_WINDOW:
+                    continue
+            else:
+                # Fixed local slots, allowing the whole minute for worker jitter.
+                slot = now.replace(second=0, microsecond=0)
+                if slot < due or slot > due + WINDOW or (slot - due) % RETRY:
+                    continue
+                last_attempt = record.get("last_attempt_at")
+                if last_attempt and datetime.fromisoformat(last_attempt) >= slot:
+                    continue
             if record.get("published_result_id") and record.get("status") == "READY" and (record.get("summary", {}).get("mode") == "ai" or not ai_configured()):
                 continue
-            if record.get("next_try_at") and now < datetime.fromisoformat(record["next_try_at"]):
+            if published and record.get("next_try_at") and now < datetime.fromisoformat(record["next_try_at"]):
                 continue
             record.update(id=key, event_id=event["id"], title=event["title"], date=event["start_date"], source_url=event.get("source_url"),
                           signature=signature(event), due_at=due.isoformat(), last_attempt_at=now.isoformat(),
-                          next_try_at=(now + RETRY).isoformat(), attempts=record.get("attempts", 0) + 1)
+                          next_try_at=(now + SUMMARY_RETRY if published else slot + RETRY).isoformat(), attempts=record.get("attempts", 0) + 1)
             try:
                 if len(active) != 1:
                     raise SummaryUnavailable("Une seule saison active doit être configurée.")
@@ -121,6 +134,7 @@ def run_due_analyses(*, now=None, events=None, seasons=None, collector=collect_p
                     publication = publisher(collected)
                     facts = collected["facts"]
                     facts["url"] = "https://974darts.re/matches/" + publication["result_id"]
+                    record["next_try_at"] = (now + SUMMARY_RETRY).isoformat()
                     record.update(published_result_id=publication["result_id"], published_at=now.isoformat(), facts=facts)
                     records[key] = record
                     _write(state)
@@ -170,13 +184,14 @@ def extend_catalog(catalog, source_results):
                                   | {"id": record["id"], "date": record["date"]})
     catalog["evenings"].sort(key=lambda e: (e["date"] or "", e["round"], e["id"]), reverse=True)
     now = datetime.now(timezone.utc)
-    future = [due_at(e) for e in _events() if due_at(e) > now]
+    calendar = {event_key(e): e for e in _events()}
+    future = [due_at(e) for e in calendar.values() if due_at(e) > now]
     heartbeat = _load().get("last_check_at")
-    catalog["automation"] = {"time": "23:50", "timezone": "Indian/Reunion", "last_check_at": heartbeat,
+    catalog["automation"] = {"time": "22:00", "retry_minutes": 30, "until": "00:00", "timezone": "Indian/Reunion", "last_check_at": heartbeat,
                              "publication_enabled": bool(_load().get("publication_enabled")),
                              "running": bool(heartbeat and now - datetime.fromisoformat(heartbeat) < timedelta(minutes=3)),
                              "next_at": min(future).isoformat() if future else None,
-                             "recent": [{k: r.get(k) for k in ("title", "date", "status", "message", "prepared_at", "last_attempt_at")}
-                                        | {"retry_expired": now > datetime.fromisoformat(r["due_at"]) + WINDOW}
+                             "recent": [{k: r.get(k) for k in ("title", "date", "status", "message", "prepared_at", "last_attempt_at", "published_result_id")}
+                                        | {"retry_expired": now >= due_at(calendar[r["id"]]) + (SUMMARY_WINDOW if r.get("published_result_id") else WINDOW + timedelta(minutes=1))}
                                         for r in sorted(records, key=lambda r: r["date"], reverse=True)[:8]]}
     return catalog

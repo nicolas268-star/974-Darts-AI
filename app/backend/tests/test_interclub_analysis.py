@@ -89,7 +89,7 @@ class ScheduleTests(unittest.TestCase):
         self.collect = Mock(return_value=self.collected)
         self.publisher = Mock(return_value={"status": "PUBLISHED", "result_id": "published-id"})
         self.composer = Mock(side_effect=compose_summary)
-        self.due = datetime(2026, 9, 28, 19, 50, tzinfo=timezone.utc)
+        self.due = datetime(2026, 9, 28, 18, 0, tzinfo=timezone.utc)
 
     def run_at(self, now, events=None):
         return service.run_due_analyses(now=now, events=[EVENT] if events is None else events, seasons=[SEASON], collector=self.collect, publisher=self.publisher, composer=self.composer)
@@ -104,13 +104,36 @@ class ScheduleTests(unittest.TestCase):
         prepared = service.automatic_summary(service.event_key(EVENT))
         self.assertEqual(prepared["evening"]["matches"], 20)
 
-    def test_late_match_retries_after_midnight_and_survives_restart(self):
+    def test_incomplete_match_retries_at_next_slot_and_survives_restart(self):
         self.collect.side_effect = [SummaryUnavailable("Match en cours"), self.collected]
         self.run_at(self.due)
         self.assertIsNone(service.automatic_summary(service.event_key(EVENT)))
         self.assertEqual(self.run_at(self.due + timedelta(minutes=4)), 0)
-        self.assertEqual(self.run_at(self.due + timedelta(minutes=15)), 1)
+        self.assertEqual(self.run_at(self.due + timedelta(minutes=30)), 1)
         self.assertEqual(service.available_records()[0]["status"], "READY")
+
+    def test_all_half_hour_slots_and_midnight_cutoff(self):
+        self.collect.side_effect = SummaryUnavailable("Match en cours")
+        for minutes in (0, 30, 60, 90, 120):
+            slot = self.due + timedelta(minutes=minutes)
+            self.assertEqual(self.run_at(slot + timedelta(seconds=20)), 1)
+            self.assertEqual(self.run_at(slot + timedelta(seconds=40)), 0)
+            self.assertEqual(self.run_at(slot + timedelta(minutes=1)), 0)
+        self.assertEqual(self.collect.call_count, 5)
+        self.assertEqual(self.run_at(self.due + timedelta(minutes=150)), 0)
+        self.assertEqual(self.run_at(self.due + timedelta(days=1)), 0)
+
+    def test_old_retry_state_uses_new_slots(self):
+        service._write({"records": {service.event_key(EVENT): {
+            "signature": service.signature(EVENT), "status": "WAITING",
+            "last_attempt_at": (self.due + timedelta(minutes=1)).isoformat(),
+            "next_try_at": (self.due + timedelta(minutes=6)).isoformat()}}})
+        self.assertEqual(self.run_at(self.due + timedelta(minutes=6)), 0)
+        self.assertEqual(self.run_at(self.due + timedelta(minutes=30)), 1)
+
+    def test_restart_between_slots_waits_until_next_slot(self):
+        self.assertEqual(self.run_at(self.due + timedelta(minutes=17)), 0)
+        self.assertEqual(self.run_at(self.due + timedelta(minutes=30)), 1)
 
     def test_cancellations_postponements_and_non_championship_events(self):
         cancelled = {**EVENT, "status": "CANCELLED"}
@@ -169,9 +192,9 @@ class ScheduleTests(unittest.TestCase):
         self.run_at(self.due)
         self.composer.assert_not_called()
         self.composer.side_effect = [RuntimeError("AI offline"), compose_summary(self.facts)]
-        self.run_at(self.due + timedelta(minutes=5))
+        self.run_at(self.due + timedelta(minutes=30))
         self.assertEqual(service.available_records()[0]["published_result_id"], "published-id")
-        self.run_at(self.due + timedelta(minutes=10))
+        self.run_at(self.due + timedelta(minutes=35))
         self.assertEqual(self.publisher.call_count, 2)
         self.assertEqual(service.available_records()[0]["status"], "READY")
 

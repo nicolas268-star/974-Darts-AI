@@ -8,7 +8,7 @@ type Evening = { id: string; round: string; date: string | null; home: string; a
 type Summary = { whatsapp: string; facebook: string; mode: "ai" | "statistics"; note: string; ai_available: boolean;
   evening: { url: string; matches: number; legs: number; players: number }; fingerprint: string };
 type Automation = { running: boolean; publication_enabled?: boolean; next_at: string | null;
-  recent: { title: string; status: string; message: string; retry_expired: boolean }[] };
+  recent: { title: string; status: string; message: string; retry_expired: boolean; published_result_id?: string | null }[] };
 
 async function responseJson<T>(response: Response): Promise<T> {
   const data = await response.json();
@@ -113,10 +113,10 @@ export default function EveningSummary({ onFacebookReady }: { onFacebookReady: (
     <header><div><span>Groupe interne · Fléchettes Réunion</span><h2 id="evening-title"><MessageCircle size={26}/> Résumé de soirée WhatsApp</h2></div><span className={styles.badge}>{summary?.mode === "ai" ? "Synthèse IA" : "Analyse statistique"}</span></header>
     <p className={styles.intro}>Choisis une rencontre terminée. Retrouve le résultat, les temps forts et les performances à partager au groupe.</p>
     {automation && <div className={styles.automation}>
-      <b>Championnat automatique · dès 23 h 50 · heure de La Réunion</b>
+      <b>Championnat automatique · de 22 h à minuit · heure de La Réunion</b>
       <p>{automation.running && automation.publication_enabled ? "Actif : les soirs de match du calendrier, résultats, classement et statistiques des joueurs et des équipes sont mis à jour sans intervention. Le résumé est ensuite préparé." : "La publication automatique n’a pas confirmé son activité récemment."}
         {automation.next_at && <> Prochaine soirée : {new Date(automation.next_at).toLocaleDateString("fr-FR", { timeZone: "Indian/Reunion" })}.</>}</p>
-      {automation.recent.filter((item) => item.status !== "READY").map((item) => <p key={item.title}><strong>{item.title}</strong> — {item.message} {item.retry_expired ? "Contrôle nécessaire après 48 h d’attente." : "Nouvelle vérification toutes les 5 minutes."}</p>)}
+      {automation.recent.filter((item) => item.status !== "READY").map((item) => <p key={item.title}><strong>{item.title}</strong> — {item.message} {item.published_result_id ? (item.retry_expired ? "Résumé à préparer manuellement." : "Résultat publié · nouvelle préparation du résumé toutes les 5 minutes.") : (item.retry_expired ? "Vérifications arrêtées à minuit · contrôle nécessaire." : "Nouvelle vérification toutes les 30 minutes jusqu’à minuit.")}</p>)}
     </div>}
     <div className={styles.eventChoice}><label htmlFor="visibility-evening">Rencontre interclubs<select id="visibility-evening" value={selected} disabled={busy || loading} onChange={(event) => { resetPreview(); setSelected(event.target.value); }}>
       {!evenings.length && <option value="">{loading ? "Chargement…" : "Aucune rencontre publiée disponible"}</option>}
