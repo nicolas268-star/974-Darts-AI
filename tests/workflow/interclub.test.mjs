@@ -19,6 +19,16 @@ const counts=async()=>(await q(`select (select count(*) from championship_result
 try {
  await db.exec(read('tests/workflow/interclub-bootstrap.sql'));
  await db.exec(read('supabase/release_migrations/MIGRATION_SUPABASE_V21_0_24_INTERCLUB_AUTOMATIC.sql'));
+ const scheduleMigration=read('supabase/migrations/20260930180153_interclub_evening_schedule.sql');
+ await db.exec(scheduleMigration);
+ await db.exec(scheduleMigration);
+ const definition=(await q("select pg_get_functiondef('public.publish_interclub_match(jsonb)'::regprocedure) definition"))[0].definition;
+ assert.ok(definition.includes("time '22:00'"));
+ assert.ok(!definition.includes("time '23:50'"));
+ const boundaries=await q(`select
+  '2026-09-28 17:59:59+00'::timestamptz < (date '2026-09-28' + time '22:00') at time zone 'Indian/Reunion' as too_early,
+  '2026-09-28 18:00:00+00'::timestamptz = (date '2026-09-28' + time '22:00') at time zone 'Indian/Reunion' as start`);
+ assert.deepEqual(boundaries,[{too_early:true,start:true}]);
  const season=(await q("insert into seasons(name,is_active) values('2026-2027',true) returning id"))[0].id;
  for(const i of fixture.identities) {
    await q('insert into players values($1,$2)',[i.canonical_player_id,i.canonical_display_name]);

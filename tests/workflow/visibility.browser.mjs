@@ -10,7 +10,7 @@ export async function testVisibility(admin, director, screenshot) {
   let automaticReady=false;
   await admin.route('**/api/admin/visibility/**',async route=>{
     const url=new URL(route.request().url());
-    if(url.pathname.endsWith('/evenings'))return route.fulfill({json:{evenings:[evening],ai_available:true,automation:{running:true,publication_enabled:true,next_at:'2026-09-30T23:50:00+04:00',recent:[{title:'J1 · rencontre tardive',status:'WAITING',message:'Le match est encore en cours.',retry_expired:false}]}}});
+    if(url.pathname.endsWith('/evenings'))return route.fulfill({json:{evenings:[evening],ai_available:true,automation:{running:true,publication_enabled:true,next_at:'2026-09-30T22:00:00+04:00',recent:[{title:'J1 · rencontre tardive',status:'WAITING',message:'Le match est encore en cours.',retry_expired:false}]}}});
     if(route.request().method()==='POST'){
       expect(route.request().postDataJSON()).toEqual({result_id:id});generated++;
       return route.fulfill({json:{...summary,mode:'ai',note:'Analyse éditoriale IA : faits vérifiés.'}});
