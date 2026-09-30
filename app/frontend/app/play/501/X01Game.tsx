@@ -376,6 +376,10 @@ export function X01Game({ currentPlayerId, currentDisplayName }: Props) {
       setStarterPlayerId(newLeg.starting_game_player_id);
       setVisits([]);
       setDraftDarts([]);
+      setQuickScore("");
+      setQuickDarts(3);
+      setQuickDoubleIn(false);
+      setQuickCheckoutDouble(false);
       setSessionCodeInput(gameRow.session_code);
       writeSessionToUrl(gameRow.session_code);
       await refreshActiveSessions();
@@ -526,18 +530,18 @@ export function X01Game({ currentPlayerId, currentDisplayName }: Props) {
     } finally { saveInFlight.current = false; setSaving(false); }
   }
 
-  async function submitQuick() {
+  async function submitQuick(forceBust = false) {
     if (!game || !activePlayer || saving || isReadOnly) return;
     const score = parseVisitScore(quickScore);
     if (score === null || !isPossibleVisitScore(score, quickDarts)) {
       setError("Saisis un score réalisable avec le nombre de fléchettes indiqué (0 à 180).");
       return;
     }
-    if (game.out_rule === "DOUBLE_OUT" && score === activePlayer.remaining && !isPossibleDoubleCheckout(score, quickDarts)) {
+    if (!forceBust && game.out_rule === "DOUBLE_OUT" && score === activePlayer.remaining && !isPossibleDoubleCheckout(score, quickDarts)) {
       setError("Cette sortie n’est pas réalisable sur un double avec ce nombre de fléchettes.");
       return;
     }
-    if (game.out_rule === "DOUBLE_OUT" && score === activePlayer.remaining && !quickCheckoutDouble) {
+    if (!forceBust && game.out_rule === "DOUBLE_OUT" && score === activePlayer.remaining && !quickCheckoutDouble) {
       setError("Confirme le double ou Bull final pour valider la sortie, ou corrige le score.");
       return;
     }
@@ -551,6 +555,17 @@ export function X01Game({ currentPlayerId, currentDisplayName }: Props) {
       opensScoringConfirmed: quickDoubleIn,
       checkoutDoubleConfirmed: quickCheckoutDouble,
     });
+    if (forceBust && !(score > activePlayer.remaining || (game.out_rule === "DOUBLE_OUT" && score >= activePlayer.remaining - 1))) {
+      setError("Ce score ne produit pas de bust. Corrige le score tenté ou valide la volée normalement.");
+      return;
+    }
+    if (forceBust) {
+      result.bust = true;
+      result.checkout = false;
+      result.creditedScore = 0;
+      result.scoreAfter = activePlayer.remaining;
+      result.message = "BUST — le score revient au début de la volée.";
+    }
     if (quickDarts < 3 && !result.checkout && !result.bust) {
       setError("Une volée non terminée doit contenir trois fléchettes. Utilise le mode fléchette pour une saisie progressive.");
       return;
@@ -761,6 +776,7 @@ export function X01Game({ currentPlayerId, currentDisplayName }: Props) {
         <label htmlFor="x01-visit-score">Score de la volée</label>
         <div className="play-input-row"><input ref={quickInput} id="x01-visit-score" value={quickScore} type="text" inputMode="numeric" enterKeyHint="done" autoComplete="off" placeholder="Ex. 100" maxLength={3} disabled={saving} onChange={(event) => { setQuickScore(event.target.value); setError(null); }} onFocus={(event) => event.currentTarget.select()} aria-describedby="x01-entry-help" /><button type="submit" disabled={saving || quickValue === null}>{saving ? "Enregistrement…" : "Valider la volée"}</button></div>
         <p id="x01-entry-help" className="play-input-hint">Tape le total puis Entrée. 0 enregistre une volée sans point.</p>
+        <button type="button" disabled={saving || quickValue === null} onClick={() => void submitQuick(true)}>Enregistrer cette volée comme bust</button>
         <label className="play-dart-count">Fléchettes jouées<select value={quickDarts} disabled={saving} onChange={(event) => setQuickDarts(Number(event.target.value))}><option value={3}>3</option><option value={2}>2 — sortie / bust</option><option value={1}>1 — sortie / bust</option></select></label>
         {game.in_rule === "DOUBLE_IN" && !activePlayer?.opened ? <label className="x01-check"><input type="checkbox" disabled={saving} checked={quickDoubleIn} onChange={(event) => setQuickDoubleIn(event.target.checked)} /><span><b>Double In touché</b><small>Saisis les points à partir du double d’entrée.</small></span></label> : null}
         {game.out_rule === "DOUBLE_OUT" && quickIsFinish ? <label className="x01-check"><input type="checkbox" disabled={saving} checked={quickCheckoutDouble} onChange={(event) => setQuickCheckoutDouble(event.target.checked)} /><span><b>Dernière fléchette : Double / Bull</b><small>Confirme la sortie et le nombre de fléchettes jouées.</small></span></label> : null}

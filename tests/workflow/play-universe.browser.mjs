@@ -101,7 +101,7 @@ export async function testPlayUniverse(page, screenshot) {
     await expect(score).toHaveValue("");
     await score.fill("179");
     await score.press("Enter");
-    await expect(page.getByRole("alert")).toContainText("score réalisable");
+    await expect(page.locator(".x01-alert.error")).toContainText("score réalisable");
     expect(visits.length).toBe(0);
     await score.fill("100");await score.press("Enter");
     await expect(score).toHaveValue("");
@@ -118,6 +118,16 @@ export async function testPlayUniverse(page, screenshot) {
     await page.getByRole("button",{name:"Valider la volée",exact:true}).click();
     await expect(page.getByText("0/3 fléchettes jouées",{exact:true})).toBeVisible();
     expect(visits.length).toBe(3);expect(visits[2].score_scored).toBe(80);expect(throws.length).toBe(3);
+    await page.getByText("Historique des volées · leg 1",{exact:true}).click();
+    await page.getByRole("button",{name:"Corriger la dernière volée",exact:true}).click();
+    await expect(page.getByText("3/3 fléchettes jouées",{exact:true})).toBeVisible();
+    expect(visits.length).toBe(2);
+    await page.getByRole("button",{name:"Annuler la dernière fléchette",exact:true}).click();
+    await page.getByLabel("Fléchette",{exact:true}).fill("D20");
+    await page.getByLabel("Fléchette",{exact:true}).press("Enter");
+    await page.getByRole("button",{name:"Valider la volée",exact:true}).click();
+    await expect(page.getByText("0/3 fléchettes jouées",{exact:true})).toBeVisible();
+    expect(visits.length).toBe(3);expect(visits[2].score_scored).toBe(120);
     for(const width of [320,390,430,820,1440]){
       await page.setViewportSize({width,height:1000});
       expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),"X01 at "+width).toBe(true);

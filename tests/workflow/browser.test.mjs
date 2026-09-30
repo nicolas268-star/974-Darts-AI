@@ -25,6 +25,7 @@ async function login(page,role){
 }
 try{
  await login(admin,'admin');
+ await testPlayUniverse(admin,screenshot);
  await admin.goto('http://127.0.0.1:3008/admin/classement-individuel');
  await expect(admin.getByText('Open Club Double · Démonstration',{exact:true})).toBeVisible({timeout:30000});
  await screenshot(admin,'01-administration.png');
@@ -85,5 +86,4 @@ try{
  await testVisibility(admin,ds,screenshot);
  await testMobileStatistics(ds,screenshot);
  await testChampionshipCharts(ds,screenshot);
- await testPlayUniverse(admin,screenshot);
 }catch(e){console.error(e.message);console.error('Admin URL:',admin.url(),'DS URL:',ds.url());await screenshot(admin,'failure.png');process.exitCode=1;}finally{await browser.close()}
