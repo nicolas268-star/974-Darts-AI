@@ -1,3 +1,4 @@
+import { StatsTable } from "@/components/stats/StatsTable";
 import Image from "next/image";
 import Link from "next/link";
 import { CalendarDays, Info, Medal, Trophy } from "lucide-react";
@@ -49,7 +50,7 @@ export default async function IndividualRankingPage({ searchParams }: { searchPa
   return (
     <div className="dashboard">
       <Sidebar />
-      <main className="main committee-ranking-page">
+      <main className="stats-responsive main committee-ranking-page">
         <Link className="committee-ranking-back" href="/competitions">← Toutes les compétitions</Link>
 
         <header className="committee-ranking-hero">
@@ -92,7 +93,7 @@ export default async function IndividualRankingPage({ searchParams }: { searchPa
             <Link className={category === "women" ? "active" : ""} href="/competitions/classement-individuel?categorie=femmes">Femmes</Link>
           </div>
           <p className="table-scroll-hint">Faites glisser le tableau horizontalement pour voir toutes les compétitions.</p><div className="committee-ranking-table-scroll" tabIndex={0} role="region" aria-label="Tableau du classement individuel, défilement horizontal">
-            <table className="committee-ranking-table">
+            <StatsTable className="committee-ranking-table">
               <colgroup>
                 <col className="ranking-col-rank" />
                 <col className="ranking-col-player" />
@@ -115,7 +116,7 @@ export default async function IndividualRankingPage({ searchParams }: { searchPa
                   </tr>
                 )) : <tr className="committee-ranking-empty"><td colSpan={rankingColumnLabels.length + 4}><strong>{payload ? "Aucun résultat publié pour cette catégorie" : "Le classement est temporairement indisponible"}</strong><span>{payload ? "Les résultats apparaîtront après validation et publication." : "Les données publiées sont conservées. Réessayez dans quelques instants."}</span></td></tr>}
               </tbody>
-            </table>
+            </StatsTable>
           </div>
           <div className="committee-ranking-note"><Info size={18} /><p>En cas d’égalité finale : résultat à la Coupe du Comité, puis match de barrage en cinq manches gagnantes. Tous les points de la saison sont cumulés.</p></div>
         </section>

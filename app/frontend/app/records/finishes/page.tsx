@@ -1,3 +1,4 @@
+import { StatsTable } from "@/components/stats/StatsTable";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { Award, Crosshair, ShieldCheck, Sparkles, Target, Trophy } from "lucide-react";
@@ -128,7 +129,7 @@ export default async function HighestFinishesPage() {
   return (
     <div className="dashboard">
       <Sidebar />
-      <main className="main record-page finish-page">
+      <main className="stats-responsive main record-page finish-page">
         <section className="record-hero finish-hero">
           <div className="record-hero-icon" aria-hidden="true">
             <Crosshair size={42} />
@@ -218,7 +219,7 @@ export default async function HighestFinishesPage() {
                 </span>
               </div>
               <div className="table-scroll">
-                <table className="table record-table">
+                <StatsTable className="table record-table">
                   <thead>
                     <tr>
                       <th>Rang</th>
@@ -256,7 +257,7 @@ export default async function HighestFinishesPage() {
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                </StatsTable>
               </div>
             </section>
 

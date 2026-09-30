@@ -53,7 +53,7 @@ export default async function TeamsPage() {
     <div className="dashboard teams-shell">
       <Sidebar />
 
-      <main className="main teams-main">
+      <main className="stats-responsive main teams-main">
         <header className="teams-hero">
           <div>
             <span>CHAMPIONNAT 974 · ÉQUIPES</span>

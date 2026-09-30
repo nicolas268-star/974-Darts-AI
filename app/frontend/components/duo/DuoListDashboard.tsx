@@ -1,5 +1,7 @@
 "use client";
 
+import { StatsTable } from "@/components/stats/StatsTable";
+
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ArrowDown, ArrowUp, ArrowUpDown, ChevronLeft, ChevronRight, Search, Trophy, Users, Gauge, Target } from "lucide-react";
@@ -104,7 +106,19 @@ export function DuoListDashboard({ duos, seasonName }: { duos: DuoOverview[]; se
     </section>
 
     <section className="card duo-table-card">
-      <div className="table-scroll"><table className="table duo-table"><thead><tr>
+      <div className="stats-mobile-sort">
+        <label>Trier les duos
+          <select value={sortKey} onChange={e => sort(e.target.value as SortKey)}>
+            <option value="fair_score">Indice équitable</option><option value="rank">Rang</option>
+            <option value="duo">Noms des joueurs</option><option value="team">Équipe</option>
+            <option value="matches_played">Matchs joués</option><option value="legs_won">Legs gagnés</option>
+            <option value="win_rate">Taux de victoire</option><option value="average_3_darts">Moyenne 3 fléchettes</option>
+            <option value="first_9">First 9</option><option value="best_finish">Meilleur finish</option><option value="scores_180">180</option>
+          </select>
+        </label>
+        <button type="button" onClick={() => sort(sortKey)}>Ordre {direction === "asc" ? "croissant ↑" : "décroissant ↓"}</button>
+      </div>
+      <div className="table-scroll"><StatsTable className="table duo-table"><thead><tr>
         <th><SortButton label="#" column="rank" sortKey={sortKey} direction={direction} onSort={sort}/></th>
         <th><SortButton label="Duo" column="duo" sortKey={sortKey} direction={direction} onSort={sort}/></th>
         <th><SortButton label="Équipe" column="team" sortKey={sortKey} direction={direction} onSort={sort}/></th>
@@ -124,7 +138,7 @@ export function DuoListDashboard({ duos, seasonName }: { duos: DuoOverview[]; se
         <td><strong title="Borne basse de Wilson à 95 %, calculée sur les legs gagnés/joués">{number(d.fair_score, 1)}</strong></td>
         <td><span className={`duo-win ${d.win_rate >= 60 ? "good" : d.win_rate < 40 ? "low" : ""}`}>{number(d.win_rate,1)}%</span></td>
         <td><strong>{number(d.average_3_darts)}</strong></td><td>{number(d.first_9)}</td><td>{d.best_finish ?? "—"}</td><td>{d.scores_180}</td>
-      </tr>)}{rows.length === 0 && <tr><td className="empty-cell" colSpan={11}>Aucun duo ne correspond aux filtres.</td></tr>}</tbody></table></div>
+      </tr>)}{rows.length === 0 && <tr><td className="empty-cell" colSpan={11}>Aucun duo ne correspond aux filtres.</td></tr>}</tbody></StatsTable></div>
       <footer className="duo-pagination"><span>Page {currentPage} sur {pages}</span><div><button type="button" disabled={currentPage <= 1} onClick={() => setPage(p => Math.max(1,p-1))}><ChevronLeft size={17}/> Précédent</button><button type="button" disabled={currentPage >= pages} onClick={() => setPage(p => Math.min(pages,p+1))}>Suivant <ChevronRight size={17}/></button></div></footer>
     </section>
   </>;

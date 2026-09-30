@@ -1,3 +1,4 @@
+import { StatsTable } from "@/components/stats/StatsTable";
 import Link from "next/link";
 import { Award, Flame, Target, Trophy, Users } from "lucide-react";
 import type { Metadata } from "next";
@@ -141,7 +142,7 @@ export default async function Club180Page({ searchParams }: PageProps) {
   return (
     <div className="dashboard">
       <Sidebar />
-      <main className="main club180-page">
+      <main className="stats-responsive main club180-page">
         <section className="club180-hero">
           <div className="club180-target" aria-hidden="true">
             <Target size={42} />
@@ -246,7 +247,7 @@ export default async function Club180Page({ searchParams }: PageProps) {
                 <span className="club180-count">{playerTotals.length} joueur{playerTotals.length > 1 ? "s" : ""}</span>
               </div>
               <div className="table-scroll">
-                <table className="table club180-table">
+                <StatsTable className="table club180-table">
                   <thead>
                     <tr>
                       <th>Rang</th>
@@ -286,7 +287,7 @@ export default async function Club180Page({ searchParams }: PageProps) {
                       );
                     })}
                   </tbody>
-                </table>
+                </StatsTable>
               </div>
             </section>
 
@@ -302,7 +303,7 @@ export default async function Club180Page({ searchParams }: PageProps) {
                 Ce tableau explique le total consolidé sans créer plusieurs positions pour un même joueur.
               </p>
               <div className="table-scroll">
-                <table className="table club180-table">
+                <StatsTable className="table club180-table">
                   <thead><tr><th>Joueur</th><th>Équipe</th><th>Compétition</th><th>Type</th><th>180</th><th>Legs joués</th><th>180 / 100 legs</th></tr></thead>
                   <tbody>
                     {sourceRows.map((player) => {
@@ -320,7 +321,7 @@ export default async function Club180Page({ searchParams }: PageProps) {
                       );
                     })}
                   </tbody>
-                </table>
+                </StatsTable>
               </div>
             </section>
 

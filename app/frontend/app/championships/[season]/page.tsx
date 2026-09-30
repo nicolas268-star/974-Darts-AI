@@ -1,3 +1,4 @@
+import { StatsTable } from "@/components/stats/StatsTable";
 import Link from "next/link";
 import { Sidebar } from "@/components/Sidebar";
 import type { ChampionshipHub } from "@/lib/types/sprint14";
@@ -51,7 +52,7 @@ export default async function ChampionshipPage({
   return (
     <div className="dashboard">
       <Sidebar />
-      <main className="main competition-page championship-theme">
+      <main className="stats-responsive main competition-page championship-theme">
         <Link href="/competitions" className="hub-back">
           ← Retour aux compétitions
         </Link>
@@ -136,7 +137,7 @@ export default async function ChampionshipPage({
                   <span>Dates Nakka · heure de La Réunion</span>
                 </div>
                 <div className="hub-table-scroll">
-                  <table className="hub-table">
+                  <StatsTable className="hub-table">
                     <thead>
                       <tr>
                         <th>Journée</th>
@@ -155,7 +156,7 @@ export default async function ChampionshipPage({
                         </tr>
                       ))}
                     </tbody>
-                  </table>
+                  </StatsTable>
                 </div>
                 {data.schedule_source && (
                   <p className="championship-schedule-source">
@@ -169,7 +170,7 @@ export default async function ChampionshipPage({
               <h2>Classement des équipes</h2>
               {data.standings.length ? (
                 <div className="hub-table-scroll">
-                  <table className="hub-table">
+                  <StatsTable className="hub-table">
                     <thead>
                       <tr>
                         <th>#</th>
@@ -207,7 +208,7 @@ export default async function ChampionshipPage({
                         </tr>
                       ))}
                     </tbody>
-                  </table>
+                  </StatsTable>
                 </div>
               ) : (
                 <p className="hub-empty">
@@ -221,7 +222,7 @@ export default async function ChampionshipPage({
               <h2>Leaders individuels</h2>
               {data.leaders.length ? (
                 <div className="hub-table-scroll">
-                  <table className="hub-table">
+                  <StatsTable className="hub-table">
                     <thead>
                       <tr>
                         <th>Joueur</th>
@@ -250,7 +251,7 @@ export default async function ChampionshipPage({
                         </tr>
                       ))}
                     </tbody>
-                  </table>
+                  </StatsTable>
                 </div>
               ) : (
                 <p className="hub-empty">

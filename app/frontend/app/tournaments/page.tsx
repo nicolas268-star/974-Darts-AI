@@ -32,7 +32,7 @@ export default async function TournamentsPage() {
   return (
     <div className="dashboard">
       <Sidebar />
-      <main className="main competition-page tournament-theme">
+      <main className="stats-responsive main competition-page tournament-theme">
         <Link href="/competitions" className="hub-back">
           ← Retour aux compétitions
         </Link>

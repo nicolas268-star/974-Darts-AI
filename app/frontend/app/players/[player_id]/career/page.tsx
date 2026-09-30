@@ -25,7 +25,7 @@ export default async function CareerPage({ params }: { params: Promise<{ player_
   const data = await getCareer(player_id);
   if (!data) notFound();
 
-  return <div className="dashboard"><Sidebar/><main className="main">
+  return <div className="dashboard"><Sidebar/><main className="stats-responsive main">
     <Link href={`/players/${player_id}`} className="back-link"><ArrowLeft size={17}/> Retour à la fiche joueur</Link>
     <PlayerCareer data={data}/>
   </main></div>;

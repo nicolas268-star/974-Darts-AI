@@ -8,7 +8,7 @@ export function UpcomingMvpSeason({ season }: { season: "2027" | "2028" }) {
   return (
     <div className="dashboard">
       <Sidebar />
-      <main className="main record-page mvp-page">
+      <main className="stats-responsive main record-page mvp-page">
         <Link className="back-link" href="/records/mvp">← Retour aux saisons MVP</Link>
         <section className="record-hero mvp-hero">
           <div className="record-hero-icon mvp-crown" aria-hidden="true">

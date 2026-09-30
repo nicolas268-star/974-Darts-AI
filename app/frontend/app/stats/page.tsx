@@ -38,7 +38,7 @@ const groups = [
 
 export default function StatsHubPage() {
   return (
-    <main className="stats-hub">
+    <main className="stats-responsive stats-hub">
       <section className="stats-hub-hero">
         <div>
           <span className="stats-hub-kicker">DOMAINE 01 · DATA</span>

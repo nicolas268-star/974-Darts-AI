@@ -1,5 +1,7 @@
 "use client";
 
+import { StatsTable } from "@/components/stats/StatsTable";
+
 import Link from "next/link";
 import { Award, Crosshair, Gauge, Info, Medal, Sparkles, Target, TrendingUp, Trophy, Users } from "lucide-react";
 import {
@@ -338,10 +340,10 @@ export function DuoDetailDashboard({ data }: { data: DuoDashboardResponse }) {
         </div>
 
         <div className="duo-radar-table-wrap">
-          <table className="duo-radar-table">
+          <StatsTable className="duo-radar-table">
             <thead><tr><th>Joueur</th><th>Moyenne<br/><small>(/100)</small></th><th>First 9<br/><small>(/100)</small></th><th>Best finish<br/><small>(/100)</small></th><th>100+<br/><small>(/100)</small></th><th>140+<br/><small>(/100)</small></th><th>180<br/><small>(/100)</small></th></tr></thead>
             <tbody>{contributions.map((c,index) => <tr key={c.player.id} style={{ ["--radar-player-color" as string]: radarColors[index % radarColors.length] }}><td><span className="duo-radar-name"><i/>{c.player.name}</span><small>{duo.team ?? "—"}</small></td><td><strong>{radarValue(c.player.id,"average_3_darts") ?? "—"}</strong><small>({fmt(c.average_3_darts)})</small></td><td><strong>{radarValue(c.player.id,"first_9") ?? "—"}</strong><small>({fmt(c.first_9)})</small></td><td><strong>{radarValue(c.player.id,"best_finish") ?? "—"}</strong><small>({c.best_finish ?? "—"})</small></td><td><strong>{radarValue(c.player.id,"scores_100_plus") ?? "—"}</strong><small>({c.scores_100_plus})</small></td><td><strong>{radarValue(c.player.id,"scores_140_plus") ?? "—"}</strong><small>({c.scores_140_plus})</small></td><td><strong>{radarValue(c.player.id,"scores_180") ?? "—"}</strong><small>({c.scores_180})</small></td></tr>)}</tbody>
-          </table>
+          </StatsTable>
         </div>
         <p className="chart-note duo-radar-footnote">Les valeurs entre parenthèses sont les valeurs réelles. Les indices sont des percentiles calculés sur les profils observés de la saison ; une donnée absente reste indisponible.</p>
       </article>
@@ -359,7 +361,7 @@ export function DuoDetailDashboard({ data }: { data: DuoDashboardResponse }) {
         </div>
       </div>
       <p className="table-scroll-hint">Faites glisser le tableau horizontalement pour consulter les détails.</p><div className="table-scroll" tabIndex={0} role="region" aria-label="Historique des matchs du duo, défilement horizontal">
-        <table className="table duo-history-table duo-smart-history">
+        <StatsTable className="table duo-history-table duo-smart-history">
           <thead>
             <tr>
               <th>Résultat</th>
@@ -448,7 +450,7 @@ export function DuoDetailDashboard({ data }: { data: DuoDashboardResponse }) {
               );
             })}
           </tbody>
-        </table>
+        </StatsTable>
       </div>
     </section>
 

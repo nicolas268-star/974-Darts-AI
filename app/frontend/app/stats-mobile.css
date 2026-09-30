@@ -1,0 +1,57 @@
+/* Scoped to public statistics: readable at the browser's default zoom. */
+.stats-responsive { min-width: 0; }
+.dashboard:has(.stats-responsive) { grid-template-columns: 240px minmax(0, 1fr); }
+.stats-mobile-sort { display: none; }
+@media (max-width: 820px) {
+  .dashboard:has(.stats-responsive) { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 700px) {
+  .stats-responsive { --stats-text-floor: 14px; font-size: 16px; overflow-wrap: break-word; }
+  main.stats-responsive { width: 100%; padding: 20px 12px 40px; }
+  .stats-responsive *, .dashboard:has(.stats-responsive) > * { min-width: 0; }
+  .stats-responsive :is(h1, h2, h3, h4) { overflow-wrap: anywhere; line-height: 1.2; }
+  .stats-responsive h1 { font-size: clamp(28px, 8vw, 38px); letter-spacing: -.025em; }
+  .stats-responsive h2 { font-size: 24px; }
+  .stats-responsive :is(p, small, dt, dd) { line-height: 1.5; }
+  .stats-responsive :is(input, select, textarea) { min-height: 44px; max-width: 100%; font-size: 16px; }
+  .stats-responsive :is(button, summary, .btn, .back-link, .career-link, .players-season-options a, .hub-tabs a, .hub-nav a) { min-height: 44px; }
+  .stats-responsive :is(button, a, summary, input, select):focus-visible { outline: 2px solid #ffb76b; outline-offset: 3px; }
+  .stats-responsive :is(.card, .players-hero, .players-table-panel, .players-season-filter, .competition-hero, .hub-panel, .team-detail-panel, .team-matches, .teams-hero, .club180-hero, .record-hero, .bdc-section, .stats-hub-card) { padding: 16px; border-radius: 16px; }
+  .stats-responsive :is(.players-table-panel, .duo-table-card, .player-history, .tournament-disclosure-content) { padding: 12px; }
+  .stats-responsive :is(.table-scroll, .players-table-scroll, .hub-table-scroll, .bdc-table-scroll, .round-robin-scroll, .duo-radar-table-wrap, .committee-ranking-table-wrap) { width: 100%; max-width: 100%; min-width: 0; }
+  .stats-responsive .table-scroll-hint { display: none; }
+  .stats-responsive :is(.player-kpi-grid, .player-insight-grid, .duo-kpi-grid, .duo-detail-kpis, .team-detail-kpis, .player-premium-index-grid) { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .stats-responsive :is(.player-kpi, .duo-detail-kpi, .insight-card) { padding: 12px; }
+  .stats-responsive :is(.player-kpi small, .duo-detail-kpi small, .team-detail-kpis span) { letter-spacing: normal; text-transform: none; }
+  .stats-responsive :is(.player-chart-grid, .duo-detail-grid, .compare-main-grid, .compare-launcher, .team-detail-grid, .teams-grid, .stats-hub-grid) { grid-template-columns: minmax(0, 1fr); }
+  .stats-responsive :is(.player-toolbar, .section-heading, .team-detail-heading, .players-season-filter, .history-heading, .duo-panel-heading, .record-section-heading) { flex-wrap: wrap; gap: 12px; }
+  .stats-responsive :is(.history-filters, .player-nav-actions, .players-season-options, .hub-tabs) { flex-wrap: wrap; gap: 8px; }
+  .stats-responsive .history-filters select { flex: 1 1 130px; }
+  .stats-responsive .player-nav-actions { justify-content: flex-start; }
+  .stats-responsive .player-search-wrap { width: 100%; }
+  .stats-responsive .duo-name-link { min-width: 0; }
+  .stats-responsive .stats-mobile-sort { display: grid; gap: 8px; margin-bottom: 14px; }
+  .stats-mobile-sort label { display: grid; gap: 6px; }
+  .stats-mobile-sort select, .stats-mobile-sort button { padding: 10px; border: 1px solid #304359; border-radius: 10px; background: #0b1c30; color: #edf3fb; }
+  .stats-responsive :is(.team-roster > a, .team-roster > .team-player-public) { grid-template-columns: 42px minmax(0, 1fr); padding: 12px; }
+  .stats-responsive .team-roster > .team-player-public > span { grid-column: 2; }
+  .stats-responsive .team-player-metrics { grid-column: 1 / -1; justify-content: flex-start; }
+  .stats-responsive .team-match-row { grid-template-columns: minmax(0, 1fr) auto; }
+  .stats-responsive .team-match-opponent { grid-column: 1; }
+  .stats-responsive .team-match-score { grid-column: 2; grid-row: 1 / 3; }
+  .stats-responsive .team-match-coverage { grid-column: 1 / -1; }
+  .stats-responsive :is(.compare-launcher-player strong, .compare-launcher-player small, .player-network-name) { white-space: normal; overflow: visible; text-overflow: clip; }
+  .stats-responsive .compare-launcher-preview { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); }
+  .stats-responsive .recharts-text { font-size: 14px; }
+  .stats-responsive :is(.chart-frame, .duo-chart-frame, .compare-radar-frame) { width: 100%; min-width: 0; }
+  .stats-responsive .stats-hub-hero { margin-bottom: 28px; }
+  .stats-responsive .stats-hub-card { min-height: 0; }
+  /* Keep navigation and the footer inside the same phone width as the stats. */
+  body:has(.stats-responsive) .nav-inner { height: auto; min-height: 72px; flex-wrap: wrap; gap: 4px; padding: 10px 0; }
+  body:has(.stats-responsive) .brand { font-size: 18px; }
+  body:has(.stats-responsive) .nav-links { width: 100%; justify-content: space-between; gap: 4px; }
+  body:has(.stats-responsive) .nav-links a { min-height: 44px; padding: 8px 6px; font-size: 14px; }
+  body:has(.stats-responsive) .nav-links .btn { font-size: 14px; }
+  body:has(.stats-responsive) .sidebar { min-width: 0; max-width: 100%; }
+  body:has(.stats-responsive) .site-signature { padding: 20px 16px; font-size: 14px; }
+}

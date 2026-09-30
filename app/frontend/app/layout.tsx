@@ -1,5 +1,6 @@
 
 import "./globals.css";
+import "./stats-mobile.css";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { SiteSignature } from "@/components/SiteSignature";

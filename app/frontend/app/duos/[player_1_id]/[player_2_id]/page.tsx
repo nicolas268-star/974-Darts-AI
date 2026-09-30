@@ -27,7 +27,7 @@ export default async function DuoDetailPage({ params }: { params: Promise<{ play
   const data = await getDuo(player_1_id, player_2_id);
   if (!data) notFound();
 
-  return <div className="dashboard"><Sidebar/><main className="main duo-detail-page duo-synergy-theme">
+  return <div className="dashboard"><Sidebar/><main className="stats-responsive main duo-detail-page duo-synergy-theme">
     <Link href="/duos" className="back-link"><ArrowLeft size={17}/> Retour au classement des duos</Link>
     <DuoDetailDashboard data={data}/>
   </main></div>;
