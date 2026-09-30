@@ -60,13 +60,13 @@ jobs:
           cache: npm
           cache-dependency-path: tests/workflow/package-lock.json
       - run: npm ci
-      - run: npm test
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
           cache-dependency-path: app/backend/requirements.txt
       - run: python -m pip install -r ../../app/backend/requirements.txt
+      - run: npm test
       - run: npm ci --prefix ../../app/frontend
       - run: npx playwright install --with-deps chromium
       - run: npm run test:browser
