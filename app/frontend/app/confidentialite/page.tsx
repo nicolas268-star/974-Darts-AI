@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { AudiencePrivacyControl } from "@/components/legal/AudiencePrivacyControl";
-import { legalContactEmail } from "@/lib/legal";
+import { legalContactEmail, legalIdentity } from "@/lib/legal";
 import "../legal.css";
 
 export const metadata: Metadata = {
@@ -23,7 +23,7 @@ export default function PrivacyPage() {
             Cette page explique simplement quelles données sont utilisées par
             974 Darts AI, pourquoi elles le sont et comment exercer vos droits.
           </p>
-          <span className="legal-update">Dernière mise à jour : 2 septembre 2026</span>
+          <span className="legal-update">Dernière mise à jour : {legalIdentity.updatedAt}</span>
         </header>
 
         <section className="legal-summary" aria-label="Résumé de confidentialité">
@@ -37,9 +37,18 @@ export default function PrivacyPage() {
             <span className="legal-kicker">01 · RESPONSABLE</span>
             <h2>Qui traite les données ?</h2>
             <p>
-              Le responsable des traitements réalisés par le site est Nicolas Dupont,
-              éditeur de 974 Darts AI à titre personnel. Pour toute question ou demande :
-              {" "}<a href={`mailto:${legalContactEmail}`}>{legalContactEmail}</a>.
+              Le responsable des traitements réalisés par le site est {legalIdentity.publisherName},
+              entrepreneur individuel exerçant sous le nom commercial {legalIdentity.businessName},
+              éditeur de {legalIdentity.siteName}.
+            </p>
+            <address>
+              Adresse professionnelle : {legalIdentity.publisherAddress}<br />
+              Courriel : <a href={`mailto:${legalContactEmail}`}>{legalContactEmail}</a><br />
+              Téléphone : <a href={legalIdentity.publisherPhoneHref}>{legalIdentity.publisherPhone}</a>
+            </address>
+            <p>
+              Les informations d’immatriculation de l’éditeur figurent dans les
+              {" "}<Link href="/mentions-legales">mentions légales</Link>.
             </p>
           </section>
 
