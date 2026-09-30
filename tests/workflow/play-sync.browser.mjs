@@ -46,6 +46,13 @@ export async function testPlaySync(browser, source, screenshot) {
     }
    }
   }
+  // An existing remote game is offered explicitly, never overwritten by an old local copy.
+  await phone.goto(base+'/play/cricket');await counter(phone,0);
+  const localBefore=await phone.evaluate(()=>localStorage.getItem(Object.keys(localStorage).find(k=>k.startsWith('974darts:play:v1:')&&k.endsWith(':cricket'))));
+  await phone.getByRole('button',{name:'Synchroniser PC / téléphone',exact:true}).click();
+  await expect(phone.getByText(/Une partie est déjà synchronisée/)).toBeVisible();
+  expect(await phone.evaluate(()=>localStorage.getItem(Object.keys(localStorage).find(k=>k.startsWith('974darts:play:v1:')&&k.endsWith(':cricket'))))).toBe(localBefore);
+  await phone.getByRole('button',{name:'Ouvrir la partie synchronisée',exact:true}).click();await counter(phone,3);
   // Fresh browser can find all seven cloud sessions from the hub.
   await pc.goto(base+'/play');
   await expect(pc.getByRole('region',{name:'Mes parties synchronisées'}).locator('.play-cloud-card')).toHaveCount(7);
@@ -67,8 +74,12 @@ export async function testPlaySync(browser, source, screenshot) {
   await expect(pc.getByRole('button',{name:'Réessayer la synchronisation',exact:true})).toBeVisible();
   await expect(pc.getByLabel('Fléchette',{exact:true})).toBeDisabled();
   await counter(phone,3);
+  pc.once('dialog',dialog=>dialog.accept());
+  await pc.reload();
+  await expect(pc.getByRole('button',{name:'Réessayer la synchronisation',exact:true})).toBeVisible();
   await pc.getByRole('button',{name:'Réessayer la synchronisation',exact:true}).click();
-  await counter(pc,3);await writing(pc);
+  await counter(pc,3);await screen(pc);
+  await pc.getByRole('button',{name:'Saisir sur cet appareil',exact:true}).click();await writing(pc);
   await pc.unroute('**/api/play/sync*');
   // A disconnected display shows its last score, then catches up without overwriting.
   await phoneContext.setOffline(true);
