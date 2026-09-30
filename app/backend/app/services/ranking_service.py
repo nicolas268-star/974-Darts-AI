@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
+import re
 from typing import Any
 
 from supabase import Client
@@ -380,12 +381,59 @@ def _official_standings(
     }
 
 
+def _round_history(
+    results: list[dict],
+    standings: list[dict],
+    team_names: dict[str, str],
+    round_codes: dict[str, str],
+    rules: dict,
+) -> list[dict]:
+    """Reuse the official scoring rules; no additional database reads."""
+    by_round: dict[str, list[dict]] = defaultdict(list)
+    for result in results:
+        if result.get("round_id") and result.get("home_team_id") and result.get("away_team_id"):
+            by_round[result["round_id"]].append(result)
+
+    def order(round_id: str) -> tuple:
+        code = str(round_codes.get(round_id) or round_id)
+        # Sporting order, including J2 before J10, even for a postponed match.
+        return tuple((1, int(part)) if part.isdigit() else (0, part.casefold())
+                     for part in re.split(r"(\d+)", code)), str(round_id)
+
+    totals: dict[str, int] = defaultdict(int)
+    history = []
+    for round_id in sorted(by_round, key=order):
+        daily = _official_standings(
+            by_round[round_id], team_names, round_codes, rules, {}, 0,
+        )["standings"]
+        daily_by_team = {team["team_id"]: team for team in daily}
+        teams = []
+        for team in standings:
+            team_id = team["team_id"]
+            score = daily_by_team.get(team_id)
+            points = score["points"] if score else None
+            totals[team_id] += points if points is not None else 0
+            teams.append({
+                "team_id": team_id,
+                "points": points,
+                "cumulative_points": totals[team_id],
+                "played": score["played"] if score else 0,
+            })
+        history.append({
+            "round_id": round_id,
+            "round": round_codes.get(round_id) or round_id,
+            "teams": teams,
+        })
+    return history
+
+
 def _pvp_fallback(
     db: Client,
     encounters: list[dict],
     team_names: dict[str, str],
     rules: dict,
     total_valid_legs: int,
+    round_codes: dict[str, str],
 ) -> dict:
     """Sprint 10 reconstruction retained only as a safe pre-migration fallback."""
     encounter_ids = {
@@ -454,6 +502,7 @@ def _pvp_fallback(
         return stats[team_id]
 
     completed = 0
+    reconstructed_results = []
     for encounter in encounters:
         home_team_id = encounter.get("home_team_id")
         away_team_id = encounter.get("away_team_id")
@@ -497,6 +546,13 @@ def _pvp_fallback(
             continue
 
         completed += 1
+        reconstructed_results.append({
+            "round_id": encounter.get("round_id"),
+            "home_team_id": home_team_id,
+            "away_team_id": away_team_id,
+            "home_score": home_matches_won,
+            "away_score": away_matches_won,
+        })
         home = team_row(home_team_id)
         away = team_row(away_team_id)
 
@@ -578,6 +634,9 @@ def _pvp_fallback(
             )
         ],
         "ranking_source": "PVP_FALLBACK",
+        "round_history": _round_history(
+            reconstructed_results, standings, team_names, round_codes, rules,
+        ),
     }
 
 
@@ -619,6 +678,7 @@ def build_ranking(
             },
             "data_quality_notes": [],
             "ranking_source": "NONE",
+            "round_history": [],
         }
 
     rounds = [
@@ -674,17 +734,20 @@ def build_ranking(
         )
 
     if official_results:
+        published_results = [
+            result for result in official_results
+            if result.get("round_id") in published_round_ids
+        ]
         payload = _official_standings(
-            results=[
-                result
-                for result in official_results
-                if result.get("round_id") in published_round_ids
-            ],
+            results=published_results,
             team_names=team_names,
             round_codes=round_codes,
             rules=rules,
             detailed_legs=detailed_legs,
             total_valid_legs=total_valid_legs,
+        )
+        payload["round_history"] = _round_history(
+            published_results, payload["standings"], team_names, round_codes, rules,
         )
     else:
         encounters = _all(
@@ -703,6 +766,7 @@ def build_ranking(
             team_names=team_names,
             rules=rules,
             total_valid_legs=total_valid_legs,
+            round_codes=round_codes,
         )
         payload["summary"]["rounds"] = len(published_round_ids)
 

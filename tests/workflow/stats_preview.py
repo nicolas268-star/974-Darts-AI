@@ -105,7 +105,33 @@ def catalog(): return competitions.catalog()
 
 
 @router.get("/competitions/championships/{season}")
-def championship(season: str): return competitions.championship(season)
+def championship(season: str):
+    if season in {"2029", "2030"}:
+        # Full-season chart stress case, read-only and confined to this test API.
+        chart_fixture = Fixture()
+        chart_fixture.rows["seasons"][0]["name"] = season
+        chart_fixture.rows["teams"].extend([
+            {"id": f"team{i}", "name": f"Club de démonstration des Trois Bassins — Équipe {i}", "club_id": None}
+            for i in range(3, 9)
+        ])
+        round_count = 1 if season == "2030" else 14
+        if season == "2030":
+            chart_fixture.rows["teams"] = chart_fixture.rows["teams"][:2]
+        chart_fixture.rows["rounds"] = [{"id": f"r{i}", "code": f"J{i}", "season_id": "s", "published": True} for i in range(1, round_count + 1)]
+        chart_fixture.rows["championship_results"] = []
+        teams = chart_fixture.rows["teams"]
+        for day in range(1, round_count + 1):
+            for pair in range(len(teams) // 2):
+                if day == 1 and pair > 0:
+                    continue
+                home, away = teams[2 * pair]["id"], teams[2 * pair + 1]["id"]
+                score = (17, 3) if season == "2030" or (day + pair) % 3 == 0 else (10, 10) if (day + pair) % 3 == 1 else (3, 17)
+                chart_fixture.rows["championship_results"].append({
+                    "id": f"r{day}-{pair}", "round_id": f"r{day}", "season_id": "s",
+                    "home_team_id": home, "away_team_id": away, "home_score": score[0], "away_score": score[1],
+                })
+        return CompetitionHubService(chart_fixture).championship(season)
+    return competitions.championship(season)
 
 
 @router.get("/competitions/tournaments")
