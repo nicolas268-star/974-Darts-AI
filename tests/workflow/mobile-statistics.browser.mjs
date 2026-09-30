@@ -9,6 +9,9 @@ export async function testMobileStatistics(page, screenshot) {
     ['/records/180', true], ['/records/finishes', true], ['/records/mvp-2026', true],
     ['/competitions/classement-individuel', true], ['/tournaments', false],
     ['/tournaments/blind-draw-championship', true],
+    ['/tournaments/blind-draw-championship/manche-1/joueurs/nicolas-pdc', false],
+    ['/players/p1/career', false], ['/tournaments/t1', true],
+    ['/players?season=2028', true], ['/competitions', false], ['/records/mvp', false],
   ];
   const failures = [];
   for (const [index, [route, hasCards]] of routes.entries()) {
@@ -17,7 +20,7 @@ export async function testMobileStatistics(page, screenshot) {
       const response = await page.goto('http://127.0.0.1:3008'+route);
       expect(response.status(), route).toBe(200);
       await expect(page.locator('main.stats-responsive')).toBeVisible();
-      await page.locator('main h1').first().waitFor();
+      await page.locator('main h1, main h2, main h3').first().waitFor();
       const mobile = page.locator('[data-stats-cards]:visible');
       if (hasCards) {
         await expect(mobile.first()).toBeVisible();
@@ -57,6 +60,7 @@ export async function testMobileStatistics(page, screenshot) {
       // Same route resized to desktop must retain its semantic table.
       await page.setViewportSize({width:1440,height:1000});
       if(hasCards) { await expect(page.locator('main table').first()).toBeVisible(); await expect(mobile.first()).toHaveCount(0); }
+      if(index===1 || index===2) await screenshot(page,`desktop-stats-${index}.png`,{fullPage:false});
       console.log('PASS responsive stats:',route);
     } catch(error) {
       failures.push(`${route}: ${error.message}`);

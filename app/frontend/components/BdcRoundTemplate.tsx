@@ -56,7 +56,7 @@ function BdcRoundRobinMatrix({
       <div className="round-robin-badges"><b>8 doublettes</b><b className="complete">28/28 matchs</b></div>
     </div>
     <div className="round-robin-scroll" role="region" aria-label="Diagramme Round Robin de la Manche 01" tabIndex={0}>
-      <StatsTable className="round-robin-table">
+      <StatsTable className="round-robin-table" mobileSummaryColumns={[entries.length + 6, entries.length + 7, entries.length + 2, entries.length + 3]}>
         <thead><tr><th className="rr-rank-index">#</th><th className="rr-player-name">Doublette</th>{entries.map((entry, index) => <th className="rr-opponent" key={entry.tpid} title={entry.name}>{index + 1}</th>)}<th>MJ</th><th>V</th><th>D</th><th>+/-</th><th>Pts</th><th>Rang</th></tr></thead>
         <tbody>{entries.map((entry, rowIndex) => {
           const standing = standingByTeam.get(entry.tpid);

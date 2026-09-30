@@ -26,6 +26,12 @@ type Props = TableHTMLAttributes<HTMLTableElement> & {
   mobileSummaryColumns?: number[];
 };
 
+const readableLabels: Record<string, string> = {
+  MJ: "Matchs joués", J: "Matchs joués", V: "Victoires", N: "Nuls", D: "Défaites", Pts: "Points",
+  "Moy. 3 fl.": "Moyenne 3 fléchettes", "Moy. 3 darts": "Moyenne 3 fléchettes",
+  "Legs G/J": "Legs gagnés / joués", "Win %": "Victoires (%)", "Best finish": "Meilleur finish",
+};
+
 /** Semantic desktop table and compact phone cards share the exact same cells. */
 export function StatsTable({ children, className, mobileTitleColumn, mobileSummaryColumns, ...props }: Props) {
   const parts = elements(children);
@@ -53,7 +59,7 @@ export function StatsTable({ children, className, mobileTitleColumn, mobileSumma
             return <li className={styles.empty} key={row.key ?? rowIndex}>{cells[0].props.children}</li>;
           }
           const metrics = (columns: number[]) => <dl className={styles.metrics}>{columns.map(index => <div key={index}>
-            <dt>{labels[index]}</dt><dd>{cells[index]?.props.children}</dd>
+            <dt>{readableLabels[labels[index]] ?? labels[index]}</dt><dd>{cells[index]?.props.children}</dd>
           </div>)}</dl>;
           return <li className={styles.card} key={row.key ?? rowIndex}>
             <div className={styles.identity}>

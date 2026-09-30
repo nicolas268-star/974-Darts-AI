@@ -70,6 +70,16 @@ def overview(season_id: str | None = None):
 def compare(left: str, right: str): return players.compare(left, right)
 
 
+@router.get("/identities/{player_id}/career")
+def career(player_id: str):
+    dashboard = players.dashboard(player_id)
+    aggregate = {**dashboard["kpis"], **dashboard["scoring"]}
+    return {"identity": {"id": "identity", "canonical_player_id": player_id, "canonical_display_name": dashboard["player"]["name"], "is_active": True, "notes": None},
+            "career": aggregate, "aliases": [{"id": "alias", "alias_name": "Alexandre Exemple", "source": "DEMO"}],
+            "memberships": [{"id": "membership", "team": "Équipe des Hauts de La Réunion", "season": "2026-2027", "is_current": True, "valid_from": "2026-09-01", "valid_to": None}],
+            "by_team": [{**aggregate, "team_id": "a", "team": "Équipe des Hauts de La Réunion"}], "source_player_ids": [player_id], "meta": {}}
+
+
 @router.get("/players/{player_id}/{view}")
 def player_view(player_id: str, view: str, season_id: str | None = None):
     if view in ("dashboard", "network", "dna", "coach"):
