@@ -13,7 +13,8 @@ const read=p=>readFileSync(resolve(root,p),'utf8');
 await db.exec(read('tests/workflow/bootstrap.sql'));
 await db.exec(read('supabase/release_migrations/MIGRATION_SUPABASE_V21_0_19_COMMITTEE_RANKING.sql'));
 await db.exec('alter table committee_ranking_results add column identity_id uuid');
-for(const file of readdirSync(resolve(root,'supabase/migrations')).sort()) await db.exec(read('supabase/migrations/'+file));
+// The legacy X01 schema is exercised separately by x01-creation.test.mjs.
+for(const file of readdirSync(resolve(root,'supabase/migrations')).sort().filter(file=>file!=='20260930121932_fix_x01_creation_returning.sql')) await db.exec(read('supabase/migrations/'+file));
 await db.query("update profiles set role='SPORTS_DIRECTOR',display_name='Directeur sportif · Démonstration' where user_id=$1",[ids.director]);
 await db.exec('alter table profiles add column player_id uuid; alter table profiles add column captain_team_id uuid; create table player_aliases(identity_id uuid,alias_name text,confirmed boolean); create table committee_clubs(code text,name text); create table committee_licensed_players(identity_id uuid,club_code text,season_key text,license_status text); grant select on player_identities,player_aliases,committee_clubs,committee_licensed_players to service_role;');
 await db.exec("insert into committee_clubs values('TEST','Club Démonstration')");
