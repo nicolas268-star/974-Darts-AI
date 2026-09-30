@@ -8,11 +8,11 @@ import { conquestAlliedLinks, conquestCaptureValue, conquestCounts, conquestScor
 export const CONQUEST_SYMBOLS = ["●", "◆", "▲", "■"];
 
 export function ConquestScores({ game }: { game: ConquestState }) {
-  const counts = conquestCounts(game), scores = conquestScores(game), active = game.participants[game.activeParticipant].side;
+  const counts = conquestCounts(game), scores = conquestScores(game), active = game.winnerSide === "DRAW" ? null : game.winnerSide ?? game.participants[game.activeParticipant].side;
   const goal = conquestGoal(game), strategic = conquestUsesLinks(game), points = Boolean(game.strategy || game.campaign);
   return <section className="play-score-strip fun-scores conquest-scores" aria-label="Scores des joueurs">
     {game.sideNames.map((name, side) => <article key={side} className={`conquest-camp-${side}${active === side ? " active" : ""}`} aria-label={name + " · " + scores[side]}>
-      <span className="conquest-camp-label">{CONQUEST_SYMBOLS[side]} CAMP {side + 1}{active === side && game.winnerSide === null ? " · AU LANCER" : ""}</span>
+      <span className="conquest-camp-label">{CONQUEST_SYMBOLS[side]} CAMP {side + 1}{game.winnerSide === side ? " · VICTOIRE" : active === side && game.winnerSide === null ? " · AU LANCER" : ""}</span>
       <h2>{name}</h2><strong>{scores[side]}<small>{goal === null ? " pts" : ` / ${goal} ${points ? "pts" : "territoires"}`}</small></strong>
       <p>{strategic ? `${counts[side]} territoires × 2 + ${conquestAlliedLinks(game, side)} liaisons` : `${counts[side]} territoires`}{game.campaign ? ` + ${game.campaign.bonuses[side]} bonus défense` : ""}</p>
     </article>)}
@@ -51,7 +51,7 @@ export function ConquestBoard({ game }: { game: ConquestState }) {
           {fullscreen ? <button ref={closeButton} type="button" onClick={() => setExpanded(false)}><X size={18} />Fermer la vue agrandie</button> : <button ref={expandButton} type="button" onClick={() => setExpanded(true)}><Expand size={18} />Agrandir la carte</button>}
         </div>
       </header>
-      {fullscreen ? <><ConquestScores game={game} /><p className={`conquest-stage-turn conquest-camp-${active}`}>{CONQUEST_SYMBOLS[active]} {game.participants[game.activeParticipant].name} · {game.visitDarts.length}/3 fléchettes{finished ? " · Partie terminée" : game.visitClosed ? " · Volée terminée" : " · Au lancer"}</p></> : null}
+      {fullscreen ? <><ConquestScores game={game} />{finished ? <p className="conquest-stage-result" role="status"><strong>{game.winnerSide === "DRAW" ? "Match nul · égalité au meilleur score" : game.sideNames[game.winnerSide as number] + " gagne !"}</strong><small>Partie terminée · {game.totalDarts} fléchettes jouées</small></p> : <p className={`conquest-stage-turn conquest-camp-${active}`}>{CONQUEST_SYMBOLS[active]} {game.participants[game.activeParticipant].name} · {game.visitDarts.length}/3 fléchettes{game.visitClosed ? " · Volée terminée" : " · Au lancer"}</p>}</> : null}
       {game.campaign && game.campaign.pending.length > 0 ? <div className="conquest-defense-pending" role="status"><strong>Défense en attente</strong><p>À reprendre avant la fin de cette volée :</p><ul>{game.campaign.pending.map(id => <li key={id}>{conquestTargetLabel(game.territories[id-1].target)} · {game.sideNames[game.territories[id-1].owner!]} recevra +1 point</li>)}</ul></div> : null}
       <div className="conquest-board-body">
         <div className="conquest-map-column">

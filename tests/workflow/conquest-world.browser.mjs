@@ -95,6 +95,21 @@ export async function testConquestWorld(browser, source, screenshot) {
   expect(await page.locator('.conquest-region').evaluateAll(nodes=>nodes.map(n=>Number(n.getAttribute('data-target'))))).not.toEqual(fullLabels);
   await expect(page.locator('.conquest-coverage')).toContainText('0/21 territoires occupés');
   await expect(page.getByRole('heading',{name:'Full conquête · prenez toute la carte.',exact:true})).toBeVisible();
+  // A defender can win during another player's turn; the enlarged screen must name that winner.
+  await page.getByRole('button',{name:'Nouvelle partie',exact:true}).click();await page.getByRole('button',{name:'Confirmer la nouvelle partie',exact:true}).click();
+  await page.getByLabel('Mode de conquête').selectOption('CLASSIC');await page.getByLabel('Points pour gagner').selectOption('5');
+  await page.getByRole('button',{name:/^1 vs 1/}).click();await page.getByLabel('Joueur 1',{exact:true}).fill('Alice');await page.getByLabel('Joueur 2',{exact:true}).fill('Bruno');
+  await page.getByRole('button',{name:'Lancer la partie →',exact:true}).click();await expect(page.locator('.conquest-region')).toHaveCount(21);
+  for(const value of ['T1','T2','T3'])await enter(value);await next();
+  for(let i=0;i<3;i++)await enter('0');await next();
+  for(const value of ['T4','0','0'])await enter(value);await next();
+  await enter('S1');await enter('0');await enter('0',true);
+  await expect(page.getByRole('heading',{name:'Alice gagne !',exact:true})).toBeVisible();await score(0,5);
+  await page.getByRole('button',{name:'Agrandir la carte',exact:true}).click();
+  const resultScreen=page.getByRole('dialog',{name:'Conquête, carte agrandie'});
+  await expect(resultScreen.locator('.conquest-stage-result')).toContainText('Alice gagne !');
+  await expect(resultScreen.locator('.conquest-scores article').first()).toContainText('VICTOIRE');
+  await resultScreen.getByRole('button',{name:'Fermer la vue agrandie',exact:true}).click();
   expect(errors).toEqual([]);
   console.log('PASS: Conquest world — shuffled territories, strategic Bull, defense settlement/cancel/undo/reload, complete Full victory and replay, adjacent and maritime points, bridge loss, undo, four colors, 320/390/430/820/1440px, zoom, keyboard, big screen and saved strategy');
  } finally {await context.close();}
