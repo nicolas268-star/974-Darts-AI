@@ -10,6 +10,8 @@ export const browserStorage = {
 };
 type View = { ready: boolean; record: LocalRecord; problem: SaveProblem | null; pending: number };
 export type LocalControls = {
+  blocked?: boolean;
+  sync?: import("./useSyncedGame").SyncControls;
   ready: boolean; hasGame: boolean; problem: SaveProblem | null; busy: boolean; updatedAt: string | null;
   reload: () => void; retry: () => void; reset: () => void; discardInvalid: () => void;
 };
@@ -89,5 +91,5 @@ export function useLocalGame<G extends LocalGame>(kind: LocalKind, userId: strin
     ready: view.ready, hasGame: Boolean(session), problem: view.problem, busy: view.pending > 0, updatedAt: session?.updatedAt ?? null,
     reload, retry: () => dispatch((existing) => existing), reset: () => dispatch(() => null), discardInvalid,
   };
-  return { game: session?.game ?? null, history: session?.history ?? [], start, act, undo, controls };
+  return { game: session?.game ?? null, history: session?.history ?? [], start, act, undo, controls, record: view.record };
 }

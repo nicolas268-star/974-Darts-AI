@@ -1,4 +1,4 @@
-# Univers Jeux — lots 1 à 3
+# Univers Jeux — lots 1 à 4
 
 ## Objectif
 
@@ -20,7 +20,7 @@ Un nombre de 1 à 20 désigne le secteur, associé au bouton Simple/Double/Tripl
 
 ## Conservation des données
 
-Aucune migration. Les appels et droits des sessions X01 restent ceux de l’application existante. Les sept autres jeux sont automatiquement sauvegardés dans le navigateur, séparément pour chaque compte authentifié et chaque jeu. Ils se restaurent après rechargement et depuis le hub. La synchronisation entre appareils et l’autoscoring ne sont pas ajoutés dans cette version.
+Lots 1 à 3 : aucune migration. Les droits des sessions X01 restent ceux de l’application existante. Les sept autres jeux sont automatiquement sauvegardés dans le navigateur, séparément pour chaque compte authentifié et chaque jeu. Ils se restaurent après rechargement et depuis le hub. Le lot 4 ajoute une synchronisation optionnelle entre appareils ; l’autoscoring reste hors périmètre.
 
 Le workflow de publication des résultats officiels et de validation par le Directeur sportif est indépendant.
 
@@ -34,7 +34,7 @@ Le workflow de publication des résultats officiels et de validation par le Dire
 
 ## Lots suivants
 
-Organisation de tournois ; historique de progression ; synchronisation des parties entre appareils ; intégration éventuelle d’un autoscoring. Ces fonctions ne sont pas présentées comme disponibles dans le catalogue de cette version.
+Organisation de tournois ; historique de progression ; intégration éventuelle d’un autoscoring. Ces fonctions ne sont pas présentées comme disponibles dans le catalogue de cette version.
 
 ## Lot 2 — variantes proposées
 
@@ -63,3 +63,27 @@ Les tests couvrent les quatre directions de victoire, la gravité, le nul, les c
 - Les données ne suivent pas l’utilisateur sur un autre navigateur ou appareil et sont perdues si les données du site sont effacées. Les sessions X01 gardent leur mécanisme existant.
 
 Validation : tests de sérialisation des sept moteurs, séparation des comptes/jeux, corruption/version incompatible, quota, révisions concurrentes et historique borné. Playwright couvre chaque reprise avec correction, le hub mobile, deux onglets, une victoire annulée, la revanche et les échecs de stockage.
+
+## Lot 4 — PC et téléphone
+
+### Utilisation
+1. Connectez les deux appareils au même compte.
+2. Dans Cricket, Morpion, Horloge, Bob’s 27, Puissance 4, Conquête ou Bull 500, cliquez « Synchroniser PC / téléphone ». La partie et son historique passent dans une sauvegarde privée distante.
+3. Sur l’autre appareil, ouvrez la partie dans « Mes parties synchronisées » ou copiez son lien depuis le panneau. Le nouvel écran est toujours en lecture seule, même après rechargement.
+4. « Saisir sur cet appareil » transfère la main. L’ancien appareil suit les scores. Une requête partie de l’ancien appareil est refusée si la version ou le détenteur a changé.
+5. Chaque lancer, changement de joueur, correction et nouvelle partie est confirmé par le serveur. Le PC reçoit les mises à jour par interrogation toutes les deux secondes, au retour au premier plan et après reconnexion.
+6. Une coupure bloque la saisie synchronisée jusqu’à confirmation. Une commande dont l’accusé de réception est perdu peut être réessayée sans doubler le lancer. Elle est conservée dans le stockage de session pour un rechargement ; en cas de stockage bloqué, une protection de fermeture garde l’utilisateur informé.
+7. Les sauvegardes locales précédentes restent intactes. Si une partie distante existe déjà, elle doit être ouverte explicitement ; aucune fusion ni écrasement automatique. Une copie distante récemment reçue est gardée sur l’appareil pour afficher le dernier score hors connexion, sans permettre des écritures hors ligne.
+
+### X01
+Le mécanisme de sessions X01 existant est conservé. Un hôte choisissant Observateur reste désormais en lecture seule dans ce navigateur, même si son rôle serveur est HOST. Le lien « écran de score » ouvre directement ce mode, suit les scores et affiche aussi la fin de match. Pour déplacer la saisie X01, l’utilisateur passe d’abord l’ancien appareil en écran de score puis reprend la session en Joueur sur l’autre. Le verrou exclusif et transactionnel du nouveau système concerne les sept autres jeux ; X01 conserve ses droits HOST/SCORER et son protocole existant.
+
+### Stockage et mise en service
+- Migration : supabase/migrations/20260930110920_play_cloud_sync.sql, créée avec `supabase migration new play_cloud_sync` par la CLI 2.118.0 dans le run 36706743610, puis complétée et testée dans la base PostgreSQL locale éphémère de CI.
+- Table `play_cloud_sessions` : une ligne par compte et jeu, état complet, 50 actions annulables, dix résultats par jeu, révision et appareil de saisie. Suppression automatique à la suppression du compte. Aucun résultat ne rejoint le classement officiel.
+- Lecture protégée par RLS sur `auth.uid()`. Aucune écriture directe autorisée aux rôles web. RPC publique invoker déléguant à une fonction privée avec identité issue du JWT, propriétaire implicite, verrou de ligne, comparaison de révision et commande idempotente. Aucun service_role dans le navigateur ou la route de synchronisation.
+- Route Next authentifiée : origine identique obligatoire pour les mutations, JSON limité à 1 Mio, validation des sept états et de leur historique, réponses privées sans cache.
+- Le module local continue à fonctionner si la migration n’est pas encore installée. Appliquer cette migration via le processus de publication existant avant de proposer la synchronisation aux utilisateurs. Aucune migration de production n’a été exécutée pendant ce développement.
+
+### Vérification
+Tests SQL des permissions, séparation entre comptes, création concurrente, transfert de saisie, révisions périmées, relecture idempotente, tailles et suppression d’un compte. Tests navigateur dans deux contextes distincts : sept jeux, trois fléchettes, passage de joueur, annulation, rechargement, hub depuis un nouvel appareil, affichages 320/390/1440 px, perte d’accusé de réception, reconnexion, refus des requêtes sans compte ou d’origine étrangère. X01 est vérifié avec sa fixture navigateur existante et un deuxième écran de même compte résolu HOST.

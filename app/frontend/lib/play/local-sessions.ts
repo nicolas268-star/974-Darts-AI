@@ -91,6 +91,11 @@ function validSession(kind: LocalKind, v: unknown): v is LocalSession {
   return object(v) && text(v.id, 100) && date(v.startedAt) && date(v.updatedAt) && validGame(kind, v.game) &&
     list(v.history, 50) && v.history.every((game) => validGame(kind, game));
 }
+export function validRecord(kind: LocalKind, value: unknown): value is LocalRecord {
+  return object(value) && value.version === 1 && integer(value.revision) && (value.current === null || validSession(kind, value.current)) &&
+    list(value.completed, 10) && value.completed.every((s) => object(s) && text(s.id, 100) && date(s.endedAt) &&
+      list(s.players, 4) && s.players.every((p) => text(p)) && text(s.outcome, 1500));
+}
 export function readRecord(storage: StorageLike, userId: string, kind: LocalKind): ReadResult {
   let raw: string | null;
   try { raw = storage.getItem(storageKey(userId, kind)); } catch { return { ok: false, problem: "unavailable" }; }
@@ -98,9 +103,7 @@ export function readRecord(storage: StorageLike, userId: string, kind: LocalKind
   try {
     if (raw.length > 1_000_000) return { ok: false, problem: "invalid" };
     const value: unknown = JSON.parse(raw);
-    if (!object(value) || value.version !== 1 || !integer(value.revision) || (value.current !== null && !validSession(kind, value.current)) ||
-      !list(value.completed, 10) || !value.completed.every((s) => object(s) && text(s.id, 100) && date(s.endedAt) &&
-        list(s.players, 4) && s.players.every((p) => text(p)) && text(s.outcome, 1500))) return { ok: false, problem: "invalid" };
+    if (!validRecord(kind, value)) return { ok: false, problem: "invalid" };
     return { ok: true, record: value as LocalRecord };
   } catch { return { ok: false, problem: "invalid" }; }
 }

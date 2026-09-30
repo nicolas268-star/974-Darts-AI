@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { useLocalGame } from "./useLocalGame";
+import { useSyncedGame } from "./useSyncedGame";
 import { LocalSessionBar } from "./LocalSessionBar";
 import { Flag, Grid3X3, Target, Trophy } from "lucide-react";
 import { ParticipantSetup } from "./ParticipantSetup";
@@ -44,12 +44,13 @@ export function FunGame({ kind, currentDisplayName, userId }: { kind: FunKind; c
   const [format, setFormat] = useState<PlayFormat>("DUEL");
   const [names, setNames] = useState([currentDisplayName || "Joueur 1", "Adversaire", "Joueur 3", "Joueur 4"]);
   const [options, setOptions] = useState<FunOptions>({ connectRule: "ANY", conquestGoal: 7, bullUnlock: "50", bullTarget: "20" });
-  const {game,history,start:saveStart,act,undo,controls}=useLocalGame<FunState>(kind,userId);
+  const {game,history,start:saveStart,act,undo,controls}=useSyncedGame<FunState>(kind,userId);
   function start() {
     const selected: FunOptions = game?.kind === "connect4" ? {connectRule:game.rule} : game?.kind === "conquest" ? {conquestGoal:game.goal} : game?.kind === "bull500" ? {bullUnlock:game.unlock,bullTarget:game.target} : options;
     saveStart(createFunGame(kind,game?.format??format,game?.participants.map(p=>p.name)??names,selected));
   }
   if (!controls.ready) return <LocalSessionBar controls={controls}/>;
+  if (!game && controls.sync?.active && controls.blocked) return <LocalSessionBar controls={controls} />;
   if (!game) return <div className="fun-shell"><LocalSessionBar controls={controls}/>
     <Link className="fun-back" href="/play">← Univers Jeux</Link>
     <header className="fun-hero"><div><span>JEUX FUN · 974DARTS</span><h1>{config.title}</h1><p>{config.subtitle}</p></div><config.icon aria-hidden="true" /></header>
@@ -63,7 +64,7 @@ export function FunGame({ kind, currentDisplayName, userId }: { kind: FunKind; c
       </> : null}
     </section>
     <Rules kind={kind} />
-    <button className="fun-primary" type="button" onClick={start}>Lancer la partie →</button>
+    <button className="fun-primary" type="button" disabled={controls.blocked || controls.busy} onClick={start}>Lancer la partie →</button>
 
   </div>;
 
@@ -76,7 +77,7 @@ export function FunGame({ kind, currentDisplayName, userId }: { kind: FunKind; c
       : game.unlocked ? "Score débloqué : visez " + game.target.replace("_OR_", " ou ") + "." : "Commencez par le " + (game.unlock === "50" ? "Bull 50" : "25 ou Bull 50") + " à chaque volée.";
   return <div className="fun-shell"><LocalSessionBar controls={controls}/>
     <header className="fun-matchbar"><div><span>JEUX FUN · VOLÉE {game.visitNumber}</span><h1>{config.title}</h1></div></header>
-    {finished ? <section className="fun-winner" role="status"><Trophy aria-hidden="true" /><div><h2>{game.winnerSide === "DRAW" ? "Match nul" : game.sideNames[game.winnerSide as number] + " gagne !"}</h2><p>{game.winnerSide === "DRAW" ? "La grille est complète sans alignement." : "Partie terminée · " + game.totalDarts + " fléchettes jouées"}</p></div><button type="button" onClick={start}>Rejouer</button></section> : null}
+    {finished ? <section className="fun-winner" role="status"><Trophy aria-hidden="true" /><div><h2>{game.winnerSide === "DRAW" ? "Match nul" : game.sideNames[game.winnerSide as number] + " gagne !"}</h2><p>{game.winnerSide === "DRAW" ? "La grille est complète sans alignement." : "Partie terminée · " + game.totalDarts + " fléchettes jouées"}</p></div><button type="button" disabled={controls.blocked || controls.busy} onClick={start}>Rejouer</button></section> : null}
     <section className="play-score-strip fun-scores" aria-label="Scores des joueurs">
       {game.sideNames.map((name, side) => <article key={side} className={participant.side === side ? "active" : ""} aria-label={name + " · " + counts[side]}>
         <span className={"fun-symbol fun-owner-" + side}>{symbols[side]} · Camp {side + 1}{participant.side === side ? " · au lancer" : ""}</span>
@@ -101,7 +102,7 @@ export function FunGame({ kind, currentDisplayName, userId }: { kind: FunKind; c
         </div>)}</div>
       </section> : null}
       <div className="fun-controls">
-        <TurnPanel blocked={controls.problem==="conflict"} player={participant.name} nextPlayer={game.participants[(game.activeParticipant + 1) % game.participants.length].name} darts={game.visitDarts} complete={game.visitClosed} finished={finished} onDart={(dart) => act((current) => applyFunDart(current, dart))} onNext={() => act(endFunVisit)} onUndo={undo} canUndo={history.length>0} hint={hint} defaultMultiplier={game.kind === "connect4" && game.rule === "DOUBLE" ? 2 : 1} />
+        <TurnPanel blocked={controls.problem==="conflict" || controls.blocked || controls.busy} player={participant.name} nextPlayer={game.participants[(game.activeParticipant + 1) % game.participants.length].name} darts={game.visitDarts} complete={game.visitClosed} finished={finished} onDart={(dart) => act((current) => applyFunDart(current, dart))} onNext={() => act(endFunVisit)} onUndo={undo} canUndo={history.length>0} hint={hint} defaultMultiplier={game.kind === "connect4" && game.rule === "DOUBLE" ? 2 : 1} />
         <p className="fun-last-action" role="status" aria-live="polite">{game.log[0] ? game.log[0].dart + " · " + game.log[0].result : "À vous de jouer."}</p>
       </div>
     </div>

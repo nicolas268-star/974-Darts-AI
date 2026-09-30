@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import { CloudSessionBar } from "./CloudSessionBar";
 import { useState } from "react";
 import type { LocalControls } from "./useLocalGame";
 
 export function LocalSessionBar({ controls }: { controls: LocalControls }) {
   const [confirming, setConfirming] = useState(false);
   const invalid = controls.problem === "invalid";
+  if (controls.sync?.active) return <CloudSessionBar sync={controls.sync} reset={controls.reset} hasGame={controls.hasGame} />;
   return <section className="play-save-panel" aria-label="Sauvegarde de la partie">
     <div role="status" aria-live="polite">
       {!controls.ready ? "Chargement de votre partie…" : controls.problem === "conflict" ? "Cette partie a changé dans un autre onglet. Rechargez la sauvegarde avant de continuer." :
@@ -15,6 +17,7 @@ export function LocalSessionBar({ controls }: { controls: LocalControls }) {
             controls.busy ? "Sauvegarde en cours…" : controls.hasGame ? "Partie sauvegardée sur ce navigateur" : "Sauvegarde automatique sur ce navigateur"}
     </div>
     <small>Liée à votre compte sur cet appareil. La suppression des données du navigateur efface ces parties.</small>
+    {controls.ready && controls.sync ? <div className="play-save-actions"><button type="button" disabled={controls.busy || Boolean(controls.problem) || controls.sync.busy} onClick={controls.sync.enable}>Synchroniser PC / téléphone</button>{controls.sync.remoteAvailable ? <button type="button" onClick={controls.sync.open}>Ouvrir la partie synchronisée</button> : null}{controls.sync.message ? <p role="status">{controls.sync.message}</p> : null}</div> : null}
     {controls.ready ? <div className="play-save-actions">
       {controls.problem === "conflict" ? <button type="button" onClick={controls.reload}>Recharger la sauvegarde</button> :
         controls.problem === "unavailable" ? <button type="button" disabled={controls.busy} onClick={controls.retry}>Réessayer la sauvegarde</button> : null}

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { CloudSavedGames } from "./CloudSavedGames";
 import { useEffect, useState } from "react";
 import { LOCAL_GAMES, describeGame, isFinished, readRecord, type LocalKind, type ReadResult } from "@/lib/play/local-sessions";
 import { browserStorage } from "./useLocalGame";
@@ -21,7 +22,7 @@ export function SavedGames({ userId }: { userId: string }) {
   const sessions = records?.flatMap(({kind,result}) => result.ok && result.record.current ? [{kind,session:result.record.current}] : []).sort((a,b) => b.session.updatedAt.localeCompare(a.session.updatedAt)) ?? [];
   const completed = records?.flatMap(({kind,result}) => result.ok ? result.record.completed.map((entry) => ({kind,...entry})) : []).sort((a,b) => b.endedAt.localeCompare(a.endedAt)).slice(0,20) ?? [];
   const problems = records?.filter(({result}) => !result.ok) ?? [];
-  return <section id="parties" className="play-saved" aria-label="Mes parties sur cet appareil">
+  return <><CloudSavedGames /><section id="parties" className="play-saved" aria-label="Mes parties sur cet appareil">
     <header><div><small>REPRENDRE ET RETROUVER</small><h2>Mes parties sur cet appareil</h2></div><Link href="/play/501#sessions">Sessions X01 →</Link></header>
     <p>Une partie sauvegardée par jeu, liée à votre compte sur ce navigateur. Les scores et les corrections restent disponibles après rechargement. Pour retrouver ces parties, utilisez ce même navigateur.</p>
     {!records ? <p role="status">Chargement des sauvegardes…</p> : null}
@@ -37,5 +38,5 @@ export function SavedGames({ userId }: { userId: string }) {
       <p>Les dix dernières parties terminées de chaque jeu sont conservées. Les vingt résultats les plus récents sont affichés ici. Ces résultats restent personnels.</p>
       {completed.length ? <ol>{completed.map((entry) => <li key={entry.kind + entry.id}><div><strong>{LOCAL_GAMES[entry.kind].title}</strong><time dateTime={entry.endedAt}>{timestamp(entry.endedAt)}</time></div><b>{entry.outcome}</b><span>{entry.players.join(" · ")}</span></li>)}</ol> : <p>Aucune partie terminée enregistrée.</p>}
     </details>
-  </section>;
+  </section></>;
 }

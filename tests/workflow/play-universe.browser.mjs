@@ -138,7 +138,7 @@ export async function testPlayUniverse(page, screenshot) {
   // Browser-only X01 fixture. It never writes to a real Supabase database.
   let game=null,players=[],legs=[],visits=[],throws=[],sequence=0;
   const endpoint="http://127.0.0.1:55321/rest/v1/**";
-  await page.route(endpoint,async(route)=>{
+  const x01Route=async(route)=>{
     const req=route.request(),url=new URL(req.url()),table=url.pathname.split("/").at(-1),method=req.method();
     if(!["players","live_games","live_game_players","live_legs","live_visits","live_throws","list_my_live_game_sessions","join_live_game_session"].includes(table))return route.continue();
     if(method==="OPTIONS")return route.fulfill({status:204,headers:{"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"*","Access-Control-Allow-Methods":"GET,POST,PATCH,DELETE,OPTIONS"}});
@@ -146,7 +146,7 @@ export async function testPlayUniverse(page, screenshot) {
     let data=[];
     if(table==="players")data=[];
     else if(table==="list_my_live_game_sessions")data=game?[game]:[];
-    else if(table==="join_live_game_session")data=[{role:"SCORER"}];
+    else if(table==="join_live_game_session")data=[{role:"HOST"}];
     else if(table==="live_games"){
       if(method==="POST")game={...body,id:"game-1",session_code:"PLAY01"};
       if(method==="PATCH")Object.assign(game,body);
@@ -169,7 +169,8 @@ export async function testPlayUniverse(page, screenshot) {
     }
     const single=req.headers().accept?.includes("vnd.pgrst.object");
     await route.fulfill({status:200,contentType:"application/json",headers:{"Access-Control-Allow-Origin":"*"},body:JSON.stringify(single?data[0]??null:data)});
-  });
+  };
+  await page.route(endpoint,x01Route);
   try{
     await page.goto("http://127.0.0.1:3008/play/501");
     await page.getByRole("button",{name:/^4 joueurs/}).click();
@@ -213,6 +214,23 @@ export async function testPlayUniverse(page, screenshot) {
       await page.locator(".play-turn-panel").scrollIntoViewIfNeeded();
       await screenshot(page,"play-x01-"+width+".png",{fullPage:false});
     }
+    const auth=await page.context().storageState();
+    const displayContext=await page.context().browser().newContext({storageState:{cookies:auth.cookies,origins:[]},viewport:{width:1440,height:1000}});
+    const display=await displayContext.newPage();
+    await display.route(endpoint,x01Route);
+    try {
+      await display.goto("http://127.0.0.1:3008/play/501?session=PLAY01&view=screen");
+      await expect(display.getByText("Mode observateur",{exact:true})).toBeVisible();
+      await expect(display.getByLabel("Fléchette",{exact:true})).toHaveCount(0);
+      for(const value of ["T20","0","0"]){
+        await page.getByLabel("Fléchette",{exact:true}).fill(value);await page.getByLabel("Fléchette",{exact:true}).press("Enter");
+      }
+      await page.getByRole("button",{name:"Valider la volée",exact:true}).click();
+      await expect(display.locator(".play-score-strip article").last()).toContainText("441",{timeout:15000});
+      await screenshot(display,"play-x01-pc-observer.png");
+      game.status="COMPLETED";players[0].legs_won=1;
+      await expect(display.getByText("Match terminé",{exact:true})).toBeVisible({timeout:15000});
+    } finally { await displayContext.close(); }
   }finally{await page.unroute(endpoint);}
   page.off("pageerror",onError);
   expect(errors).toEqual([]);

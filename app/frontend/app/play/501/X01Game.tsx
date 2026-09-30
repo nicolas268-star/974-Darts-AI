@@ -204,7 +204,7 @@ export function X01Game({ currentPlayerId, currentDisplayName }: Props) {
     setActiveSessions((data ?? []) as ActiveSession[]);
   }, [supabase]);
 
-  const hydrateSession = useCallback(async (rawCode: string) => {
+  const hydrateSession = useCallback(async (rawCode: string, stillActive: () => boolean = () => true) => {
     if (!supabase) return false;
     const sessionCode = rawCode.trim().toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6);
     if (sessionCode.length !== 6) return false;
@@ -213,7 +213,6 @@ export function X01Game({ currentPlayerId, currentDisplayName }: Props) {
       .from("live_games")
       .select("id,session_code,starting_score,in_rule,out_rule,input_mode,play_format,best_of_legs,status,current_leg_number,current_turn")
       .eq("session_code", sessionCode)
-      .eq("status", "IN_PROGRESS")
       .maybeSingle();
 
     if (gameError) throw gameError;
@@ -221,7 +220,7 @@ export function X01Game({ currentPlayerId, currentDisplayName }: Props) {
 
     const [{ data: playerRows, error: playerError }, { data: legRow, error: legError }] = await Promise.all([
       supabase.from("live_game_players").select("id,player_id,display_name,seat,side,legs_won,sets_won").eq("game_id", gameRow.id).order("seat"),
-      supabase.from("live_legs").select("id,starting_game_player_id").eq("game_id", gameRow.id).eq("leg_number", gameRow.current_leg_number).eq("status", "IN_PROGRESS").maybeSingle(),
+      supabase.from("live_legs").select("id,starting_game_player_id").eq("game_id", gameRow.id).eq("leg_number", gameRow.current_leg_number).maybeSingle(),
     ]);
     if (playerError) throw playerError;
     if (legError) throw legError;
@@ -247,6 +246,7 @@ export function X01Game({ currentPlayerId, currentDisplayName }: Props) {
       } as LivePlayer;
     });
 
+    if (!stillActive()) return false;
     setGame(typedGame);
     setLivePlayers(reconstructed);
     setLegId(legRow.id);
@@ -258,9 +258,9 @@ export function X01Game({ currentPlayerId, currentDisplayName }: Props) {
     return true;
   }, [supabase]);
 
-  function writeSessionToUrl(code?: string) {
+  function writeSessionToUrl(code?: string, screen = false) {
     if (typeof window === "undefined") return;
-    const nextUrl = code ? `/play/501?session=${encodeURIComponent(code)}` : "/play/501";
+    const nextUrl = code ? `/play/501?session=${encodeURIComponent(code)}${screen ? "&view=screen" : ""}` : "/play/501";
     window.history.replaceState({}, "", nextUrl);
   }
 
@@ -279,9 +279,10 @@ export function X01Game({ currentPlayerId, currentDisplayName }: Props) {
       const resolvedRole = ((joinRows as Array<{ role?: SessionRole }> | null)?.[0]?.role ?? requestedRole) as SessionRole;
       const loaded = await hydrateSession(code);
       if (!loaded) throw new Error("Session introuvable ou déjà terminée.");
-      setSessionRole(resolvedRole);
+      // A host account can deliberately use this browser as a read-only display.
+      setSessionRole(requestedRole === "SPECTATOR" ? "SPECTATOR" : resolvedRole);
       setPendingSessionCode(null);
-      writeSessionToUrl(code);
+      writeSessionToUrl(code, requestedRole === "SPECTATOR");
       await refreshActiveSessions();
       return true;
     } catch (reason) {
@@ -305,7 +306,10 @@ export function X01Game({ currentPlayerId, currentDisplayName }: Props) {
         await refreshActiveSessions();
         const initialCode = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("session") : null;
         if (typeof window !== "undefined" && window.location.hash === "#sessions" && active) setSessionsExpanded(true);
-        if (initialCode && active) setPendingSessionCode(initialCode.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6));
+        if (initialCode && active) {
+          if (new URLSearchParams(window.location.search).get("view") === "screen") await openSession(initialCode, "SPECTATOR");
+          else setPendingSessionCode(initialCode.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6));
+        }
       } catch (reason) {
         if (active) setError(reason instanceof Error ? reason.message : "Chargement impossible.");
       } finally {
@@ -319,8 +323,17 @@ export function X01Game({ currentPlayerId, currentDisplayName }: Props) {
   useEffect(() => {
     if (!game || !isReadOnly) return;
     const code = game.session_code;
-    const timer = window.setInterval(() => { void hydrateSession(code); }, 2000);
-    return () => window.clearInterval(timer);
+    let active = true, reading = false;
+    const refresh = async () => {
+      if (reading || document.visibilityState !== "visible") return;
+      reading = true;
+      try { if (await hydrateSession(code, () => active)) { if (active) setError(null); } }
+      catch { if (active) setError("Connexion interrompue. Le dernier score affiché est conservé ; nouvelle tentative automatique."); }
+      finally { reading = false; }
+    };
+    const timer = window.setInterval(() => { void refresh(); }, 2000);
+    window.addEventListener("online", refresh); window.addEventListener("focus", refresh);
+    return () => { active = false; window.clearInterval(timer); window.removeEventListener("online", refresh); window.removeEventListener("focus", refresh); };
   }, [game?.session_code, hydrateSession, isReadOnly]);
 
   function setupName(playerId: string, guestName: string) {
@@ -756,6 +769,16 @@ export function X01Game({ currentPlayerId, currentDisplayName }: Props) {
       <div className="x01-match-actions"><button type="button" onClick={() => void leaveSession()} disabled={saving}><Users />Mes parties</button>{!isReadOnly ? <button type="button" onClick={cancelGame} disabled={saving}><RotateCcw />Annuler la partie</button> : null}</div>
     </section>
 
+    <section className="play-save-panel" aria-label="Synchronisation X01">
+      <strong>{isReadOnly ? "Écran de score" : "Saisie des scores"} · session {game.session_code}</strong>
+      <p>Sur l’autre appareil, ouvrez ce lien pour afficher les scores automatiquement.</p>
+      <div className="play-save-actions"><button type="button" onClick={() => {
+        const url = window.location.origin + "/play/501?session=" + encodeURIComponent(game.session_code) + "&view=screen";
+        void navigator.clipboard?.writeText(url).then(() => setMessage("Lien de l’écran de score copié.")).catch(() => setMessage("Ouvrez la session " + game.session_code + " en mode Observateur sur l’autre appareil."));
+      }}>Copier le lien de l’écran de score</button>
+      {!isReadOnly ? <button type="button" disabled={saving || draftDarts.length > 0 || Boolean(quickScore.trim())} onClick={() => { setSessionRole("SPECTATOR"); writeSessionToUrl(game.session_code, true); }}>Passer en écran de score</button> : null}</div>
+      <small>Pour changer d’appareil de saisie en X01, passez d’abord celui-ci en écran de score, puis reprenez la session en mode Joueur sur l’autre.</small>
+    </section>
     {error ? <div className="x01-alert error" role="alert">{error}</div> : null}
     <div className="x01-alert" role="status">{message}</div>
 

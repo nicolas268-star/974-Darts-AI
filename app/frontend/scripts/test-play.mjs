@@ -334,3 +334,20 @@ test("Local archive: completed game deduplication, undo win, replay, ten-result 
 });
 
 console.log(count + " play engine tests passed.");
+
+const cloud = load("lib/play/cloud-sessions");
+test("Cloud commands validate identifiers, revision and the full game before upload", () => {
+  const id="00000000-0000-4000-8000-000000000001";
+  const command={kind:"cricket",expected:0,device:id,command:id,action:"ENABLE",record:{version:1,revision:0,current:null,completed:[]}};
+  assert.equal(cloud.validCommand(command),true);
+  for (const patch of [{kind:"__proto__"},{expected:-1},{expected:1.5},{device:"admin"},{action:"DELETE"},{record:{version:1,revision:0,current:{},completed:[]}}]) assert.equal(cloud.validCommand({...command,...patch}),false);
+  assert.equal(cloud.validCommand({...command,action:"CLAIM",record:null}),true);
+  assert.equal(cloud.validCommand({...command,action:"SAVE",record:null}),false);
+});
+test("Cloud responses must match the record revision and game kind", () => {
+  const row={kind:"clock",revision:1,writer_device:"00000000-0000-4000-8000-000000000001",updated_at:new Date().toISOString(),record:{version:1,revision:1,current:null,completed:[]}};
+  assert.equal(cloud.validCloudRow(row),true);
+  assert.equal(cloud.validCloudRow({...row,revision:2}),false);
+  assert.equal(cloud.validCloudRow({...row,writer_device:null}),false);
+  assert.equal(cloud.validCloudRow({...row,updated_at:"invalid"}),false);
+});

@@ -68,3 +68,8 @@
 .play-save-panel a[aria-disabled="true"],.play-save-panel button:disabled{opacity:.5;cursor:not-allowed}.play-save-panel a:focus-visible,.play-save-panel button:focus-visible{outline:2px solid #a2efd2;outline-offset:3px}
 .play-save-confirm{padding-top:8px;border-top:1px solid #52675f}.play-save-confirm p{margin:5px 0 10px}.play-save-confirm button{margin:0 6px 6px 0}
 @media(max-width:640px){.play-save-panel{padding:11px;font-size:.78rem}.play-save-actions{gap:6px}.play-save-panel a,.play-save-panel button{font-size:.78rem;padding:8px}}
+
+.play-cloud-panel { border-color: #448b80; }
+.play-cloud-panel details { min-width: 0; }
+.play-cloud-panel input { display: block; width: 100%; min-width: 0; box-sizing: border-box; margin: .5rem 0; padding: .6rem; }
+.play-cloud-panel p { margin: .4rem 0; }
