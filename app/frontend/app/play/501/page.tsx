@@ -24,6 +24,7 @@ export default async function Play501Page({ searchParams }: { searchParams: Prom
       <Sidebar />
       <main className="main x01-page">
         <X01Game
+          currentUserId={auth.user!.id}
           currentPlayerId={auth.profile?.player_id ?? null}
           currentDisplayName={auth.profile?.display_name ?? auth.user?.email ?? "Joueur 1"}
         />

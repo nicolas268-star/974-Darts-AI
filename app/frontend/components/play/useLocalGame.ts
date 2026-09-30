@@ -12,8 +12,9 @@ type View = { ready: boolean; record: LocalRecord; problem: SaveProblem | null; 
 export type LocalControls = {
   blocked?: boolean;
   sync?: import("./useSyncedGame").SyncControls;
-  ready: boolean; hasGame: boolean; problem: SaveProblem | null; busy: boolean; updatedAt: string | null;
+  ready: boolean; hasGame: boolean; sessionId: string | null; problem: SaveProblem | null; busy: boolean; updatedAt: string | null;
   reload: () => void; retry: () => void; reset: () => void; discardInvalid: () => void;
+  remove: (sessionId: string) => Promise<boolean>;
 };
 
 export function useLocalGame<G extends LocalGame>(kind: LocalKind, userId: string) {
@@ -86,10 +87,27 @@ export function useLocalGame<G extends LocalGame>(kind: LocalKind, userId: strin
     try { browserStorage.removeItem(storageKey(userId, kind)); reload(); }
     catch { publish({ ...current.current, problem: "unavailable" }); }
   }
+  async function remove(sessionId: string): Promise<boolean> {
+    const initial = current.current;
+    if (!initial.ready || initial.pending || initial.problem || initial.record.current?.id !== sessionId) return false;
+    publish({ ...initial, pending: 1 });
+    const work = () => {
+      const previous = current.current;
+      if (previous.problem || previous.record.current?.id !== sessionId) {
+        publish({ ...previous, pending: 0 }); return false;
+      }
+      const result = saveRecord(browserStorage, userId, kind, previous.record.revision, null, sessionId);
+      // A failed deletion must keep the visible game as well as its saved copy.
+      publish({ ...previous, pending: 0, record: result.ok ? result.record : previous.record, problem: result.ok ? null : result.problem });
+      return result.ok;
+    };
+    try { return navigator.locks ? await navigator.locks.request(storageKey(userId, kind), work) : work(); }
+    catch { publish({ ...current.current, pending: 0, problem: "unavailable" }); return false; }
+  }
   const session = view.record.current as LocalSession<G> | null;
   const controls: LocalControls = {
-    ready: view.ready, hasGame: Boolean(session), problem: view.problem, busy: view.pending > 0, updatedAt: session?.updatedAt ?? null,
-    reload, retry: () => dispatch((existing) => existing), reset: () => dispatch(() => null), discardInvalid,
+    ready: view.ready, hasGame: Boolean(session), sessionId: session?.id ?? null, problem: view.problem, busy: view.pending > 0, updatedAt: session?.updatedAt ?? null,
+    reload, retry: () => dispatch((existing) => existing), reset: () => dispatch(() => null), discardInvalid, remove,
   };
   return { game: session?.game ?? null, history: session?.history ?? [], start, act, undo, controls, record: view.record };
 }

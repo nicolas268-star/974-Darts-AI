@@ -30,6 +30,7 @@ export function CloudSavedGames() {
       </article>;
     })}</div>
     {!error && rows.length === 0 ? <p>Dans un jeu, choisissez « Synchroniser PC / téléphone » pour partager la partie entre vos appareils.</p> : null}
+    {!error && rows.length > 0 && !rows.some((row) => row.record.current) ? <p>Aucune partie synchronisée en cours.</p> : null}
     {completed.length ? <details className="play-saved-history"><summary>Historique synchronisé · {completed.length} résultat{completed.length > 1 ? "s" : ""}</summary>
       <ol>{completed.map((entry) => <li key={entry.kind + entry.id}><strong>{LOCAL_GAMES[entry.kind].title}</strong><b>{entry.outcome}</b><span>{entry.players.join(" · ")}</span></li>)}</ol>
     </details> : null}

@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { CloudSessionBar } from "./CloudSessionBar";
+import { DeleteSavedGameButton } from "./DeleteSavedGameButton";
 import { useState } from "react";
 import type { LocalControls } from "./useLocalGame";
 
 export function LocalSessionBar({ controls }: { controls: LocalControls }) {
   const [confirming, setConfirming] = useState(false);
   const invalid = controls.problem === "invalid";
-  if (controls.sync?.active) return <CloudSessionBar sync={controls.sync} reset={controls.reset} hasGame={controls.hasGame} />;
+  if (controls.sync?.active) return <CloudSessionBar sync={controls.sync} reset={controls.reset} hasGame={controls.hasGame} deletion={<DeleteSavedGameButton controls={controls} />} />;
   return <section className="play-save-panel" aria-label="Sauvegarde de la partie">
     <div role="status" aria-live="polite">
       {!controls.ready ? "Chargement de votre partie…" : controls.problem === "conflict" ? "Cette partie a changé dans un autre onglet. Rechargez la sauvegarde avant de continuer." :
@@ -23,6 +24,7 @@ export function LocalSessionBar({ controls }: { controls: LocalControls }) {
         controls.problem === "unavailable" ? <button type="button" disabled={controls.busy} onClick={controls.retry}>Réessayer la sauvegarde</button> : null}
       <Link href="/play" onClick={(event) => { if (controls.busy || (controls.problem && controls.problem !== "conflict")) event.preventDefault(); }} aria-disabled={controls.busy || Boolean(controls.problem && controls.problem !== "conflict")}>{controls.hasGame ? "Mettre en pause" : "Univers Jeux"}</Link>
       {(controls.hasGame || invalid) && !confirming ? <button type="button" disabled={controls.busy || controls.problem === "conflict"} onClick={() => setConfirming(true)}>{invalid ? "Effacer la sauvegarde illisible" : "Nouvelle partie"}</button> : null}
+      {controls.hasGame && !invalid ? <DeleteSavedGameButton controls={controls} /> : null}
     </div> : null}
     {confirming ? <div className="play-save-confirm" role="alert">
       <p>{invalid ? "Effacer la sauvegarde et l’historique de ce jeu sur ce navigateur ?" : "Remplacer la partie en cours ? Les parties terminées restent dans votre historique."}</p>

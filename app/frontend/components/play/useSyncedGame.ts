@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { cloudRequest, validCloudRow, validCommand, type CloudCommand, type CloudRow } from "@/lib/play/cloud-sessions";
-import { withSession, type LocalGame, type LocalKind, type LocalSession } from "@/lib/play/local-sessions";
+import { withSession, withoutSession, type LocalGame, type LocalKind, type LocalSession } from "@/lib/play/local-sessions";
 import { useLocalGame, type LocalControls } from "./useLocalGame";
 
 export type SyncControls = {
@@ -49,7 +49,7 @@ export function useSyncedGame<G extends LocalGame>(kind: LocalKind, userId: stri
     } finally { reading.current = false; }
   }, [kind, accept, publish]);
   const send = useCallback(async (command: CloudCommand) => {
-    if (inFlight.current) return;
+    if (inFlight.current) return false;
     inFlight.current = true;
     pending.current = command;
     if (command.action === "ENABLE") activate();
@@ -61,8 +61,10 @@ export function useSyncedGame<G extends LocalGame>(kind: LocalKind, userId: stri
       try { sessionStorage.removeItem(pendingKey); } catch { /* Retrying the same command is idempotent. */ }
       accept(result.row, { observing: result.conflict, message: result.conflict ? "La partie a changé sur un autre appareil. Dernier état chargé : vérifiez le dernier lancer avant de reprendre la saisie." : "" });
       if (result.row) activate();
+      return !result.conflict;
     } catch (reason) {
       publish({ ...state.current, ready: true, busy: false, error: true, message: reason instanceof Error ? reason.message : "Enregistrement non confirmé. Réessayez." });
+      return false;
     } finally { inFlight.current = false; }
   }, [kind, pendingKey, publish, accept, activate]);
   useEffect(() => {
@@ -145,8 +147,14 @@ export function useSyncedGame<G extends LocalGame>(kind: LocalKind, userId: stri
     publish({ ...state.current, observing: false });
     void send(command("CLAIM"));
   }
+  async function remove(sessionId: string): Promise<boolean> {
+    const current = state.current;
+    if (!canWrite || inFlight.current || pending.current || current.row?.record.current?.id !== sessionId || current.row.writer_device !== device) return false;
+    // Keep the cloud row and its revision: a delayed save cannot resurrect the game.
+    return send(command("SAVE", withoutSession(current.row.record, sessionId)));
+  }
   const sync: SyncControls = {
-    active: mode === "cloud", busy: view.busy, message: view.message || (mode === "cloud" && !view.ready ? "Chargement de la partie synchronisée…" : ""), error: view.error, remoteAvailable: view.remoteAvailable,
+    active: mode === "cloud", busy: view.busy, message: view.message || (mode === "cloud" && !view.ready ? "Chargement de la partie synchronisée…" : mode === "cloud" && view.row && !view.row.record.current ? "Aucune partie en cours dans cette session." : ""), error: view.error, remoteAvailable: view.remoteAvailable,
     canWrite, isScorer, link, enable: () => { void enable(); }, open: activate, claim,
     retry: () => { if (pending.current) void send(pending.current); else void refresh(); },
     observe: () => publish({ ...state.current, observing: true }),
@@ -160,8 +168,8 @@ export function useSyncedGame<G extends LocalGame>(kind: LocalKind, userId: stri
   };
   const session = view.row?.record.current as LocalSession<G> | null;
   const controls: LocalControls = {
-    ready: view.ready, hasGame: Boolean(session), problem: null, busy: view.busy, blocked: !isScorer || !view.ready || view.error,
-    updatedAt: session?.updatedAt ?? null, sync, reload: sync.retry, retry: sync.retry, reset: () => change(() => null), discardInvalid: () => {},
+    ready: view.ready, hasGame: Boolean(session), sessionId: session?.id ?? null, problem: null, busy: view.busy, blocked: !isScorer || !view.ready || view.error,
+    updatedAt: session?.updatedAt ?? null, sync, reload: sync.retry, retry: sync.retry, reset: () => change(() => null), discardInvalid: () => {}, remove,
   };
   return { game: session?.game ?? null, history: session?.history ?? [], start, act, undo, controls, record: view.row?.record ?? local.record };
 }

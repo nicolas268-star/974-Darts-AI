@@ -112,13 +112,19 @@ export function withSession(previous: LocalRecord, current: LocalSession | null)
   if (current && isFinished(current.game)) completed = [{ id: current.id, endedAt: current.updatedAt, players: current.game.participants.map((p) => p.name), outcome: outcome(current.game) }, ...completed].slice(0, 10);
   return { version: 1, revision: previous.revision + 1, current, completed };
 }
+export function withoutSession(previous: LocalRecord, id: string): LocalRecord {
+  return { ...previous, revision: previous.revision + 1,
+    current: previous.current?.id === id ? null : previous.current,
+    completed: previous.completed.filter((entry) => entry.id !== id) };
+}
 // Call under the browser's per-key Web Lock. The revision rejects stale tabs.
-export function saveRecord(storage: StorageLike, userId: string, kind: LocalKind, expectedRevision: number, current: LocalSession | null): ReadResult {
+export function saveRecord(storage: StorageLike, userId: string, kind: LocalKind, expectedRevision: number, current: LocalSession | null, deleteSessionId?: string): ReadResult {
   const loaded = readRecord(storage, userId, kind);
   if (!loaded.ok) return loaded;
   if (loaded.record.revision !== expectedRevision) return { ok: false, problem: "conflict" };
+  if (deleteSessionId && (current !== null || loaded.record.current?.id !== deleteSessionId)) return { ok: false, problem: "conflict" };
   if (current && !validSession(kind, current)) return { ok: false, problem: "invalid" };
-  const record = withSession(loaded.record, current);
+  const record = deleteSessionId ? withoutSession(loaded.record, deleteSessionId) : withSession(loaded.record, current);
   try { const encoded = JSON.stringify(record); if (encoded.length > 1_000_000) return { ok: false, problem: "unavailable" }; storage.setItem(storageKey(userId, kind), encoded); return { ok: true, record }; }
   catch { return { ok: false, problem: "unavailable" }; }
 }

@@ -9,6 +9,7 @@ import {testChampionshipCharts} from './championship-charts.browser.mjs';
 import {testPlayUniverse} from './play-universe.browser.mjs';
 import {testPlayPersistence} from './play-persistence.browser.mjs';
 import {testPlaySync} from './play-sync.browser.mjs';
+import {testGameDeletion} from './play-deletion.browser.mjs';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'../..');
 const output=resolve(root,'docs/ranking-workflow-preview');
 const sharp=createRequire(resolve(root,'app/frontend/package.json'))('sharp');
@@ -31,6 +32,7 @@ try{
  await testPlayUniverse(admin,screenshot);
  await testPlayPersistence(admin,screenshot);
  await testPlaySync(browser,admin,screenshot);
+ await testGameDeletion(browser,admin,screenshot);
  await admin.goto('http://127.0.0.1:3008/admin/classement-individuel');
  await expect(admin.getByText('Open Club Double · Démonstration',{exact:true})).toBeVisible({timeout:30000});
  await screenshot(admin,'01-administration.png');
@@ -91,4 +93,4 @@ try{
  await testVisibility(admin,ds,screenshot);
  await testMobileStatistics(ds,screenshot);
  await testChampionshipCharts(ds,screenshot);
-}catch(e){console.error(e.message);console.error('Admin URL:',admin.url(),'DS URL:',ds.url());await screenshot(admin,'failure.png');process.exitCode=1;}finally{await browser.close()}
+}catch(e){console.error(e.stack||e.message);console.error('Admin URL:',admin.url(),'DS URL:',ds.url());await screenshot(admin,'failure.png');process.exitCode=1;}finally{await browser.close()}

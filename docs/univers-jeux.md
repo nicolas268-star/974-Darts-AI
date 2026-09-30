@@ -24,6 +24,13 @@ Lots 1 à 3 : aucune migration. Les droits des sessions X01 restent ceux de l’
 
 Le workflow de publication des résultats officiels et de validation par le Directeur sportif est indépendant.
 
+## Suppression d’une partie
+
+- X01 : le créateur dispose de « Supprimer » dans « Mes sessions / Parties en cours », ainsi que de « Supprimer la partie » dans la session ouverte. Une confirmation nomme la session. Ses participants de session, manches, volées et fléchettes sont supprimés ensemble par les cascades existantes. Les autres sessions et les fiches joueurs sont conservées. Le droit DELETE existant reste réservé au créateur ; un marqueur ou un observateur invité ne peut pas supprimer la partie. Les écrans ouverts constatent sa disparition au prochain contrôle (toutes les deux secondes lorsqu’ils sont visibles).
+- Sept autres jeux : « Supprimer la partie » est disponible dans le panneau de sauvegarde. La confirmation précise la portée : ce navigateur pour une partie locale, tous les appareils de la session pour une partie synchronisée. Elle retire la partie affichée et son éventuel résultat de l’historique ; les autres résultats et jeux restent conservés. Une copie locale indépendante reste disponible après suppression de sa version synchronisée.
+- En synchronisation, la suppression se fait depuis l’appareil qui a la main. La ligne distante et sa révision sont conservées avec une partie courante vide : un ancien enregistrement retardé ne peut pas restaurer la partie supprimée. Les erreurs de stockage ou de réseau n’affichent pas de réussite tant que l’enregistrement n’est pas confirmé.
+- Aucune nouvelle migration. Tests : propriété et cascades SQL, sept moteurs locaux, confirmation et annulation au clavier/mobile, conservation des autres sessions, suivi sur un deuxième écran, perte d’accusé de réception et rejet d’un enregistrement périmé.
+
 ## Vérification
 
 - app/frontend : npm test (lint, TypeScript, contrôles existants et tests des moteurs via test:play), puis npm run build.

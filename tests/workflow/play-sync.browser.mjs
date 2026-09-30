@@ -119,7 +119,42 @@ export async function testPlaySync(browser, source, screenshot) {
    await otherPage.goto(base+'/login');await otherPage.locator('input[type=email]').fill('director@example.invalid');await otherPage.locator('input[type=password]').fill('preview-only');await otherPage.locator('form button').first().click();await otherPage.waitForURL('**/directeur-sportif',{timeout:30000});
    const response=await otherPage.request.get(base+'/api/play/sync');expect(response.ok()).toBe(true);expect((await response.json()).rows).toEqual([]);
   } finally {await other.close();}
+  // Delete from the writer while the phone observes; lose the response after commit.
+  await expect(phone.getByRole('button',{name:'Supprimer la partie',exact:true})).toHaveCount(0);
+  const beforeDelete=(await (await pc.request.get(base+'/api/play/sync')).json()).rows;
+  const cricketBefore=beforeDelete.find(row=>row.kind==='cricket');
+  await pc.getByRole('button',{name:'Supprimer la partie',exact:true}).click();
+  const confirmation=pc.getByRole('dialog',{name:'Supprimer cette partie ?'});
+  await confirmation.getByRole('button',{name:'Conserver la partie',exact:true}).click();
+  expect((await (await pc.request.get(base+'/api/play/sync?kind=cricket')).json()).row.revision).toBe(cricketBefore.revision);
+  let deletedCommand=null;
+  await pc.route('**/api/play/sync*',async route=>{
+   if(!deletedCommand&&route.request().method()==='POST'&&route.request().postDataJSON().action==='SAVE'){
+    deletedCommand=route.request().postDataJSON();await route.fetch();await route.abort('failed');return;
+   }
+   await route.continue();
+  });
+  await pc.getByRole('button',{name:'Supprimer la partie',exact:true}).click();
+  await confirmation.getByRole('button',{name:'Confirmer la suppression',exact:true}).click();
+  await expect(confirmation.getByRole('alert')).toContainText('Suppression non confirmée');
+  await expect(phone.getByText('Aucune partie en cours dans cette session.',{exact:true})).toBeVisible({timeout:15000});
+  await expect(phone.getByRole('region',{name:'Saisie de la volée'})).toHaveCount(0);
+  await confirmation.getByRole('button',{name:'Fermer',exact:true}).click();
+  await pc.getByRole('button',{name:'Réessayer la synchronisation',exact:true}).click();
+  await expect(pc.getByText('Aucune partie en cours dans cette session.',{exact:true})).toBeVisible();
+  const afterDelete=(await (await pc.request.get(base+'/api/play/sync')).json()).rows;
+  const cricketAfter=afterDelete.find(row=>row.kind==='cricket');
+  expect(cricketAfter.record.current).toBeNull();expect(cricketAfter.revision).toBe(cricketBefore.revision+1);
+  expect(afterDelete.filter(row=>row.kind!=='cricket')).toEqual(beforeDelete.filter(row=>row.kind!=='cricket'));
+  // A delayed pre-deletion SAVE cannot resurrect the session, even from the same writer.
+  const stale=await pc.request.post(base+'/api/play/sync',{headers:{Origin:base},data:{...deletedCommand,command:crypto.randomUUID(),record:cricketBefore.record}});
+  expect(stale.status()).toBe(409);expect((await stale.json()).row.record.current).toBeNull();
+  expect(await phone.evaluate(()=>localStorage.getItem(Object.keys(localStorage).find(k=>k.startsWith('974darts:play:v1:')&&k.endsWith(':cricket'))))).toBe(localBefore);
+  await phone.reload();await expect(phone.getByText('Aucune partie en cours dans cette session.',{exact:true})).toBeVisible();
+  await pc.goto(base+'/play');
+  await expect(pc.getByRole('region',{name:'Mes parties synchronisées'}).locator('.play-cloud-card')).toHaveCount(6);
+  await expect(pc.getByRole('link',{name:'Ouvrir Cricket sur cet appareil →',exact:true})).toHaveCount(0);
   expect(errors).toEqual([]);
-  console.log('PASS: PC/phone sync — 7 games, independent browser storage, handover, undo, hub, reload, lost acknowledgement, reconnect and API access boundaries');
+  console.log('PASS: PC/phone sync — 7 games, independent browser storage, handover, undo, hub, reload, lost acknowledgement, reconnect, deletion without resurrection and API access boundaries');
  }finally{await phoneContext.close();await pcContext.close();}
 }

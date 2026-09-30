@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ChevronDown, Crosshair, Eye, Gauge, Hash, LogIn, Play, Plus, RotateCcw, Target, Trophy, Undo2, Users, Zap } from "lucide-react";
+import { ChevronDown, Crosshair, Eye, Gauge, Hash, LogIn, Play, Plus, Target, Trash2, Trophy, Undo2, Users, Zap } from "lucide-react";
 import { DartEntry } from "@/components/play/DartEntry";
+import { DeleteGameDialog } from "@/components/play/DeleteGameDialog";
 import { VisitProgress } from "@/components/play/VisitProgress";
 import { parseVisitScore, isPossibleVisitScore, isPossibleDoubleCheckout } from "@/lib/play/dart-input";
 import { createClient } from "@/lib/supabase/client";
@@ -32,6 +33,7 @@ type LivePlayer = {
 };
 type LiveGame = {
   id: string;
+  created_by: string;
   session_code: string;
   starting_score: number;
   in_rule: InRule;
@@ -71,10 +73,11 @@ type VisitRow = {
 
 type SessionRole = "HOST" | "SCORER" | "SPECTATOR";
 
-type Props = { currentPlayerId: string | null; currentDisplayName: string };
+type Props = { currentUserId: string; currentPlayerId: string | null; currentDisplayName: string };
 
 const scoreChoices = [301, 501, 701];
 const legChoices = [1, 3, 5, 7, 9];
+const connectionError = "Connexion interrompue. Le dernier score affiché est conservé ; nouvelle tentative automatique.";
 
 function averageFromPlayers(playerIds: string[], visits: VisitRow[]) {
   const rows = visits.filter((visit) => playerIds.includes(visit.game_player_id));
@@ -91,7 +94,7 @@ function modeLabel(mode: InputMode) {
   return mode === "QUICK_SCORE" ? "Score par volée" : "Flèche par flèche";
 }
 
-export function X01Game({ currentPlayerId, currentDisplayName }: Props) {
+export function X01Game({ currentUserId, currentPlayerId, currentDisplayName }: Props) {
   const supabase = useMemo(() => createClient(), []);
   const [players, setPlayers] = useState<PlayerOption[]>([]);
   const [loading, setLoading] = useState(true);
@@ -99,6 +102,10 @@ export function X01Game({ currentPlayerId, currentDisplayName }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState("Prêt pour une nouvelle partie.");
   const [activeSessions, setActiveSessions] = useState<ActiveSession[]>([]);
+  const [ownedSessionIds, setOwnedSessionIds] = useState<Set<string>>(new Set());
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; session_code: string } | null>(null);
+  const [deleting, setDeleting] = useState(false), [deleteError, setDeleteError] = useState("");
+  const deleteInFlight = useRef(false), deletedGames = useRef(new Set<string>());
   const [sessionCodeInput, setSessionCodeInput] = useState("");
   const [sessionOpening, setSessionOpening] = useState(false);
   const [sessionsExpanded, setSessionsExpanded] = useState(false);
@@ -201,8 +208,21 @@ export function X01Game({ currentPlayerId, currentDisplayName }: Props) {
     if (!supabase) return;
     const { data, error: sessionsError } = await supabase.rpc("list_my_live_game_sessions");
     if (sessionsError) throw sessionsError;
-    setActiveSessions((data ?? []) as ActiveSession[]);
-  }, [supabase]);
+    const sessions = (data ?? []) as ActiveSession[];
+    const { data: owned, error: ownershipError } = sessions.length
+      ? await supabase.from("live_games").select("id").eq("created_by", currentUserId).in("id", sessions.map((session) => session.id))
+      : { data: [], error: null };
+    if (ownershipError) throw ownershipError;
+    setActiveSessions(sessions.filter((session) => !deletedGames.current.has(session.id)));
+    setOwnedSessionIds(new Set((owned ?? []).map((session) => session.id)));
+  }, [supabase, currentUserId]);
+
+  const clearSession = useCallback(() => {
+    setGame(null); setLivePlayers([]); setVisits([]); setLegId(null); setStarterPlayerId(null);
+    setDraftDarts([]); setSessionCodeInput(""); setQuickScore(""); setQuickDarts(3);
+    setQuickDoubleIn(false); setQuickCheckoutDouble(false); setSessionRole("HOST");
+    setPendingSessionCode(null); writeSessionToUrl();
+  }, []);
 
   const hydrateSession = useCallback(async (rawCode: string, stillActive: () => boolean = () => true) => {
     if (!supabase) return false;
@@ -211,7 +231,7 @@ export function X01Game({ currentPlayerId, currentDisplayName }: Props) {
 
     const { data: gameRow, error: gameError } = await supabase
       .from("live_games")
-      .select("id,session_code,starting_score,in_rule,out_rule,input_mode,play_format,best_of_legs,status,current_leg_number,current_turn")
+      .select("id,created_by,session_code,starting_score,in_rule,out_rule,input_mode,play_format,best_of_legs,status,current_leg_number,current_turn")
       .eq("session_code", sessionCode)
       .maybeSingle();
 
@@ -246,7 +266,7 @@ export function X01Game({ currentPlayerId, currentDisplayName }: Props) {
       } as LivePlayer;
     });
 
-    if (!stillActive()) return false;
+    if (!stillActive() || deletedGames.current.has(gameRow.id)) return false;
     setGame(typedGame);
     setLivePlayers(reconstructed);
     setLegId(legRow.id);
@@ -321,20 +341,34 @@ export function X01Game({ currentPlayerId, currentDisplayName }: Props) {
 
 
   useEffect(() => {
-    if (!game || !isReadOnly) return;
+    if (!game) return;
     const code = game.session_code;
+    const id = game.id;
     let active = true, reading = false;
     const refresh = async () => {
-      if (reading || document.visibilityState !== "visible") return;
+      if (reading || deleteInFlight.current || saveInFlight.current || document.visibilityState !== "visible") return;
       reading = true;
-      try { if (await hydrateSession(code, () => active)) { if (active) setError(null); } }
-      catch { if (active) setError("Connexion interrompue. Le dernier score affiché est conservé ; nouvelle tentative automatique."); }
+      try {
+        // Scorers only check existence so their unsubmitted input is preserved.
+        const { data: present, error: presenceError } = await supabase!.from("live_games").select("id").eq("id", id).maybeSingle();
+        if (presenceError) throw presenceError;
+        if (!active) return;
+        if (!present) {
+          deletedGames.current.add(id); clearSession();
+          setActiveSessions((sessions) => sessions.filter((session) => session.id !== id));
+          setError(null); setMessage("Cette partie n’est plus disponible. Elle a été supprimée ou votre accès a été retiré.");
+          return;
+        }
+        if (isReadOnly && await hydrateSession(code, () => active)) { if (active) setError(null); }
+        else if (active) setError((current) => current === connectionError ? null : current);
+      }
+      catch { if (active) setError(connectionError); }
       finally { reading = false; }
     };
     const timer = window.setInterval(() => { void refresh(); }, 2000);
-    window.addEventListener("online", refresh); window.addEventListener("focus", refresh);
-    return () => { active = false; window.clearInterval(timer); window.removeEventListener("online", refresh); window.removeEventListener("focus", refresh); };
-  }, [game?.session_code, hydrateSession, isReadOnly]);
+    window.addEventListener("online", refresh); window.addEventListener("focus", refresh); document.addEventListener("visibilitychange", refresh);
+    return () => { active = false; window.clearInterval(timer); window.removeEventListener("online", refresh); window.removeEventListener("focus", refresh); document.removeEventListener("visibilitychange", refresh); };
+  }, [game?.id, game?.session_code, hydrateSession, isReadOnly, clearSession, supabase]);
 
   function setupName(playerId: string, guestName: string) {
     return players.find((player) => player.id === playerId)?.display_name ?? guestName.trim();
@@ -363,7 +397,7 @@ export function X01Game({ currentPlayerId, currentDisplayName }: Props) {
         current_leg_number: 1,
         current_turn: 1,
         started_at: new Date().toISOString(),
-      }).select("id,session_code,starting_score,in_rule,out_rule,input_mode,play_format,best_of_legs,status,current_leg_number,current_turn").single();
+      }).select("id,created_by,session_code,starting_score,in_rule,out_rule,input_mode,play_format,best_of_legs,status,current_leg_number,current_turn").single();
       if (gameError) throw gameError;
 
       const { data: gamePlayers, error: playersError } = await supabase.from("live_game_players").insert(
@@ -650,36 +684,39 @@ export function X01Game({ currentPlayerId, currentDisplayName }: Props) {
   }
 
   async function leaveSession() {
-    setGame(null);
-    setLivePlayers([]);
-    setVisits([]);
-    setLegId(null);
-    setStarterPlayerId(null);
-    setDraftDarts([]);
-    setSessionCodeInput("");
-    setQuickScore("");
-    setQuickDarts(3);
-    setQuickDoubleIn(false);
-    setQuickCheckoutDouble(false);
-    setSessionRole("HOST");
-    writeSessionToUrl();
+    clearSession();
     try { await refreshActiveSessions(); } catch { /* la liste se rechargera au prochain accès */ }
     setMessage("Session laissée active. Tu peux la reprendre ou créer une autre partie.");
   }
 
-  async function cancelGame() {
-    if (!supabase || !game || saving || isReadOnly) return;
-    setSaving(true); setError(null);
+  async function deleteGame() {
+    if (!supabase || !deleteTarget || saving || sessionOpening || deleteInFlight.current) return;
+    const target = deleteTarget;
+    deleteInFlight.current = true; setDeleting(true); setDeleteError("");
     try {
-      const { error: cancelError } = await supabase.from("live_games").update({ status: "CANCELLED", finished_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq("id", game.id);
-      if (cancelError) throw cancelError;
-      setGame(null); setLivePlayers([]); setVisits([]); setLegId(null); setStarterPlayerId(null); setDraftDarts([]); setSessionCodeInput("");
-      writeSessionToUrl();
-      await refreshActiveSessions();
-      setMessage("Partie annulée. Tu peux en créer une nouvelle.");
-    } catch (reason) { setError(reason instanceof Error ? reason.message : "Annulation impossible."); }
-    finally { setSaving(false); }
+      // RLS independently enforces ownership; linked players never gain deletion rights.
+      const { data: removed, error: removalError } = await supabase.from("live_games").delete()
+        .eq("id", target.id).eq("created_by", currentUserId).select("id").maybeSingle();
+      if (removalError) throw removalError;
+      if (!removed) {
+        const { data: present, error: checkError } = await supabase.from("live_games").select("id").eq("id", target.id).maybeSingle();
+        if (checkError) throw checkError;
+        if (present) throw new Error("Seul le créateur peut supprimer cette partie.");
+      }
+      deletedGames.current.add(target.id);
+      if (game?.id === target.id) clearSession();
+      if (pendingSessionCode === target.session_code) setPendingSessionCode(null);
+      setActiveSessions((sessions) => sessions.filter((session) => session.id !== target.id));
+      setDeleteTarget(null); setError(null); setMessage(`Partie ${target.session_code} supprimée.`);
+      try { await refreshActiveSessions(); } catch { /* The confirmed deletion remains visible even if refreshing the other sessions fails. */ }
+    } catch (reason) {
+      setDeleteError(reason instanceof Error ? reason.message : "Suppression non confirmée. Vérifiez la connexion puis réessayez.");
+    } finally { deleteInFlight.current = false; setDeleting(false); }
   }
+
+  const deletionDialog = deleteTarget ? <DeleteGameDialog busy={deleting} error={deleteError}
+    description={`La session ${deleteTarget.session_code}, ses manches et tous ses scores seront supprimés sur le PC et les téléphones. Les autres parties et les fiches joueurs seront conservées.`}
+    onCancel={() => setDeleteTarget(null)} onConfirm={() => { void deleteGame(); }} /> : null;
 
   if (loading) return <section className="x01-loading"><Target /><p>Chargement du module X01…</p></section>;
 
@@ -691,6 +728,8 @@ export function X01Game({ currentPlayerId, currentDisplayName }: Props) {
       </section>
 
       {error && <div className="x01-alert error">{error}</div>}
+      {message !== "Prêt pour une nouvelle partie." ? <div className="x01-alert" role="status">{message}</div> : null}
+      {deletionDialog}
 
       <section className="x01-session-hub">
         <article className="x01-session-join">
@@ -706,11 +745,12 @@ export function X01Game({ currentPlayerId, currentDisplayName }: Props) {
           <button className="x01-session-toggle" type="button" onClick={() => setSessionsExpanded((current) => !current)} aria-expanded={sessionsExpanded}>
             <Users /><div><span>Mes sessions</span><h2>Parties en cours</h2></div><b>{activeSessions.length}</b><ChevronDown className={sessionsExpanded ? "open" : ""} />
           </button>
-          {sessionsExpanded ? (activeSessions.length ? <div className="x01-session-list">{activeSessions.map((session) => <button type="button" key={session.id} onClick={() => setPendingSessionCode(session.session_code)} disabled={sessionOpening}>
+          {sessionsExpanded ? (activeSessions.length ? <div className="x01-session-list">{activeSessions.map((session) => <div className="x01-session-row" key={session.id}><button className="x01-session-open" type="button" onClick={() => setPendingSessionCode(session.session_code)} disabled={sessionOpening || deleting}>
             <span className="x01-session-code">{session.session_code}</span>
             <span><strong>{session.starting_score} · {session.play_format === "TEAMS_2V2" ? "2 vs 2" : session.play_format === "SOLO" ? "Solo" : session.play_format === "DUEL" ? "1 vs 1" : session.play_format === "THREE" ? "3 joueurs" : "4 joueurs"}</strong><small>Leg {session.current_leg_number} · volée {session.current_turn}</small></span>
             <em>Choisir →</em>
-          </button>)}</div> : <div className="x01-session-empty">Aucune session active. Crée une nouvelle partie ci-dessous.</div>) : null}
+          </button>{ownedSessionIds.has(session.id) ? <button className="play-delete-button" type="button" aria-label={`Supprimer la session ${session.session_code}`} disabled={sessionOpening || deleting}
+            onClick={() => { setDeleteTarget(session); setDeleteError(""); }}><Trash2 size={16} aria-hidden="true" /><span>Supprimer</span></button> : null}</div>)}</div> : <div className="x01-session-empty">Aucune session active. Crée une nouvelle partie ci-dessous.</div>) : null}
         </article>
       </section>
 
@@ -766,8 +806,9 @@ export function X01Game({ currentPlayerId, currentDisplayName }: Props) {
     <section className="x01-matchbar">
       <div><span>SESSION {game.session_code}</span><strong>{game.starting_score} · {game.play_format === "TEAMS_2V2" ? "2 vs 2" : livePlayers.length + " joueur(s)"} · {game.in_rule === "DOUBLE_IN" ? "Double In" : "Straight In"} · {game.out_rule === "DOUBLE_OUT" ? "Double Out" : "Straight Out"}</strong></div>
       <div className="x01-leg-pill">LEG {game.current_leg_number} · BO{game.best_of_legs}</div>
-      <div className="x01-match-actions"><button type="button" onClick={() => void leaveSession()} disabled={saving}><Users />Mes parties</button>{!isReadOnly ? <button type="button" onClick={cancelGame} disabled={saving}><RotateCcw />Annuler la partie</button> : null}</div>
+      <div className="x01-match-actions"><button type="button" onClick={() => void leaveSession()} disabled={saving || deleting}><Users />Mes parties</button>{game.created_by === currentUserId ? <button type="button" className="play-delete-button" onClick={() => { setDeleteTarget(game); setDeleteError(""); }} disabled={saving || deleting}><Trash2 />Supprimer la partie</button> : null}</div>
     </section>
+    {deletionDialog}
 
     <section className="play-save-panel" aria-label="Synchronisation X01">
       <strong>{isReadOnly ? "Écran de score" : "Saisie des scores"} · session {game.session_code}</strong>
