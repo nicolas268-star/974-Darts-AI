@@ -56,6 +56,16 @@ Aucune règle détaillée n’avait été validée pour les trois nouveaux jeux.
 
 Les tests couvrent les quatre directions de victoire, la gravité, le nul, les colonnes pleines, les reprises de territoire, les variantes du Bull, les fins anticipées, l’immutabilité, tous les formats et l’annulation depuis l’interface.
 
+## Conquête — monde stratégique
+
+Le mode proposé par défaut pour une nouvelle partie de Conquête affiche une carte schématique originale du monde découpée en vingt régions, associées aux secteurs 1 à 20. Les quatre camps disposent de couleurs vives et de symboles distincts. La carte peut être agrandie pour un écran éloigné ; sur mobile, une vue complète, un zoom avec défilement et vingt boutons tactiles donnent accès aux territoires. Sélectionner une région affiche son propriétaire, les marques par camp, les voisins et le gain possible sans enregistrer de lancer.
+
+Les prises restent identiques : simple = une marque, double = deux, triple = trois ; trois marques prennent un territoire libre ou adverse et réinitialisent les marques de tous les camps. Les points valent **2 × territoires possédés + liaisons entre deux territoires du même camp**, chaque liaison comptant une seule fois. Les frontières terrestres et les sept routes maritimes dessinées définissent le voisinage. Une prise isolée apporte deux points, une prise avec un voisin allié trois points, avec deux voisins quatre points. Perdre un territoire retire ses points et ses liaisons ; reprendre plusieurs fois la même zone ne cumule aucun bonus permanent. Tous les territoires peuvent être attaqués, même sans voisin allié.
+
+Victoire immédiate à 12, 18 (défaut) ou 24 points. Solo, deux à quatre camps, et doublettes avec possessions communes. Le graphe, les noms et le dessin sont dans `lib/play/conquest-map.ts` ; la règle sauvegardée `strategy.version = 1` conserve ce voisinage. Les scores sont recalculés à partir des possessions pour éviter toute divergence entre carte, annulation, sauvegarde et affichage synchronisé.
+
+Les anciennes sauvegardes sans `strategy` restent classiques (5, 7 ou 10 territoires pour gagner), avec leur historique et leur condition de victoire. Le sélecteur de mode permet encore de lancer une partie classique. Rejouer conserve le mode et l’objectif de la partie précédente. Aucune migration de base : les données restent dans l’enregistrement versionné existant. Les tests couvrent le graphe connecté, les liaisons terrestres et maritimes, les reprises, la victoire dans les cinq formats, les règles anciennes/nouvelles, les vues 320/390/430/820/1440 px, le clavier, le zoom et l’actualisation de la carte agrandie sur PC depuis le téléphone.
+
 ## Lot 3 — sauvegarde et reprise locales
 
 - Sept jeux : Cricket, Morpion, Horloge, Bob’s 27, Puissance 4, Conquête et Bull 500.

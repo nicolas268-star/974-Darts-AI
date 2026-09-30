@@ -95,7 +95,7 @@ export async function testPlayUniverse(page, screenshot) {
       await undo.click(); await expect(page.getByLabel("Territoire 19 : libre", { exact: true })).toBeVisible();
       await enter("D19"); await next.click(); await enter("T20");
       await expect(page.getByLabel("Territoire 20 : Adversaire", { exact: true })).toBeVisible();
-      await expect(page.locator(".fun-scores article").first()).toHaveAttribute("aria-label", longName + " · 1");
+      await expect(page.locator(".fun-scores article").first()).toHaveAttribute("aria-label", longName + " · 2");
     } else {
       await enter("T20"); await enter("25"); await enter("50");
       await expect(page.locator(".fun-scores article").first()).toHaveAttribute("aria-label", longName + " · 0");

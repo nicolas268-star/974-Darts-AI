@@ -255,6 +255,63 @@ test("Bull 500: 25 option, 19 / both targets, team score and winning overshoot",
 
 
 const local = load("lib/play/local-sessions");
+const world = load("lib/play/conquest-map");
+test("Conquest world: 20 numbered regions, connected undirected graph, visible sea links and no duplicate borders", () => {
+  assert.deepEqual(world.CONQUEST_REGIONS.map(r=>r.id),Array.from({length:20},(_,i)=>i+1));
+  const edges=new Set();
+  for(const [a,b] of world.CONQUEST_LINKS){
+    assert.ok(a>=1&&b<=20&&a<b);const key=a+":"+b;assert.equal(edges.has(key),false);edges.add(key);
+    assert.ok(world.conquestNeighbors(a).includes(b));assert.ok(world.conquestNeighbors(b).includes(a));
+  }
+  const reached=new Set([1]),queue=[1];
+  while(queue.length)for(const neighbor of world.conquestNeighbors(queue.shift()))if(!reached.has(neighbor)){reached.add(neighbor);queue.push(neighbor);}
+  assert.equal(reached.size,20);
+  assert.ok(world.conquestNeighbors(20).includes(19));
+  for(const route of world.CONQUEST_SEA_LINKS)assert.ok(route.path.startsWith("M"));
+});
+test("Conquest strategy: compact territory scores more, each allied border counts only once", () => {
+  const connected=fun.createFunGame("conquest","DUEL",names,{conquestMode:"CONNECTED"});
+  for(const id of [1,2,3])connected.territories[id-1].owner=0;
+  assert.deepEqual(fun.conquestScores(connected),[8,0]);assert.equal(fun.conquestAlliedLinks(connected,0),2);
+  assert.equal(fun.conquestCaptureValue(connected,5,0),3);assert.equal(fun.conquestCaptureValue(connected,20,0),2);assert.equal(fun.conquestCaptureValue(connected,2,0),0);
+  const isolated=fun.createFunGame("conquest","DUEL",names,{conquestMode:"CONNECTED"});
+  for(const id of [1,10,20])isolated.territories[id-1].owner=0;
+  assert.deepEqual(fun.conquestScores(isolated),[6,0]);
+  isolated.territories[18].owner=0;assert.equal(fun.conquestScores(isolated)[0],9,"Maritime neighbor gives one bonus");
+});
+test("Conquest strategy: severing a bridge removes points and recapture cannot farm points", () => {
+  const original=fun.createFunGame("conquest","DUEL",names,{conquestMode:"CONNECTED"});
+  for(const id of [1,2,5])original.territories[id-1].owner=0;
+  original.activeParticipant=1;
+  let cut=fun.applyFunDart(original,dart(2,3));assert.deepEqual(fun.conquestScores(cut),[4,2]);
+  assert.match(cut.log[0].result,/perd 4 points/);assert.deepEqual(fun.conquestScores(original),[8,0],"Undo snapshot remains intact");
+  cut=fun.applyFunDart(cut,dart(0));cut=fun.applyFunDart(cut,dart(0));cut=fun.endFunVisit(cut);
+  const restored=fun.applyFunDart(cut,dart(2,3));assert.deepEqual(fun.conquestScores(restored),[8,0]);
+  assert.match(restored.log[0].result,/\+4 points/);
+});
+for(const format of ["SOLO","DUEL","THREE","FOUR","TEAMS_2V2"]){
+  test("Conquest strategy: immediate points victory and shared team ownership / "+format,()=>{
+    let game=fun.createFunGame("conquest",format,names,{conquestMode:"CONNECTED",conquestPointsGoal:12});
+    for(const id of [2,3,5])game.territories[id-1].owner=0;
+    if(format==="TEAMS_2V2")game.activeParticipant=2;
+    assert.equal(fun.conquestScores(game)[0],8);assert.equal(local.validGame("conquest",game),true);
+    const previous=game;game=fun.applyFunDart(game,dart(6,3));
+    assert.equal(fun.conquestScores(game)[0],12);assert.equal(game.winnerSide,0);assert.equal(game.visitDarts.length,1);assert.equal(game.visitClosed,true);
+    assert.equal(local.validGame("conquest",game),true);assert.equal(fun.applyFunDart(game,dart(7,3)),game);assert.equal(fun.endFunVisit(game),game);
+    assert.equal(fun.conquestScores(previous)[0],8);
+  });
+}
+test("Conquest strategy: save validation accepts classic records and rejects unknown rules or inconsistent victories", () => {
+  const classic=fun.createFunGame("conquest","DUEL",names,{conquestGoal:5});
+  assert.equal(classic.strategy,undefined);assert.equal(local.validGame("conquest",classic),true);
+  const game=fun.createFunGame("conquest","DUEL",names,{conquestMode:"CONNECTED",conquestPointsGoal:24});
+  assert.equal(local.validGame("conquest",game),true);
+  for(const strategy of [null,{version:2,goal:24},{version:1,goal:7},{version:1}])assert.equal(local.validGame("conquest",{...game,strategy}),false);
+  assert.equal(local.validGame("conquest",{...game,winnerSide:0,visitClosed:true}),false);
+  const missingWinner=structuredClone(game);for(let i=0;i<12;i++)missingWinner.territories[i].owner=0;
+  assert.equal(local.validGame("conquest",missingWinner),false);
+  assert.match(local.describeGame(game),/24 points/);assert.match(local.describeGame(classic),/5 territoires/);
+});
 function memoryStorage() {
   const data = new Map();
   return { getItem: key => data.get(key) ?? null, setItem: (key, value) => data.set(key, value), removeItem: key => data.delete(key) };

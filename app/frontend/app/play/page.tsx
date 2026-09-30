@@ -16,7 +16,7 @@ const universes = [
   { id: "fun", label: "02 · ENTRE AMIS", title: "Jeux fun", description: "Une cible traditionnelle, des défis et le plaisir de jouer ensemble.", icon: Gamepad2, tone: "violet",
     games: [
       { href: "/play/connect4", name: "Puissance 4", tag: "1–4 joueurs · 2 vs 2", text: "Visez une colonne, posez votre pion et alignez-en quatre. Mode libre ou doubles uniquement." },
-      { href: "/play/conquest", name: "Conquête", tag: "Variante 974Darts · 1–4 joueurs", text: "Trois marques pour prendre un territoire. Conquérez la carte et reprenez les positions adverses." },
+      { href: "/play/conquest", name: "Conquête", tag: "Monde stratégique · 1–4 joueurs", text: "20 territoires sur la carte du monde. Reliez vos conquêtes pour gagner des points et couper les liaisons adverses." },
       { href: "/play/bull500", name: "Bull 500", tag: "1–4 joueurs · 2 vs 2", text: "Débloquez le score au Bull à chaque volée, puis marquez sur le 20 ou le 19. Objectif : 500." },
       { href: "/play/tictactoe", name: "Morpion", tag: "1–4 joueurs · 2 vs 2", text: "Gagnez des cases et alignez-en trois. Grille renouvelée, mode Normal ou Hard." },
     ] },
