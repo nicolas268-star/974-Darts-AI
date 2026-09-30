@@ -53,6 +53,9 @@
   .stats-responsive .recharts-legend-wrapper { max-width: 100%; }
   .stats-responsive .recharts-default-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 12px; }
   .stats-responsive .recharts-legend-item { max-width: 100%; white-space: normal; font-size: 14px; line-height: 1.5; }
+  /* Anchor popovers inside the chart; long player names must wrap at phone width. */
+  .stats-responsive .recharts-tooltip-wrapper { max-width: 100%; left: 0 !important; top: 0 !important; transform: none !important; }
+  .stats-responsive .recharts-default-tooltip { max-width: 100%; white-space: normal !important; overflow-wrap: anywhere; }
   .stats-responsive :is(.chart-frame, .duo-chart-frame, .compare-radar-frame) { width: 100%; min-width: 0; }
   .stats-responsive .stats-hub-hero { margin-bottom: 28px; }
   .stats-responsive .stats-hub-card { min-height: 0; }
