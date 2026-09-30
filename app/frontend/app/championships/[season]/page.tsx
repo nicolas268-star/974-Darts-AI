@@ -1,4 +1,5 @@
 import { StatsTable } from "@/components/stats/StatsTable";
+import { ChampionshipCharts } from "@/components/stats/ChampionshipCharts";
 import Link from "next/link";
 import { Sidebar } from "@/components/Sidebar";
 import type { ChampionshipHub } from "@/lib/types/sprint14";
@@ -165,6 +166,12 @@ export default async function ChampionshipPage({
                 )}
               </section>
             )}
+
+            <ChampionshipCharts
+              standings={data.standings}
+              rounds={data.round_history ?? []}
+              winPoints={data.rules?.win_points ?? 4}
+            />
 
             <section className="hub-panel">
               <h2>Classement des équipes</h2>

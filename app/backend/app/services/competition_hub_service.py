@@ -406,6 +406,7 @@ class CompetitionHubService:
                     "players": 0,
                 },
                 "standings": [],
+                "round_history": [],
                 "leaders": [],
                 "schedule": official_schedule,
                 "schedule_source": (
@@ -441,6 +442,7 @@ class CompetitionHubService:
             "rules": ranking.get("rules"),
             "summary": summary,
             "standings": ranking.get("standings") or [],
+            "round_history": ranking.get("round_history") or [],
             "leaders": ranked_players[:10],
             "schedule": official_schedule,
             "schedule_source": (

@@ -95,6 +95,17 @@ export type PlayerLeader = {
   best_finish: number | null;
 };
 
+export type ChampionshipRound = {
+  round_id: string;
+  round: string;
+  teams: Array<{
+    team_id: string;
+    points: number | null;
+    cumulative_points: number;
+    played: number;
+  }>;
+};
+
 export type ChampionshipHub = {
   contract_version: string;
   championship: ChampionshipCard;
@@ -107,6 +118,7 @@ export type ChampionshipHub = {
   } | null;
   summary: CompetitionSummary;
   standings: Standing[];
+  round_history?: ChampionshipRound[];
   leaders: PlayerLeader[];
   schedule: Array<{
     round: string;
