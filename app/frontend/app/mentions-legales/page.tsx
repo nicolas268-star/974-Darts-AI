@@ -5,7 +5,7 @@ import "../legal.css";
 
 export const metadata: Metadata = {
   title: "Mentions légales",
-  description: "Mentions légales et informations relatives à l’édition du site 974 Darts AI.",
+  description: "Mentions légales de 974 Darts AI, édité par Nicolas Eric Dupont, entrepreneur individuel sous le nom commercial NDX Performance Lab.",
   alternates: { canonical: "/mentions-legales" },
 };
 
@@ -22,11 +22,11 @@ export default function LegalNoticePage() {
             Informations relatives à l’édition, à l’hébergement et à l’utilisation
             du site {legalIdentity.siteName}.
           </p>
-          <span className="legal-update">Dernière mise à jour : 2 septembre 2026</span>
+          <span className="legal-update">Dernière mise à jour : {legalIdentity.updatedAt}</span>
         </header>
 
         <section className="legal-summary" aria-label="Résumé des mentions légales">
-          <article><strong>Éditeur</strong><span>Nicolas Dupont, à titre personnel</span></article>
+          <article><strong>Éditeur</strong><span>{legalIdentity.businessName} · {legalIdentity.publisherStatus}</span></article>
           <article><strong>Infrastructure</strong><span>OVHcloud, France · Supabase, région Paris</span></article>
           <article><strong>Contact</strong><span>{legalContactEmail}</span></article>
         </section>
@@ -38,14 +38,19 @@ export default function LegalNoticePage() {
             <address>
               <strong>{legalIdentity.publisherName}</strong><br />
               <span>{legalIdentity.publisherStatus}</span><br />
+              Nom commercial : {legalIdentity.businessName}<br />
+              Adresse professionnelle : {legalIdentity.publisherAddress}<br />
+              SIREN : {legalIdentity.siren}<br />
+              SIRET : {legalIdentity.siret}<br />
+              Immatriculation : {legalIdentity.register}<br />
               Directeur de la publication : {legalIdentity.publicationDirector}<br />
-              Courriel : <a href={`mailto:${legalContactEmail}`}>{legalContactEmail}</a>
+              Courriel : <a href={`mailto:${legalContactEmail}`}>{legalContactEmail}</a><br />
+              Téléphone : <a href={legalIdentity.publisherPhoneHref}>{legalIdentity.publisherPhone}</a>
             </address>
             <p className="legal-note">
-              L’éditeur non professionnel a choisi de ne pas publier son adresse
-              personnelle et son numéro de téléphone. Ses éléments d’identification
-              complets ont été communiqués à l’hébergeur, conformément à
-              {" "}<a href="https://www.legifrance.gouv.fr/codes/section_lc/JORFTEXT000000801164/LEGISCTA000006089778/" target="_blank" rel="noreferrer">l’article 1-1 de la loi pour la confiance dans l’économie numérique</a>.
+              Le site {legalIdentity.siteName} est édité dans le cadre de l’activité
+              professionnelle de {legalIdentity.publisherName}, entrepreneur individuel
+              exerçant sous le nom commercial {legalIdentity.businessName}.
             </p>
           </section>
 
