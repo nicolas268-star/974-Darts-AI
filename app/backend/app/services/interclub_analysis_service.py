@@ -1,4 +1,4 @@
-"""Calendar-driven preparation of private match summaries, with durable retries."""
+"""Calendar-driven publication of results/statistics, then private summaries."""
 from contextlib import contextmanager
 from datetime import datetime, time, timedelta, timezone
 import fcntl
@@ -10,7 +10,8 @@ import tempfile
 from uuid import NAMESPACE_URL, uuid5
 
 from .calendar_service import list_events
-from .interclub_analysis_source import REUNION, collect_evening
+from .interclub_analysis_source import REUNION, collect_publication
+from .interclub_publication_service import publish_collected
 from .season_registry_service import registry_status
 from .visibility_service import SummaryUnavailable, ai_configured, compose_summary
 
@@ -70,11 +71,12 @@ def _events():
     return [e for e in list_events()["events"] if e.get("event_type") == "CHAMPIONSHIP" and e.get("status") != "CANCELLED"]
 
 
-def run_due_analyses(*, now=None, events=None, seasons=None, collector=collect_evening, composer=compose_summary):
+def run_due_analyses(*, now=None, events=None, seasons=None, collector=collect_publication, publisher=publish_collected, composer=compose_summary):
     now = now or datetime.now(timezone.utc)
     if now.tzinfo is None:
         raise ValueError("An aware clock is required")
-    events = _events() if events is None else events
+    live_calendar = events is None
+    events = _events() if live_calendar else events
     seasons = registry_status()["seasons"] if seasons is None else seasons
     active = [s for s in seasons if s.get("active")]
     with _worker_lock() as acquired:
@@ -83,6 +85,7 @@ def run_due_analyses(*, now=None, events=None, seasons=None, collector=collect_e
         state = _load()
         records = state.setdefault("records", {})
         state["last_check_at"] = now.isoformat()
+        state["publication_enabled"] = True
         _write(state)
         processed = 0
         for event in events:
@@ -98,7 +101,7 @@ def run_due_analyses(*, now=None, events=None, seasons=None, collector=collect_e
                 record = {}
             if now < due or now > due + WINDOW:
                 continue
-            if record.get("status") == "READY" and (record.get("summary", {}).get("mode") == "ai" or not ai_configured()):
+            if record.get("published_result_id") and record.get("status") == "READY" and (record.get("summary", {}).get("mode") == "ai" or not ai_configured()):
                 continue
             if record.get("next_try_at") and now < datetime.fromisoformat(record["next_try_at"]):
                 continue
@@ -108,14 +111,28 @@ def run_due_analyses(*, now=None, events=None, seasons=None, collector=collect_e
             try:
                 if len(active) != 1:
                     raise SummaryUnavailable("Une seule saison active doit être configurée.")
-                # An API outage retries only editorial selection once the match facts are ready.
-                facts = record.get("summary", {}).get("evening") or collector(event, active[0], key)
+                # Older READY records contain private summaries only: they must pass
+                # publication too. A committed DB transaction can be retried safely
+                # if the worker crashes before saving this file.
+                if not record.get("published_result_id"):
+                    collected = collector(event, active[0], key)
+                    if live_calendar and not any(event_key(e) == key and signature(e) == signature(event) for e in _events()):
+                        raise SummaryUnavailable("Le calendrier a changé pendant la collecte. Nouvelle vérification automatique.")
+                    publication = publisher(collected)
+                    facts = collected["facts"]
+                    facts["url"] = "https://974darts.re/matches/" + publication["result_id"]
+                    record.update(published_result_id=publication["result_id"], published_at=now.isoformat(), facts=facts)
+                    records[key] = record
+                    _write(state)
+                facts = record["facts"]
                 record["summary"] = composer(facts, use_ai=True)
-                record.update(status="READY", message="Analyse prête", prepared_at=now.isoformat())
+                record.update(status="READY", message="Résultat, classement et statistiques publiés · analyse prête", prepared_at=now.isoformat())
             except SummaryUnavailable as exc:
                 record.update(status="WAITING", message=str(exc))
             except Exception:
-                record.update(status="WAITING", message="La source est indisponible ou incohérente. Nouvelle tentative automatique.")
+                message = ("Résultat, classement et statistiques publiés. Résumé en attente de préparation."
+                           if record.get("published_result_id") else "Source ou publication indisponible ou incohérente. Nouvelle tentative automatique.")
+                record.update(status="WAITING", message=message)
             records[key] = record
             processed += 1
             _write(state)
@@ -132,7 +149,7 @@ def available_records():
 
 
 def automatic_summary(result_id, *, use_ai=False):
-    record = next((r for r in available_records() if r["id"] == str(result_id) and r.get("status") == "READY"), None)
+    record = next((r for r in available_records() if r["id"] == str(result_id) and r.get("status") == "READY" and r.get("published_result_id")), None)
     if not record:
         return None
     value = compose_summary(record["summary"]["evening"], use_ai=True) if use_ai else dict(record["summary"])
@@ -143,7 +160,7 @@ def automatic_summary(result_id, *, use_ai=False):
 
 def extend_catalog(catalog, source_results):
     records = available_records()
-    ready = [r for r in records if r.get("status") == "READY"]
+    ready = [r for r in records if r.get("status") == "READY" and r.get("published_result_id")]
     prepared_urls = {r["source_url"] for r in ready}
     replaced = {r["id"] for r in source_results if r.get("source_sheet") in prepared_urls}
     catalog["evenings"] = [e for e in catalog["evenings"] if e["id"] not in replaced]
@@ -156,6 +173,7 @@ def extend_catalog(catalog, source_results):
     future = [due_at(e) for e in _events() if due_at(e) > now]
     heartbeat = _load().get("last_check_at")
     catalog["automation"] = {"time": "23:50", "timezone": "Indian/Reunion", "last_check_at": heartbeat,
+                             "publication_enabled": bool(_load().get("publication_enabled")),
                              "running": bool(heartbeat and now - datetime.fromisoformat(heartbeat) < timedelta(minutes=3)),
                              "next_at": min(future).isoformat() if future else None,
                              "recent": [{k: r.get(k) for k in ("title", "date", "status", "message", "prepared_at", "last_attempt_at")}
