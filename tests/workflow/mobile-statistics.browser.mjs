@@ -22,7 +22,8 @@ export async function testMobileStatistics(page, screenshot) {
       await expect(page.locator('main.stats-responsive')).toBeVisible();
       await page.locator('main h1, main h2, main h3').first().waitFor();
       // Tournament statistics are intentionally behind user-operated disclosures.
-      for (const summary of await page.locator('details.tournament-disclosure:not([open]) > summary').all()) await summary.click();
+      const closedTournamentSections=page.locator('details.tournament-disclosure:not([open]) > summary');
+      while(await closedTournamentSections.count()) await closedTournamentSections.first().click();
       const mobile = page.locator('[data-stats-cards]:visible');
       if (hasCards) {
         await expect(mobile.first()).toBeVisible();
