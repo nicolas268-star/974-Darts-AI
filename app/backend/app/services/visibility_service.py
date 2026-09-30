@@ -43,8 +43,8 @@ def list_evenings(db):
         return {"evenings": [], "ai_available": ai_configured(), "season": None}
     rounds = {r["id"]: r for r in _all(db, "rounds", "id,code,played_on,published", [("season_id", season["id"]), ("published", True)])}
     teams = {t["id"]: t["name"] for t in _all(db, "teams", "id,name")}
-    results = _all(db, "championship_results", "id,round_id,home_team_id,away_team_id,home_score,away_score,detail_status,quality_status", [("season_id", season["id"])])
-    evenings = [{"id": r["id"], "round": rounds[r["round_id"]]["code"], "date": rounds[r["round_id"]].get("played_on"),
+    results = _all(db, "championship_results", "id,round_id,home_team_id,away_team_id,home_score,away_score,detail_status,quality_status,played_on", [("season_id", season["id"])])
+    evenings = [{"id": r["id"], "round": rounds[r["round_id"]]["code"], "date": r.get("played_on") or rounds[r["round_id"]].get("played_on"),
                  "home": teams.get(r["home_team_id"], "Équipe"), "away": teams.get(r["away_team_id"], "Équipe"),
                  "home_score": r["home_score"], "away_score": r["away_score"]}
                 for r in results if r["round_id"] in rounds and r["quality_status"] == "VERIFIED" and r["detail_status"] == "DETAILED"]
@@ -60,7 +60,7 @@ def load_evening(db, result_id):
     rounds = _all(db, "rounds", "id,code,season_id,played_on,published", [("id", result["round_id"])])
     if not rounds or not rounds[0]["published"] or result["quality_status"] != "VERIFIED" or result["detail_status"] != "DETAILED":
         raise SummaryUnavailable("Le résumé nécessite une rencontre publiée, vérifiée et détaillée.")
-    round_row = rounds[0]
+    round_row = {**rounds[0], "played_on": result.get("played_on") or rounds[0].get("played_on")}
     seasons = _all(db, "seasons", "id,name,is_active", [("id", result["season_id"])])
     if not seasons or not seasons[0]["is_active"] or round_row["season_id"] != result["season_id"]:
         raise SummaryUnavailable("Sélectionnez une rencontre de la saison active.")

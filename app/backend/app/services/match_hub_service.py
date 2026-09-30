@@ -82,7 +82,7 @@ def _team_result_row(
         home_team_name,
         away_team_name,
     )
-    database_date = _iso_date(round_row.get("played_on"))
+    database_date = _iso_date(result.get("played_on")) or _iso_date(round_row.get("played_on"))
     played_on = fixture.played_on if fixture else database_date
     encounter_id = encounter_ids.get(
         (result.get("round_id"), home_team_id, away_team_id)
@@ -163,7 +163,7 @@ def team_match_history(
         "championship_results",
         (
             "id,season_id,round_id,home_team_id,away_team_id,home_score,"
-            "away_score,detail_status,quality_status,quality_note,source_sheet"
+            "away_score,detail_status,quality_status,quality_note,source_sheet,played_on"
         ),
         [("season_id", resolved_season_id)],
     )
@@ -693,7 +693,7 @@ def build_match_hub(db: Client, result_id: str) -> dict | None:
         (
             "id,season_id,round_id,home_team_id,away_team_id,home_score,"
             "away_score,detail_status,quality_status,quality_note,source_sheet,"
-            "source_row"
+            "source_row,played_on"
         ),
         [("id", result_id)],
     )
@@ -733,7 +733,7 @@ def build_match_hub(db: Client, result_id: str) -> dict | None:
         home_team_name,
         away_team_name,
     )
-    database_date = _iso_date(round_row.get("played_on"))
+    database_date = _iso_date(result.get("played_on")) or _iso_date(round_row.get("played_on"))
 
     payload = {
         "result": {

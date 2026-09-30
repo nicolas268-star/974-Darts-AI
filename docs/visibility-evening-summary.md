@@ -10,19 +10,28 @@ La dernière rencontre interclubs publiée, détaillée et vérifiée de la sais
 
 L’application n’envoie pas de message directement et ne prétend pas connaître l’état de publication. Aucune intégration non officielle de WhatsApp Web n’est utilisée.
 
-## Préparation automatique les soirs de championnat
+## Publication automatique du championnat
 
-Le service Compose `interclub-analysis` vérifie le calendrier du site au début de chaque minute. Pour chaque événement `CHAMPIONSHIP` non annulé, il déclenche la préparation à **23 h 50, heure de La Réunion (UTC+4)**, à la date effectivement enregistrée au calendrier. Il relit ce calendrier à chaque passage ; un report ou une annulation invalide une analyse préparée pour l’ancienne date.
+Le service Compose `interclub-analysis` vérifie le calendrier au début de chaque minute. Les soirs de rencontre `CHAMPIONSHIP` non annulée, il commence à **23 h 50, heure de La Réunion (UTC+4, soit 19 h 50 UTC)**, puis réessaie toutes les cinq minutes pendant 48 heures si la rencontre est incomplète ou la source indisponible. Un redémarrage reprend ce travail depuis le volume persistant. Un report ou une annulation est relu avant la publication.
 
-Il collecte directement le lien Nakka de la rencontre, dans la ligue de la saison active. Aucun clic d’import n’est nécessaire pour obtenir le résumé dans Visibilité. Il exige 16 simples et 4 doubles terminés, des legs complets, et la concordance des statistiques individuelles et collectives avec les volées. Les identifiants de participants propres à la rencontre sont utilisés ; un identifiant canonique Nakka erroné ne fusionne pas deux joueurs. Les faits viennent de Nakka et le lien de détail conduit à cette source.
+Il lit le détail Nakka de la ligue active, exige les 16 simples et 4 doubles terminés, et recalcule chaque volée. Les résultats, statistiques par joueur et totaux collectifs doivent concorder avec les agrégats Nakka. Les joueurs sont rattachés au registre des licenciés actifs et aux effectifs officiels 2026–2027 : nom complet (ou alias confirmé), équipe et club. Aucun rapprochement approximatif, aucune création de joueur et aucune fusion ne sont effectués. L’identifiant Nakka `opid` est conservé pour audit uniquement ; une erreur comme celle de Yoann/Yvan en J1 ne mélange pas les statistiques.
 
-Si le match est encore en cours, la source indisponible ou incohérente, nouvelle tentative **toutes les 5 minutes pendant 48 heures**, y compris après minuit. Un redémarrage reprend les tentatives en attente. Au-delà de 48 heures, Visibilité indique qu’un contrôle est nécessaire. 23 h 50 est l’heure de déclenchement : le texte est disponible après la collecte et, si configurée, la réponse de l’IA.
+La fonction Supabase `publish_interclub_match`, accessible uniquement au rôle serveur, enregistre dans une même transaction le résultat officiel, les matchs, legs, statistiques individuelles et profils cumulés de saison. Le classement et les pages joueurs/équipes lisent immédiatement ces tables, sans étape manuelle. Les moyennes et First 9 cumulent les points et les fléchettes ; les poids exacts sont conservés. La date propre à chaque rencontre est conservée même lorsque plusieurs matchs d’une journée ont lieu à des dates différentes.
 
-Les analyses prêtes sont conservées dans `/app/data/interclub_analysis.json`, sur le volume persistant existant. Un verrou entre processus évite deux traitements simultanés. Une analyse prête est réutilisée ; si seule l’IA est indisponible, le résumé statistique est conservé et la sélection IA est retentée sans recollecter le match. Le statut visible dans Visibilité inclut l’activité du service, la prochaine soirée et les rencontres en attente.
+Un verrou de saison protège les cumuls. La même source ne peut être publiée deux fois, y compris après un arrêt survenu entre la validation en base et l’enregistrement du fichier d’état. La J1 déjà publiée est reconnue après comparaison de tous ses détails et enrichie uniquement avec les poids First 9 et l’audit automatique. Un résultat existant divergent n’est jamais écrasé : il reste visible et une anomalie est affichée dans Visibilité. Les données historiques de 2026 sont conservées.
 
-Cette préparation concerne les analyses privées et les textes de communication. Elle ne modifie pas les tables officielles de championnat, les classements ni les identités, et ne publie aucun message sur un réseau social. Les procédures de publication des statistiques restent distinctes. Aucune migration Supabase n’est nécessaire.
+Une fois les résultats publiés, le résumé statistique est préparé. La disponibilité de la clé IA n’a aucune incidence sur les résultats, le classement ou les statistiques. Un échec IA relance uniquement la sélection éditoriale. Les anciens états `READY` de la préparation privée passent aussi par la publication : ils ne peuvent pas court-circuiter cette étape.
 
-Déploiement : reconstruire `backend frontend interclub-analysis` et démarrer les trois services. Le service de nuit nécessite une clé OpenAI dans le même fichier d’environnement que le backend pour produire la sélection IA ; sans clé, il prépare une analyse statistique explicite. Après modification de cette clé, recréer **backend et interclub-analysis**. Le bouton de partage WhatsApp conserve son fonctionnement.
+Le statut dans Visibilité indique l’activité de publication, la prochaine soirée et les attentes. Le partage WhatsApp et le bloc Facebook conservent leur fonctionnement : aucun message n’est envoyé automatiquement sur les réseaux sociaux.
+
+### Déploiement
+
+1. Appliquer `supabase/release_migrations/MIGRATION_SUPABASE_V21_0_24_INTERCLUB_AUTOMATIC.sql` avant le code (migration additive : colonnes First 9, date de rencontre, audit privé et fonction serveur).
+2. Vérifier/adopter la J1 existante avec le collecteur et `publish_collected`, sans nouvelle rencontre ni doublon.
+3. Reconstruire et démarrer `backend frontend interclub-analysis`. Ils partagent `/var/lib/974darts/backend-data`, accessible à l’UID 10001.
+4. Vérifier le fichier `interclub_analysis.json` : `publication_enabled: true`, `last_check_at` récent ; surveiller les entrées `published_result_id` après les rencontres.
+
+Aucun ajout de clé IA n’est requis pour cette automatisation. Pour la sélection éditoriale IA seulement, utiliser la même configuration OpenAI sur `backend` et `interclub-analysis`, puis recréer ces deux services après changement de clé.
 
 ## Données et IA
 
@@ -43,13 +52,14 @@ VISIBILITY_AI_MODEL=gpt-5-mini
 
 Le modèle doit prendre en charge Responses, Structured Outputs et `reasoning.effort=low`. Les appels utilisent `store=false`, 1 800 tokens de sortie maximum et un délai de 35 secondes. Une génération par contenu et modèle est conservée dans `/app/data/visibility` (volume backend existant). Toute modification des faits invalide cette entrée. Les consultations seules ne déclenchent aucun appel IA.
 
-Après ajout/modification d’une variable, recréer le conteneur backend via Compose. Le code nécessite aussi la reconstruction du frontend. Aucune migration SQL et aucune modification Caddy.
+Après ajout/modification d’une variable, recréer le conteneur backend via Compose. Le code nécessite aussi la reconstruction du frontend. La migration de publication ci-dessus doit précéder cette version. La configuration Caddy est conservée.
 
 ## Contrôles
 
 - Accès au proxy réservé à l’administrateur autorisé ; contrôle de l’origine sur POST ; UUID et taille de requête validés.
 - API interne protégée par le jeton serveur ; réponse privée sans cache navigateur.
 - Tests métier : calcul pondéré, résultat incohérent, détail incomplet, données non publiées, saison inactive, absence/échec IA, cache invalidé et contrat Responses.
+- Tests transactionnels isolés : rollback après échec final, rôles publics refusés, horaire, données incomplètes, idempotence, adoption J1, cumuls de deux rencontres et historique inchangé.
 - Essai sur les données J1 du 28/09/2026 : 17–3, 20 matchs, 45 legs, 10 joueurs, moyenne Emmanuel 50,82, finish 88, un 180 de Yoann.
 - Test navigateur isolé : partage intercepté, conservation des modifications, version Facebook, copie, refus utilisateur non autorisé/CSRF et affichage mobile. Aucun message envoyé.
 

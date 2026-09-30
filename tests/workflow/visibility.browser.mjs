@@ -10,7 +10,7 @@ export async function testVisibility(admin, director, screenshot) {
   let automaticReady=false;
   await admin.route('**/api/admin/visibility/**',async route=>{
     const url=new URL(route.request().url());
-    if(url.pathname.endsWith('/evenings'))return route.fulfill({json:{evenings:[evening],ai_available:true,automation:{running:true,next_at:'2026-09-30T23:50:00+04:00',recent:[{title:'J1 · rencontre tardive',status:'WAITING',message:'Le match est encore en cours.',retry_expired:false}]}}});
+    if(url.pathname.endsWith('/evenings'))return route.fulfill({json:{evenings:[evening],ai_available:true,automation:{running:true,publication_enabled:true,next_at:'2026-09-30T23:50:00+04:00',recent:[{title:'J1 · rencontre tardive',status:'WAITING',message:'Le match est encore en cours.',retry_expired:false}]}}});
     if(route.request().method()==='POST'){
       expect(route.request().postDataJSON()).toEqual({result_id:id});generated++;
       return route.fulfill({json:{...summary,mode:'ai',note:'Analyse éditoriale IA : faits vérifiés.'}});
@@ -19,7 +19,8 @@ export async function testVisibility(admin, director, screenshot) {
   });
   await admin.goto(origin+'/admin/visibility');
   await expect(admin.getByLabel('Texte pour le groupe',{exact:false})).toHaveValue(summary.whatsapp,{timeout:30000});
-  await expect(admin.getByText('Préparation automatique · 23 h 50 · heure de La Réunion')).toBeVisible();
+  await expect(admin.getByText('Championnat automatique · dès 23 h 50 · heure de La Réunion')).toBeVisible();
+  await expect(admin.getByText(/résultats, classement et statistiques des joueurs et des équipes sont mis à jour/)).toBeVisible();
   await admin.evaluate(()=>{
     window.__visibilityShares=[];
     window.open=()=>({opener:null,document:{title:''},closed:false,close(){this.closed=true},location:{replace(url){window.__visibilityShares.push(url)}}});

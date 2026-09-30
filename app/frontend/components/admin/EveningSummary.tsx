@@ -7,7 +7,7 @@ import styles from "@/app/admin/visibility/visibility.module.css";
 type Evening = { id: string; round: string; date: string | null; home: string; away: string; home_score: number; away_score: number };
 type Summary = { whatsapp: string; facebook: string; mode: "ai" | "statistics"; note: string; ai_available: boolean;
   evening: { url: string; matches: number; legs: number; players: number }; fingerprint: string };
-type Automation = { running: boolean; next_at: string | null;
+type Automation = { running: boolean; publication_enabled?: boolean; next_at: string | null;
   recent: { title: string; status: string; message: string; retry_expired: boolean }[] };
 
 async function responseJson<T>(response: Response): Promise<T> {
@@ -113,8 +113,8 @@ export default function EveningSummary({ onFacebookReady }: { onFacebookReady: (
     <header><div><span>Groupe interne · Fléchettes Réunion</span><h2 id="evening-title"><MessageCircle size={26}/> Résumé de soirée WhatsApp</h2></div><span className={styles.badge}>{summary?.mode === "ai" ? "Synthèse IA" : "Analyse statistique"}</span></header>
     <p className={styles.intro}>Choisis une rencontre terminée. Retrouve le résultat, les temps forts et les performances à partager au groupe.</p>
     {automation && <div className={styles.automation}>
-      <b>Préparation automatique · 23 h 50 · heure de La Réunion</b>
-      <p>{automation.running ? "Active : les soirs de match du calendrier, le résumé se prépare sans intervention." : "Le traitement automatique n’a pas confirmé son activité récemment."}
+      <b>Championnat automatique · dès 23 h 50 · heure de La Réunion</b>
+      <p>{automation.running && automation.publication_enabled ? "Actif : les soirs de match du calendrier, résultats, classement et statistiques des joueurs et des équipes sont mis à jour sans intervention. Le résumé est ensuite préparé." : "La publication automatique n’a pas confirmé son activité récemment."}
         {automation.next_at && <> Prochaine soirée : {new Date(automation.next_at).toLocaleDateString("fr-FR", { timeZone: "Indian/Reunion" })}.</>}</p>
       {automation.recent.filter((item) => item.status !== "READY").map((item) => <p key={item.title}><strong>{item.title}</strong> — {item.message} {item.retry_expired ? "Contrôle nécessaire après 48 h d’attente." : "Nouvelle vérification toutes les 5 minutes."}</p>)}
     </div>}

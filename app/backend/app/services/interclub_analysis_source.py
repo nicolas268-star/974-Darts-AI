@@ -1,4 +1,4 @@
-"""Read-only Nakka match analysis. Never changes official championship tables."""
+"""Collect and reconcile complete Nakka matches before any publication."""
 from collections import Counter, defaultdict
 from datetime import datetime, timedelta, timezone
 import json
@@ -26,7 +26,7 @@ def request_json(base, command, params, *, post=False):
     return json.loads(raw)
 
 
-def collect_evening(event, season, result_id, fetch=request_json):
+def collect_evening(event, season, result_id, fetch=request_json, *, with_details=False):
     url, source_id = validate_direct_event_url(event.get("source_url", ""))
     if "/league/season.php" not in url:
         raise SummaryUnavailable("Un lien de rencontre interclubs Nakka est requis.")
@@ -48,10 +48,14 @@ def collect_evening(event, season, result_id, fetch=request_json):
     after = fetch(TOURNAMENT_API, "get_data", {"tdid": source_id})
     if after.get("updateTime") != data.get("updateTime"):
         raise SummaryUnavailable("Nakka est encore en cours de mise à jour.")
-    return source_facts(event, season, result_id, data, sets, players, teams)
+    return source_facts(event, season, result_id, data, sets, players, teams, with_details=with_details)
 
 
-def source_facts(event, season, result_id, data, sets, player_totals, team_totals):
+def collect_publication(event, season, result_id):
+    return collect_evening(event, season, result_id, with_details=True)
+
+
+def source_facts(event, season, result_id, data, sets, player_totals, team_totals, *, with_details=False):
     def require(condition, message):
         if not condition:
             raise SummaryUnavailable(message)
@@ -87,7 +91,7 @@ def source_facts(event, season, result_id, data, sets, player_totals, team_total
             winner = leg["winner"]
             winners[winner] += 1
             lid = f"{match['mid']}:{index}"
-            legs.append({"id": lid, "match_id": match["mid"], "status": "VALID", "winner_team_id": sides[winner]["tpid"]})
+            legs.append({"id": lid, "match_id": match["mid"], "leg_number": index, "status": "VALID", "winner_team_id": sides[winner]["tpid"]})
             require(len(leg["playerData"]) == 2, "Détail du leg incomplet.")
             for side, visits in enumerate(leg["playerData"]):
                 require(visits and visits[0]["left"] == 501, "Format autre que 501.")
@@ -102,6 +106,8 @@ def source_facts(event, season, result_id, data, sets, player_totals, team_total
                     require(0 <= score <= 180 and 1 <= darts <= 3, "Volée Nakka incohérente.")
                     row["score"] += score
                     row["darts"] += darts
+                    row["scores_80"] += 80 <= score <= 99
+                    row["no_score"] += score == 0
                     if turn < 3:
                         row["f9Score"] += score
                         row["f9Darts"] += darts
@@ -118,10 +124,14 @@ def source_facts(event, season, result_id, data, sets, player_totals, team_total
                     total["leg"] += 1
                     total["winLeg"] += side == winner
                     stats.append({"leg_id": lid, "player_id": oid, "team_id": sides[side]["tpid"], "score": row["score"],
-                                  "darts_thrown": row["darts"], "finish": row["highOut"], "scores_180": row["ton80"]})
+                                  "darts_thrown": row["darts"], "finish": row["highOut"], "scores_180": row["ton80"],
+                                  "first_9_score": row["f9Score"], "first_9_darts": row["f9Darts"],
+                                  "scores_170": row["ton70"], "scores_140": row["ton40"], "scores_100": row["ton00"],
+                                  "scores_80": row["scores_80"], "no_score": row["no_score"], "leg_won": side == winner})
         require(len(match["legData"]) in (2, 3) and max(winners.values()) == 2, "Score de match incomplet.")
         require(all(winners[i] == sides[i]["winLegs"] for i in (0, 1)), "Score et détail des legs divergents.")
-        matches.append({"id": match["mid"], "mode": "D" if mode == "double" else "S", "winner_team_id": sides[max(winners, key=winners.get)]["tpid"]})
+        sequence = (number if number <= 8 else number + 2) if mode == "simple" else (8 + number if number <= 2 else 16 + number)
+        matches.append({"id": match["mid"], "number": sequence, "mode": "D" if mode == "double" else "S", "winner_team_id": sides[max(winners, key=winners.get)]["tpid"]})
     expected = {("simple", n) for n in range(1, 17)} | {("double", n) for n in range(1, 5)}
     require(labels == expected, "Les 16 simples et 4 doubles doivent être présents.")
     active = {oid: p for oid, p in player_totals.items() if isinstance(p, dict) and p.get("leg", 0) > 0}
@@ -140,4 +150,16 @@ def source_facts(event, season, result_id, data, sets, player_totals, team_total
                           {oid: active[oid]["oname"] for oid in aggregate})
     # The detailed source is public on Nakka; there may not yet be a site match page.
     evening.update(url=event["source_url"], home_score=wins[home], away_score=wins[away], source="NAKKA", source_updated_at=data.get("updateTime"))
+    if with_details:
+        return {"facts": evening, "publication": {
+            "version": 1, "event_id": data["tdid"], "source_url": event["source_url"],
+            "season": season["key"], "league_id": data["lgid"], "round": code[1].upper(),
+            "date": source_date, "title": data["title"], "score": [wins[home], wins[away]],
+            "teams": [{"source_id": t, "name": names[t]} for t in (home, away)],
+            "players": [{"source_id": oid, "source_name": active[oid]["oname"],
+                         "source_opid": active[oid].get("opid"), "team_id": active[oid]["tpid"],
+                         **aggregate[oid]} for oid in sorted(aggregate)],
+            "matches": sorted(matches, key=lambda m: m["number"]),
+            "legs": sorted(legs, key=lambda l: l["id"]),
+            "stats": sorted(stats, key=lambda s: (s["leg_id"], s["player_id"]))}}
     return evening

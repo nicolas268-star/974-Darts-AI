@@ -85,12 +85,14 @@ class ScheduleTests(unittest.TestCase):
         patch.object(service, "registry_status", return_value={"seasons": [SEASON]}).start()
         p = json.loads(FIXTURE.read_text())
         self.facts = source_facts(EVENT, SEASON, service.event_key(EVENT), p["data"], p["sets"], p["players"], p["teams"])
-        self.collect = Mock(return_value=self.facts)
+        self.collected = {"facts": self.facts, "publication": {"validated": True}}
+        self.collect = Mock(return_value=self.collected)
+        self.publisher = Mock(return_value={"status": "PUBLISHED", "result_id": "published-id"})
         self.composer = Mock(side_effect=compose_summary)
         self.due = datetime(2026, 9, 28, 19, 50, tzinfo=timezone.utc)
 
     def run_at(self, now, events=None):
-        return service.run_due_analyses(now=now, events=[EVENT] if events is None else events, seasons=[SEASON], collector=self.collect, composer=self.composer)
+        return service.run_due_analyses(now=now, events=[EVENT] if events is None else events, seasons=[SEASON], collector=self.collect, publisher=self.publisher, composer=self.composer)
 
     def test_exact_local_boundary_and_idempotence_after_restart(self):
         self.assertEqual(service.due_at(EVENT), self.due)
@@ -103,7 +105,7 @@ class ScheduleTests(unittest.TestCase):
         self.assertEqual(prepared["evening"]["matches"], 20)
 
     def test_late_match_retries_after_midnight_and_survives_restart(self):
-        self.collect.side_effect = [SummaryUnavailable("Match en cours"), self.facts]
+        self.collect.side_effect = [SummaryUnavailable("Match en cours"), self.collected]
         self.run_at(self.due)
         self.assertIsNone(service.automatic_summary(service.event_key(EVENT)))
         self.assertEqual(self.run_at(self.due + timedelta(minutes=4)), 0)
@@ -124,7 +126,7 @@ class ScheduleTests(unittest.TestCase):
             self.assertEqual(self.run_at(self.due, [postponed]), 0)
 
     def test_one_failure_does_not_block_other_matches_and_retry_expires(self):
-        self.collect.side_effect = [RuntimeError("upstream secret"), self.facts]
+        self.collect.side_effect = [RuntimeError("upstream secret"), self.collected]
         self.assertEqual(self.run_at(self.due, [EVENT, {**EVENT, "id": "second"}]), 2)
         state = service._load()
         self.assertEqual([r["status"] for r in state["records"].values()], ["WAITING", "READY"])
@@ -153,6 +155,25 @@ class ScheduleTests(unittest.TestCase):
             self.run_at(self.due + timedelta(minutes=10))
         self.assertEqual(self.collect.call_count, 1)
         self.assertEqual(self.composer.call_count, 2)
+        self.assertEqual(self.publisher.call_count, 1)
+
+    def test_preexisting_private_summary_still_requires_publication(self):
+        service._write({"records": {service.event_key(EVENT): {"signature": service.signature(EVENT),
+            "status": "READY", "summary": compose_summary(self.facts)}}})
+        self.run_at(self.due)
+        self.publisher.assert_called_once_with(self.collected)
+        self.assertEqual(service._load()["records"][service.event_key(EVENT)]["published_result_id"], "published-id")
+
+    def test_publication_failure_retries_and_ai_never_blocks_statistics(self):
+        self.publisher.side_effect = [RuntimeError("DB offline"), {"status": "UNCHANGED", "result_id": "published-id"}]
+        self.run_at(self.due)
+        self.composer.assert_not_called()
+        self.composer.side_effect = [RuntimeError("AI offline"), compose_summary(self.facts)]
+        self.run_at(self.due + timedelta(minutes=5))
+        self.assertEqual(service.available_records()[0]["published_result_id"], "published-id")
+        self.run_at(self.due + timedelta(minutes=10))
+        self.assertEqual(self.publisher.call_count, 2)
+        self.assertEqual(service.available_records()[0]["status"], "READY")
 
 
 if __name__ == "__main__":
