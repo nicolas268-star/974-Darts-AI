@@ -21,6 +21,8 @@ export async function testMobileStatistics(page, screenshot) {
       expect(response.status(), route).toBe(200);
       await expect(page.locator('main.stats-responsive')).toBeVisible();
       await page.locator('main h1, main h2, main h3').first().waitFor();
+      // Tournament statistics are intentionally behind user-operated disclosures.
+      for (const summary of await page.locator('details.tournament-disclosure:not([open]) > summary').all()) await summary.click();
       const mobile = page.locator('[data-stats-cards]:visible');
       if (hasCards) {
         await expect(mobile.first()).toBeVisible();
@@ -34,6 +36,8 @@ export async function testMobileStatistics(page, screenshot) {
       }
       for (const width of [320, 390, 430]) {
         await page.setViewportSize({width,height:844});
+        // Recharts updates its measured width in ResizeObserver, after CSS reflow.
+        await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
         const overflow = await page.evaluate(() => {
           if (document.documentElement.scrollWidth <= innerWidth + 1) return [];
           return [...document.querySelectorAll('body *')].filter(el => {
@@ -47,6 +51,7 @@ export async function testMobileStatistics(page, screenshot) {
       }
       await page.setViewportSize({width:390,height:844});
       if(hasCards) await mobile.locator('details').evaluateAll(nodes=>nodes.forEach(node=>{node.open=false}));
+      await page.evaluate(()=>window.scrollTo(0,0));
       await screenshot(page,`mobile-stats-${index}-top.png`,{fullPage:false});
       if(hasCards) {
         await mobile.first().scrollIntoViewIfNeeded();
@@ -56,6 +61,12 @@ export async function testMobileStatistics(page, screenshot) {
           await toggle.click();
           await expect(mobile.locator('details[open]').first()).toBeVisible();
         }
+      }
+      const chart=page.locator('.player-chart-card .chart-frame, .duo-radar-premium-chart, .compare-radar-frame').first();
+      if(await chart.count()) {
+        await page.setViewportSize({width:320,height:844});
+        await chart.scrollIntoViewIfNeeded();
+        await screenshot(page,`mobile-stats-${index}-chart-320.png`,{fullPage:false});
       }
       // Same route resized to desktop must retain its semantic table.
       await page.setViewportSize({width:1440,height:1000});
