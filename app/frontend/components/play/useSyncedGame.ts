@@ -16,7 +16,8 @@ export function useSyncedGame<G extends LocalGame>(kind: LocalKind, userId: stri
   const [mode, setMode] = useState<"loading" | "local" | "cloud">("loading");
   const [view, setView] = useState<SyncView>(initial);
   const [link, setLink] = useState("");
-  const state = useRef(initial), device = useRef(""), mounted = useRef(false), inFlight = useRef(false), reading = useRef(false), pending = useRef<CloudCommand | null>(null);
+  const [device, setDevice] = useState("");
+  const state = useRef(initial), mounted = useRef(false), inFlight = useRef(false), reading = useRef(false), pending = useRef<CloudCommand | null>(null);
   const backupKey = "974darts:cloud:backup:v1:" + userId + ":" + kind;
   const pendingKey = "974darts:cloud:pending:v1:" + userId + ":" + kind;
   const publish = useCallback((next: SyncView) => {
@@ -65,10 +66,10 @@ export function useSyncedGame<G extends LocalGame>(kind: LocalKind, userId: stri
   }, [kind, pendingKey, publish, accept, activate]);
   useEffect(() => {
     mounted.current = true;
-    device.current = crypto.randomUUID(); // New page = new writer identity, even after duplicating a tab.
     let alive = true;
     Promise.resolve().then(() => {
       if (!alive) return;
+      setDevice(crypto.randomUUID()); // New page = new writer identity, even after duplicating a tab.
       const url = new URL(window.location.href); url.searchParams.set("sync", "1"); setLink(url.toString());
       const active = new URLSearchParams(window.location.search).get("sync") === "1";
       setMode(active ? "cloud" : "local");
@@ -101,9 +102,9 @@ export function useSyncedGame<G extends LocalGame>(kind: LocalKind, userId: stri
     window.addEventListener("online", poll); window.addEventListener("focus", poll); document.addEventListener("visibilitychange", poll);
     return () => { alive = false; window.clearInterval(timer); window.removeEventListener("online", poll); window.removeEventListener("focus", poll); document.removeEventListener("visibilitychange", poll); };
   }, [mode, refresh]);
-  const canWrite = mode === "cloud" && view.ready && !view.busy && !view.error && !view.observing && view.row?.writer_device === device.current;
+  const canWrite = mode === "cloud" && view.ready && !view.busy && !view.error && !view.observing && view.row?.writer_device === device;
   function command(action: CloudCommand["action"], record: CloudCommand["record"] = null) {
-    return { kind, expected: state.current.row?.revision ?? 0, device: device.current, command: crypto.randomUUID(), action, record };
+    return { kind, expected: state.current.row?.revision ?? 0, device: device, command: crypto.randomUUID(), action, record };
   }
   async function enable() {
     if (inFlight.current || local.controls.busy || local.controls.problem) return;
@@ -121,7 +122,7 @@ export function useSyncedGame<G extends LocalGame>(kind: LocalKind, userId: stri
   }
   function change(update: (session: LocalSession<G> | null) => LocalSession<G> | null) {
     const current = state.current;
-    if (!canWrite || inFlight.current || pending.current || !current.row || current.row.writer_device !== device.current) return;
+    if (!canWrite || inFlight.current || pending.current || !current.row || current.row.writer_device !== device) return;
     const session = update(current.row.record.current as LocalSession<G> | null);
     if (session === current.row.record.current) return;
     void send(command("SAVE", withSession(current.row.record, session)));
