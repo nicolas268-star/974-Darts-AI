@@ -104,7 +104,16 @@ export async function testPlaySync(browser, source, screenshot) {
   expect((await phone.request.post(base+'/api/play/sync',{headers:{Origin:'https://foreign.invalid'},data:{}})).status()).toBe(403);
   expect((await phone.request.post(base+'/api/play/sync',{headers:{Origin:base},data:{kind:'cricket'}})).status()).toBe(400);
   const anon=await browser.newContext({bypassCSP:true});
-  try {expect((await anon.request.get(base+'/api/play/sync')).status()).toBe(401);}finally{await anon.close();}
+  try {
+   expect((await anon.request.get(base+'/api/play/sync')).status()).toBe(401);
+   anon.setDefaultTimeout(20000);
+   const joining=await anon.newPage();
+   await joining.goto(base+'/play/cricket?sync=1');
+   await joining.waitForURL('**/login?next=*');
+   expect(new URL(joining.url()).searchParams.get('next')).toBe('/play/cricket?sync=1');
+   await joining.locator('input[type=email]').fill('admin@example.invalid');await joining.locator('input[type=password]').fill('preview-only');await joining.locator('form button').first().click();
+   await joining.waitForURL('**/play/cricket?sync=1');await counter(joining,0);await screen(joining);
+  }finally{await anon.close();}
   const other=await browser.newContext({bypassCSP:true});const otherPage=await other.newPage();
   try {
    await otherPage.goto(base+'/login');await otherPage.locator('input[type=email]').fill('director@example.invalid');await otherPage.locator('input[type=password]').fill('preview-only');await otherPage.locator('form button').first().click();await otherPage.waitForURL('**/directeur-sportif',{timeout:30000});

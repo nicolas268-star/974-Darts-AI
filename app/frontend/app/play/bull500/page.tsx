@@ -8,7 +8,8 @@ import "../fun-game.css";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Jouer à Bull 500", description: "Débloquez le score au Bull puis faites la course à 500.", robots: { index: false, follow: false } };
 
-export default async function Page() {
-  const auth = await requireUser();
+export default async function Page({ searchParams }: { searchParams: Promise<{ sync?: string }> }) {
+  const sync = (await searchParams).sync === "1";
+  const auth = await requireUser("/play/bull500" + (sync ? "?sync=1" : ""));
   return <div className="dashboard"><Sidebar /><main className="main fun-page"><FunGame key={auth.user!.id} userId={auth.user!.id} kind="bull500" currentDisplayName={auth.profile?.display_name ?? auth.user?.email ?? "Joueur 1"} /></main></div>;
 }

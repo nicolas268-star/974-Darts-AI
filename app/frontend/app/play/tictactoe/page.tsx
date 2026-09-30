@@ -13,8 +13,9 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function TicTacToePage() {
-  const auth = await requireUser();
+export default async function TicTacToePage({ searchParams }: { searchParams: Promise<{ sync?: string }> }) {
+  const sync = (await searchParams).sync === "1";
+  const auth = await requireUser("/play/tictactoe" + (sync ? "?sync=1" : ""));
   return (
     <div className="dashboard">
       <Sidebar />
