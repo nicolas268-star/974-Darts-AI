@@ -68,7 +68,10 @@ export async function testPlayUniverse(page, screenshot) {
     const turn = page.getByRole("region", { name: "Saisie de la volée" });
     const enter = async (value) => {
       const field = turn.getByLabel("Fléchette", { exact: true });
+      // The keyboard stays editable while saving; submissions are gated by aria-busy.
+      await expect(turn.locator(".play-dart-entry")).toHaveAttribute("aria-busy", "false");
       await field.fill(value); await field.press("Enter");
+      await expect(field).toHaveValue("");
     };
     const undo = turn.getByRole("button", { name: "Annuler la dernière action", exact: true });
     const next = turn.getByRole("button", { name: /Joueur suivant/ });
