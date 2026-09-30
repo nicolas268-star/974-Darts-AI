@@ -26,8 +26,8 @@ try {
  await db.exec(`insert into committee_ranking_events(id,tournament_code,season_key,title,event_date,ranking_category,ranking_kind,source_url,status,published_by,published_at) values ('club-open-kaz-2026-09-13','T5','2026-2027','Historique T5','2026-09-13','E','CLUB_SINGLE','https://n01darts.com/n01/tournament/comp.php?id=t_historical','PUBLISHED','${admin}','2026-09-15T10:57:00Z')`);
  for (const [i,points] of [10,8,6,6,4,4,4,4,2,2,0,0,0,0,0,0].entries()) await query("insert into committee_ranking_results(event_id,player_name,club,gender,placement,points,display_order,identity_id) values('club-open-kaz-2026-09-13',$1,'Kaz A Darts 974','M','ROUND_OF_16',$2,$3,$4)",['Historique '+i,points,i+1,i<13?randomUUID():null]);
  await db.exec("insert into player_identities select identity_id,'Nom officiel historique','ACTIVE' from committee_ranking_results where display_order=1");
- // The legacy X01 schema is exercised separately by x01-creation.test.mjs.
-for(const file of readdirSync(resolve(root,'supabase/migrations')).sort().filter(file=>file!=='20260930121932_fix_x01_creation_returning.sql')) await db.exec(read('supabase/migrations/'+file));
+ // X01 and interclub have separate schemas, exercised by x01-creation.test.mjs and interclub.test.mjs.
+for(const file of readdirSync(resolve(root,'supabase/migrations')).sort().filter(file=>!['20260930121932_fix_x01_creation_returning.sql','20260930180153_interclub_evening_schedule.sql'].includes(file))) await db.exec(read('supabase/migrations/'+file));
  const initial=await pub();
  check(initial.events[0].results.length===16 && initial.events[0].results.reduce((a,b)=>a+b.points,0)===50,'Historical 16 rows / 50 points preserved');
  check(initial.events[0].results[0].player_name==='Nom officiel historique','Previously displayed canonical name preserved');

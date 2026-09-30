@@ -7,7 +7,7 @@ import "../fun-game.css";
 import "./conquest.css";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Jouer à Conquête", description: "Conquérez un monde de 20 territoires + Bull et reliez vos positions pour gagner des points.", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Jouer à Conquête", description: "Conquête classique, stratégique, Full ou Ultra : 20 territoires et le Bull, avec des finishes 501 de 2 à 78 en Ultra.", robots: { index: false, follow: false } };
 
 export default async function Page({ searchParams }: { searchParams: Promise<{ sync?: string }> }) {
   const sync = (await searchParams).sync === "1";
