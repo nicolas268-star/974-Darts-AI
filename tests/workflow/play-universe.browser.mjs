@@ -7,7 +7,7 @@ export async function testPlayUniverse(page, screenshot) {
   await page.setViewportSize({width:1440,height:1000});
   await page.goto("http://127.0.0.1:3008/play");
   await expect(page.getByRole("heading",{name:"Univers Jeux"})).toBeVisible();
-  await expect(page.locator(".play-universe-game")).toHaveCount(5);
+  await expect(page.locator(".play-universe-game")).toHaveCount(8);
   await screenshot(page,"play-universe-desktop.png");
   await page.goto("http://127.0.0.1:3008/play/cricket");
   await page.getByRole("button",{name:/^4 joueurs/}).click();
@@ -56,6 +56,82 @@ export async function testPlayUniverse(page, screenshot) {
     await page.getByRole("button",{name:/Joueur suivant/}).click();
     await expect(page.getByText("0/3 fléchettes jouées",{exact:true})).toBeVisible();
   }
+
+
+  for (const path of ["connect4", "conquest", "bull500"]) {
+    await page.setViewportSize({ width: 320, height: 1000 });
+    await page.goto("http://127.0.0.1:3008/play/" + path);
+    await page.getByRole("button", { name: /^4 joueurs/ }).click();
+    await page.getByLabel("Joueur 1", { exact: true }).fill(longName);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), path + " setup 320").toBe(true);
+    await page.getByRole("button", { name: "Lancer la partie →", exact: true }).click();
+    const turn = page.getByRole("region", { name: "Saisie de la volée" });
+    const enter = async (value) => {
+      const field = turn.getByLabel("Fléchette", { exact: true });
+      await field.fill(value); await field.press("Enter");
+    };
+    const undo = turn.getByRole("button", { name: "Annuler la dernière action", exact: true });
+    const next = turn.getByRole("button", { name: /Joueur suivant/ });
+    if (path === "connect4") {
+      await enter("T14");
+      await expect(turn.getByText("1/3 fléchettes jouées", { exact: true })).toBeVisible();
+      await expect(turn.getByText("Non jouée", { exact: true })).toHaveCount(2);
+      await expect(turn.getByLabel("Fléchette", { exact: true })).toBeDisabled();
+      await expect(page.getByRole("cell", { name: "Ligne 6, secteur 14 : " + longName, exact: true })).toBeVisible();
+      await next.click(); await expect(turn.getByRole("heading", { name: "Adversaire", exact: true })).toBeVisible();
+      await undo.click(); await expect(turn.getByText("1/3 fléchettes jouées", { exact: true })).toBeVisible();
+      await undo.click(); await expect(page.getByRole("cell", { name: "Ligne 6, secteur 14 : vide", exact: true })).toBeVisible();
+      await expect(turn.getByLabel("Fléchette", { exact: true })).toBeEnabled();
+      for (let i = 0; i < 3; i++) await enter("0");
+      await expect(turn.getByText("3/3 fléchettes jouées", { exact: true })).toBeVisible();
+    } else if (path === "conquest") {
+      await enter("T20"); await enter("19"); await enter("D19");
+      await expect(page.getByLabel("Territoire 20 : " + longName, { exact: true })).toBeVisible();
+      await expect(page.getByLabel("Territoire 19 : " + longName, { exact: true })).toBeVisible();
+      await expect(turn.getByText("3/3 fléchettes jouées", { exact: true })).toBeVisible();
+      await undo.click(); await expect(page.getByLabel("Territoire 19 : libre", { exact: true })).toBeVisible();
+      await enter("D19"); await next.click(); await enter("T20");
+      await expect(page.getByLabel("Territoire 20 : Adversaire", { exact: true })).toBeVisible();
+      await expect(page.locator(".fun-scores article").first()).toHaveAttribute("aria-label", longName + " · 1");
+    } else {
+      await enter("T20"); await enter("25"); await enter("50");
+      await expect(page.locator(".fun-scores article").first()).toHaveAttribute("aria-label", longName + " · 0");
+      await expect(turn.getByText("3/3 fléchettes jouées", { exact: true })).toBeVisible();
+      await next.click(); await expect(turn).toContainText("Commencez par le Bull 50");
+      await enter("50"); await enter("T20"); await enter("20");
+      await expect(page.locator(".fun-scores article").nth(1)).toHaveAttribute("aria-label", "Adversaire · 80");
+      await undo.click(); await expect(page.locator(".fun-scores article").nth(1)).toHaveAttribute("aria-label", "Adversaire · 60");
+      await enter("20");
+    }
+    for (const width of [320, 390, 430, 820, 1440]) {
+      await page.setViewportSize({ width, height: 1000 });
+      await expect(page.locator(".fun-scores article")).toHaveCount(4);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), path + " at " + width).toBe(true);
+      if (width === 390 || width === 1440) await screenshot(page, "play-" + path + "-" + width + ".png");
+    }
+  }
+  // Finish a real game, then correct the winning dart and check exit confirmation.
+  await page.setViewportSize({ width: 390, height: 1000 });
+  await page.goto("http://127.0.0.1:3008/play/connect4");
+  await page.getByRole("button", { name: /^Solo/ }).click();
+  await page.getByLabel("Joueur 1", { exact: true }).fill("Alice");
+  await page.getByRole("button", { name: "Lancer la partie →", exact: true }).click();
+  for (const value of ["14", "15", "16", "17"]) {
+    await page.getByLabel("Fléchette", { exact: true }).fill(value);
+    await page.getByLabel("Fléchette", { exact: true }).press("Enter");
+    if (value !== "17") await page.getByRole("button", { name: /Volée suivante/ }).click();
+  }
+  await expect(page.getByRole("heading", { name: "Alice gagne !", exact: true })).toBeVisible();
+  await expect(page.locator(".fun-connect-cell.winning")).toHaveCount(4);
+  await page.getByRole("button", { name: "Annuler la dernière action", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Alice gagne !", exact: true })).toHaveCount(0);
+  await expect(page.getByLabel("Fléchette", { exact: true })).toBeEnabled();
+  await page.getByRole("button", { name: "Quitter la partie", exact: true }).click();
+  await page.getByRole("button", { name: "Continuer la partie", exact: true }).click();
+  await expect(page.locator(".fun-connect-cell.fun-owner-0")).toHaveCount(3);
+  await page.getByRole("button", { name: "Quitter la partie", exact: true }).click();
+  await page.getByRole("button", { name: "Confirmer et quitter", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Lancer la partie →", exact: true })).toBeVisible();
 
   // Browser-only X01 fixture. It never writes to a real Supabase database.
   let game=null,players=[],legs=[],visits=[],throws=[],sequence=0;
@@ -138,5 +214,5 @@ export async function testPlayUniverse(page, screenshot) {
   }finally{await page.unroute(endpoint);}
   page.off("pageerror",onError);
   expect(errors).toEqual([]);
-  console.log("PASS: Univers Jeux, keyboard X01, four-player mobile layouts, triple vs dart count, miss, 3/3 handover and undo in four local games.");
+  console.log("PASS: Univers Jeux, keyboard X01, four-player mobile layouts, triple vs dart count, miss, 3/3 handover undo, Puissance 4 victory, territory capture, Bull 500 scoring and seven local games.");
 }

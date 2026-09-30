@@ -5,13 +5,12 @@ import { DartEntry } from "./DartEntry";
 import { VisitProgress } from "./VisitProgress";
 
 type Props = {
-  player: string; nextPlayer: string; darts: string[]; finished?: boolean;
+  player: string; nextPlayer: string; darts: string[]; finished?: boolean; complete?: boolean;
   onDart: (dart: DartThrow) => void; onNext: () => void;
   onUndo: () => void; canUndo: boolean; hint?: string; defaultMultiplier?: 1 | 2 | 3;
 };
 
-export function TurnPanel({ player, nextPlayer, darts, finished = false, onDart, onNext, onUndo, canUndo, hint, defaultMultiplier }: Props) {
-  const complete = darts.length >= 3;
+export function TurnPanel({ player, nextPlayer, darts, finished = false, complete = darts.length >= 3, onDart, onNext, onUndo, canUndo, hint, defaultMultiplier }: Props) {
   return <section className="play-turn-panel" aria-label="Saisie de la volée">
     <header><div><small>{finished ? "DERNIER LANCER" : "AU LANCER"}</small><h2>{player}</h2>{hint ? <p>{hint}</p> : null}</div>
       {!finished ? <span>Ensuite : <b>{nextPlayer}</b></span> : null}

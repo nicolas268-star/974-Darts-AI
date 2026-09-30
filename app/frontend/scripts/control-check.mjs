@@ -17,6 +17,9 @@ const requiredPages = [
   "app/play/tictactoe/page.tsx",
   "app/play/bob27/page.tsx",
   "app/play/clock/page.tsx",
+  "app/play/connect4/page.tsx",
+  "app/play/conquest/page.tsx",
+  "app/play/bull500/page.tsx",
   "app/mentions-legales/page.tsx",
   "app/confidentialite/page.tsx",
   "app/conditions-utilisation/page.tsx",
@@ -90,7 +93,7 @@ for (const label of ["Stats & Données", "Jeux", "Admin"]) {
     errors.push(`Domaine de navigation absent : ${label}`);
   }
 }
-for (const href of ["/play/501", "/play/cricket", "/play/tictactoe", "/play/bob27", "/play/clock"]) {
+for (const href of ["/play/501", "/play/cricket", "/play/tictactoe", "/play/bob27", "/play/clock", "/play/connect4", "/play/conquest", "/play/bull500"]) {
   if (!playHub.includes(href)) errors.push(`Jeu absent du hub : ${href}`);
 }
 for (const href of ["/mentions-legales", "/confidentialite", "/conditions-utilisation"]) {

@@ -142,4 +142,115 @@ test("X01: double entry, early checkout and bust restore the initial score", () 
   const entered=x01.evaluateDarts({scoreBefore:501,opened:false,inRule:"DOUBLE_IN",outRule:"DOUBLE_OUT",darts:[x01.makeDart(20,3),x01.makeDart(20,2),x01.makeDart(20,3)]});
   assert.equal(entered.scoreAfter,401);assert.equal(entered.dartsThrown,3);
 });
+
+const fun = load("lib/play/fun-engine");
+const dart = (segment, multiplier = 1) => x01.makeDart(segment, multiplier);
+for (const kind of ["connect4", "conquest", "bull500"]) {
+  for (const format of ["SOLO", "DUEL", "THREE", "FOUR", "TEAMS_2V2"]) {
+    test(kind + ": immutable misses, explicit handover and shared teams / " + format, () => {
+      const initial = fun.createFunGame(kind, format, names), snapshot = JSON.stringify(initial);
+      assert.equal(fun.endFunVisit(initial), initial);
+      let state = initial;
+      for (let i = 0; i < 3; i++) state = fun.applyFunDart(state, dart(0));
+      assert.equal(state.visitDarts.length, 3); assert.equal(state.visitClosed, true); assert.equal(state.activeParticipant, 0);
+      assert.equal(fun.applyFunDart(state, dart(20, 3)), state);
+      const next = fun.endFunVisit(state);
+      assert.equal(next.activeParticipant, format === "SOLO" ? 0 : 1);
+      assert.deepEqual(next.visitDarts, []); assert.equal(next.visitClosed, false); assert.equal(next.visitNumber, 2);
+      assert.equal(JSON.stringify(initial), snapshot); assert.equal(state.visitDarts.length, 3);
+      if (format === "TEAMS_2V2") { assert.deepEqual(state.participants.map(p => p.side), [0, 1, 0, 1]); assert.equal(state.sideNames.length, 2); }
+    });
+  }
+}
+test("Puissance 4: one token even on a triple, gravity, early stop and undo-safe board", () => {
+  const initial = fun.createFunGame("connect4", "DUEL", names);
+  const first = fun.applyFunDart(initial, dart(14, 3));
+  assert.equal(first.board[35], 0); assert.equal(first.board.filter(v => v !== null).length, 1);
+  assert.equal(first.visitDarts.length, 1); assert.equal(first.visitClosed, true);
+  assert.equal(fun.applyFunDart(first, dart(15)), first); assert.equal(initial.board[35], null);
+  const second = fun.applyFunDart(fun.endFunVisit(first), dart(14));
+  assert.equal(second.board[28], 1); assert.equal(first.board[28], null);
+});
+test("Puissance 4: doubles option and full columns consume attempts", () => {
+  let s = fun.createFunGame("connect4", "DUEL", names, { connectRule: "DOUBLE" });
+  s = fun.applyFunDart(s, dart(20)); assert.equal(s.visitClosed, false); assert.equal(s.board[41], null);
+  s = fun.applyFunDart(s, dart(20, 2)); assert.equal(s.board[41], 0); assert.equal(s.visitDarts.length, 2); assert.equal(s.visitClosed, true);
+  s = fun.createFunGame("connect4", "DUEL", names);
+  for (let row = 0; row < 6; row++) s.board[row * 7] = row % 2;
+  const next = fun.applyFunDart(s, dart(14));
+  assert.deepEqual(next.board, s.board); assert.equal(next.visitClosed, false); assert.equal(next.visitDarts.length, 1);
+});
+for (const [name, cells, column, supports] of [
+  ["horizontal", [35, 36, 37], 3, []],
+  ["vertical", [35, 28, 21], 0, []],
+  ["diagonal rising right", [35, 29, 23], 3, [38, 31, 24]],
+  ["diagonal rising left", [41, 33, 25], 3, [38, 31, 24]],
+]) {
+  test("Puissance 4: " + name + " victory and terminal guard", () => {
+    const initial = fun.createFunGame("connect4", "DUEL", names);
+    for (const index of cells) initial.board[index] = 0;
+    for (const index of supports) initial.board[index] = 1;
+    const win = fun.applyFunDart(initial, dart(14 + column));
+    assert.equal(win.winnerSide, 0); assert.equal(win.winningCells.length, 4);
+    assert.equal(fun.endFunVisit(win), win); assert.equal(fun.applyFunDart(win, dart(20)), win);
+  });
+}
+test("Puissance 4: full board draw, no horizontal wrapping", () => {
+  const initial = fun.createFunGame("connect4", "DUEL", names);
+  initial.board = Array.from({length:42}, (_, i) => (Math.floor(i / 7) + Math.floor((i % 7) / 2)) % 2);
+  initial.board[0] = null;
+  const draw = fun.applyFunDart(initial, dart(14));
+  assert.equal(draw.winnerSide, "DRAW"); assert.equal(draw.winningCells.length, 0);
+  const wrap = fun.createFunGame("connect4", "DUEL", names);
+  for (const index of [33, 34, 35]) wrap.board[index] = 0;
+  assert.equal(fun.applyFunDart(wrap, dart(15)).winnerSide, null);
+});
+test("Conquest: marks survive visits, capture resets all progress, opponent can recapture", () => {
+  let s = fun.createFunGame("conquest", "THREE", names);
+  const initial = JSON.stringify(s);
+  s = fun.applyFunDart(s, dart(20, 2));
+  assert.equal(s.territories[19].marks[0], 2); assert.equal(s.territories[19].owner, null);
+  s = fun.applyFunDart(s, dart(0)); s = fun.applyFunDart(s, dart(0)); s = fun.endFunVisit(s);
+  s = fun.applyFunDart(s, dart(20, 3));
+  assert.equal(s.territories[19].owner, 1); assert.deepEqual(s.territories[19].marks, [0, 0, 0]);
+  const same = fun.applyFunDart(s, dart(20, 3));
+  assert.deepEqual(same.territories, s.territories); assert.equal(same.visitDarts.length, 2);
+  s = fun.applyFunDart(same, dart(0)); s = fun.endFunVisit(s);
+  s = fun.applyFunDart(s, dart(20, 3)); assert.equal(s.territories[19].owner, 2);
+  assert.deepEqual(fun.conquestCounts(s), [0, 0, 1]);
+  assert.equal(JSON.parse(initial).territories[19].owner, null);
+});
+test("Conquest: configured victory before third dart and team ownership", () => {
+  let s = fun.createFunGame("conquest", "TEAMS_2V2", names, { conquestGoal: 5 });
+  for (let i = 0; i < 4; i++) s.territories[i].owner = 0;
+  s.activeParticipant = 2;
+  const win = fun.applyFunDart(s, dart(5, 3));
+  assert.equal(win.winnerSide, 0); assert.equal(win.visitDarts.length, 1);
+  assert.equal(fun.applyFunDart(win, dart(6, 3)), win);
+  assert.deepEqual(fun.conquestCounts(win), [5, 0]);
+});
+test("Bull 500: unlock required, no bull points, allowed targets and relock every visit", () => {
+  let s = fun.createFunGame("bull500", "SOLO", names);
+  s = fun.applyFunDart(s, dart(20, 3)); assert.equal(s.scores[0], 0);
+  s = fun.applyFunDart(s, dart(25)); assert.equal(s.unlocked, false);
+  s = fun.applyFunDart(s, dart(25, 2)); assert.equal(s.unlocked, true); assert.equal(s.scores[0], 0);
+  s = fun.endFunVisit(s); assert.equal(s.unlocked, false);
+  s = fun.applyFunDart(s, dart(25, 2)); s = fun.applyFunDart(s, dart(20, 3)); s = fun.applyFunDart(s, dart(19, 3));
+  assert.equal(s.scores[0], 60);
+  assert.equal(fun.applyFunDart(s, dart(20, 3)), s);
+});
+test("Bull 500: 25 option, 19 / both targets, team score and winning overshoot", () => {
+  for (const target of ["19", "19_OR_20"]) {
+    let s = fun.createFunGame("bull500", "TEAMS_2V2", names, { bullUnlock: "25_OR_50", bullTarget: target });
+    s.activeParticipant = 2; s.scores[0] = 450;
+    s = fun.applyFunDart(s, dart(25)); assert.equal(s.scores[0], 450);
+    const win = fun.applyFunDart(s, dart(19, 3));
+    assert.equal(win.scores[0], 507); assert.equal(win.winnerSide, 0); assert.equal(win.visitDarts.length, 2);
+    assert.equal(fun.endFunVisit(win), win); assert.equal(s.scores[0], 450);
+  }
+  let s = fun.createFunGame("bull500", "DUEL", names, { bullTarget: "19_OR_20" });
+  s = fun.applyFunDart(s, dart(25, 2)); s = fun.applyFunDart(s, dart(19, 3)); s = fun.applyFunDart(s, dart(20, 2));
+  assert.equal(s.scores[0], 97);
+});
+
 console.log(count + " play engine tests passed.");
