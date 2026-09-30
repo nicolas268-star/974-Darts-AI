@@ -49,6 +49,7 @@
   .stats-responsive .compare-player-links { flex-wrap: wrap; }
   .stats-responsive .compare-player-links a { flex: 1 1 220px; min-height: 44px; }
   .stats-responsive .recharts-text { font-size: 14px; }
+  .stats-responsive .recharts-polar-angle-axis-tick-value { text-anchor: middle; }
   .stats-responsive .recharts-legend-wrapper { max-width: 100%; }
   .stats-responsive .recharts-default-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 12px; }
   .stats-responsive .recharts-legend-item { max-width: 100%; white-space: normal; font-size: 14px; line-height: 1.5; }

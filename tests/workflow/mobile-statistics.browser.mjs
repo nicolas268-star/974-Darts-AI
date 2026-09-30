@@ -66,7 +66,14 @@ export async function testMobileStatistics(page, screenshot) {
       const chart=page.locator('.player-chart-card .chart-frame, .duo-radar-premium-chart, .compare-radar-frame').first();
       if(await chart.count()) {
         await page.setViewportSize({width:320,height:844});
+        await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+        const clippedLabels=await page.locator('.recharts-polar-angle-axis-tick-value').evaluateAll(nodes=>nodes.filter(node=>{
+          const label=node.getBoundingClientRect(),svg=node.closest('svg').getBoundingClientRect();
+          return label.left < svg.left-1 || label.right > svg.right+1;
+        }).map(node=>node.textContent));
+        expect(clippedLabels,route+' radar labels at 320px').toEqual([]);
         await chart.scrollIntoViewIfNeeded();
+        await page.mouse.move(0,0);
         await screenshot(page,`mobile-stats-${index}-chart-320.png`,{fullPage:false});
       }
       // Same route resized to desktop must retain its semantic table.
