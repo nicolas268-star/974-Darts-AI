@@ -99,8 +99,21 @@ def _reconcile_3bdc_double(event, data, matches, legs, stats, aggregate, active,
                    "score": sum(row["score"] for row in stats if row["team_id"] == team),
                    "darts": sum(row["darts_thrown"] for row in stats if row["team_id"] == team)}
             for team, total in teams.items()}
+        # The manual closure can also replace both team counters with the
+        # Double 3 leg score (2-0), while retaining the evening scoring totals.
+        # Repair only that exact signature, established from the validated legs.
+        wins = Counter(m["winner_team_id"] for m in matches)
+        double_wins = Counter(leg["winner_team_id"] for leg in legs if leg["id"] in match_legs)
+        counters_replaced = (len(match_legs) == 2
+                             and all(total.get("set") == 2
+                                     and total.get("winSet") == double_wins[team]
+                                     for team, total in teams.items()))
+        if counters_replaced:
+            for team, total in corrected_teams.items():
+                total.update(set=len(matches), winSet=wins[team])
         audit = {"reason": "J1_3BDC_DOUBLE_3_STALE_AGGREGATES", "match_id": match["id"],
                  "legs_missing_from_source_scoring": sorted(omitted),
+                 "team_counters_replaced_by_double_3": counters_replaced,
                  "source_player_totals": active, "source_team_totals": teams}
         return corrected_players, corrected_teams, audit
     return active, teams, None

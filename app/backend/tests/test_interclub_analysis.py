@@ -99,6 +99,24 @@ class SourceTests(unittest.TestCase):
                 self.assertEqual(recovered["publication"]["score"], publication["score"])
                 self.assertEqual(recovered["publication"]["source_reconciliation"]["legs_missing_from_source_scoring"], sorted(omitted))
                 self.assertNotIn("source_reconciliation", expected["publication"])
+                # Manual closure may have overwritten evening counters with
+                # the two-leg score of Double 3. Recover only that exact case.
+                two_leg = {leg["id"]: leg for leg in publication["legs"]
+                           if leg["id"] in double_legs}
+                if len(two_leg) == 2:
+                    overwritten = copy.deepcopy(stale)
+                    for team, total in overwritten["teams"].items():
+                        total["set"] = 2
+                        total["winSet"] = sum(leg["winner_team_id"] == team for leg in two_leg.values())
+                    restored = collect(overwritten)
+                    self.assertEqual(restored["publication"]["score"], publication["score"])
+                    self.assertTrue(restored["publication"]["source_reconciliation"]["team_counters_replaced_by_double_3"])
+                    broken = copy.deepcopy(overwritten)
+                    broken["teams"]["n49i"]["winSet"] += 1
+                    with self.assertRaises(SummaryUnavailable): collect(broken)
+                    broken = copy.deepcopy(overwritten)
+                    broken["teams"]["n49i"]["set"] = 3
+                    with self.assertRaises(SummaryUnavailable): collect(broken)
                 for kind in ("player", "team", "participation", "unfinished", "other_event"):
                     broken = copy.deepcopy(stale)
                     chosen_event = event
