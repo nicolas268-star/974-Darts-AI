@@ -19,8 +19,8 @@ export async function testVisibility(admin, director, screenshot) {
   });
   await admin.goto(origin+'/admin/visibility');
   await expect(admin.getByLabel('Texte pour le groupe',{exact:false})).toHaveValue(summary.whatsapp,{timeout:30000});
-  await expect(admin.getByText('Championnat automatique · de 22 h à minuit · heure de La Réunion')).toBeVisible();
-  await expect(admin.getByText(/Nouvelle vérification toutes les 30 minutes jusqu’à minuit\./)).toBeVisible();
+  await expect(admin.getByText('Championnat automatique · à partir de 22 h · suivi pendant 24 h · heure de La Réunion')).toBeVisible();
+  await expect(admin.getByText(/Nouvelle vérification toutes les 10 minutes jusqu’à 22 h le lendemain\./)).toBeVisible();
   await expect(admin.getByText(/résultats, classement et statistiques des joueurs et des équipes sont mis à jour/)).toBeVisible();
   await admin.evaluate(()=>{
     window.__visibilityShares=[];

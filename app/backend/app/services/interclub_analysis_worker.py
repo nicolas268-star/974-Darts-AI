@@ -11,7 +11,7 @@ def main():
                 print(f"Interclub analyses: {count} rencontre(s) traitée(s)", flush=True)
         except Exception as exc:
             print(f"Interclub analysis worker: {type(exc).__name__}", flush=True)
-        # Align every check to the start of a minute, including the 22:00–00:00 slots in Réunion.
+        # Align every check to the start of a minute, including the ten-minute slots from 22:00 until 22:00 the next day in Réunion.
         time.sleep(max(1, 60 - time.time() % 60))
 
 
