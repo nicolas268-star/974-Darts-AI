@@ -70,3 +70,7 @@ Après ajout/modification d’une variable, recréer le conteneur backend via Co
 - https://developers.openai.com/api/docs/models/gpt-5-mini
 - https://faq.whatsapp.com/425247423114725/
 - https://developers.facebook.com/documentation/business-messaging/whatsapp/groups
+
+### Correction contrôlée de J1 3BDC du 30 septembre 2026
+
+Pour la source `t_1hPp_2294` uniquement, après clôture manuelle du Double 3, les agrégats Nakka peuvent omettre les données de score de sa deuxième manche ou de ses deux manches tout en comptant les participations. Le collecteur accepte ce cas seulement si tous les écarts individuels et collectifs correspondent exactement aux volées de ces manches. Les compteurs de legs, les résultats, les identités et les autres contrôles restent obligatoires. La publication utilise toutes les volées, avec une trace `source_reconciliation` conservant les agrégats d’origine et les manches absentes des totaux de score Nakka. Aucun autre événement ne bénéficie de cette exception.

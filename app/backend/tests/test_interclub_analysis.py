@@ -15,7 +15,7 @@ if "supabase" not in sys.modules:
     sys.modules["supabase"] = stub
 
 from app.services import interclub_analysis_service as service
-from app.services.interclub_analysis_source import collect_evening, source_facts
+from app.services.interclub_analysis_source import collect_evening, source_facts, _scoring_totals
 from app.services.visibility_service import SummaryUnavailable, compose_summary
 
 FIXTURE = Path(__file__).parent / "fixtures/interclub_j1.json"
@@ -67,6 +67,48 @@ class SourceTests(unittest.TestCase):
         self.payload["teams"]["n49i"]["score"] += 1
         with self.assertRaises(SummaryUnavailable):
             self.facts()
+
+    def test_authorized_3bdc_recovery_requires_exact_missing_double_scoring(self):
+        event = {**EVENT, "start_date": "2026-09-30",
+                 "source_url": "https://n01darts.com/n01/league/season.php?id=t_1hPp_2294"}
+        original = copy.deepcopy(self.payload)
+        original["data"]["tdid"] = "t_1hPp_2294"
+        original["data"]["t_date"] = int(original["data"]["t_date"]) + 2 * 86400
+
+        def collect(payload, chosen_event=event):
+            return source_facts(chosen_event, SEASON, "recovery", payload["data"],
+                                payload["sets"], payload["players"], payload["teams"],
+                                with_details=True)
+
+        expected = collect(original)
+        publication = expected["publication"]
+        double = next(m for m in publication["matches"] if m["mode"] == "D" and m["number"] == 19)
+        double_legs = {leg["id"] for leg in publication["legs"] if leg["match_id"] == double["id"]}
+        for omitted in ({double["id"] + ":2"}, double_legs):
+            with self.subTest(omitted=omitted):
+                stale = copy.deepcopy(original)
+                rows = [row for row in publication["stats"] if row["leg_id"] not in omitted]
+                for oid, total in _scoring_totals(rows).items():
+                    stale["players"][oid].update(total)
+                for team, total in stale["teams"].items():
+                    total["score"] = sum(row["score"] for row in rows if row["team_id"] == team)
+                    total["darts"] = sum(row["darts_thrown"] for row in rows if row["team_id"] == team)
+                recovered = collect(stale)
+                self.assertEqual(recovered["publication"]["stats"], publication["stats"])
+                self.assertEqual(recovered["publication"]["players"], publication["players"])
+                self.assertEqual(recovered["publication"]["score"], publication["score"])
+                self.assertEqual(recovered["publication"]["source_reconciliation"]["legs_missing_from_source_scoring"], sorted(omitted))
+                self.assertNotIn("source_reconciliation", expected["publication"])
+                for kind in ("player", "team", "participation", "unfinished", "other_event"):
+                    broken = copy.deepcopy(stale)
+                    chosen_event = event
+                    if kind == "player": broken["players"]["o0uh"]["score"] += 1
+                    if kind == "team": broken["teams"]["n49i"]["darts"] += 3
+                    if kind == "participation": broken["players"]["o0uh"]["leg"] += 1
+                    if kind == "unfinished": broken["sets"][0]["endMatch"] = 0
+                    if kind == "other_event": chosen_event = {**event, "source_url": EVENT["source_url"]}
+                    with self.subTest(kind=kind):
+                        with self.assertRaises(SummaryUnavailable): collect(broken, chosen_event)
 
     def test_incomplete_match_waits(self):
         self.payload["sets"].pop()
