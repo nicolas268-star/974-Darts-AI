@@ -134,7 +134,22 @@ def source_facts(event, season, result_id, data, sets, player_totals, team_total
         matches.append({"id": match["mid"], "number": sequence, "mode": "D" if mode == "double" else "S", "winner_team_id": sides[max(winners, key=winners.get)]["tpid"]})
     expected = {("simple", n) for n in range(1, 17)} | {("double", n) for n in range(1, 5)}
     require(labels == expected, "Les 16 simples et 4 doubles doivent être présents.")
-    active = {oid: p for oid, p in player_totals.items() if isinstance(p, dict) and p.get("leg", 0) > 0}
+    # Nakka can include an anonymous row for doubles: participation counters
+    # exist, but it contains no scoring data. Only this empty-key placeholder
+    # may be omitted; every real player and both team totals still reconcile.
+    scoring_keys = ("score", "darts", "f9Score", "f9Darts", "ton00", "ton40",
+                    "ton70", "ton80", "highOut", "highOutCount", "best", "worst",
+                    "a", "acnt", "ca", "cacnt")
+    active = {}
+    for oid, player in player_totals.items():
+        if not isinstance(player, dict) or player.get("leg", 0) <= 0:
+            continue
+        placeholder = (oid == "" and not player.get("oname")
+                       and player.get("tpid") in names
+                       and player.get("score") == 0 and player.get("darts") == 0
+                       and all(player.get(k, 0) == 0 for k in scoring_keys))
+        if not placeholder:
+            active[oid] = player
     require(set(active) == set(aggregate), "La liste des participants diverge du détail.")
     for oid, total in aggregate.items():
         require(all(total[key] == active[oid].get(key, 0) for key in total), "Les statistiques d’un joueur divergent des volées.")

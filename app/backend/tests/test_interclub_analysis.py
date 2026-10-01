@@ -44,6 +44,30 @@ class SourceTests(unittest.TestCase):
         self.assertEqual(facts["players"], 10)
         self.assertEqual(facts["url"], EVENT["source_url"])
 
+    def test_empty_nakka_double_placeholder_has_no_scoring_data(self):
+        before = self.facts()
+        placeholder = {"tpid": "n49i", "leg": 8, "winLeg": 4,
+                       "set": 4, "winSet": 2, "score": 0, "darts": 0}
+        self.payload["players"][""] = placeholder
+        self.assertEqual(self.facts(), before)
+        # A blank row with real scoring data, a name or unknown team still blocks.
+        for key, value in (("score", 1), ("darts", 3), ("f9Score", 60),
+                           ("ton80", 1), ("oname", "Missing player"),
+                           ("tpid", "unknown")):
+            with self.subTest(key=key):
+                self.payload["players"][""] = {**placeholder, key: value}
+                with self.assertRaises(SummaryUnavailable):
+                    self.facts()
+        self.payload["players"][""] = placeholder
+        self.payload["players"]["o0uh"]["ton80"] += 1
+        with self.assertRaises(SummaryUnavailable):
+            self.facts()
+        self.setUp()
+        self.payload["players"][""] = placeholder
+        self.payload["teams"]["n49i"]["score"] += 1
+        with self.assertRaises(SummaryUnavailable):
+            self.facts()
+
     def test_incomplete_match_waits(self):
         self.payload["sets"].pop()
         with self.assertRaises(SummaryUnavailable): self.facts()
