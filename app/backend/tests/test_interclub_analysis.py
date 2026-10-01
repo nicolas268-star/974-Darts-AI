@@ -108,9 +108,19 @@ class SourceTests(unittest.TestCase):
                     for team, total in overwritten["teams"].items():
                         total["set"] = 2
                         total["winSet"] = sum(leg["winner_team_id"] == team for leg in two_leg.values())
+                    # An extra anonymous Nakka aggregate is not a third team.
+                    overwritten["teams"][""] = {"score": 0, "darts": 0, "set": 4, "winSet": 0}
                     restored = collect(overwritten)
                     self.assertEqual(restored["publication"]["score"], publication["score"])
                     self.assertTrue(restored["publication"]["source_reconciliation"]["team_counters_replaced_by_double_3"])
+                    # Counters must also recover when player scores are already fresh.
+                    fresh_scores = copy.deepcopy(original)
+                    for team in original["teams"]:
+                        fresh_scores["teams"][team]["set"] = overwritten["teams"][team]["set"]
+                        fresh_scores["teams"][team]["winSet"] = overwritten["teams"][team]["winSet"]
+                    restored_fresh = collect(fresh_scores)
+                    self.assertEqual(restored_fresh["publication"]["score"], publication["score"])
+                    self.assertEqual(restored_fresh["publication"]["source_reconciliation"]["legs_missing_from_source_scoring"], [])
                     broken = copy.deepcopy(overwritten)
                     broken["teams"]["n49i"]["winSet"] += 1
                     with self.assertRaises(SummaryUnavailable): collect(broken)

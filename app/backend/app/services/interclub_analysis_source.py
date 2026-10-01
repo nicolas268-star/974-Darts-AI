@@ -79,10 +79,8 @@ def _reconcile_3bdc_double(event, data, matches, legs, stats, aggregate, active,
     match = next(m for m in matches if m["mode"] == "D" and m["number"] == 19)
     match_legs = {leg["id"] for leg in legs if leg["match_id"] == match["id"]}
     scoring = _scoring_totals(stats)
-    if all(all(total[k] == active[oid].get(k, 0) for k in total)
-           for oid, total in scoring.items()):
-        return active, teams, None
-    for omitted in ({match["id"] + ":2"}, match_legs):
+    team_ids = {row["team_id"] for row in stats}
+    for omitted in (set(), {match["id"] + ":2"}, match_legs):
         baseline_rows = [row for row in stats if row["leg_id"] not in omitted]
         baseline = _scoring_totals(baseline_rows)
         if any(any(baseline[oid][k] != active[oid].get(k, 0) for k in total)
@@ -90,7 +88,7 @@ def _reconcile_3bdc_double(event, data, matches, legs, stats, aggregate, active,
                for oid, total in scoring.items()):
             continue
         if any(sum(row[field] for row in baseline_rows if row["team_id"] == team) != total[key]
-               for team, total in teams.items()
+               for team in team_ids for total in (teams[team],)
                for key, field in (("score", "score"), ("darts", "darts_thrown"))):
             continue
         corrected_players = {oid: {**player, **scoring[oid]} for oid, player in active.items()}
@@ -98,7 +96,7 @@ def _reconcile_3bdc_double(event, data, matches, legs, stats, aggregate, active,
             team: {**total,
                    "score": sum(row["score"] for row in stats if row["team_id"] == team),
                    "darts": sum(row["darts_thrown"] for row in stats if row["team_id"] == team)}
-            for team, total in teams.items()}
+            for team in team_ids for total in (teams[team],)}
         # The manual closure can also replace both team counters with the
         # Double 3 leg score (2-0), while retaining the evening scoring totals.
         # Repair only that exact signature, established from the validated legs.
@@ -107,7 +105,9 @@ def _reconcile_3bdc_double(event, data, matches, legs, stats, aggregate, active,
         counters_replaced = (len(match_legs) == 2
                              and all(total.get("set") == 2
                                      and total.get("winSet") == double_wins[team]
-                                     for team, total in teams.items()))
+                                     for team in team_ids for total in (teams[team],)))
+        if not omitted and not counters_replaced:
+            return active, teams, None
         if counters_replaced:
             for team, total in corrected_teams.items():
                 total.update(set=len(matches), winSet=wins[team])
