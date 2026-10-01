@@ -16,8 +16,8 @@ from .season_registry_service import registry_status
 from .visibility_service import SummaryUnavailable, ai_configured, compose_summary
 
 STATE_PATH = Path(os.getenv("INTERCLUB_ANALYSIS_STATE_PATH", "/app/data/interclub_analysis.json"))
-RETRY = timedelta(minutes=30)
-WINDOW = timedelta(hours=2)
+RETRY = timedelta(minutes=10)
+WINDOW = timedelta(hours=24)
 SUMMARY_RETRY = timedelta(minutes=5)
 SUMMARY_WINDOW = timedelta(hours=48)
 
@@ -187,7 +187,7 @@ def extend_catalog(catalog, source_results):
     calendar = {event_key(e): e for e in _events()}
     future = [due_at(e) for e in calendar.values() if due_at(e) > now]
     heartbeat = _load().get("last_check_at")
-    catalog["automation"] = {"time": "22:00", "retry_minutes": 30, "until": "00:00", "timezone": "Indian/Reunion", "last_check_at": heartbeat,
+    catalog["automation"] = {"time": "22:00", "retry_minutes": 10, "until": "22:00", "window_hours": 24, "until_next_day": True, "timezone": "Indian/Reunion", "last_check_at": heartbeat,
                              "publication_enabled": bool(_load().get("publication_enabled")),
                              "running": bool(heartbeat and now - datetime.fromisoformat(heartbeat) < timedelta(minutes=3)),
                              "next_at": min(future).isoformat() if future else None,
