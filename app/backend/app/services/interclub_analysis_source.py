@@ -55,6 +55,57 @@ def collect_publication(event, season, result_id):
     return collect_evening(event, season, result_id, with_details=True)
 
 
+def _scoring_totals(rows):
+    fields = {"score": "score", "darts": "darts_thrown",
+              "f9Score": "first_9_score", "f9Darts": "first_9_darts",
+              "ton00": "scores_100", "ton40": "scores_140",
+              "ton70": "scores_170", "ton80": "scores_180"}
+    totals = defaultdict(Counter)
+    for row in rows:
+        total = totals[row["player_id"]]
+        for key, field in fields.items():
+            total[key] += row[field]
+        total["highOut"] = max(total["highOut"], row["finish"])
+    return totals
+
+
+def _reconcile_3bdc_double(event, data, matches, legs, stats, aggregate, active, teams):
+    # Authorized recovery for J1 3BDC after Double 3 was completed manually.
+    # Accept only aggregates that exactly omit leg 2 or the whole Double 3.
+    # Never change the validated visits, match scores or participation counters.
+    if (data.get("tdid") != "t_1hPp_2294" or event["start_date"] != "2026-09-30"
+            or event.get("source_url") != "https://n01darts.com/n01/league/season.php?id=t_1hPp_2294"):
+        return active, teams, None
+    match = next(m for m in matches if m["mode"] == "D" and m["number"] == 19)
+    match_legs = {leg["id"] for leg in legs if leg["match_id"] == match["id"]}
+    scoring = _scoring_totals(stats)
+    if all(all(total[k] == active[oid].get(k, 0) for k in total)
+           for oid, total in scoring.items()):
+        return active, teams, None
+    for omitted in ({match["id"] + ":2"}, match_legs):
+        baseline_rows = [row for row in stats if row["leg_id"] not in omitted]
+        baseline = _scoring_totals(baseline_rows)
+        if any(any(baseline[oid][k] != active[oid].get(k, 0) for k in total)
+               or any(aggregate[oid][k] != active[oid].get(k, 0) for k in ("leg", "winLeg"))
+               for oid, total in scoring.items()):
+            continue
+        if any(sum(row[field] for row in baseline_rows if row["team_id"] == team) != total[key]
+               for team, total in teams.items()
+               for key, field in (("score", "score"), ("darts", "darts_thrown"))):
+            continue
+        corrected_players = {oid: {**player, **scoring[oid]} for oid, player in active.items()}
+        corrected_teams = {
+            team: {**total,
+                   "score": sum(row["score"] for row in stats if row["team_id"] == team),
+                   "darts": sum(row["darts_thrown"] for row in stats if row["team_id"] == team)}
+            for team, total in teams.items()}
+        audit = {"reason": "J1_3BDC_DOUBLE_3_STALE_AGGREGATES", "match_id": match["id"],
+                 "legs_missing_from_source_scoring": sorted(omitted),
+                 "source_player_totals": active, "source_team_totals": teams}
+        return corrected_players, corrected_teams, audit
+    return active, teams, None
+
+
 def source_facts(event, season, result_id, data, sets, player_totals, team_totals, *, with_details=False):
     def require(condition, message):
         if not condition:
@@ -151,6 +202,8 @@ def source_facts(event, season, result_id, data, sets, player_totals, team_total
         if not placeholder:
             active[oid] = player
     require(set(active) == set(aggregate), "La liste des participants diverge du détail.")
+    active, team_totals, reconciliation = _reconcile_3bdc_double(
+        event, data, matches, legs, stats, aggregate, active, team_totals)
     for oid, total in aggregate.items():
         require(all(total[key] == active[oid].get(key, 0) for key in total), "Les statistiques d’un joueur divergent des volées.")
     wins = Counter(m["winner_team_id"] for m in matches)
@@ -165,8 +218,11 @@ def source_facts(event, season, result_id, data, sets, player_totals, team_total
                           {oid: active[oid]["oname"] for oid in aggregate})
     # The detailed source is public on Nakka; there may not yet be a site match page.
     evening.update(url=event["source_url"], home_score=wins[home], away_score=wins[away], source="NAKKA", source_updated_at=data.get("updateTime"))
+    if reconciliation:
+        evening["source_reconciliation"] = reconciliation
     if with_details:
         return {"facts": evening, "publication": {
+            **({"source_reconciliation": reconciliation} if reconciliation else {}),
             "version": 1, "event_id": data["tdid"], "source_url": event["source_url"],
             "season": season["key"], "league_id": data["lgid"], "round": code[1].upper(),
             "date": source_date, "title": data["title"], "score": [wins[home], wins[away]],
