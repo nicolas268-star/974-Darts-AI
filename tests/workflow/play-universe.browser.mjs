@@ -7,7 +7,7 @@ export async function testPlayUniverse(page, screenshot) {
   await page.setViewportSize({width:1440,height:1000});
   await page.goto("http://127.0.0.1:3008/play");
   await expect(page.getByRole("heading",{name:"Univers Jeux"})).toBeVisible();
-  await expect(page.locator(".play-universe-game")).toHaveCount(8);
+  await expect(page.locator(".play-universe-game")).toHaveCount(9);
   await screenshot(page,"play-universe-desktop.png");
   await page.goto("http://127.0.0.1:3008/play/cricket");
   await page.getByRole("button",{name:/^4 joueurs/}).click();

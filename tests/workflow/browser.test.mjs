@@ -12,6 +12,7 @@ import {testPlaySync} from './play-sync.browser.mjs';
 import {testGameDeletion} from './play-deletion.browser.mjs';
 import {testConquestWorld} from './conquest-world.browser.mjs';
 import {testConquestUltra} from './conquest-ultra.browser.mjs';
+import {testDartChess} from './dart-chess.browser.mjs';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'../..');
 const output=resolve(root,'docs/ranking-workflow-preview');
 const sharp=createRequire(resolve(root,'app/frontend/package.json'))('sharp');
@@ -37,6 +38,7 @@ try{
  await testGameDeletion(browser,admin,screenshot);
  await testConquestWorld(browser,admin,screenshot);
  await testConquestUltra(browser,admin,screenshot);
+ await testDartChess(browser,admin,screenshot);
  await admin.goto('http://127.0.0.1:3008/admin/classement-individuel');
  await expect(admin.getByText('Open Club Double · Démonstration',{exact:true})).toBeVisible({timeout:30000});
  await screenshot(admin,'01-administration.png');
