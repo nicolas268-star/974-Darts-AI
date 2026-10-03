@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState, type ChangeEvent, type MouseEvent } from "react";
 import { ANCHOR_LABELS, ENGINE_VERSION, RINGS, SECTORS, calibrate, detect, motionFraction, project, scorePoint, validLabel, type Calibration, type Detection, type Frame, type Point } from "@/lib/vision/engine";
 import styles from "./vision.module.css";
+import CalibrationAssistant from "./CalibrationAssistant";
 
 type Snapshot = { frame: Frame; id: string; capturedAt: string };
 type Sample = {
@@ -278,6 +279,11 @@ export default function VisionLab() {
         </section>
         <section className={styles.panel} aria-labelledby="calibration-heading">
           <h2 id="calibration-heading">2. Calibration et inspection</h2>
+          {before && !after && <CalibrationAssistant key={before.id} frame={before.frame} anchors={anchors} disabled={watching || imageBusy} onApply={next => {
+            if (watching || imageBusy || after) return;
+            setAnchors(next.anchors); setCalibration(next); setVerified(true);
+            setMessage("Calibration appliquée après votre contrôle de la grille. Vous pouvez maintenant armer la détection.");
+          }} />}
           {!calibration && before && <p className={styles.guide}>{anchors.length < 5 ? `Repère ${anchors.length + 1}/5 — ${ANCHOR_LABELS[anchors.length]}` : "Calibration refusée. Recommencez les repères."}</p>}
           <p>Placez les repères sur le fil extérieur des doubles, au milieu des secteurs indiqués, pas sur les chiffres. Le cinquième point vérifie le centre.</p>
           {frame ? <div className={styles.image} style={{ aspectRatio: `${frame.width} / ${frame.height}` }} onClick={clickImage}>
