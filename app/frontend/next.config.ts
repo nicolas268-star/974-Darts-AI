@@ -50,7 +50,17 @@ const nextConfig: NextConfig = {
       });
     }
 
-    return [{ source: "/(.*)", headers: securityHeaders }];
+    return [
+      { source: "/(.*)", headers: securityHeaders },
+      {
+        // Camera permission belongs to the document: enter via a full-page navigation.
+        source: "/admin/vision",
+        headers: [
+          { key: "Permissions-Policy", value: "camera=(self), microphone=(), geolocation=(), screen-wake-lock=(self)" },
+          { key: "Content-Security-Policy", value: securityHeaders.find(header => header.key === "Content-Security-Policy")!.value + "; media-src 'self' blob:" },
+        ],
+      },
+    ];
   },
 };
 

@@ -16,6 +16,7 @@ const items = [
   { href: "/admin/tournament-watch", label: "Veille tournois", test: (p: string) => p.startsWith("/admin/tournament-watch") },
   { href: "/admin/audience", label: "Audience", test: (p: string) => p.startsWith("/admin/audience") },
   { href: "/admin/visibility", label: "Visibilité", test: (p: string) => p.startsWith("/admin/visibility") },
+  { href: "/admin/vision", label: "Vision · laboratoire", test: (p: string) => p.startsWith("/admin/vision") },
   { href: "/admin/captain-nico", label: "Captain Nico", test: (p: string) => p.startsWith("/admin/captain-nico") },
   { href: "/admin/control", label: "Contrôle qualité", test: (p: string) => p.startsWith("/admin/control") },
   { href: "/admin/rules", label: "Règles", test: (p: string) => p.startsWith("/admin/rules") },
@@ -33,6 +34,7 @@ function pageLabel(pathname: string) {
   if (pathname.startsWith("/admin/tournament-watch")) return "Veille tournois";
   if (pathname.startsWith("/admin/audience")) return "Audience";
   if (pathname.startsWith("/admin/visibility")) return "Visibilité";
+  if (pathname.startsWith("/admin/vision")) return "Laboratoire de vision";
   if (pathname.startsWith("/admin/captain-nico")) return "Captain Nico";
   if (pathname.startsWith("/admin/control")) return "Contrôle qualité";
   if (pathname.startsWith("/admin/rules")) return "Règles";
@@ -54,6 +56,14 @@ export default function AdminNavigation() {
         <div className={styles.actions}>
           {items.map((item) => {
             const active = item.test(pathname);
+            // Permissions-Policy is document-scoped, so a Next client transition is insufficient.
+            if (item.href === "/admin/vision" || pathname === "/admin/vision") {
+              return (
+                <a key={item.href} href={item.href} className={`${styles.actionLink} ${active ? styles.active : ""}`} aria-current={active ? "page" : undefined}>
+                  {item.label}
+                </a>
+              );
+            }
             return (
               <Link
                 key={item.href}
