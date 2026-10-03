@@ -13,6 +13,7 @@ import {testGameDeletion} from './play-deletion.browser.mjs';
 import {testConquestWorld} from './conquest-world.browser.mjs';
 import {testConquestUltra} from './conquest-ultra.browser.mjs';
 import {testDartChess} from './dart-chess.browser.mjs';
+import {testVisionCalibration} from './vision-calibration.browser.mjs';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'../..');
 const output=resolve(root,'docs/ranking-workflow-preview');
 const sharp=createRequire(resolve(root,'app/frontend/package.json'))('sharp');
@@ -32,6 +33,7 @@ async function login(page,role){
 }
 try{
  await login(admin,'admin');
+ await testVisionCalibration(admin,screenshot);
  await testPlayUniverse(admin,screenshot);
  await testPlayPersistence(admin,screenshot);
  await testPlaySync(browser,admin,screenshot);
