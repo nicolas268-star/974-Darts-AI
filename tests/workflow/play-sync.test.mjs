@@ -11,6 +11,7 @@ const as=async user=>{await db.exec('reset role; set role authenticated');await 
 try{
  await db.exec(read('tests/workflow/bootstrap.sql'));
  await db.exec(read('supabase/migrations/20260930110920_play_cloud_sync.sql'));
+ await db.exec(read('supabase/migrations/20261003213938_dart_chess_cloud_modes.sql'));
  await db.exec('set role anon');
  await assert.rejects(()=>db.query('select kind from public.play_cloud_sessions'),/permission denied/);
  await assert.rejects(()=>cmd('cricket',0,phone,'ENABLE',blank),/permission denied/);
@@ -43,13 +44,13 @@ try{
  await cmd('cricket',0,pc,'ENABLE',blank);
  await as(owner);
  assert.equal((await db.query('select revision from public.play_cloud_sessions')).rows[0].revision,4,'Accounts remain separate');
- for(const kind of ['tictactoe','clock','bob27','connect4','conquest','bull500']) assert.equal((await cmd(kind,0,phone,'ENABLE',blank)).ok,true);
- assert.equal((await db.query('select kind from public.play_cloud_sessions')).rows.length,7);
+ for(const kind of ['tictactoe','clock','bob27','connect4','conquest','bull500','dartchess']) assert.equal((await cmd(kind,0,phone,'ENABLE',blank)).ok,true);
+ assert.equal((await db.query('select kind from public.play_cloud_sessions')).rows.length,8);
  await assert.rejects(()=>cmd('unknown',0,phone,'ENABLE',blank),/INVALID_COMMAND/);
  await assert.rejects(()=>cmd('cricket',4,pc,'SAVE',{version:2,completed:[],current:null}),/INVALID_RECORD/);
  await assert.rejects(()=>cmd('cricket',4,pc,'SAVE',{...blank,padding:'x'.repeat(1000001)}),/INVALID_RECORD/);
  await db.exec('reset role');
  await db.query('delete from auth.users where id=$1',[owner]);
  assert.equal((await db.query('select count(*)::int as n from play_cloud_sessions')).rows[0].n,1,'Account removal cascades only its own sessions');
- console.log('PASS: cloud sync SQL — permissions, 7 kinds, account isolation, CAS, handover, idempotency, size bounds and account deletion');
+ console.log('PASS: cloud sync SQL — permissions, 8 kinds, account isolation, CAS, handover, idempotency, size bounds and account deletion');
 } finally {await db.close();}

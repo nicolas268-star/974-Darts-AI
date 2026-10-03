@@ -1,4 +1,4 @@
-import { validDartChess, type DartChessState } from "./dart-chess-engine";
+import { chessSettings, MODE_NAMES, validDartChess, type DartChessState } from "./dart-chess-engine";
 import type { CricketState } from "./cricket-engine";
 import type { TicTacToeState } from "./tictactoe-engine";
 import type { ClockState } from "./clock-engine";
@@ -128,7 +128,7 @@ export function outcome(game: LocalGame): string {
   return typeof game.winnerSide === "number" ? names[game.winnerSide] + " gagne" : "Partie en cours";
 }
 export function describeGame(game: LocalGame): string {
-  if ("kind" in game && game.kind === "dartchess") return "Battle · duel local · captures aux fléchettes";
+  if ("kind" in game && game.kind === "dartchess") return `${MODE_NAMES[chessSettings(game).mode]} · ${chessSettings(game).aiSide === null ? "2 joueurs" : "contre l’IA"} · échecs et fléchettes`;
   if ("kind" in game) {
     const fun: FunState = game;
     if (fun.kind === "conquest" && fun.campaign?.mode === "ULTRA") return "Ultra conquête · finishes 2–78 · double obligatoire · Bull 50";

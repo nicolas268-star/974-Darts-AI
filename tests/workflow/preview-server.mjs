@@ -69,7 +69,7 @@ const server=createServer(async(req,res)=>{
      const kind=url.searchParams.get('kind')?.replace(/^eq\./,'') ?? null;
      const owner=url.searchParams.get('owner_id')?.replace(/^eq\./,'') ?? ids[role];
      const after=Number(url.searchParams.get('revision')?.replace(/^gt\./,'') ?? 0);
-     return (await tx.query('select kind,revision,writer_device,record,updated_at from public.play_cloud_sessions where owner_id=$1 and ($2::text is null or kind=$2) and revision>$3 order by kind limit 7',[owner,kind,after])).rows.map(row=>({...row,revision:Number(row.revision)}));
+     return (await tx.query('select kind,revision,writer_device,record,updated_at from public.play_cloud_sessions where owner_id=$1 and ($2::text is null or kind=$2) and revision>$3 order by kind limit $4',[owner,kind,after,Math.min(100,Math.max(0,Number(url.searchParams.get('limit')||100)))])).rows.map(row=>({...row,revision:Number(row.revision)}));
    });
    return send(200,data);
   }

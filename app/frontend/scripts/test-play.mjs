@@ -750,10 +750,71 @@ test("Dart Chess: resume a partial challenge, undo completion, deletion and acco
  const won=chessDart(partial,targetDart(partial));assert.equal(local.saveRecord(storage,"alice","dartchess",1,savedSession(won,"chess-save",[initial,partial])).ok,true);
  assert.deepEqual(local.readRecord(storage,"alice","dartchess").record.current.history.at(-1),partial);
  assert.equal(local.saveRecord(storage,"alice","dartchess",2,null,"chess-save").ok,true);assert.equal(local.readRecord(storage,"alice","dartchess").record.current,null);
- assert.equal(cloud.isKind("dartchess"),false,"Local MVP must not enable unsupported cloud API kind");
+ assert.equal(cloud.isKind("dartchess"),true,"Dart Chess uses the shared cloud protocol");
 });
 test("Dart Chess: reject damaged state, contradictory turns, forged objectives and illegal captures",()=>{
- const base=captureStart();for(const mutate of [s=>s.version=2,s=>s.fen="invalid",s=>s.activeParticipant=1,s=>s.challenge.move.to="h8",s=>s.challenge.piece="q",s=>s.challenge.target.multipliers=[3],s=>s.challenge.darts=[{source:"manual",dart:input.parseDartInput(targetDart(s))}],s=>s.challenge.darts=[1,2,3],s=>s.sideNames=[],s=>s.phase="KING_CHECKOUT",s=>s.winnerSide=0,s=>s.positions=[],s=>s.lastMove={from:"z9",to:"a1"},s=>s.seed=-1]){const bad=structuredClone(base);mutate(bad);assert.equal(dc.validDartChess(bad),false);}
+ const base=captureStart();for(const mutate of [s=>s.version=99,s=>s.fen="invalid",s=>s.activeParticipant=1,s=>s.challenge.move.to="h8",s=>s.challenge.piece="q",s=>s.challenge.target.multipliers=[3],s=>s.challenge.darts=[{source:"manual",dart:input.parseDartInput(targetDart(s))}],s=>s.challenge.darts=[1,2,3],s=>s.sideNames=[],s=>s.phase="KING_CHECKOUT",s=>s.winnerSide=0,s=>s.positions=[],s=>s.lastMove={from:"z9",to:"a1"},s=>s.seed=-1]){const bad=structuredClone(base);mutate(bad);assert.equal(dc.validDartChess(bad),false);}
+});
+
+const ai = load("lib/play/dart-chess-ai");
+const configuredChess = (mode, aiSide = null, difficulty = "MEDIUM") => dc.createDartChess(["Alice", "Bob"], 7654, {mode, aiSide, difficulty});
+const configuredFixture = (fen, mode, aiSide = null) => ({...configuredChess(mode, aiSide), ...Object.fromEntries(Object.entries(chessFixture(fen)).filter(([key])=>["fen","positions","activeParticipant"].includes(key)))});
+const legacy = state => {const s=structuredClone(state);s.version=1;delete s.settings;delete s.energy;delete s.aiSeed;return s;};
+test("Dart Chess V2: V1 saves and partial captures resume unchanged as human Battle",()=>{
+ const old=legacy(chessDart(captureStart(),"0"));assert.equal(dc.validDartChess(old),true);assert.equal(dc.chessSettings(old).mode,"BATTLE");assert.equal(dc.isComputerTurn(old),false);
+ const next=chessDart(old,targetDart(old));assert.equal(next.version,1);assert.equal(dc.validDartChess(next),true);assert.equal(next.captured.length,1);
+ const forged={...old,settings:{mode:"CHAOS",aiSide:1,difficulty:"HARD"}};assert.equal(dc.validDartChess(forged),false);
+});
+test("Classic: every move is declared then validated; a miss leaves castling rights and position unchanged",()=>{
+ let s=configuredChess("CLASSIC");const before=s.fen;s=chessMove(s,"e2","e4");assert.equal(s.phase,"CAPTURE_CHALLENGE");assert.equal(s.challenge.piece,null);assert.equal(s.fen,before);assert.equal(dc.validDartChess(s),true);
+ const success=chessDart(s,"T"+s.challenge.target.segment);assert.equal(success.activeParticipant,1);assert.equal(ca.chessPosition(success.fen).get("e4").type,"p");
+ for(let i=0;i<3;i++)s=chessDart(s,"0");assert.equal(s.fen.split(" ")[0],before.split(" ")[0]);assert.equal(s.fen.split(" ")[2],"KQkq");assert.equal(s.activeParticipant,1);assert.equal(dc.validDartChess(s),true);
+});
+test("Classic: defense is automatic, queen capture accepts singles, mat wins without King Checkout",()=>{
+ const defense=chessMove(configuredFixture("4k3/8/8/8/8/8/4r3/4K3 w - - 0 1","CLASSIC"),"e1","e2");assert.equal(defense.winnerSide,"DRAW");
+ let capture=chessMove(configuredFixture("7k/8/8/3q4/4P3/8/8/4K3 w - - 0 1","CLASSIC"),"e4","d5");capture=chessDart(capture,"S"+capture.challenge.target.segment);assert.equal(capture.captured[0].piece,"q");
+ let mate=configuredChess("CLASSIC");for(const [a,b] of [["f2","f3"],["e7","e5"],["g2","g4"],["d8","h4"]]){mate=chessMove(mate,a,b);mate=chessDart(mate,targetDart(mate));}assert.equal(mate.phase,"GAME_OVER");assert.equal(mate.winnerSide,1);assert.equal(dc.validDartChess(mate),true);
+});
+test("Classic: castling and promotion are deferred until successful dart",()=>{
+ let s=chessMove(configuredFixture("r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1","CLASSIC"),"e1","g1");assert.equal(ca.chessPosition(s.fen).get("e1").type,"k");s=chessDart(s,targetDart(s));assert.equal(ca.chessPosition(s.fen).get("f1").type,"r");
+ let p=chessMove(configuredFixture("7k/P7/8/8/8/8/8/4K3 w - - 0 1","CLASSIC"),"a7","a8","n");assert.equal(ca.chessPosition(p.fen).get("a7").type,"p");p=chessDart(p,targetDart(p));assert.equal(ca.chessPosition(p.fen).get("a8").type,"n");
+});
+const chaosCapture=()=>chessMove(configuredFixture("7k/8/8/3q4/4P3/8/8/4K3 w - - 0 1","CHAOS"),"e4","d5");
+test("Chaos: precision changes the target and spends exactly one energy; cannot repeat or buy after a dart",()=>{
+ const original=chaosCapture(),before=JSON.stringify(original);let s=dc.activateChaosPower(original,"PRECISION");assert.equal(JSON.stringify(original),before);assert.equal(s.energy[0],1);assert.deepEqual(s.challenge.target.multipliers,[1,2,3]);assert.equal(dc.validDartChess(s),true);assert.equal(dc.activateChaosPower(s,"PRECISION"),s);
+ s=chessDart(s,"0");assert.equal(dc.activateChaosPower(s,"REINFORCEMENT"),s);s=chessDart(s,"S"+s.challenge.target.segment);assert.equal(s.captured[0].piece,"q");
+ assert.equal(dc.activateChaosPower(captureStart(),"PRECISION").phase,"CAPTURE_CHALLENGE");
+});
+test("Chaos: reinforcement allows exactly four darts; new energy cannot buy another dart mid-challenge",()=>{
+ let s=dc.activateChaosPower(chaosCapture(),"REINFORCEMENT");assert.equal(s.energy[0],0);assert.equal(dc.dartLimit(s),4);assert.equal(dc.activateChaosPower(s,"REINFORCEMENT"),s);
+ for(let i=0;i<3;i++)s=chessDart(s,"0");assert.equal(s.phase,"CAPTURE_CHALLENGE");assert.equal(dc.validDartChess(s),true);
+ const success=chessDart(s,targetDart(s));assert.equal(success.captured.length,1);s=chessDart(s,"0");assert.equal(s.phase,"SELECT_MOVE");assert.equal(s.activeParticipant,1);assert.equal(dc.validDartChess(s),true);
+});
+test("Chaos: energy gains are bounded and Bull is a capture joker but never a King Checkout",()=>{
+ let s=chaosCapture();const miss=(s.challenge.target.segment%20)+1;s=chessDart(s,"D"+miss);assert.equal(s.energy[0],3);s=chessDart(s,"T"+miss);assert.equal(s.energy[0],5);s=chessDart(s,"50");assert.equal(s.energy[0],6);assert.equal(s.captured.length,1);
+ const outer=chessDart(chaosCapture(),"25");assert.equal(outer.phase,"CAPTURE_CHALLENGE");assert.equal(outer.energy[0],3);
+ let mate=configuredChess("CHAOS");for(const [a,b] of [["f2","f3"],["e7","e5"],["g2","g4"],["d8","h4"]])mate=chessMove(mate,a,b);mate=chessDart(mate,"50");assert.equal(mate.phase,"KING_CHECKOUT");assert.equal(mate.challenge.darts.length,1);
+});
+test("Modes: modified save fields, forged powers and outcomes are rejected",()=>{
+ for(const mutate of [s=>s.settings.mode="BAD",s=>s.settings.aiSide=5,s=>s.settings.difficulty="BAD",s=>s.energy=[-1,8],s=>s.aiSeed=-1,s=>s.challenge.extended="yes",s=>s.challenge.assisted=true]){const s=chaosCapture();mutate(s);assert.equal(dc.validDartChess(s),false);}
+ const classic=chessMove(configuredChess("CLASSIC"),"e2","e4");classic.settings.mode="BATTLE";assert.equal(dc.validDartChess(classic),false);
+ const battle=captureStart();battle.challenge.extended=true;assert.equal(dc.validDartChess(battle),false);
+});
+for(const difficulty of ["EASY","MEDIUM","HARD"])test("AI: legal move, forced check escape and mate in one / "+difficulty,()=>{
+ const initial=configuredChess("BATTLE",0,difficulty);const move=ai.chooseComputerMove(initial.fen,difficulty);assert.ok(ca.legalMove(initial.fen,move));
+ const fen="4k3/8/8/8/8/8/4r3/4K3 w - - 0 1";assert.ok(ca.legalMove(fen,ai.chooseComputerMove(fen,difficulty)));
+ const mating="7k/5K2/6Q1/8/8/8/8/8 w - - 0 1";const c=ca.chessPosition(mating);c.move(ai.chooseComputerMove(mating,difficulty));assert.equal(c.isCheckmate(),true);
+});
+test("AI: deterministic simulated darts, misses and hits, no manual input during AI turn",()=>{
+ let hits=0,misses=0;
+ for(let seed=0;seed<60;seed++){
+  let s=chaosCapture();s.settings.aiSide=0;s.settings.mode="BATTLE";s.aiSeed=seed*123456789>>>0;
+  assert.equal(chessDart(s,targetDart(s)),s);const next=ai.advanceComputerChallenge(s);assert.deepEqual(next,ai.advanceComputerChallenge(s));assert.equal(dc.validDartChess(next),true);
+  if(next.phase==="CAPTURE_CHALLENGE")misses++;else hits++;
+ }assert.ok(hits>0&&misses>0);
+});
+test("AI: surrender on computer turn resigns the human; all modes restore through cloud records",()=>{
+ for(const mode of ["CLASSIC","BATTLE","CHAOS"]){let s=configuredChess(mode,0);assert.equal(dc.resignDartChess(s).winnerSide,0);assert.equal(local.validRecord("dartchess",{version:1,revision:1,current:savedSession(s,"ai-save"),completed:[]}),true);}
 });
 
 console.log(count + " play engine tests passed.");

@@ -1,5 +1,7 @@
 # Dart Chess Battle V1
 
+> Rapport historique de la V1. L’évolution des modes et de la synchronisation est documentée dans [dart-chess-v2.md](dart-chess-v2.md).
+
 ## Résultat
 
 Nouveau jeu `/play/dart-chess`, accessible depuis Univers Jeux, pour deux humains sur le même écran et une cible traditionnelle. Partie locale liée au compte, avec saisie manuelle, sauvegarde automatique, reprise, annulation confirmée, abandon et suppression via les composants existants. Aucune mise en production ni migration de données.
