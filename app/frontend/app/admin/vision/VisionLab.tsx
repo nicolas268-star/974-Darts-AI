@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type ChangeEvent, type PointerEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type ChangeEvent, type MouseEvent } from "react";
 import { ANCHOR_LABELS, ENGINE_VERSION, RINGS, SECTORS, calibrate, detect, motionFraction, project, scorePoint, validLabel, type Calibration, type Detection, type Frame, type Point } from "@/lib/vision/engine";
 import styles from "./vision.module.css";
 
@@ -159,7 +159,7 @@ export default function VisionLab() {
       setSelected(point); setTruth(scorePoint(project(calibration.imageToBoard, point)).label);
     }
   }
-  function clickImage(event: PointerEvent<HTMLDivElement>) {
+  function clickImage(event: MouseEvent<HTMLDivElement>) {
     const rect = event.currentTarget.getBoundingClientRect();
     placePoint({ x: Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width)), y: Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height)) });
   }
@@ -280,7 +280,7 @@ export default function VisionLab() {
           <h2 id="calibration-heading">2. Calibration et inspection</h2>
           {!calibration && before && <p className={styles.guide}>{anchors.length < 5 ? `Repère ${anchors.length + 1}/5 — ${ANCHOR_LABELS[anchors.length]}` : "Calibration refusée. Recommencez les repères."}</p>}
           <p>Placez les repères sur le fil extérieur des doubles, au milieu des secteurs indiqués, pas sur les chiffres. Le cinquième point vérifie le centre.</p>
-          {frame ? <div className={styles.image} style={{ aspectRatio: `${frame.width} / ${frame.height}` }} onPointerDown={clickImage}>
+          {frame ? <div className={styles.image} style={{ aspectRatio: `${frame.width} / ${frame.height}` }} onClick={clickImage}>
             <canvas ref={canvasRef} aria-label={after ? "Image après lancer : touchez le point d’entrée réel" : "Image de référence : placez les repères"} />
             <svg viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">
               {paths.map((path, i) => <path key={i} d={path} className={styles.ring} />)}
