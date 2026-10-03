@@ -4,7 +4,7 @@ import VisionLab from "./VisionLab";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
-  title: "Laboratoire de vision privé | 974Darts",
+  title: "Laboratoire de vision privé",
   robots: { index: false, follow: false },
 };
 
