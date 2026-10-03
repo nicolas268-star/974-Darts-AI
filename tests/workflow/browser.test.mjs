@@ -13,6 +13,7 @@ import {testGameDeletion} from './play-deletion.browser.mjs';
 import {testConquestWorld} from './conquest-world.browser.mjs';
 import {testConquestUltra} from './conquest-ultra.browser.mjs';
 import {testDartChess} from './dart-chess.browser.mjs';
+import {testDartChessV2} from './dart-chess-v2.browser.mjs';
 import {testVisionCalibration} from './vision-calibration.browser.mjs';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'../..');
 const output=resolve(root,'docs/ranking-workflow-preview');
@@ -41,6 +42,7 @@ try{
  await testConquestWorld(browser,admin,screenshot);
  await testConquestUltra(browser,admin,screenshot);
  await testDartChess(browser,admin,screenshot);
+ await testDartChessV2(browser,admin,screenshot);
  await admin.goto('http://127.0.0.1:3008/admin/classement-individuel');
  await expect(admin.getByText('Open Club Double · Démonstration',{exact:true})).toBeVisible({timeout:30000});
  await screenshot(admin,'01-administration.png');

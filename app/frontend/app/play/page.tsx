@@ -15,7 +15,7 @@ const universes = [
     ] },
   { id: "fun", label: "02 · ENTRE AMIS", title: "Jeux fun", description: "Une cible traditionnelle, des défis et le plaisir de jouer ensemble.", icon: Gamepad2, tone: "violet",
     games: [
-      { href: "/play/dart-chess", name: "Dart Chess", tag: "Battle · 2 joueurs · même écran", text: "La stratégie des échecs, la précision des fléchettes. Gagnez vos captures puis terminez au King Checkout." },
+      { href: "/play/dart-chess", name: "Dart Chess", tag: "Classic · Battle · Chaos · IA", text: "Trois modes, seul contre l’IA ou à deux. Défis de précision, pouvoirs Chaos et synchronisation PC / téléphone." },
       { href: "/play/connect4", name: "Puissance 4", tag: "1–4 joueurs · 2 vs 2", text: "Visez une colonne, posez votre pion et alignez-en quatre. Mode libre ou doubles uniquement." },
       { href: "/play/conquest", name: "Conquête", tag: "Monde stratégique · 1–4 joueurs", text: "20 territoires + Bull. Reliez et défendez vos conquêtes, ou jouez Ultra avec des finishes 501 de 2 à 78." },
       { href: "/play/bull500", name: "Bull 500", tag: "1–4 joueurs · 2 vs 2", text: "Débloquez le score au Bull à chaque volée, puis marquez sur le 20 ou le 19. Objectif : 500." },

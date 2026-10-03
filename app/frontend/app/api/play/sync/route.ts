@@ -25,7 +25,7 @@ async function handle(request: NextRequest) {
         if (!kind || !/^\d{1,10}$/.test(after)) return fail(400, "Révision invalide.");
         query = query.gt("revision", Number(after));
       }
-      const { data, error } = await query.limit(7);
+      const { data, error } = await query.limit(8);
       if (error) return fail(503, "Synchronisation indisponible. Votre sauvegarde locale reste disponible.");
       if (!(data ?? []).every(validCloudRow)) return fail(422, "Sauvegarde distante incompatible.");
       return json({ row: kind ? data?.[0] ?? null : null, rows: data ?? [], unchanged: after !== null && data?.length === 0 });

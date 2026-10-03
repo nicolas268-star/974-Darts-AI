@@ -4,7 +4,7 @@ export type CloudRow = { kind: LocalKind; revision: number; writer_device: strin
 export type CloudCommand = { kind: LocalKind; expected: number; device: string; command: string; action: "ENABLE" | "SAVE" | "CLAIM"; record: LocalRecord | null };
 const uuid = (v: unknown): v is string => typeof v === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
 const object = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
-export const isKind = (v: unknown): v is LocalKind => typeof v === "string" && v !== "dartchess" && Object.hasOwn(LOCAL_GAMES, v);
+export const isKind = (v: unknown): v is LocalKind => typeof v === "string" && Object.hasOwn(LOCAL_GAMES, v);
 export function validCloudRow(value: unknown): value is CloudRow {
   return object(value) && isKind(value.kind) && Number.isSafeInteger(value.revision) && (value.revision as number) > 0 &&
     uuid(value.writer_device) && typeof value.updated_at === "string" && Number.isFinite(Date.parse(value.updated_at)) &&
