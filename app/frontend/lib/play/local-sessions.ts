@@ -1,3 +1,4 @@
+import { validDartChess, type DartChessState } from "./dart-chess-engine";
 import type { CricketState } from "./cricket-engine";
 import type { TicTacToeState } from "./tictactoe-engine";
 import type { ClockState } from "./clock-engine";
@@ -6,10 +7,11 @@ import type { Connect4State, ConquestState, Bull500State, FunState } from "./fun
 import { conquestScores, conquestWinner, conquestUltraAttempt } from "./fun-engine";
 import { participantCount, sideCount, sideForSeat, type PlayFormat } from "./format";
 
-export type LocalGameMap = { cricket: CricketState; tictactoe: TicTacToeState; clock: ClockState; bob27: Bob27State; connect4: Connect4State; conquest: ConquestState; bull500: Bull500State };
+export type LocalGameMap = { dartchess: DartChessState; cricket: CricketState; tictactoe: TicTacToeState; clock: ClockState; bob27: Bob27State; connect4: Connect4State; conquest: ConquestState; bull500: Bull500State };
 export type LocalKind = keyof LocalGameMap;
 export type LocalGame = LocalGameMap[LocalKind];
 export const LOCAL_GAMES: Record<LocalKind, { title: string; href: string }> = {
+  dartchess: { title: "Dart Chess", href: "/play/dart-chess" },
   cricket: { title: "Cricket", href: "/play/cricket" }, tictactoe: { title: "Morpion", href: "/play/tictactoe" },
   clock: { title: "Tour de l’horloge", href: "/play/clock" }, bob27: { title: "Bob’s 27", href: "/play/bob27" },
   connect4: { title: "Puissance 4", href: "/play/connect4" }, conquest: { title: "Conquête", href: "/play/conquest" }, bull500: { title: "Bull 500", href: "/play/bull500" },
@@ -31,6 +33,7 @@ const oneOf = (v: unknown, values: readonly unknown[]) => values.includes(v);
 const list = (v: unknown, max: number): v is unknown[] => Array.isArray(v) && v.length <= max;
 
 export function validGame<K extends LocalKind>(kind: K, value: unknown): value is LocalGameMap[K] {
+  if (kind === "dartchess") return validDartChess(value);
   if (!object(value) || !oneOf(value.format, ["SOLO", "DUEL", "THREE", "FOUR", "TEAMS_2V2"])) return false;
   const format = value.format as PlayFormat, count = sideCount(format);
   const owner = (v: unknown) => v === null || integer(v, 0, count - 1);
@@ -125,6 +128,7 @@ export function outcome(game: LocalGame): string {
   return typeof game.winnerSide === "number" ? names[game.winnerSide] + " gagne" : "Partie en cours";
 }
 export function describeGame(game: LocalGame): string {
+  if ("kind" in game && game.kind === "dartchess") return "Battle · duel local · captures aux fléchettes";
   if ("kind" in game) {
     const fun: FunState = game;
     if (fun.kind === "conquest" && fun.campaign?.mode === "ULTRA") return "Ultra conquête · finishes 2–78 · double obligatoire · Bull 50";

@@ -20,6 +20,7 @@ const requiredPages = [
   "app/play/connect4/page.tsx",
   "app/play/conquest/page.tsx",
   "app/play/bull500/page.tsx",
+  "app/play/dart-chess/page.tsx",
   "app/mentions-legales/page.tsx",
   "app/confidentialite/page.tsx",
   "app/conditions-utilisation/page.tsx",

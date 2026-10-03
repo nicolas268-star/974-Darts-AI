@@ -3,6 +3,8 @@ import { readFileSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import ts from "typescript";
+import { createRequire } from "node:module";
+const nativeRequire = createRequire(import.meta.url);
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const cache = new Map();
@@ -12,7 +14,7 @@ function load(path) {
   const loadedModule = { exports: {} };
   cache.set(file, loadedModule);
   const source = ts.transpileModule(readFileSync(file, "utf8"), { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS } }).outputText;
-  new Function("require", "module", "exports", source)((p) => load(resolve(dirname(file), p)), loadedModule, loadedModule.exports);
+  new Function("require", "module", "exports", source)((p) => p.startsWith(".") ? load(resolve(dirname(file), p)) : nativeRequire(p), loadedModule, loadedModule.exports);
   return loadedModule.exports;
 }
 const input = load("lib/play/dart-input");
@@ -652,4 +654,106 @@ test("Conquest Ultra: reject malformed targets, versions, marks, attacks, pendin
  const closed=ultraDart(partial,"D10");closed.visitDarts.push("MISS");closed.log.push({...closed.log[0]});closed.totalDarts++;assert.equal(local.validGame("conquest",closed),false,"No darts after checkout");
  const normal=campaignGame("FULL");normal.campaign.attackRegion=1;assert.equal(local.validGame("conquest",normal),false);
 });
+
+const dc = load("lib/play/dart-chess-engine");
+const ca = load("lib/play/chess-adapter");
+const chessMove = (s, from, to, promotion) => dc.requestChessMove(s, { from, to, ...(promotion ? {promotion} : {}) });
+const chessDart = (s, label, source = "manual") => dc.applyChessDart(s, { source, dart: input.parseDartInput(label) });
+function chessFixture(fen) {
+ const state = dc.createDartChess(["Alice", "Bob"], 7654);
+ state.fen = ca.chessPosition(fen).fen(); state.positions = [ca.positionKey(state.fen)];
+ state.activeParticipant = ca.chessPosition(state.fen).turn() === "w" ? 0 : 1;
+ return state;
+}
+const captureStart = () => chessMove(chessFixture("4k3/8/8/3p4/4P3/8/8/4K3 w - - 0 1"), "e4", "d5");
+const targetDart = s => "SDT"[s.challenge.target.multipliers[0] - 1] + s.challenge.target.segment;
+
+test("Dart Chess: legal/illegal moves, immutable board, alternating turns and validated initial state", () => {
+ const initial = dc.createDartChess(names, 90), encoded = JSON.stringify(initial);
+ assert.equal(local.validGame("dartchess", initial), true);
+ assert.equal(chessMove(initial,"e2","e5"), initial);
+ const moved = chessMove(initial,"e2","e4");
+ assert.equal(moved.activeParticipant,1); assert.equal(ca.chessPosition(moved.fen).get("e4").type,"p");
+ assert.equal(JSON.stringify(initial),encoded); assert.equal(dc.validDartChess(moved),true);
+ assert.equal(chessMove(moved,"d2","d4"),moved);
+});
+for (const dartNumber of [1,2,3]) test("Dart Chess: capture success on dart " + dartNumber, () => {
+ let s=captureStart(); const target=targetDart(s), before=s.fen;
+ assert.equal(s.phase,"CAPTURE_CHALLENGE"); assert.equal(s.captured.length,0);
+ assert.equal(chessMove(s,"e4","e5"),s);
+ for(let i=1;i<dartNumber;i++) {s=chessDart(s,"0");assert.equal(s.fen,before);assert.equal(dc.validDartChess(s),true);}
+ s=chessDart(s,target); assert.equal(s.phase,"SELECT_MOVE");assert.equal(s.activeParticipant,1);
+ assert.deepEqual(s.captured,[{piece:"p",by:0}]); assert.equal(ca.chessPosition(s.fen).get("d5").color,"w");
+ assert.equal(dc.validDartChess(s),true); assert.equal(chessDart(s,"T20"),s);
+});
+test("Dart Chess: three misses cancel capture and pass exactly once", () => {
+ let s=captureStart();const board=s.fen.split(" ")[0];
+ for(let i=0;i<3;i++)s=chessDart(s,"0");
+ assert.equal(s.fen.split(" ")[0],board); assert.equal(s.activeParticipant,1);assert.equal(s.phase,"SELECT_MOVE");
+ assert.equal(s.captured.length,0);assert.equal(dc.validDartChess(s),true);assert.equal(chessDart(s,"0"),s);
+});
+test("Dart Chess: check escape captures are automatic; no illegal pass or pinned move",()=>{
+ const state=chessFixture("4k3/8/8/8/8/8/4r3/4K3 w - - 0 1");
+ assert.equal(ca.chessPosition(state.fen).isCheck(),true);assert.throws(()=>ca.passTurn(state.fen));
+ const saved=chessMove(state,"e1","e2");assert.notEqual(saved.phase,"CAPTURE_CHALLENGE");assert.equal(saved.captured.length,1);assert.equal(saved.winnerSide,"DRAW");
+ const pinned=chessFixture("4r1k1/8/8/8/8/8/4R3/4K3 w - - 0 1");
+ assert.equal(chessMove(pinned,"e2","d2"),pinned);
+});
+test("Dart Chess: en passant captures only on success and expires after a failed attempt",()=>{
+ const initial=chessFixture("4k3/8/8/3pP3/8/8/8/4K3 w - d6 0 2");
+ let s=chessMove(initial,"e5","d6");assert.equal(s.phase,"CAPTURE_CHALLENGE");
+ const won=chessDart(s,targetDart(s));assert.equal(ca.chessPosition(won.fen).get("d5"),undefined);assert.equal(ca.chessPosition(won.fen).get("d6").color,"w");
+ for(let i=0;i<3;i++)s=chessDart(s,"0");
+ assert.equal(s.fen.split(" ")[3],"-");assert.equal(ca.chessPosition(s.fen).get("d5").color,"b");assert.equal(dc.validDartChess(s),true);
+});
+test("Dart Chess: king-side/queen-side castling and no castling through attack",()=>{
+ for(const to of ["g1","c1"]){const s=chessMove(chessFixture("r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1"),"e1",to);assert.equal(ca.chessPosition(s.fen).get(to).type,"k");assert.equal(ca.chessPosition(s.fen).get(to==="g1"?"f1":"d1").type,"r");assert.equal(dc.validDartChess(s),true);}
+ const s=chessFixture("4kr2/8/8/8/8/8/8/4K2R w K - 0 1");assert.equal(chessMove(s,"e1","g1"),s);
+});
+for(const piece of ["q","r","b","n"])test("Dart Chess: explicit promotion / "+piece,()=>{
+ const s=chessFixture("7k/P7/8/8/8/8/8/4K3 w - - 0 1");assert.equal(chessMove(s,"a7","a8"),s);
+ const promoted=chessMove(s,"a7","a8",piece);assert.equal(ca.chessPosition(promoted.fen).get("a8").type,piece);assert.equal(dc.validDartChess(promoted),true);
+});
+test("Dart Chess: capture promotion is deferred until success",()=>{
+ const initial=chessFixture("1r5k/P7/8/8/8/8/8/4K3 w - - 0 1");let s=chessMove(initial,"a7","b8","n");assert.equal(s.fen,initial.fen);
+ s=chessDart(s,targetDart(s));assert.equal(ca.chessPosition(s.fen).get("b8").type,"n");assert.equal(s.captured[0].piece,"r");assert.equal(dc.validDartChess(s),true);
+});
+test("Dart Chess: mate freezes board, D20 retries do not alter chess, victory only on double",()=>{
+ let s=dc.createDartChess(names);for(const [from,to] of [["f2","f3"],["e7","e5"],["g2","g4"],["d8","h4"]])s=chessMove(s,from,to);
+ assert.equal(s.phase,"KING_CHECKOUT");assert.equal(s.activeParticipant,1);assert.equal(s.winnerSide,null);assert.equal(dc.validDartChess(s),true);
+ const fen=s.fen;assert.equal(chessMove(s,"e1","e2"),s);assert.equal(dc.retryKingCheckout(s),s);
+ for(const d of ["S20","T20","50"])s=chessDart(s,d);
+ assert.equal(s.fen,fen);assert.equal(s.challenge.darts.length,3);assert.equal(dc.validDartChess(s),true);assert.equal(chessDart(s,"D20"),s);
+ s=dc.retryKingCheckout(s);assert.equal(s.fen,fen);assert.equal(s.challenge.darts.length,0);
+ s=chessDart(s,"D20");assert.equal(s.phase,"GAME_OVER");assert.equal(s.winnerSide,1);assert.equal(dc.validDartChess(s),true);assert.equal(dc.resignDartChess(s),s);
+});
+test("Dart Chess: stalemate, repetition and fifty-move draw",()=>{
+ const pat=chessMove(chessFixture("7k/5K2/8/6Q1/8/8/8/8 w - - 0 1"),"g5","g6");assert.equal(pat.winnerSide,"DRAW");assert.equal(ca.chessPosition(pat.fen).isStalemate(),true);
+ let repeated=dc.createDartChess(names);for(let i=0;i<2;i++)for(const [a,b] of [["g1","f3"],["g8","f6"],["f3","g1"],["f6","g8"]])repeated=chessMove(repeated,a,b);assert.equal(repeated.winnerSide,"DRAW");
+ const fifty=chessMove(chessFixture("7k/8/8/8/8/8/8/R3K3 w - - 99 50"),"a1","a2");assert.equal(fifty.winnerSide,"DRAW");
+});
+test("Dart Chess: same seed and undo do not reroll objectives; adjacent targets vary",()=>{
+ const first=captureStart();assert.deepEqual(first,captureStart());let s=first;for(let i=0;i<3;i++)s=chessDart(s,"0");
+ const second=chessMove(s,"d5","e4");assert.notEqual(second.lastTarget,first.lastTarget);
+ for(const [piece,multipliers] of Object.entries(dc.BATTLE_RULES))assert.deepEqual(multipliers,piece==="p"?[1,2,3]:piece==="n"?[1]:piece==="q"?[3]:[2]);
+});
+test("Dart Chess: validated darts, source abstraction, no total-only inputs",()=>{
+ const s=captureStart(), d=input.parseDartInput(targetDart(s));assert.equal(dc.applyChessDart(s,{source:"manual",dart:{...d,score:999}}),s);
+ assert.equal(dc.applyChessDart(s,{source:"unknown",dart:d}),s);
+ assert.deepEqual(chessDart(s,targetDart(s),"autoscoring").fen,chessDart(s,targetDart(s)).fen);
+});
+test("Dart Chess: resume a partial challenge, undo completion, deletion and account isolation",()=>{
+ const initial=captureStart(),partial=chessDart(initial,"0"),storage=memoryStorage();
+ assert.equal(local.saveRecord(storage,"alice","dartchess",0,savedSession(partial,"chess-save",[initial])).ok,true);
+ const loaded=local.readRecord(storage,"alice","dartchess");assert.equal(loaded.ok,true);assert.deepEqual(loaded.record.current.game,partial);assert.deepEqual(loaded.record.current.history[0],initial);
+ assert.equal(local.readRecord(storage,"bob","dartchess").record.current,null);
+ const won=chessDart(partial,targetDart(partial));assert.equal(local.saveRecord(storage,"alice","dartchess",1,savedSession(won,"chess-save",[initial,partial])).ok,true);
+ assert.deepEqual(local.readRecord(storage,"alice","dartchess").record.current.history.at(-1),partial);
+ assert.equal(local.saveRecord(storage,"alice","dartchess",2,null,"chess-save").ok,true);assert.equal(local.readRecord(storage,"alice","dartchess").record.current,null);
+ assert.equal(cloud.isKind("dartchess"),false,"Local MVP must not enable unsupported cloud API kind");
+});
+test("Dart Chess: reject damaged state, contradictory turns, forged objectives and illegal captures",()=>{
+ const base=captureStart();for(const mutate of [s=>s.version=2,s=>s.fen="invalid",s=>s.activeParticipant=1,s=>s.challenge.move.to="h8",s=>s.challenge.piece="q",s=>s.challenge.target.multipliers=[3],s=>s.challenge.darts=[{source:"manual",dart:input.parseDartInput(targetDart(s))}],s=>s.challenge.darts=[1,2,3],s=>s.sideNames=[],s=>s.phase="KING_CHECKOUT",s=>s.winnerSide=0,s=>s.positions=[],s=>s.lastMove={from:"z9",to:"a1"},s=>s.seed=-1]){const bad=structuredClone(base);mutate(bad);assert.equal(dc.validDartChess(bad),false);}
+});
+
 console.log(count + " play engine tests passed.");
