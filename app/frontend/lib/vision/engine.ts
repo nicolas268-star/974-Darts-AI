@@ -9,7 +9,7 @@ export type Detection = {
   reason: string; candidates: Candidate[]; boxes: { x: number; y: number; width: number; height: number }[];
   changedFraction: number; brightnessShift: number;
 };
-export const ENGINE_VERSION = "classical-difference-v1";
+export const ENGINE_VERSION = "classical-difference-v1.1";
 export const SECTORS = [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5] as const;
 // Nominal steel-tip board radii, normalized to the OUTER double wire (170 mm).
 export const RINGS = [6.35 / 170, 15.9 / 170, 99 / 170, 107 / 170, 162 / 170, 1] as const;
@@ -154,7 +154,29 @@ export function detect(before: Frame, after: Frame, calibration: Calibration, th
         if (clean[ni]) { clean[ni] = 0; queue.push(ni); }
       }
     }
-    if (points.length >= 8) components.push(points);
+    if (points.length >= 8) {
+      // A subpixel wire/texture displacement can leave a long, thin residual.
+      // Admit a component only when at least three sampled sites contain new
+      // luminance beyond the ORIGINAL reference's local range. One capture
+      // pixel of tolerance is independent of the detector's subsampling step.
+      // Keep all original points after admission so this check does not erode
+      // a thin shaft or move its proposed endpoints. It does not identify a tip.
+      let novelSites = 0;
+      for (const point of points) {
+        const px = Math.round(point.x * before.width), py = Math.round(point.y * before.height);
+        let low = Infinity, high = -Infinity, complete = true;
+        for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+          const nx = px + dx, ny = py + dy;
+          if (nx < 0 || ny < 0 || nx >= before.width || ny >= before.height || (validMask && !validMask[ny * before.width + nx])) { complete = false; continue; }
+          const value = luminance(before.data, (ny * before.width + nx) * 4);
+          low = Math.min(low, value); high = Math.max(high, value);
+        }
+        const value = luminance(after.data, (py * before.width + px) * 4) - brightnessShift;
+        if (complete && (value < low - threshold || value > high + threshold)) novelSites++;
+        if (novelSites >= 3) break;
+      }
+      if (novelSites >= 3) components.push(points);
+    }
   }
   if (!components.length) return { ...common, status: "NO_CHANGE", reason: "Aucun changement exploitable. Cela ne signifie pas qu’un lancer raté a eu lieu." };
   if (components.length > 5) return { ...common, status: "SCENE_CHANGED", reason: "Trop de changements dispersés : vérifiez le cadrage et l’éclairage." };

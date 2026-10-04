@@ -113,6 +113,73 @@ test("isolated noise is discarded", () => {
   const a = frame(), b = frame(); paintRect(b, 90, 90, 1, 1, 0); paintRect(b, 160, 140, 1, 1, 0);
   assert.equal(v.detect(a, b, calibration).status, "NO_CHANGE");
 });
+function pixelCalibration(width, height) {
+  const r = Math.min(width, height) * .38;
+  return v.calibrate([{ x: .5, y: .5 - r / height }, { x: .5 + r / width, y: .5 }, { x: .5, y: .5 + r / height }, { x: .5 - r / width, y: .5 }, { x: .5, y: .5 }]);
+}
+function wire(f, angle, offset = 0, halfWidth = .65) {
+  const c = Math.cos(angle), s = Math.sin(angle), cx = f.width / 2, cy = f.height / 2;
+  for (let y = 0; y < f.height; y++) for (let x = 0; x < f.width; x++) {
+    const along = (x - cx) * c + (y - cy) * s, across = -(x - cx) * s + (y - cy) * c - offset;
+    if (Math.abs(along) > 70) continue;
+    const coverage = Math.max(0, Math.min(1, halfWidth + .5 - Math.abs(across)));
+    const i = (y * f.width + x) * 4, value = 170 - 130 * coverage;
+    f.data[i] = f.data[i + 1] = f.data[i + 2] = value;
+  }
+}
+for (const [width, height] of [[540, 960], [960, 540]]) {
+  for (const [name, angle] of [["horizontal", 0], ["vertical", Math.PI / 2], ["slanted", Math.PI / 4]]) {
+    test(`${width}x${height} ${name} old wire displacement is not a new silhouette`, () => {
+      const a = frame(170, width, height), b = frame(170, width, height), c = pixelCalibration(width, height);
+      wire(a, angle); wire(b, angle, .75);
+      const result = v.detect(a, b, c);
+      assert.ok(result.changedFraction > 0, "the residual must remain visible in diagnostics");
+      assert.equal(result.status, "NO_CHANGE"); assert.equal(result.boxes.length, 0); assert.equal(result.candidates.length, 0);
+    });
+  }
+  test(`${width}x${height} softened old wire cannot stop surveillance`, () => {
+    const a = frame(170, width, height), b = frame(170, width, height), c = pixelCalibration(width, height);
+    wire(a, 0, 1, .5); wire(b, 0, 1, 1.2);
+    const result = v.detect(a, b, c);
+    assert.ok(result.changedFraction > 0); assert.equal(result.status, "NO_CHANGE");
+  });
+  for (const shaftWidth of [2, 4]) test(`${width}x${height} ${shaftWidth}px new shaft crosses an old edge without endpoint erosion`, () => {
+    const a = frame(170, width, height), b = frame(170, width, height), c = pixelCalibration(width, height);
+    const x = width / 2 + 40, y = height / 2 - 40;
+    // A pre-existing edge crosses the shaft, including its first sample. The
+    // full connected silhouette, not only its novel sites, supplies the tips.
+    paintRect(a, x - 20, y, 40, 2, 30); paintRect(b, x - 20, y, 40, 2, 30);
+    paintRect(b, x, y, shaftWidth, 80, 70);
+    const result = v.detect(a, b, c);
+    assert.equal(result.status, "CANDIDATES"); assert.equal(result.boxes.length, 1);
+    assert.equal(result.candidates.length, 2);
+    const endpoints = result.candidates.map(({ point }) => point.y * height).sort((a, b) => a - b);
+    // At 2px sampling a one-column shaft loses only its isolated first/last
+    // sample in the existing neighbour filter; admission must not erode it.
+    const expected = shaftWidth === 2 ? [y + 2, y + 76] : [y + 2 / 3, y + 78 - 2 / 3];
+    endpoints.forEach((value, i) => near(value, expected[i]));
+  });
+}
+test("many displaced wire fragments remain noise but broad changes still stop analysis", () => {
+  const a = frame(170), b = frame(170);
+  for (let i = 0; i < 6; i++) { paintRect(a, 65, 70 + i * 18, 100, 1, 30); paintRect(b, 65, 71 + i * 18, 100, 1, 30); }
+  assert.equal(v.detect(a, b, calibration).status, "NO_CHANGE");
+  // The original changed-pixel fraction and 16% scene guard are evaluated
+  // before admission, so novelty filtering cannot conceal broad occlusion.
+  paintRect(b, 60, 60, 110, 110, 0);
+  const broad = v.detect(a, b, calibration);
+  assert.ok(broad.changedFraction > .16); assert.equal(broad.status, "SCENE_CHANGED");
+});
+test("missing reference neighbours cannot supply evidence for a new silhouette", () => {
+  const width = 540, height = 960, a = frame(170, width, height), b = frame(170, width, height), c = pixelCalibration(width, height);
+  const mask = new Uint8Array(width * height).fill(1), x = 310, y = 440;
+  paintRect(b, x, y, 2, 80, 20);
+  // Missing neighbours are between the detector's 2px sample sites, leaving
+  // ROI coverage intact. Novelty must still require a complete valid patch.
+  for (let py = y; py < y + 80; py++) mask[py * width + x + 1] = 0;
+  const result = v.detect(a, b, c, 30, mask);
+  assert.equal(result.status, "NO_CHANGE"); assert.equal(result.candidates.length, 0);
+});
 test("motion outside board is not a dart candidate", () => {
   const a = frame(), b = frame(); paintRect(b, 2, 2, 10, 25, 0);
   assert.equal(v.detect(a, b, calibration).status, "NO_CHANGE");
