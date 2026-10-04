@@ -73,7 +73,7 @@ export function resample(current: Frame,t: Similarity): {frame: Frame; validMask
 export function stabilize(reference: Frame,current: Frame,calibration: Calibration): Stabilization {
   const started=performance.now();
   let transform={...IDENTITY};
-  const metrics: StabilizationMetrics={errorBefore:0,errorAfter:0,improvement:0,textureRegions:0,concordantRegions:0,sectors:0,validFraction:0,brightnessShift:0,sharpnessRatio:0,saturatedFraction:0,elapsedMs:0,allocatedBytes:0};
+  const metrics: StabilizationMetrics={errorBefore:null,errorAfter:null,improvement:null,textureRegions:null,concordantRegions:null,sectors:null,validFraction:null,brightnessShift:null,sharpnessRatio:null,saturatedFraction:null,elapsedMs:0,allocatedBytes:0};
   const finish=(state: Stabilization['state'],reason: string,aligned: Frame|null=null,validMask: Uint8Array|null=null): Stabilization=>({version:STABILIZATION_VERSION,state,reason,transform,metrics:{...metrics,elapsedMs:performance.now()-started},aligned,validMask});
   try { validateFrame(reference);validateFrame(current); } catch { return finish('REJECTED','Image invalide ou trop grande.'); }
   const {width:w,height:h}=reference;
@@ -119,11 +119,16 @@ export function stabilize(reference: Frame,current: Frame,calibration: Calibrati
       }
     }
   }
-  // Freeze a small outlier exclusion for final precision. Only estimation changes; detection still covers every valid ROI pixel.
+  // Freeze sparse point outliers; exclude a whole region only when >=3 of its
+  // 16 sites disagree (a structured local change such as a dart). This avoids
+  // magnifying isolated camera noise while keeping darts out of fine estimation.
+  // The 20% cap and validation on ALL original textured sites remain unchanged.
   const provisional=residuals(estimateSites,fullB,transform,w,h),provisionalShift=median(provisional.filter(Number.isFinite));
-  const unstableRegions=new Set(estimateSites.filter((_,i)=>Math.abs(provisional[i]-provisionalShift)>18).map(p=>p.region));
-  const stableSites=estimateSites.filter(p=>!unstableRegions.has(p.region));
-  if(stableSites.length<estimateSites.length*.8)return finish('REJECTED','Trop de régions modifiées pour un recalage fiable.');
+  const outliers=provisional.map(value=>!Number.isFinite(value)||Math.abs(value-provisionalShift)>18);
+  const regionOutliers=new Uint8Array(36);
+  estimateSites.forEach((p,i)=>{if(outliers[i])regionOutliers[p.region]++;});
+  const stableSites=estimateSites.filter((p,i)=>!outliers[i]&&regionOutliers[p.region]<3);
+  if(stableSites.length<estimateSites.length*.8)return finish('REJECTED','Trop de points modifiés pour un recalage fiable.');
   best=cost(stableSites,fullB,transform,w,h,provisionalShift);
   for(const step of [.5,.2,.08,.02])for(let iteration=0;iteration<12;iteration++) {
     let improved=false;

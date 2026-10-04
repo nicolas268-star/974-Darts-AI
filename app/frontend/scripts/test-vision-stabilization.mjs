@@ -14,6 +14,37 @@ function calibration(w,h){const r=Math.min(w,h)*.38;return v.calibrate([{x:.5,y:
 
 function request(a,b,c,reference=a,mask){return {sessionId:'session',referenceId:'ref',captureId:'capture',anchor:a,reference,current:b,referenceMask:mask,calibration:c,threshold:30,enabled:true};}
 function reprojection(actual,known,w,h){let max=0;for(const [x,y]of [[.5,.5],[.2,.2],[.8,.2],[.2,.8],[.8,.8]]){const a=s.transformPoint({x:x*w,y:y*h},actual,w,h),b=s.transformPoint({x:x*w,y:y*h},known,w,h);max=Math.max(max,Math.hypot(a.x-b.x,a.y-b.y));}return max;}
+// Camera-like luminance noise over the whole image, independent of sample sites.
+function noisy(frame,seed=974,rate=.015){
+ const data=frame.data.slice();let state=seed;
+ const random=()=>{state=(Math.imul(state,1664525)+1013904223)>>>0;return (state+.5)/4294967296;};
+ for(let k=0;k<data.length;k+=4){const n=random()<rate?(random()<.5?-65:65):(random()-.5)*4;for(let ch=0;ch<3;ch++)data[k+ch]+=n;}
+ return {...frame,data};
+}
+for(const [nw,nh]of [[540,960],[960,540]])for(const dx of [0,2])for(const dart of [false,true])test(`camera noise ${nw}x${nh}, shift ${dx}, dart ${dart}`,()=>{
+ const a=fixture(nw,nh),t={...identity,dx},b=noisy(fixture(nw,nh,t,{darts:dart?[{x:nw*.5,y:nh*.31}]:[]})),c=calibration(nw,nh);
+ const out=p.analyzeCapture(request(a,b,c));
+ assert.ok(out.stabilization.aligned,JSON.stringify(out.stabilization));
+ // Severe sparse noise: <=2px within the detection ROI, plus no false candidate.
+ // Clean geometry below retains its tighter 0.65px whole-frame gate.
+ for(let i=0;i<64;i++){
+  const pt=v.project(c.boardToImage,{x:1.12*Math.cos(i*Math.PI/32),y:1.12*Math.sin(i*Math.PI/32)}),pixel={x:pt.x*nw,y:pt.y*nh};
+  const got=s.transformPoint(pixel,out.stabilization.transform,nw,nh),expected=s.transformPoint(pixel,t,nw,nh);
+  assert.ok(Math.hypot(got.x-expected.x,got.y-expected.y)<2);
+ }
+ assert.equal(out.detection.status,dart?'CANDIDATES':'NO_CHANGE',JSON.stringify(out.detection));
+ assert.equal(out.detection.boxes.length,dart?1:0);
+ if(dart)assert.ok(out.detection.candidates.some(({point})=>Math.hypot((point.x-.5)*nw,(point.y-.31)*nh)<2));
+});
+test('distributed isolated noise does not reject an empty target',()=>{
+ // Regression: V1 discarded 14 whole regions for just 19 scattered point outliers.
+ // The noise is seeded over all image pixels, never placed at registration sites.
+ const a=fixture(540,960),b=noisy(a,12345,.03),c=calibration(540,960);
+ const out=p.analyzeCapture(request(a,b,c));
+ assert.ok(out.stabilization.aligned,JSON.stringify(out.stabilization));
+ assert.equal(out.detection.status,'NO_CHANGE');assert.equal(out.detection.candidates.length,0);
+ assert.ok(out.detection.changedFraction<.03);assert.ok(reprojection(out.stabilization.transform,identity,540,960)<2);
+});
 for(const [w,h]of [[960,960],[540,960],[960,540]]){
  const a=fixture(w,h),c=calibration(w,h);
  const transforms=[identity,{...identity,dx:2},{...identity,dy:-2},{...identity,dx:5},{...identity,dy:5},{...identity,dx:.65,dy:-.4},{...identity,rotation:.8*Math.PI/180},{...identity,rotation:-1.4*Math.PI/180},{...identity,scale:1.012},{...identity,scale:.987},{dx:4,dy:-3,rotation:1.1*Math.PI/180,scale:1.01}];
@@ -37,6 +68,12 @@ for(const [name,t,opts]of [
 ])test('reject '+name,()=>assert.equal(p.analyzeCapture(request(a,fixture(w,h,t,opts),c)).stabilization.state,'REJECTED',name));
 test('uniform reference rejected',()=>assert.equal(s.stabilize(fixture(w,h,identity,{flat:true}),fixture(w,h,identity,{flat:true}),c).state,'REJECTED'));
 test('dimensions rejected',()=>assert.equal(p.analyzeCapture(request(a,fixture(540,960),c)).stabilization.state,'REJECTED'));
+test('uncomputed rejection diagnostics are null, never measured zero',()=>{
+ const out=s.stabilize(a,fixture(540,960),c);
+ for(const name of ['errorBefore','errorAfter','improvement','textureRegions','concordantRegions','sectors','validFraction','brightnessShift','sharpnessRatio','saturatedFraction'])assert.equal(out.metrics[name],null,name);
+ const noTexture=s.stabilize(fixture(w,h,identity,{flat:true}),fixture(w,h,identity,{flat:true}),c);
+ assert.equal(noTexture.metrics.textureRegions,0);assert.equal(noTexture.metrics.validFraction,null);
+});
 test('small brightness variation once only',()=>{const out=p.analyzeCapture(request(a,fixture(w,h,{...identity,dx:3},{light:12}),c));assert.ok(out.stabilization.aligned,out.stabilization.reason);assert.equal(out.detection.status,'NO_CHANGE');assert.ok(Math.abs(out.detection.brightnessShift-12)<1);});
 test('explicit promotion, old darts not detected, fixed anchor rejects cumulative drift',()=>{
  let ref=a,mask;const darts=[];

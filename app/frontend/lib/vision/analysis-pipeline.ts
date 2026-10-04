@@ -13,7 +13,7 @@ export type AnalysisResult = {
 };
 export function cancelled(request: Pick<AnalysisRequest,'sessionId'|'referenceId'|'captureId'>,reason='Analyse annulée.'): AnalysisResult {
   return {sessionId:request.sessionId,referenceId:request.referenceId,captureId:request.captureId,stabilization:{version:STABILIZATION_VERSION,state:'CANCELLED',reason,transform:{...IDENTITY},aligned:null,validMask:null,
-    metrics:{errorBefore:0,errorAfter:0,improvement:0,textureRegions:0,concordantRegions:0,sectors:0,validFraction:0,brightnessShift:0,sharpnessRatio:0,saturatedFraction:0,elapsedMs:0,allocatedBytes:0}},detection:null,rawChangedFraction:null,differences:null,totalMs:0};
+    metrics:{errorBefore:null,errorAfter:null,improvement:null,textureRegions:null,concordantRegions:null,sectors:null,validFraction:null,brightnessShift:null,sharpnessRatio:null,saturatedFraction:null,elapsedMs:0,allocatedBytes:0}},detection:null,rawChangedFraction:null,differences:null,totalMs:0};
 }
 const luminance=(f: Frame,k: number)=>(77*f.data[k]+150*f.data[k+1]+29*f.data[k+2])/256;
 /** One bounded robust offset in detection ROI; no second gain/offset or corrected image. */

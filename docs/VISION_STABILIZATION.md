@@ -16,7 +16,9 @@ La paire brute de l'incident à **28,83 %** n'est pas disponible. Ni sa cause ni
 
 Pas de bibliothèque supplémentaire. La recherche utilise 576 échantillons répartis dans 36 régions (12 directions × 3 bandes radiales) de la cible calibrée, hors du mur et du Bull central. Elle emploie une pyramide par moyenne de blocs, de grand côté ≤ 240, puis ≤ 480, puis la capture originale. La recherche grossière sur ce petit raster est suivie de descentes coordonnées à pas décroissants. Aucune recherche exhaustive à pleine résolution, homographie de mouvement ou déformation élastique.
 
-La similitude est estimée par erreur photométrique tronquée. Le raffinement final exclut au plus 20 % des points à travers les régions comportant de forts résidus, puis conserve cet ensemble fixe. La validation utilise de nouveau **toutes** les régions texturées initiales. Le masque d'estimation n'est **jamais** transmis au détecteur : un changement local reste analysé.
+La similitude est estimée par erreur photométrique tronquée. Depuis `similarity-v1.1`, le raffinement final exclut les points isolés dont le résidu dépasse 18 niveaux (ou est invalide). Une région entière n'est exclue qu'à partir de trois points aberrants sur ses seize échantillons : cela préserve l'exclusion des changements groupés, notamment des fléchettes. L'ensemble est ensuite figé et ne peut retirer plus de 20 % des points. La validation utilise de nouveau **toutes** les régions texturées initiales. Le masque d'estimation n'est **jamais** transmis au détecteur : un changement local reste analysé.
+
+Cette correction évite qu'un seul point bruité invalide seize points. Sur l'export terrain du 4 octobre 2026 à 15:15 UTC (deux captures de cible vide), 11 points aberrants sur 576 faisaient auparavant exclure neuf régions, soit 25 % des points. Le refus est reproduit avec la V1. Avec la V1.1, 565 points sont conservés : recalage accepté, 36 régions concordantes, couverture 100 %, différences brutes 6,04 % puis résiduelles 1,02 %, aucun candidat. Cela valide ce cas vide uniquement, pas la détection de vraies fléchettes ni l'ancien incident à 28,83 %. Les images personnelles ne sont pas ajoutées au dépôt.
 
 Cette méthode privilégie le refus lorsque la texture ou la couverture est insuffisante. Les reflets, fortes ombres, déformations de cible, longues occultations et mouvements hors modèle exigent une nouvelle prise ou une calibration. Les symétries visuellement indiscernables ne permettent pas de prouver le mouvement physique ; la calibration et le contrôle humain restent indispensables.
 
@@ -69,6 +71,8 @@ Le worker est limité à `'self'` dans la CSP de `/admin/vision`. Aucun ajout de
 
 Sans consentement : versions moteur/stabilisation, convention, calibration, dimensions capture/source, IDs, transformation, état/motif, mesures avant/après, durées et annotations, sans aucune image ni tableau de pixels.
 
+Depuis `similarity-v1.1`, une mesure de qualité non atteinte à cause d'un refus ou d'une annulation vaut `null`, jamais un faux zéro. L'interface affiche « non calculé » et n'affiche les paramètres du mouvement que si le recalage est accepté. Un vrai zéro calculé reste zéro. La transformation candidate demeure dans l'export avec son état de refus pour le diagnostic.
+
 Avec la case explicite : paire brute de captures PNG (après réduction initiale à 960, sans grille ni recompression JPEG), ancre spatiale, référence de comparaison, image recalée si acceptée et masque sous forme de plages linéaires `[indexDébut, longueur]` de pixels valides. La paire brute et la transformation de l'analyse courante restent disponibles après refus, sans confirmer de faux lancer. Ce sont des téléchargements locaux. Les images personnelles ne vont ni au dépôt, ni aux logs, ni aux artefacts CI.
 
 ## Tests et mesures
@@ -86,6 +90,10 @@ npm run test:vision:browser --prefix tests/workflow
 Le dernier parcours est ajouté à « Qualité obligatoire », après les parcours navigateur existants. Il s'appuie uniquement sur la fixture locale du dépôt, avec des utilisateurs fictifs et aucune base distante.
 
 Les fixtures de `vision-fixtures.mjs` sont analytiques et déterministes. Leur rendu inverse est indépendant des fonctions de transformation testées. Carré 960×960, portrait 540×960, paysage 960×540 ; identités, 2/5 px dans les deux axes, sous-pixel, rotations des deux signes, échelles et combinaisons. La limite de reprojection testée est **0,65 pixel maximum sur cinq points**. Le test exige aussi zéro candidat pour mouvement seul, conservation du changement ajouté, anciennes fléchettes non redétectées et absence de dérive cumulative.
+
+Huit cas additionnels perturbent indépendamment les pixels de toute l'image : bruit faible ±2 niveaux, plus 1,5 % de bruit impulsionnel ±65, en portrait/paysage, avec/sans translation de 2 px et avec/sans fléchette. Ils exigent zéro faux candidat à vide, exactement une silhouette ajoutée, une extrémité à moins de 2 px de l'entrée synthétique et un écart géométrique inférieur à 2 px sur 64 points du bord de la ROI. Cette tolérance propre au bruit fort ne remplace pas le contrôle à 0,65 px des images propres. Un test vérifie également la distinction entre zéro calculé et mesure non calculée.
+
+Un neuvième cas de bruit réparti (3 %, graine 12345, portrait vide) reproduit le défaut indépendamment des données privées et des sites d'échantillonnage : la V1 exclut quatorze régions pour seulement dix-neuf points aberrants et refuse la scène. La V1.1 conserve 557 points et produit `NO_CHANGE`, sans candidat. Cette régression est exécutée en CI.
 
 Sont également testés : main, scène différente, flou, uniformité/manque de texture, saturation, miroir, saut de secteur, mouvement hors limites, dimensions, variation lumineuse, masque insuffisant, invalidité des bords, réduction des limites à petite résolution, buffers non modifiés, annulation, travail unique, erreur/délai/indisponibilité du worker et réponse obsolète. Les extrémités d'une silhouette ne sont jamais assimilées à une pointe certaine.
 
