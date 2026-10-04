@@ -278,7 +278,7 @@ export default function VisionLab() {
           }} />}
           {!calibration && before && <p className={styles.guide}>{anchors.length < 5 ? `Secours manuel · Repère ${anchors.length + 1}/5 — ${ANCHOR_LABELS[anchors.length]}` : "Calibration refusée. Recommencez les repères."}</p>}
           <p>La détection automatique propose les contours. Vérifiez toujours le centre, les anneaux et le vrai 20. En mode manuel, placez les repères sur le fil extérieur des doubles.</p>
-          {frame ? <VisionFrame frame={frame} calibration={calibration} onPoint={placePoint}
+          {frame ? <VisionFrame frame={frame} calibration={calibration} onPoint={placePoint} gridMode={after ? "FULL" : "ALIGN"}
             markers={[...anchors.map((point, i) => ({ point, label: String(i + 1) })), ...(result?.candidates ?? []).map((candidate, i) => ({ point: candidate.point, label: `?${i + 1}`, active: true })), ...(selected ? [{ point: selected, label: "Impact", active: true }] : [])]}
             boxes={result?.boxes} label={after ? "Image après lancer : touchez le point d’entrée réel" : "Image de référence : placez les repères"} />
             : <div className={styles.placeholder}>L’image de référence apparaîtra ici.</div>}
