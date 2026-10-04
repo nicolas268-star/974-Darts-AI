@@ -1,31 +1,19 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
-import { calibrate, project, RINGS, type Calibration, type Frame, type Point } from "@/lib/vision/engine";
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import { calibrate, type Calibration, type Frame, type Point } from "@/lib/vision/engine";
 import { FULL_VIEW, confirmDraftPoint, newDraft, nudgePoint, setDraftPoint, viewToImage, zoomView, type View } from "@/lib/vision/calibration-ui";
 import styles from "./calibration.module.css";
+import AutoCalibration from "./AutoCalibration";
+import VisionFrame from "./VisionFrame";
 
 const LABELS = ["20", "6", "3", "11", "Bull"];
 const DIRECTIONS = ["En haut", "À droite", "En bas", "À gauche", "Au centre"];
 const POSITIONS: Point[] = [{ x: .5, y: .15 }, { x: .85, y: .5 }, { x: .5, y: .85 }, { x: .15, y: .5 }, { x: .5, y: .5 }];
 type Props = { frame: Frame; anchors: Point[]; disabled: boolean; onApply: (calibration: Calibration) => void };
 
-function gridPaths(calibration: Calibration): string[] {
-  const line = (points: Point[]) => points.map((p, i) => {
-    const q = project(calibration.boardToImage, p);
-    return `${i ? "L" : "M"}${q.x * 1000},${q.y * 1000}`;
-  }).join(" ");
-  return [
-    ...RINGS.map(radius => line(Array.from({ length: 101 }, (_, i) => ({ x: Math.sin(i * Math.PI / 50) * radius, y: -Math.cos(i * Math.PI / 50) * radius })))),
-    ...Array.from({ length: 20 }, (_, i) => {
-      const a = (i + .5) * Math.PI / 10;
-      return line([{ x: Math.sin(a) * RINGS[1], y: -Math.cos(a) * RINGS[1] }, { x: Math.sin(a), y: -Math.cos(a) }]);
-    }),
-  ];
-}
-
 export default function CalibrationAssistant({ frame, anchors, disabled, onApply }: Props) {
-  const dialogRef = useRef<HTMLDialogElement>(null), canvasRef = useRef<HTMLCanvasElement>(null), loupeRef = useRef<HTMLCanvasElement>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null), loupeRef = useRef<HTMLCanvasElement>(null);
   const sourceRef = useRef<HTMLCanvasElement | null>(null);
   const [open, setOpen] = useState(false), [draft, setDraft] = useState(() => newDraft(anchors));
   const [view, setView] = useState<View>(FULL_VIEW), [fine, setFine] = useState(true), [accepted, setAccepted] = useState(false);
@@ -36,7 +24,6 @@ export default function CalibrationAssistant({ frame, anchors, disabled, onApply
     try { return { calibration: calibrate(draft.points as Point[]), error: "" }; }
     catch (reason) { return { calibration: null, error: reason instanceof Error ? reason.message : "Vérifiez les repères." }; }
   }, [complete, draft.points]);
-  const paths = useMemo(() => preview.calibration ? gridPaths(preview.calibration) : [], [preview.calibration]);
 
   useEffect(() => {
     const source = document.createElement("canvas"); source.width = frame.width; source.height = frame.height;
@@ -46,19 +33,11 @@ export default function CalibrationAssistant({ frame, anchors, disabled, onApply
     return () => { sourceRef.current = null; };
   }, [frame]);
   useEffect(() => {
-    if (!open || !sourceRef.current || !canvasRef.current) return;
-    const canvas = canvasRef.current; canvas.width = frame.width; canvas.height = frame.height;
-    const ctx = canvas.getContext("2d");
-    if (ctx) ctx.drawImage(sourceRef.current, view.x * frame.width, view.y * frame.height, view.width * frame.width, view.height * frame.height, 0, 0, frame.width, frame.height);
-  }, [frame, view, open]);
-  useEffect(() => {
     if (!open || !point || !sourceRef.current || !loupeRef.current) return;
     const canvas = loupeRef.current; canvas.width = 288; canvas.height = 192;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    ctx.fillStyle = "#08101b"; ctx.fillRect(0, 0, 288, 192);
-    ctx.imageSmoothingEnabled = false;
-    // Do not clamp the crop at an edge: padding keeps the actual point exactly under the crosshair.
+    ctx.fillStyle = "#08101b"; ctx.fillRect(0, 0, 288, 192); ctx.imageSmoothingEnabled = false;
     ctx.drawImage(sourceRef.current, point.x * frame.width - 36, point.y * frame.height - 24, 72, 48, 0, 0, 288, 192);
     for (const [color, width] of [["#000000", 4], ["#ffdf61", 2]] as const) {
       ctx.strokeStyle = color; ctx.lineWidth = width; ctx.beginPath();
@@ -71,26 +50,13 @@ export default function CalibrationAssistant({ frame, anchors, disabled, onApply
     const dialog = dialogRef.current;
     if (!dialog) return;
     if (!dialog.open) dialog.showModal();
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const previousOverflow = document.body.style.overflow; document.body.style.overflow = "hidden";
     return () => { dialog.close(); document.body.style.overflow = previousOverflow; };
   }, [open]);
 
-  function show() {
-    setDraft(newDraft(anchors)); setView(FULL_VIEW); setAccepted(false); setOpen(true);
-  }
-  function update(p: Point | null) {
-    setDraft(current => setDraftPoint(current, p)); setAccepted(false);
-  }
-  function choose(index: number) {
-    setDraft(current => ({ ...current, active: index })); setView(FULL_VIEW);
-  }
-  function clickImage(event: MouseEvent<HTMLDivElement>) {
-    // Keyboard-generated clicks do not carry image coordinates. Use arrows instead.
-    if (event.detail === 0) return;
-    const rect = event.currentTarget.getBoundingClientRect();
-    update(viewToImage(view, (event.clientX - rect.left) / rect.width, (event.clientY - rect.top) / rect.height));
-  }
+  function show() { setDraft(newDraft(anchors)); setView(FULL_VIEW); setAccepted(false); setOpen(true); }
+  function update(p: Point | null) { setDraft(current => setDraftPoint(current, p)); setAccepted(false); }
+  function choose(index: number) { setDraft(current => ({ ...current, active: index })); setView(FULL_VIEW); }
   function nudge(dx: number, dy: number) {
     if (!point) return;
     update(nudgePoint(point, dx * (fine ? 1 : 5), dy * (fine ? 1 : 5), frame.width, frame.height));
@@ -100,17 +66,16 @@ export default function CalibrationAssistant({ frame, anchors, disabled, onApply
     if (event.key in moves) { event.preventDefault(); nudge(...moves[event.key]); }
     else if ((event.key === "Enter" || event.key === " ") && !point) { event.preventDefault(); update(viewToImage(view, .5, .5)); }
   }
-  function confirm() {
-    setDraft(current => confirmDraftPoint(current)); setView(FULL_VIEW); setAccepted(false);
-  }
+  function confirm() { setDraft(current => confirmDraftPoint(current)); setView(FULL_VIEW); setAccepted(false); }
   function apply() {
     if (!preview.calibration || !accepted || disabled) return;
     onApply(preview.calibration); setOpen(false);
   }
 
   return <>
+    <AutoCalibration frame={frame} disabled={disabled || open} onApply={onApply} />
     <button type="button" className={styles.launch} onClick={show} disabled={disabled}>Calibrer en grand · zoom et loupe</button>
-    <p className={styles.hint}>Touchez approximativement, ajustez avec les flèches, puis confirmez. Chaque point reste modifiable.</p>
+    <p className={styles.hint}>Secours manuel : touchez approximativement, ajustez avec les flèches, puis confirmez. Chaque point reste modifiable.</p>
     {open && <dialog ref={dialogRef} className={styles.dialog} aria-labelledby="vision-assistant-title" onCancel={() => setOpen(false)}>
       <header className={styles.header}><div><span>IMAGE FIGÉE · RIEN À COLLER SUR LA CIBLE</span><h2 id="vision-assistant-title">Calibration guidée</h2></div><button type="button" onClick={() => setOpen(false)} autoFocus>Fermer sans appliquer</button></header>
       <nav className={styles.steps} aria-label="Choisir le repère à placer ou corriger">{LABELS.map((label, i) => <button type="button" key={label} aria-current={draft.active === i ? "step" : undefined} onClick={() => choose(i)}>{label}<small>{draft.confirmed[i] ? "✓ placé" : "à placer"}</small></button>)}</nav>
@@ -118,13 +83,9 @@ export default function CalibrationAssistant({ frame, anchors, disabled, onApply
       <div className={styles.workspace}>
         <div>
           <div className={styles.zoom} aria-label="Zoom d’affichage">{[1, 2, 4].map(level => <button type="button" key={level} aria-pressed={Math.abs(view.width - 1 / level) < .001} onClick={() => setView(zoomView(point ?? { x: .5, y: .5 }, level))}>{level === 1 ? "Vue entière" : `Zoom ×${level}`}</button>)}</div>
-          <div className={styles.image} style={{ aspectRatio: `${frame.width} / ${frame.height}` }} onClick={clickImage} onKeyDown={onKey} role="button" tabIndex={0} aria-label={`Positionner le repère ${LABELS[draft.active]}. Toucher l’image, ou Entrée puis flèches au clavier.`}>
-            <canvas ref={canvasRef} />
-            <svg viewBox={`${view.x * 1000} ${view.y * 1000} ${view.width * 1000} ${view.height * 1000}`} preserveAspectRatio="none" aria-hidden="true">
-              {paths.map((path, i) => <path key={i} d={path} className={styles.ring} />)}
-              {draft.points.map((p, i) => p && <g key={i} className={i === draft.active ? styles.activePoint : styles.otherPoint}><circle cx={p.x * 1000} cy={p.y * 1000} r={7 * view.width} /><text x={p.x * 1000 + 12 * view.width} y={p.y * 1000 - 12 * view.height} fontSize={24 * view.width}>{LABELS[i]}</text></g>)}
-            </svg>
-          </div>
+          <VisionFrame frame={frame} calibration={preview.calibration} view={view} onPoint={update} onKeyDown={onKey}
+            markers={draft.points.flatMap((p, i) => p ? [{ point: p, label: LABELS[i], active: i === draft.active }] : [])}
+            label={`Positionner le repère ${LABELS[draft.active]}. Toucher l’image, ou Entrée puis flèches au clavier.`} />
           <p className={styles.hint}>Le zoom agrandit seulement cette photo, sans changer la caméra. Revenez à « Vue entière » pour retrouver un secteur.</p>
         </div>
         <section className={styles.adjust} aria-label="Ajustement précis du point">

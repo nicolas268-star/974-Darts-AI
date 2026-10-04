@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type ChangeEvent, type MouseEvent } from "react";
-import { ANCHOR_LABELS, ENGINE_VERSION, RINGS, SECTORS, calibrate, detect, motionFraction, project, scorePoint, validLabel, type Calibration, type Detection, type Frame, type Point } from "@/lib/vision/engine";
+import { useCallback, useEffect, useRef, useState, type ChangeEvent } from "react";
+import { ANCHOR_LABELS, ENGINE_VERSION, calibrate, detect, motionFraction, project, scorePoint, validLabel, type Calibration, type Detection, type Frame, type Point } from "@/lib/vision/engine";
 import styles from "./vision.module.css";
 import CalibrationAssistant from "./CalibrationAssistant";
+import VisionFrame from "./VisionFrame";
 
 type Snapshot = { frame: Frame; id: string; capturedAt: string };
 type Sample = {
@@ -56,16 +57,9 @@ async function readImage(file: File): Promise<Snapshot> {
     return capture(image, image.naturalWidth, image.naturalHeight);
   } finally { URL.revokeObjectURL(url); }
 }
-function overlayPaths(calibration: Calibration): string[] {
-  const line = (points: Point[]) => points.map((p, i) => { const t = project(calibration.boardToImage, p); return `${i ? "L" : "M"}${t.x * 1000},${t.y * 1000}`; }).join(" ");
-  return [
-    ...RINGS.map(r => line(Array.from({ length: 101 }, (_, i) => ({ x: Math.sin(i * Math.PI / 50) * r, y: -Math.cos(i * Math.PI / 50) * r })))),
-    ...SECTORS.map((_, i) => { const a = (i + 0.5) * Math.PI / 10; return line([{ x: Math.sin(a) * RINGS[1], y: -Math.cos(a) * RINGS[1] }, { x: Math.sin(a), y: -Math.cos(a) }]); }),
-  ];
-}
 
 export default function VisionLab() {
-  const videoRef = useRef<HTMLVideoElement>(null), canvasRef = useRef<HTMLCanvasElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null), timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const wakeRef = useRef<WakeHandle | null>(null), generation = useRef(0), mounted = useRef(false);
   const savedIds = useRef(new Set<string>());
@@ -100,15 +94,11 @@ export default function VisionLab() {
     document.addEventListener("visibilitychange", hidden); window.addEventListener("pagehide", leaving);
     return () => { mounted.current = false; stop(); document.removeEventListener("visibilitychange", hidden); window.removeEventListener("pagehide", leaving); };
   }, [stop]);
-  useEffect(() => {
-    const frame = after?.frame ?? before?.frame;
-    if (frame && canvasRef.current) paint(canvasRef.current, frame);
-  }, [before, after]);
 
   function resetReference(snapshot: Snapshot, origin: "camera" | "images") {
     pause(); setBefore(snapshot); setAfter(null); setAnchors([]); setCalibration(null); setVerified(false);
     setResult(null); setSelected(null); setTruth(""); setSaved(false); setSource(origin); setIncludeImages(false);
-    setMessage("Image figée. Placez les cinq repères, puis vérifiez la superposition des anneaux.");
+    setMessage("Image figée. Utilisez « Détecter ma cible », puis vérifiez la grille proposée. La méthode manuelle reste disponible.");
   }
   async function startCamera() {
     stop();
@@ -160,18 +150,21 @@ export default function VisionLab() {
       setSelected(point); setTruth(scorePoint(project(calibration.imageToBoard, point)).label);
     }
   }
-  function clickImage(event: MouseEvent<HTMLDivElement>) {
-    const rect = event.currentTarget.getBoundingClientRect();
-    placePoint({ x: Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width)), y: Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height)) });
-  }
   function addCoordinates() {
     if (!manualX.trim() || !manualY.trim()) return;
     const x = Number(manualX), y = Number(manualY);
     if (!Number.isFinite(x) || !Number.isFinite(y) || x < 0 || y < 0 || x > 100 || y > 100) { setMessage("Les coordonnées doivent être comprises entre 0 et 100 %."); return; }
     placePoint({ x: x / 100, y: y / 100 });
   }
+  function assertSameCapture(frame: Frame) {
+    if (before && (before.frame.width !== frame.width || before.frame.height !== frame.height)) {
+      pause(); setVerified(false);
+      throw new Error("Le format de l’image a changé. Figez une nouvelle référence et relancez la calibration.");
+    }
+  }
   function analyse(snapshot: Snapshot): Detection | null {
     if (!before || !calibration || !verified) return null;
+    assertSameCapture(snapshot.frame);
     const start = performance.now();
     const detection = detect(before.frame, snapshot.frame, calibration, threshold);
     setProcessingMs(Math.round(performance.now() - start));
@@ -187,12 +180,12 @@ export default function VisionLab() {
     if (!before || !calibration || !verified || !camera || after) return;
     pause();
     let previous: Frame;
-    try { previous = cameraFrame().frame; } catch (reason) { setMessage(errorMessage(reason)); return; }
+    try { previous = cameraFrame().frame; assertSameCapture(previous); } catch (reason) { setMessage(errorMessage(reason)); return; }
     const startedAt = performance.now(); let stable = 0;
     setWatching(true); setMessage("Surveillance locale active : lancez une seule fléchette, puis attendez la stabilisation de l’image.");
     timerRef.current = setInterval(() => {
       try {
-        const snapshot = cameraFrame();
+        const snapshot = cameraFrame(); assertSameCapture(snapshot.frame);
         stable = motionFraction(previous, snapshot.frame) < 0.004 ? stable + 1 : 0;
         previous = snapshot.frame;
         if (performance.now() - startedAt > 60_000) { pause(); setMessage("Surveillance suspendue après 60 secondes sans résultat exploitable. Aucun zéro ajouté."); return; }
@@ -249,7 +242,6 @@ export default function VisionLab() {
     // The currently inspected sample stays resolved: clearing a journal must not change the capture lifecycle.
   }
   const frame = after?.frame ?? before?.frame;
-  const paths = calibration ? overlayPaths(calibration) : [];
   const manualAllowed = Boolean(before && !watching && !imageBusy && (!calibration || (after && !saved)));
   const labelled = samples.filter(sample => sample.annotation === "LABELLED").length;
 
@@ -284,19 +276,13 @@ export default function VisionLab() {
             setAnchors(next.anchors); setCalibration(next); setVerified(true);
             setMessage("Calibration appliquée après votre contrôle de la grille. Vous pouvez maintenant armer la détection.");
           }} />}
-          {!calibration && before && <p className={styles.guide}>{anchors.length < 5 ? `Repère ${anchors.length + 1}/5 — ${ANCHOR_LABELS[anchors.length]}` : "Calibration refusée. Recommencez les repères."}</p>}
-          <p>Placez les repères sur le fil extérieur des doubles, au milieu des secteurs indiqués, pas sur les chiffres. Le cinquième point vérifie le centre.</p>
-          {frame ? <div className={styles.image} style={{ aspectRatio: `${frame.width} / ${frame.height}` }} onClick={clickImage}>
-            <canvas ref={canvasRef} aria-label={after ? "Image après lancer : touchez le point d’entrée réel" : "Image de référence : placez les repères"} />
-            <svg viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">
-              {paths.map((path, i) => <path key={i} d={path} className={styles.ring} />)}
-              {anchors.map((point, i) => <g key={i}><circle cx={point.x * 1000} cy={point.y * 1000} r="8" className={styles.anchor} /><text x={point.x * 1000 + 10} y={point.y * 1000 - 10}>{i + 1}</text></g>)}
-              {result?.boxes.map((box, i) => <rect key={i} x={box.x * 1000} y={box.y * 1000} width={box.width * 1000} height={box.height * 1000} className={styles.box} />)}
-              {result?.candidates.map((candidate, i) => <g key={i}><circle cx={candidate.point.x * 1000} cy={candidate.point.y * 1000} r="10" className={styles.candidate} /><text x={candidate.point.x * 1000 + 12} y={candidate.point.y * 1000}>{i + 1}</text></g>)}
-              {selected && <circle cx={selected.x * 1000} cy={selected.y * 1000} r="14" className={styles.selected} />}
-            </svg>
-          </div> : <div className={styles.placeholder}>L’image de référence apparaîtra ici.</div>}
-          <div className={styles.buttons}><button type="button" disabled={!before || watching || imageBusy} onClick={() => { setAnchors([]); setCalibration(null); setVerified(false); setAfter(null); setResult(null); setSelected(null); setTruth(""); setSaved(false); setMessage("Recommencez sur la référence figée : repère 20, puis 6, 3, 11 et Bull."); }}>Recommencer les repères</button></div>
+          {!calibration && before && <p className={styles.guide}>{anchors.length < 5 ? `Secours manuel · Repère ${anchors.length + 1}/5 — ${ANCHOR_LABELS[anchors.length]}` : "Calibration refusée. Recommencez les repères."}</p>}
+          <p>La détection automatique propose les contours. Vérifiez toujours le centre, les anneaux et le vrai 20. En mode manuel, placez les repères sur le fil extérieur des doubles.</p>
+          {frame ? <VisionFrame frame={frame} calibration={calibration} onPoint={placePoint}
+            markers={[...anchors.map((point, i) => ({ point, label: String(i + 1) })), ...(result?.candidates ?? []).map((candidate, i) => ({ point: candidate.point, label: `?${i + 1}`, active: true })), ...(selected ? [{ point: selected, label: "Impact", active: true }] : [])]}
+            boxes={result?.boxes} label={after ? "Image après lancer : touchez le point d’entrée réel" : "Image de référence : placez les repères"} />
+            : <div className={styles.placeholder}>L’image de référence apparaîtra ici.</div>}
+          <div className={styles.buttons}><button type="button" disabled={!before || watching || imageBusy} onClick={() => { setAnchors([]); setCalibration(null); setVerified(false); setAfter(null); setResult(null); setSelected(null); setTruth(""); setSaved(false); setMessage("Recommencez sur la référence figée : détection automatique ou repères manuels."); }}>Recommencer les repères</button></div>
           {calibration && <label className={styles.check}><input type="checkbox" checked={verified} disabled={watching || Boolean(after)} onChange={event => setVerified(event.target.checked)} />Les anneaux et secteurs se superposent correctement aux fils réels.</label>}
           <details className={styles.details}><summary>Positionner un point au clavier</summary><div className={styles.coordinates}><label>X (%)<input type="number" min="0" max="100" step="0.1" value={manualX} onChange={event => setManualX(event.target.value)} /></label><label>Y (%)<input type="number" min="0" max="100" step="0.1" value={manualY} onChange={event => setManualY(event.target.value)} /></label><button type="button" onClick={addCoordinates} disabled={!manualAllowed}>Placer le point</button></div></details>
         </section>
