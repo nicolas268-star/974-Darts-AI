@@ -1,4 +1,5 @@
 import { expect } from '@playwright/test';
+import { testVisionAuto } from './vision-auto.browser.mjs';
 
 /** Real Next/React page on a disposable fixture, imported synthetic board; no physical camera. */
 export async function testVisionCalibration(page, screenshot) {
@@ -28,6 +29,8 @@ export async function testVisionCalibration(page, screenshot) {
     const dialog = page.getByRole('dialog', { name:'Calibration guidée' });
     await expect(dialog).toBeVisible();
     const surface = dialog.getByRole('button', { name:/^Positionner le repère/ });
+    const canvas = surface.locator('canvas');
+    const markers = async()=>JSON.parse(await canvas.getAttribute('data-markers'));
     const apply = dialog.getByRole('button', { name:'Appliquer la calibration', exact:true });
     async function tap(x,y) {
       const box = await surface.boundingBox();
@@ -37,24 +40,23 @@ export async function testVisionCalibration(page, screenshot) {
     await tap(.5,.15);
     await expect(dialog.getByRole('button',{name:'Confirmer le point 20',exact:true})).toBeEnabled();
     await expect(dialog.locator('nav button[aria-current]')).toContainText('20');
-    const x = Number(await surface.locator('circle').first().getAttribute('cx'));
+    const x = (await markers())[0].point.x;
     await dialog.getByRole('button',{name:'Déplacer le point vers la droite',exact:true}).click();
-    expect(Number(await surface.locator('circle').first().getAttribute('cx'))-x).toBeCloseTo(1000/800,5);
+    expect((await markers())[0].point.x-x).toBeCloseTo(1/800,8);
     await dialog.getByRole('button',{name:'Déplacer le point vers la gauche',exact:true}).click();
     await dialog.getByRole('button',{name:'Zoom ×2',exact:true}).click();
     await expect(dialog.getByRole('button',{name:'Zoom ×2',exact:true})).toHaveAttribute('aria-pressed','true');
-    await expect(dialog.locator('canvas[aria-label]')).toBeVisible();
+    await expect(dialog.locator('canvas[aria-label="Détail agrandi, croix au centre du point choisi"]')).toBeVisible();
     await dialog.getByRole('button',{name:'Confirmer le point 20',exact:true}).click();
     for (const [label,px,py] of [['6',.85,.5],['3',.5,.85],['11',.15,.5],['Bull',.7,.7]]) {
       await tap(px,py); await dialog.getByRole('button',{name:'Confirmer le point '+label,exact:true}).click();
     }
     await expect(dialog.getByRole('alert')).toContainText('Bull'); await expect(apply).toBeDisabled();
-    await expect(surface.locator('circle')).toHaveCount(5);
+    expect(await markers()).toHaveLength(5);
     await tap(.5,.5); await dialog.getByRole('button',{name:'Confirmer le point Bull',exact:true}).click();
     await expect(dialog.getByText('Dernière vérification',{exact:true})).toBeVisible();
-    await expect(surface.locator('path')).toHaveCount(26);
+    expect(JSON.parse(await canvas.getAttribute('data-anchors'))).toHaveLength(5);
     await expect(apply).toBeDisabled();
-    // Revisit and adjust one confirmed point without discarding any other point.
     await dialog.locator('nav button').nth(1).click();
     await dialog.getByRole('button',{name:'Déplacer le point vers la droite',exact:true}).click();
     await expect(dialog.getByText(/4\/5 confirmés/)).toBeVisible();
@@ -66,17 +68,17 @@ export async function testVisionCalibration(page, screenshot) {
     await screenshot(page,'vision-calibration-mobile.png',{fullPage:false});
     await apply.click(); await expect(dialog).toHaveCount(0);
     await expect(page.getByLabel('Les anneaux et secteurs se superposent correctement aux fils réels.',{exact:true})).toBeChecked();
-    const parentImage = page.locator('canvas[aria-label="Image de référence : placez les repères"]').locator('..');
-    const snapshot = await parentImage.locator('svg circle').evaluateAll(nodes => nodes.map(n => [n.getAttribute('cx'),n.getAttribute('cy')]));
-    // Cancelled edits must not leak back to the live calibration.
+    const parent = page.locator('canvas[aria-label="Image de référence : placez les repères"]');
+    const snapshot = await parent.getAttribute('data-anchors');
     await launch.click(); await dialog.locator('nav button').nth(1).click(); await tap(.7,.4);
     await dialog.getByRole('button',{name:'Fermer sans appliquer',exact:true}).click();
-    expect(await parentImage.locator('svg circle').evaluateAll(nodes => nodes.map(n => [n.getAttribute('cx'),n.getAttribute('cy')]))).toEqual(snapshot);
-    await launch.click(); await expect(surface.locator('circle')).toHaveCount(5);
+    expect(await parent.getAttribute('data-anchors')).toEqual(snapshot);
+    await launch.click(); expect(await markers()).toHaveLength(5);
     await page.keyboard.press('Escape'); await expect(dialog).toHaveCount(0);
     expect(await page.evaluate(() => document.body.style.overflow)).not.toBe('hidden');
+    await testVisionAuto(page,screenshot);
     expect(writes).toEqual([]); expect(errors).toEqual([]);
-    console.log('PASS vision calibration: mobile dialog, zoom, loupe, one-pixel nudges, explicit confirmation, rejected Bull, single-point correction, atomic apply, cancel, Escape, zero API writes.');
+    console.log('PASS vision calibration: mobile dialog, zoom, loupe, nudges, explicit confirmation, rejected Bull, single-point correction, apply, cancel, Escape, zero API writes.');
   } finally {
     page.off('request',onRequest); page.off('pageerror',onError);
     await page.setViewportSize({width:1440,height:1100});
