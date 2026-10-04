@@ -21,6 +21,10 @@ type WakeHandle = { release: () => Promise<void>; addEventListener: (name: "rele
 const MAX_SIDE = 960;
 const MAX_SAMPLES = 100;
 
+function metric(value: number | null, digits = 2, suffix = "", scale = 1): string {
+  return value === null ? "non calculé" : `${(value * scale).toFixed(digits)}${suffix}`;
+}
+
 function capture(source: CanvasImageSource, width: number, height: number): Snapshot {
   if (width < 16 || height < 16) throw new Error("Image indisponible. Attendez que la caméra soit prête.");
   const scale = Math.min(1, MAX_SIDE / Math.max(width, height));
@@ -326,10 +330,12 @@ export default function VisionLab() {
         {after && !showOverlay && <p>Vue diagnostique : grille et saisie de points désactivées. Les annotations utilisent le repère de référence.</p>}
         {analysis && <details className={styles.details}><summary>Mesures du recalage · {analysis.stabilization.state}</summary>
           <p>{analysis.stabilization.reason}</p>
-          <p>Translation capture : {analysis.stabilization.transform.dx.toFixed(2)} / {analysis.stabilization.transform.dy.toFixed(2)} px · Rotation : {(analysis.stabilization.transform.rotation * 180 / Math.PI).toFixed(3)}° · Échelle : {analysis.stabilization.transform.scale.toFixed(5)}</p>
-          {after && <p>Translation source : {(analysis.stabilization.transform.dx * after.sourceWidth / after.frame.width).toFixed(2)} / {(analysis.stabilization.transform.dy * after.sourceHeight / after.frame.height).toFixed(2)} px · Capture : {after.frame.width} × {after.frame.height} · Source : {after.sourceWidth} × {after.sourceHeight}</p>}
-          <p>Erreur avant / après : {analysis.stabilization.metrics.errorBefore.toFixed(2)} / {analysis.stabilization.metrics.errorAfter.toFixed(2)} · Régions concordantes : {analysis.stabilization.metrics.concordantRegions} / 36 · Couverture valide : {(100 * analysis.stabilization.metrics.validFraction).toFixed(2)} %</p>
-          <p>Pixels modifiés bruts / résiduels : {analysis.rawChangedFraction === null ? "—" : (100 * analysis.rawChangedFraction).toFixed(2)} % / {result ? (100 * result.changedFraction).toFixed(2) : "—"} % · Luminosité : {(result?.brightnessShift ?? analysis.stabilization.metrics.brightnessShift).toFixed(2)} · Calcul : {processingMs} ms</p>
+          {analysis.stabilization.state === "CANCELLED" ? <p>Transformation : non calculée.</p> : analysis.stabilization.state === "REJECTED" ? <p>Transformation non validée — aucun recalage appliqué.</p> : <>
+            <p>Translation capture : {analysis.stabilization.transform.dx.toFixed(2)} / {analysis.stabilization.transform.dy.toFixed(2)} px · Rotation : {(analysis.stabilization.transform.rotation * 180 / Math.PI).toFixed(3)}° · Échelle : {analysis.stabilization.transform.scale.toFixed(5)}</p>
+            {after && <p>Translation source : {(analysis.stabilization.transform.dx * after.sourceWidth / after.frame.width).toFixed(2)} / {(analysis.stabilization.transform.dy * after.sourceHeight / after.frame.height).toFixed(2)} px · Capture : {after.frame.width} × {after.frame.height} · Source : {after.sourceWidth} × {after.sourceHeight}</p>}
+          </>}
+          <p>Erreur avant / après : {metric(analysis.stabilization.metrics.errorBefore)} / {metric(analysis.stabilization.metrics.errorAfter)} · Régions concordantes : {metric(analysis.stabilization.metrics.concordantRegions, 0, " / 36")} · Couverture valide : {metric(analysis.stabilization.metrics.validFraction, 2, " %", 100)}</p>
+          <p>Pixels modifiés bruts / résiduels : {metric(analysis.rawChangedFraction, 2, " %", 100)} / {metric(result?.changedFraction ?? null, 2, " %", 100)} · Luminosité : {metric(result?.brightnessShift ?? analysis.stabilization.metrics.brightnessShift)} · Calcul : {processingMs} ms</p>
           <p>Ces mesures évaluent le recalage, jamais la probabilité que le score soit correct.</p>
         </details>}
         <h2 id="detection-heading">3. Un lancer à la fois</h2>
