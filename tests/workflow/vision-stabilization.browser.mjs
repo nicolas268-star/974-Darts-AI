@@ -36,16 +36,23 @@ export async function testVisionStabilization(){
   await importFrame(page,'APRÈS',b);
   await expect(page.getByText('Mesures du recalage · ALIGNED',{exact:true})).toBeVisible();
   const initial=await exported(page);expect(initial.schemaVersion).toBe(2);expect(initial.currentPair).toBeNull();expect(initial.currentAnalysis.stabilization.state).toBe('ALIGNED');expect(initial.currentAnalysis.detection.status).toBe('CANDIDATES');expect(workers).toBeGreaterThan(0);
+  const surveillance=page.getByRole('status',{name:'État de la surveillance',exact:true});
+  await expect(surveillance).toContainText('Surveillance arrêtée · capture figée');
+  await expect(surveillance.locator('time')).toHaveAttribute('datetime',initial.currentAnalysis.capturedAt);
+  await expect(surveillance.locator('time')).toHaveText(/^\d{2}:\d{2}:\d{2}$/);
+  await expect(page.getByText('Vérifiez que la fléchette est visible dans l’image figée. Si elle est absente, utilisez « Réessayer la capture » : la référence AVANT reste conservée.',{exact:true})).toBeVisible();
   await page.getByRole('button',{name:'Après brut',exact:true}).click();
   const raw=page.locator('canvas[aria-label="Après brut · sans saisie"]');await expect(raw).toHaveAttribute('data-anchors','[]');await expect(raw).toHaveAttribute('data-markers','[]');await expect(page.getByRole('button',{name:'Placer le point',exact:true})).toBeDisabled();
   await page.getByRole('button',{name:'Après recalé',exact:true}).click();await expect(page.getByRole('button',{name:'Placer le point',exact:true})).toBeEnabled();
   await page.getByLabel(consent,{exact:true}).check();
   const withImages=await exported(page);expect(withImages.currentPair.before).toMatch(/^data:image\/png;base64,/);expect(withImages.currentPair.after).toMatch(/^data:image\/png;base64,/);expect(withImages.currentPair.validMask.runs.length).toBeGreaterThan(0);
+  expect(withImages.currentPair.capturedAt).toBe(initial.currentAnalysis.capturedAt);
   await page.getByLabel('Secteur réel observé',{exact:true}).fill('S20');await page.getByRole('button',{name:'Confirmer l’annotation',exact:true}).click();await expect(page.getByRole('button',{name:'Confirmer l’annotation',exact:true})).toBeDisabled();expect((await exported(page)).samples).toHaveLength(1);
   await page.getByRole('button',{name:'Garder les fléchettes en place · préparer le lancer suivant',exact:true}).click();
   await importFrame(page,'APRÈS',b);await expect(page.getByText('Aucun changement exploitable',{exact:true})).toBeVisible();
   const second=await exported(page);expect(second.currentAnalysis.sessionId).toBe(initial.currentAnalysis.sessionId);expect(second.currentAnalysis.referenceId).toBe(initial.currentAnalysis.captureId);expect(second.currentAnalysis.detection.candidates).toHaveLength(0);
   await page.getByRole('button',{name:'Réessayer la capture',exact:true}).click();
+  await expect(surveillance).toContainText('Surveillance en pause');await expect(surveillance.locator('time')).toHaveCount(0);
   await importFrame(page,'APRÈS',fixture(w,h,identity,{flat:true}));await expect(page.getByText('Mesures du recalage · REJECTED',{exact:true})).toBeVisible();
   const rejected=await exported(page);expect(rejected.currentAnalysis.detection).toBeNull();expect(rejected.currentAnalysis.referenceId).toBe(second.currentAnalysis.referenceId);expect(rejected.samples).toHaveLength(1);
   expect(rejected.currentAnalysis.stabilization.metrics.validFraction).toBeNull();
@@ -84,13 +91,25 @@ export async function testVisionStabilization(){
     await page.evaluate(url=>window.__setVisionImage(url),beforeUrl);
     await page.getByRole('button',{name:/^(Activer la caméra arrière|Redémarrer la caméra)$/}).click();
     await expect(page.getByRole('button',{name:'Figer la référence · cible vide',exact:true})).toBeEnabled();await page.getByRole('button',{name:'Figer la référence · cible vide',exact:true}).click();await calibrate(page);
-    if(mode==='automatic')await page.getByRole('button',{name:'Armer la détection',exact:true}).click();
+    if(mode==='automatic'){
+      await page.getByRole('button',{name:'Armer la détection',exact:true}).click();
+      // This message lasts until the next 250 ms capture tick; default assertion polling can miss it.
+      await page.waitForFunction(()=>Array.from(document.querySelectorAll('[role="status"]')).some(node=>node.textContent==='Aucun mouvement significatif — surveillance active.'),null,{polling:'raf',timeout:5000});
+      await expect(surveillance).toContainText('Surveillance active');await expect(surveillance.locator('time')).toHaveCount(0);
+    }
     await page.evaluate(url=>window.__setVisionImage(url),afterUrl);
     if(mode==='manual')await page.getByRole('button',{name:'Comparer maintenant',exact:true}).click();
     await expect(page.getByText('Mesures du recalage · ALIGNED',{exact:true})).toBeVisible();
     const result=await exported(page);expect(result.currentAnalysis.detection.status).toBe(initial.currentAnalysis.detection.status);
     expect(result.currentAnalysis.stabilization.transform.dx).toBeCloseTo(initial.currentAnalysis.stabilization.transform.dx,0);
     expect(result.currentAnalysis.detection.changedFraction).toBeCloseTo(initial.currentAnalysis.detection.changedFraction,2);
+    await expect(surveillance).toContainText('Surveillance arrêtée · capture figée');
+    await expect(surveillance.locator('time')).toHaveAttribute('datetime',result.currentAnalysis.capturedAt);
+    // The live camera keeps changing after detection, while the inspected capture stays frozen.
+    await page.evaluate(url=>window.__setVisionImage(url),beforeUrl);
+    await page.waitForTimeout(1100);
+    const frozen=await exported(page);expect(frozen.currentAnalysis.captureId).toBe(result.currentAnalysis.captureId);expect(frozen.currentAnalysis.capturedAt).toBe(result.currentAnalysis.capturedAt);
+    await expect(page.getByRole('button',{name:'Armer la détection',exact:true})).toBeDisabled();
     await page.getByRole('button',{name:'Arrêter la caméra',exact:true}).click();
   }
   await page.setViewportSize({width:1440,height:1000});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);

@@ -260,10 +260,10 @@ export default function VisionLab() {
       schemaVersion: 2, stabilizationVersion: STABILIZATION_VERSION, coordinateConvention: COORDINATES, engineVersion: ENGINE_VERSION, exportedAt: new Date().toISOString(),
       notice: "Laboratoire expérimental : extrémités de silhouettes, pas de modèle IA entraîné ni de validation automatique. Coordonnées image normalisées. Les annotations ne sont pas des scores de partie.",
       samples,
-      currentAnalysis: analysis ? { ...metadata(analysis), enabled: stabilizationEnabled, calibration, detection: result, width: after?.frame.width, height: after?.frame.height,
+      currentAnalysis: analysis ? { ...metadata(analysis), capturedAt: after?.capturedAt, enabled: stabilizationEnabled, calibration, detection: result, width: after?.frame.width, height: after?.frame.height,
         sourceWidth: after?.sourceWidth, sourceHeight: after?.sourceHeight, anchorId: spatialAnchor?.id,
         sourceTranslation: after ? { dx: analysis.stabilization.transform.dx * after.sourceWidth / after.frame.width, dy: analysis.stabilization.transform.dy * after.sourceHeight / after.frame.height } : null } : null,
-      currentPair: includeImages && before && after ? { before: imageDataUrl((referenceRaw ?? before).frame), after: imageDataUrl(after.frame), spatialAnchor: spatialAnchor ? imageDataUrl(spatialAnchor.frame) : null, comparisonReference: imageDataUrl(before.frame), aligned: analysis?.stabilization.aligned ? imageDataUrl(analysis.stabilization.aligned) : null, validMask: analysis?.stabilization.validMask ? { encoding: "row-runs-of-valid-pixels", runs: maskRuns(analysis.stabilization.validMask) } : null, captureId: after.id, calibration, width: before.frame.width, height: before.frame.height } : null,
+      currentPair: includeImages && before && after ? { before: imageDataUrl((referenceRaw ?? before).frame), after: imageDataUrl(after.frame), spatialAnchor: spatialAnchor ? imageDataUrl(spatialAnchor.frame) : null, comparisonReference: imageDataUrl(before.frame), aligned: analysis?.stabilization.aligned ? imageDataUrl(analysis.stabilization.aligned) : null, validMask: analysis?.stabilization.validMask ? { encoding: "row-runs-of-valid-pixels", runs: maskRuns(analysis.stabilization.validMask) } : null, captureId: after.id, capturedAt: after.capturedAt, calibration, width: before.frame.width, height: before.frame.height } : null,
     };
     const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" }));
     const link = document.createElement("a"); link.href = url; link.download = `974darts-vision-${new Date().toISOString().replace(/[:.]/g, "-")}.json`;
@@ -340,6 +340,10 @@ export default function VisionLab() {
         </details>}
         <h2 id="detection-heading">3. Un lancer à la fois</h2>
         <p>La surveillance attend trois images stables, puis s’arrête dès qu’un changement est proposé. Elle ne valide jamais de score. Pause obligatoire avant de retirer les fléchettes.</p>
+        <div className={styles.status} role="status" aria-label="État de la surveillance" aria-live="polite">
+          <strong>{busy ? "Analyse en cours…" : watching ? "Surveillance active · attente d’une image stable" : after ? "Surveillance arrêtée · capture figée" : "Surveillance en pause"}</strong>
+          {after ? <p>Image figée à <time dateTime={after.capturedAt}>{new Date(after.capturedAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}</time> · elle ne se met plus à jour.</p> : !watching && !busy && camera && verified ? <p>Armez la détection avant de lancer.</p> : null}
+        </div>
         <div className={styles.buttons}>
           <button type="button" onClick={() => arm()} disabled={!camera || !verified || watching || Boolean(after) || imageBusy}>Armer la détection</button>
           <button type="button" onClick={() => { pause(); setMessage("Surveillance en pause. La caméra reste active jusqu’à son arrêt explicite."); }} disabled={!watching && !busy}>Pause</button>
@@ -348,6 +352,7 @@ export default function VisionLab() {
         </div>
         {result && <div className={styles.result}>
           <strong>{result.status === "NO_CHANGE" ? "Aucun changement exploitable" : result.status === "SCENE_CHANGED" ? "Scène à vérifier — réessayez la capture" : "Changement à annoter"}</strong>
+          <p>Vérifiez que la fléchette est visible dans l’image figée. Si elle est absente, utilisez « Réessayer la capture » : la référence AVANT reste conservée.</p>
           <p>{result.reason}</p>
           <p className={styles.meta}>Calcul : {processingMs} ms · Pixels modifiés dans la zone cible : {(result.changedFraction * 100).toFixed(2)} % · Pas de pourcentage de confiance IA.</p>
           <div className={styles.buttons}>{result.candidates.map((candidate, i) => <button key={i} type="button" disabled={saved} onClick={() => { setSelected(candidate.point); setTruth(candidate.score.label); }}>Extrémité {i + 1} : {candidate.score.label}{candidate.score.nearWire ? " · proche d’un fil" : ""}</button>)}</div>

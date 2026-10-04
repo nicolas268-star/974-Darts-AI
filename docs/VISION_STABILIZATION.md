@@ -55,6 +55,20 @@ La comparaison applique **une seule** compensation additive robuste, estimée pa
 
 Ces seuils sont des paramètres V1 conservateurs validés sur les fixtures, pas des garanties universelles. La qualité du recalage, le taux de pixels modifiés et les extrémités candidates sont trois informations distinctes ; aucune n'est une probabilité de score exact.
 
+## Faux déclenchement sur un fil de la cible
+
+L'export terrain du 4 octobre 2026 à 16:20 UTC contient une capture de 16:11:32 UTC annotée `S18`, mais les images AVANT, APRÈS et recalée montrent toutes une cible vide. Le résultat `S11` provient d'une composante de treize échantillons sur un fil déjà présent, dans une boîte de 20 × 2 pixels de capture. Il ne localise donc pas la fléchette physique annoncée : l'image analysée ne contient pas ce lancer. Le recalage est accepté et reste inchangé. Ce cas ne démontre aucune précision de détection dans le 18.
+
+Depuis `classical-difference-v1.1`, une composante doit contenir au moins trois échantillons apportant une différence qui dépasse le seuil par rapport à toute la plage de luminance d'un voisinage 3 × 3 de la référence originale. Le rayon est **un pixel de capture**, pas un pas de la grille de détection ni un pixel CSS. Une variation entièrement compatible avec ce petit voisinage ne suffit plus à proposer une silhouette. Les treize échantillons du fil de ce cas sont tous explicables ainsi.
+
+Ce contrôle décide seulement de conserver ou non une composante : il ne déplace ni ne raccourcit ses extrémités. La fraction de pixels modifiés, le seuil de refus de scène à 16 %, la compensation lumineuse unique et les critères de recalage restent inchangés. Le contrôle ne prétend pas reconnaître une fléchette ; un objet fin ou peu contrasté confondu avec une texture existante peut rester indétectable. `NO_CHANGE` signifie toujours absence de changement exploitable, jamais absence certaine de lancer ou score nul.
+
+Le rejeu de cette paire produit maintenant `ALIGNED → NO_CHANGE`, zéro boîte et zéro candidat, avec la même fraction résiduelle de 1,3937 %. L'autre paire vide de 15:15 UTC reste sans candidat. Quatorze régressions procédurales couvrent des fils déplacés ou élargis en portrait/paysage, des tiges nouvelles de 2 et 4 pixels traversant un bord existant, la conservation des extrémités, plusieurs résidus dispersés, le refus des occultations larges et les voisins invalides. Le premier cas de fil déplacé échoue sur le moteur précédent. Aucun de ces contrôles ne remplace un essai avec une vraie fléchette visible.
+
+Limite préexistante reproduite séparément : si une vraie tige se raccorde à un long résidu de fil dans la même composante, les extrémités proposées peuvent encore suivre le fil. L'admission d'une composante ne garantit donc ni la séparation des objets ni la localisation de la pointe. Cette correction ciblée ne modifie pas cette estimation ; la saisie du secteur réel et le contrôle de l'image restent indispensables.
+
+L'interface indique désormais près des commandes si la surveillance est active ou arrêtée, ainsi que l'heure de la capture figée avec les secondes. Avant d'annoter, il faut vérifier que la fléchette est visible dans cette capture. Si elle n'y est pas, « Réessayer la capture », puis « Comparer maintenant » conserve la référence AVANT et analyse une nouvelle image. `capturedAt` figure aussi dans `currentAnalysis` et `currentPair`, y compris avant annotation. Les images privées de cet incident restent hors du dépôt et de la CI.
+
 ## Référence et cycle de vie
 
 L'image ayant servi à la calibration est immuable pour la session. La référence de comparaison peut contenir les fléchettes confirmées ; sa capture brute, sa version recalée et son masque sont conservés séparément. Chaque capture se recale contre l'ancre initiale : des petits mouvements successifs ne réinitialisent pas les limites de mouvement.
