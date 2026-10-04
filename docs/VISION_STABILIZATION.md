@@ -22,6 +22,16 @@ Cette correction évite qu'un seul point bruité invalide seize points. Sur l'ex
 
 Cette méthode privilégie le refus lorsque la texture ou la couverture est insuffisante. Les reflets, fortes ombres, déformations de cible, longues occultations et mouvements hors modèle exigent une nouvelle prise ou une calibration. Les symétries visuellement indiscernables ne permettent pas de prouver le mouvement physique ; la calibration et le contrôle humain restent indispensables.
 
+## Extrémités de silhouette V1.2
+
+L'export terrain du 4 octobre 2026 à 17:50 UTC contient cette fois une vraie fléchette, annotée `S1` (capture de 17:47:08 UTC). Le moteur V1.1 détecte sa silhouette de 185 échantillons, puis moyenne les 4 % extrêmes, soit sept points. L'extrémité proposée est ainsi ramenée à `(261,43 ; 166)` pixels, classée `S20 · proche d'un fil`, alors que le point terminal détecté `(264 ; 168)` est classé `S1`. Le candidat opposé, hors cible, appartient à la même silhouette ; il ne prouve aucun lancer raté.
+
+Depuis `classical-difference-v1.2`, l'axe principal et les projections sont calculés en pixels de capture isotropes. L'extrémité est moyennée dans une bande terminale d'un seul pas de la grille de détection (un ou deux pixels dans les captures du laboratoire), au lieu d'un pourcentage de la surface de la silhouette. Le nombre de pixels de l'ailette ne définit donc plus directement la profondeur de cette moyenne. Les points renvoyés restent normalisés pour l'affichage et la calibration. Le recalage, la compensation lumineuse, le filtrage des résidus de fil et le refus des changements larges restent inchangés.
+
+Le rejeu de la paire donne désormais une proposition `S1 · proche d'un fil` en `(263,33 ; 167,33)`, sans modifier le recalage, la boîte de silhouette ni les 1,7612 % de pixels modifiés. Les deux paires de cible vide précédentes restent `NO_CHANGE`, sans candidat.
+
+Cette correction estime une extrémité visible, pas le point d'entrée physique certain. Dans la paire réelle, le fil 20/1 de la grille est aussi décalé d'environ 1,5 à 2 pixels par rapport au fil visible dans cette zone. La pointe fine présente peu de contraste et aucun point réel n'a été annoté (`point: null`) : l'étiquette `S1` permet de contrôler le secteur, pas une précision de localisation au pixel. Le signalement `nearWire` et la confirmation humaine restent indispensables. La limite d'une fléchette raccordée à un résidu de fil dans la même composante demeure.
+
 ## Convention des coordonnées
 
 `T_current_to_reference` transforme les pixels de la capture courante brute en pixels du repère fixe de calibration. Le centre est `((width-1)/2, (height-1)/2)` :
