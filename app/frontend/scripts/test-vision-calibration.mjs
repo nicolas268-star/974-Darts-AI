@@ -59,10 +59,18 @@ test("nudges clamp at the four image edges", () => {
 test("non-finite coordinates and unsupported zoom fail", () => {
   assert.throws(() => zoomView(points[0], 0)); assert.throws(() => zoomView(points[0], 3)); assert.throws(() => viewToImage(FULL_VIEW, NaN, 0)); assert.throws(() => nudgePoint(points[0], 1, 0, 0, 720)); assert.throws(() => setDraftPoint(newDraft(), { x: 2, y: .5 }));
 });
-test("dialog does not request a second camera or upload images", () => {
-  const client = readFileSync(resolve(root, "app/admin/vision/CalibrationAssistant.tsx"), "utf8");
-  assert.doesNotMatch(client, /\bfetch\s*\(|getUserMedia|localStorage|supabase|\/api\/play/);
+test("dialogs remain isolated; point selection is delegated to the real bitmap rectangle", () => {
+  const read = name => readFileSync(resolve(root, "app/admin/vision/" + name), "utf8");
+  const client = read("CalibrationAssistant.tsx"), surface = read("VisionFrame.tsx"), automatic = read("AutoCalibration.tsx");
+  for (const source of [client, surface, automatic]) {
+    assert.doesNotMatch(source, /\bfetch\s*\(|getUserMedia|localStorage|supabase|\/api\/play/);
+    assert.doesNotMatch(source, /onPointerDown=/);
+  }
   assert.match(client, /onCancel=/); assert.match(client, /Fermer sans appliquer/); assert.match(client, /if \(!preview\.calibration \|\| !accepted \|\| disabled\) return/);
-  assert.match(client, /onClick=\{clickImage\}/); assert.doesNotMatch(client, /onPointerDown=/);
+  // The old onClick handler moved to VisionFrame with the Canvas/SVG unification.
+  assert.match(client, /<VisionFrame/); assert.match(client, /onPoint=\{update\}/);
+  assert.match(surface, /onClick=/); assert.match(surface, /ref\.current\.getBoundingClientRect\(\)/);
+  assert.match(surface, /onPoint\(viewToImage\(view,/); assert.match(surface, /event\.detail === 0/);
+  assert.match(automatic, /!shapeOK \|\| !twentyOK/);
 });
 console.log(`${count} calibration editor checks passed.`);
