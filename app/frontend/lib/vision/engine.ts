@@ -9,7 +9,7 @@ export type Detection = {
   reason: string; candidates: Candidate[]; boxes: { x: number; y: number; width: number; height: number }[];
   changedFraction: number; brightnessShift: number;
 };
-export const ENGINE_VERSION = "classical-difference-v1.1";
+export const ENGINE_VERSION = "classical-difference-v1.2";
 export const SECTORS = [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5] as const;
 // Nominal steel-tip board radii, normalized to the OUTER double wire (170 mm).
 export const RINGS = [6.35 / 170, 15.9 / 170, 99 / 170, 107 / 170, 162 / 170, 1] as const;
@@ -188,13 +188,24 @@ export function detect(before: Frame, after: Frame, calibration: Calibration, th
     boxes.push({ x: minX, y: minY, width: maxX - minX, height: maxY - minY });
     const cx = xs.reduce((a, b) => a + b, 0) / points.length, cy = ys.reduce((a, b) => a + b, 0) / points.length;
     let xx = 0, yy = 0, xy = 0;
-    for (const p of points) { xx += (p.x - cx) ** 2; yy += (p.y - cy) ** 2; xy += (p.x - cx) * (p.y - cy); }
+    // Image-normalized x/y have different units on non-square captures. Use
+    // capture pixels for the axis and its projections, retaining normalized
+    // points only for the overlay and calibration contract.
+    for (const p of points) {
+      const dx = (p.x - cx) * before.width, dy = (p.y - cy) * before.height;
+      xx += dx ** 2; yy += dy ** 2; xy += dx * dy;
+    }
     const root = Math.hypot(xx - yy, 2 * xy), major = (xx + yy + root) / 2, minor = (xx + yy - root) / 2;
     if (component > 1 || major < 4 * Math.max(minor, 1e-8) || Math.hypot(maxX - minX, maxY - minY) < 0.025) continue;
     const angle = 0.5 * Math.atan2(2 * xy, xx - yy), ux = Math.cos(angle), uy = Math.sin(angle);
-    const ordered = points.map(point => ({ point, t: (point.x - cx) * ux + (point.y - cy) * uy })).sort((a, b) => a.t - b.t);
-    const endCount = Math.max(1, Math.floor(ordered.length * 0.04));
-    for (const end of [ordered.slice(0, endCount), ordered.slice(-endCount)]) {
+    const ordered = points.map(point => ({ point, t: (point.x - cx) * before.width * ux + (point.y - cy) * before.height * uy })).sort((a, b) => a.t - b.t);
+    // A percentage of the silhouette pulls an endpoint back as a flight gets
+    // larger. Average only the terminal band, strictly less than one sampling
+    // step deep. The tiny tolerance keeps an exactly adjacent sample out despite
+    // floating-point roundoff. These remain silhouette ends, not verified tips.
+    const terminalDepth = step * (1 - 1e-7), first = ordered[0].t, last = ordered[ordered.length - 1].t;
+    const ends = [ordered.filter(item => item.t - first < terminalDepth), ordered.filter(item => last - item.t < terminalDepth)];
+    for (const end of ends) {
       const point = { x: end.reduce((s, item) => s + item.point.x, 0) / end.length, y: end.reduce((s, item) => s + item.point.y, 0) / end.length };
       candidates.push({ point, score: scorePoint(project(calibration.imageToBoard, point)), component });
     }

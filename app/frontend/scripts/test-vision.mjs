@@ -156,10 +156,57 @@ for (const [width, height] of [[540, 960], [960, 540]]) {
     const endpoints = result.candidates.map(({ point }) => point.y * height).sort((a, b) => a - b);
     // At 2px sampling a one-column shaft loses only its isolated first/last
     // sample in the existing neighbour filter; admission must not erode it.
-    const expected = shaftWidth === 2 ? [y + 2, y + 76] : [y + 2 / 3, y + 78 - 2 / 3];
+    // A two-column shaft retains both terminal rows. Endpoint averaging must
+    // no longer pull either end into the next sampling row.
+    const expected = shaftWidth === 2 ? [y + 2, y + 76] : [y, y + 78];
     endpoints.forEach((value, i) => near(value, expected[i]));
   });
 }
+function angledDart(f, tip, flightHalfWidth) {
+  // A fixed 100px shaft points across the 20/1 boundary. Only its rear flight
+  // area changes; the rasterized entry and the shaft geometry stay identical.
+  const ux = .8, uy = .6;
+  for (let y = 0; y < f.height; y++) for (let x = 0; x < f.width; x++) {
+    const dx = x - tip.x, dy = y - tip.y, along = dx * ux + dy * uy, across = -dx * uy + dy * ux;
+    if (along < -100 || along > 0) continue;
+    const flight = flightHalfWidth * Math.max(0, 1 - Math.abs(along + 82) / 18);
+    if (Math.abs(across) > Math.max(1.5, flight)) continue;
+    const i = (y * f.width + x) * 4; f.data[i] = f.data[i + 1] = f.data[i + 2] = 30;
+  }
+}
+test("angled entry stays in S1 when only the rear flight gets larger", () => {
+  for (const [width, height] of [[540, 960], [960, 540]]) {
+    const c = pixelCalibration(width, height), tip = { x: width / 2 + 24, y: height / 2 - 130 };
+    const truth = v.scorePoint(v.project(c.imageToBoard, { x: tip.x / width, y: tip.y / height }));
+    assert.equal(truth.label, "S1");
+    let previous;
+    for (const flightHalfWidth of [4, 12, 24]) {
+      const a = frame(170, width, height), b = frame(170, width, height);
+      angledDart(b, tip, flightHalfWidth);
+      const result = v.detect(a, b, c);
+      assert.equal(result.status, "CANDIDATES"); assert.equal(result.boxes.length, 1);
+      assert.equal(result.candidates.length, 2);
+      const candidate = [...result.candidates].sort((a, b) =>
+        Math.hypot(a.point.x * width - tip.x, a.point.y * height - tip.y) - Math.hypot(b.point.x * width - tip.x, b.point.y * height - tip.y))[0];
+      const pixels = { x: candidate.point.x * width, y: candidate.point.y * height };
+      assert.ok(Math.hypot(pixels.x - tip.x, pixels.y - tip.y) <= 2, "larger flights must not retract the entry by multiple samples");
+      assert.equal(candidate.score.label, "S1");
+      if (previous) assert.ok(Math.hypot(pixels.x - previous.x, pixels.y - previous.y) <= 1, "entry must remain stable while only flight area changes");
+      previous = pixels;
+    }
+  }
+});
+test("the same pixel silhouette has identical portrait and landscape endpoints", () => {
+  const endpoints = [];
+  for (const [width, height] of [[540, 960], [960, 540]]) {
+    const a = frame(170, width, height), b = frame(170, width, height);
+    angledDart(b, { x: width / 2 + 24, y: height / 2 - 130 }, 24);
+    const result = v.detect(a, b, pixelCalibration(width, height));
+    assert.equal(result.status, "CANDIDATES"); assert.equal(result.candidates.length, 2);
+    endpoints.push(result.candidates.map(({ point }) => ({ x: point.x * width - width / 2, y: point.y * height - height / 2 })).sort((a, b) => a.x - b.x));
+  }
+  endpoints[0].forEach((point, i) => { near(point.x, endpoints[1][i].x); near(point.y, endpoints[1][i].y); });
+});
 test("many displaced wire fragments remain noise but broad changes still stop analysis", () => {
   const a = frame(170), b = frame(170);
   for (let i = 0; i < 6; i++) { paintRect(a, 65, 70 + i * 18, 100, 1, 30); paintRect(b, 65, 71 + i * 18, 100, 1, 30); }
