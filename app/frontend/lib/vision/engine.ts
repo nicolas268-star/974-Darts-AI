@@ -87,7 +87,7 @@ export function validLabel(raw: string): string | null {
   const text = raw.trim().toUpperCase();
   return /^(?:[SDT](?:[1-9]|1[0-9]|20)|25|50|MISS|UNKNOWN)$/.test(text) ? text : null;
 }
-function validateFrame(frame: Frame) {
+export function validateFrame(frame: Frame) {
   if (!Number.isInteger(frame.width) || !Number.isInteger(frame.height) || frame.width < 16 || frame.height < 16 || frame.width * frame.height > 1_000_000 || frame.data.length !== frame.width * frame.height * 4) throw new Error("Image invalide ou trop grande pour le laboratoire.");
 }
 function sameFrames(a: Frame, b: Frame) {
@@ -102,29 +102,34 @@ export function motionFraction(a: Frame, b: Frame): number {
   for (let i = 0; i < a.data.length; i += 4 * 31) { if (Math.abs(luminance(a.data, i) - luminance(b.data, i)) > 22) changed++; total++; }
   return changed / total;
 }
-export function detect(before: Frame, after: Frame, calibration: Calibration, threshold = 30): Detection {
+export function detect(before: Frame, after: Frame, calibration: Calibration, threshold = 30, validMask?: Uint8Array, brightnessOverride?: number): Detection {
   sameFrames(before, after);
   if (!Number.isFinite(threshold) || threshold < 12 || threshold > 80) throw new Error("Seuil invalide.");
+  if (validMask && validMask.length !== before.width * before.height) throw new Error("Masque invalide.");
+  if (brightnessOverride !== undefined && !Number.isFinite(brightnessOverride)) throw new Error("Compensation invalide.");
   const shifts: number[] = [];
   for (let i = 0; i < before.data.length; i += 4 * 47) shifts.push(luminance(after.data, i) - luminance(before.data, i));
   shifts.sort((a, b) => a - b);
-  const brightnessShift = shifts[Math.floor(shifts.length / 2)];
+  const brightnessShift = brightnessOverride ?? shifts[Math.floor(shifts.length / 2)];
   const base = { candidates: [] as Candidate[], boxes: [] as Detection["boxes"], changedFraction: 0, brightnessShift };
   if (Math.abs(brightnessShift) > 24) return { ...base, status: "SCENE_CHANGED", reason: "Éclairage fortement modifié : reprenez une référence et vérifiez la calibration." };
   const step = Math.max(1, Math.ceil(Math.max(before.width, before.height) / 480));
   const w = Math.ceil(before.width / step), h = Math.ceil(before.height / step);
   const mask = new Uint8Array(w * h);
-  let roi = 0, changed = 0;
+  let roi = 0, changed = 0, valid = 0;
   for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
     const px = Math.min(x * step, before.width - 1), py = Math.min(y * step, before.height - 1);
     const p = project(calibration.imageToBoard, { x: px / before.width, y: py / before.height });
     if (Math.hypot(p.x, p.y) > 1.12) continue;
     roi++;
+    if (validMask && !validMask[py * before.width + px]) continue;
+    valid++;
     const i = (py * before.width + px) * 4;
     if (Math.abs(luminance(after.data, i) - luminance(before.data, i) - brightnessShift) > threshold) { mask[y * w + x] = 1; changed++; }
   }
   const changedFraction = changed / Math.max(1, roi);
   const common = { ...base, changedFraction };
+  if (valid / Math.max(1, roi) < .98) return { ...common, status: "SCENE_CHANGED", reason: "Couverture valide insuffisante." };
   if (changedFraction > 0.16) return { ...common, status: "SCENE_CHANGED", reason: "Changement trop important : main, déplacement de caméra ou éclairage. Aucune fléchette validée." };
   // Remove isolated noise, then find connected components (8-connectivity).
   const clean = new Uint8Array(mask.length);

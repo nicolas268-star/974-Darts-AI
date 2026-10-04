@@ -58,7 +58,7 @@ const nextConfig: NextConfig = {
         source: "/admin/vision",
         headers: [
           { key: "Permissions-Policy", value: "camera=(self), microphone=(), geolocation=(), screen-wake-lock=(self)" },
-          { key: "Content-Security-Policy", value: securityHeaders.find(header => header.key === "Content-Security-Policy")!.value + "; media-src 'self' blob:" },
+          { key: "Content-Security-Policy", value: securityHeaders.find(header => header.key === "Content-Security-Policy")!.value + "; media-src 'self' blob:; worker-src 'self'" },
         ],
       },
     ];

@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "test": "node x01-creation.test.mjs && node play-sync.test.mjs && node database.test.mjs && node interclub.test.mjs && node preview-bootstrap.test.mjs && python3 setup-preview.test.py",
-    "test:browser": "node run-browser.mjs"
+    "test:browser": "node run-browser.mjs",
+    "test:vision:browser": "node run-vision-production.browser.mjs"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.3.14",
