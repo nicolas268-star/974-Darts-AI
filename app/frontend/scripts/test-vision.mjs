@@ -207,6 +207,90 @@ test("the same pixel silhouette has identical portrait and landscape endpoints",
   }
   endpoints[0].forEach((point, i) => { near(point.x, endpoints[1][i].x); near(point.y, endpoints[1][i].y); });
 });
+function fragmentedDart(width, height, angle = 0, options = {}) {
+  const a = frame(170, width, height), b = frame(170, width, height);
+  const tip = { x: width / 2 + 80, y: height / 2 - 110 }, ux = Math.cos(angle), uy = Math.sin(angle);
+  const origin = { x: tip.x - 15 * ux, y: tip.y - 15 * uy };
+  const ec = Math.cos(options.extensionAngle ?? 0), es = Math.sin(options.extensionAngle ?? 0);
+  for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
+    const dx = x - origin.x, dy = y - origin.y, along = dx * ux + dy * uy, across = -dx * uy + dy * ux;
+    let value = 170;
+    // A broad barrel and a thin terminal shaft are one physical object. A
+    // narrow shaft neck has weak contrast at its ends and stronger contrast
+    // in the middle, so coarse sampling cannot preserve one connected shape.
+    if (along >= -24 - 1e-6 && along <= 1e-6 && Math.abs(across) <= 7 + 1e-6) value = 40;
+    else {
+      for (const offset of options.twoExtensions ? [-4, 4] : [options.offset ?? 0]) {
+        const ex = (along - 11.5) * ec + (across - offset) * es, ey = -(along - 11.5) * es + (across - offset) * ec;
+        const inside = options.clipExtension
+          ? along >= 8 && along <= 50 && Math.abs(across + 1) < .1
+          : Math.abs(ex) <= 3.5 + 1e-6 && Math.abs(ey) <= (options.compact ? 3.5 : 1) + 1e-6;
+        if (inside) value = 40;
+      }
+      if (options.bridge !== false && along > 0 && along < 8 && Math.abs(across) <= 1.5) value = 155;
+      if (options.bridge !== false && along >= 2 - 1e-6 && along <= 6 + 1e-6) {
+        if (options.textureBridge && Math.abs(across) <= 2 + 1e-6) {
+          const i = (y * width + x) * 4, old = (Math.round(along) + Math.round(across)) % 2 === 0 ? 0 : 255;
+          a.data[i] = a.data[i + 1] = a.data[i + 2] = old; value = 128;
+        } else if (!options.textureBridge && Math.abs(across) <= .75 + 1e-6) value = 40;
+      }
+    }
+    const i = (y * width + x) * 4; b.data[i] = b.data[i + 1] = b.data[i + 2] = value;
+  }
+  return { a, b, c: pixelCalibration(width, height), tip, origin };
+}
+for (const [width, height] of [[540, 960], [960, 540]]) for (const degrees of [0, 30, 90]) {
+  test(`${width}x${height} ${degrees}deg fragmented dart recovers its observed terminal shaft`, () => {
+    const { a, b, c, tip } = fragmentedDart(width, height, degrees * Math.PI / 180);
+    const result = v.detect(a, b, c);
+    assert.equal(result.status, "CANDIDATES"); assert.equal(result.candidates.length, 2); assert.equal(result.boxes.length, 1);
+    const entry = [...result.candidates].sort((a, b) =>
+      Math.hypot(a.point.x * width - tip.x, a.point.y * height - tip.y) - Math.hypot(b.point.x * width - tip.x, b.point.y * height - tip.y))[0];
+    assert.ok(Math.hypot(entry.point.x * width - tip.x, entry.point.y * height - tip.y) <= 1, "the proposal must reach the observed shaft, without extrapolation");
+    assert.equal(entry.score.label, "S18");
+  });
+}
+for (const [name, options] of [
+  ["compact secondary change", { compact: true }],
+  ["incompatible shaft direction", { extensionAngle: Math.PI / 4 }],
+  ["parallel but offset shaft", { offset: 6 }],
+  ["two possible extensions", { twoExtensions: true }],
+  ["no changed pixels between objects", { bridge: false }],
+  ["shaft continuing beyond the local crop", { clipExtension: true }],
+]) test(`fragment recovery refuses ${name}`, () => {
+  const { a, b, c } = fragmentedDart(540, 960, 0, options);
+  const result = v.detect(a, b, c);
+  assert.equal(result.status, "AMBIGUOUS"); assert.equal(result.candidates.length, 0);
+});
+test("fragment recovery cannot bridge invalid pixels even with valid overall ROI coverage", () => {
+  const width = 540, height = 960, { a, b, c, origin } = fragmentedDart(width, height);
+  const mask = new Uint8Array(width * height).fill(1);
+  assert.equal(v.detect(a, b, c, 30, mask).status, "CANDIDATES");
+  // This thin invalid strip misses the coarse sampling columns. It must still
+  // prevent the full-resolution recovery from crossing unavailable evidence.
+  for (let y = origin.y - 5; y <= origin.y + 5; y++) mask[y * width + origin.x + 4] = 0;
+  const blocked = v.detect(a, b, c, 30, mask);
+  assert.equal(blocked.status, "AMBIGUOUS"); assert.equal(blocked.candidates.length, 0);
+});
+test("local fragment recovery leaves existing coarse candidates unchanged", () => {
+  const { a, b, c } = fragmentedDart(540, 960, Math.PI / 4, { textureBridge: true });
+  const result = v.detect(a, b, c);
+  assert.equal(result.status, "CANDIDATES"); assert.equal(result.candidates.length, 2);
+  // This angle already supplies candidates in v1.2. Recovery is only for an
+  // unresolved silhouette; it must not silently replace an existing result.
+  const expected = [[323 + 5 / 9, 343 + 5 / 9], [342 + 2 / 3, 362 + 2 / 3]];
+  result.candidates.forEach(({ point }, i) => { near(point.x * 540, expected[i][0]); near(point.y * 960, expected[i][1]); });
+});
+test("a displaced old wire cannot bridge two separate new objects", () => {
+  const width = 540, height = 960, a = frame(170, width, height), b = frame(170, width, height);
+  paintRect(b, 311, 363, 25, 15, 40); paintRect(b, 343, 369, 8, 3, 40);
+  // The only changed pixels between these independent objects come from a
+  // pre-existing wire displaced by one pixel. Geometry alone is not evidence
+  // of a newly visible shaft between them.
+  paintRect(a, 337, 369, 5, 1, 40); paintRect(b, 337, 370, 5, 1, 40);
+  const result = v.detect(a, b, pixelCalibration(width, height));
+  assert.equal(result.status, "AMBIGUOUS"); assert.equal(result.candidates.length, 0);
+});
 test("many displaced wire fragments remain noise but broad changes still stop analysis", () => {
   const a = frame(170), b = frame(170);
   for (let i = 0; i < 6; i++) { paintRect(a, 65, 70 + i * 18, 100, 1, 30); paintRect(b, 65, 71 + i * 18, 100, 1, 30); }

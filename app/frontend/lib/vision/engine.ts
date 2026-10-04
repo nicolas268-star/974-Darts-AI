@@ -9,7 +9,7 @@ export type Detection = {
   reason: string; candidates: Candidate[]; boxes: { x: number; y: number; width: number; height: number }[];
   changedFraction: number; brightnessShift: number;
 };
-export const ENGINE_VERSION = "classical-difference-v1.2";
+export const ENGINE_VERSION = "classical-difference-v1.3";
 export const SECTORS = [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5] as const;
 // Nominal steel-tip board radii, normalized to the OUTER double wire (170 mm).
 export const RINGS = [6.35 / 170, 15.9 / 170, 99 / 170, 107 / 170, 162 / 170, 1] as const;
@@ -102,6 +102,154 @@ export function motionFraction(a: Frame, b: Frame): number {
   for (let i = 0; i < a.data.length; i += 4 * 31) { if (Math.abs(luminance(a.data, i) - luminance(b.data, i)) > 22) changed++; total++; }
   return changed / total;
 }
+
+type FragmentGeometry = {
+  cx: number; cy: number; ux: number; uy: number; ratio: number;
+  minX: number; maxX: number; minY: number; maxY: number;
+};
+/** Geometry in capture pixels; callers never infer a tip from the axis direction. */
+function fragmentGeometry(points: Point[]): FragmentGeometry {
+  const cx = points.reduce((sum, p) => sum + p.x, 0) / points.length;
+  const cy = points.reduce((sum, p) => sum + p.y, 0) / points.length;
+  let xx = 0, yy = 0, xy = 0;
+  for (const p of points) { const x = p.x - cx, y = p.y - cy; xx += x * x; yy += y * y; xy += x * y; }
+  const root = Math.hypot(xx - yy, 2 * xy), angle = .5 * Math.atan2(2 * xy, xx - yy);
+  return {
+    cx, cy, ux: Math.cos(angle), uy: Math.sin(angle), ratio: (xx + yy + root) / Math.max(1e-8, xx + yy - root),
+    minX: Math.min(...points.map(p => p.x)), maxX: Math.max(...points.map(p => p.x)),
+    minY: Math.min(...points.map(p => p.y)), maxY: Math.max(...points.map(p => p.y)),
+  };
+}
+
+/**
+ * Bounded fallback for one already admitted silhouette with no usable endpoints.
+ * Full resolution can recover a thin fragment lost at the coarse sampling step.
+ * Both fragments must independently pass the original difference/novelty gates;
+ * no closing, invented line pixels, lower global threshold or score preference.
+ */
+function refineFragments(
+  before: Frame, after: Frame, calibration: Calibration, threshold: number,
+  validMask: Uint8Array | undefined, brightnessShift: number, seed: Point[],
+): Pick<Detection, "candidates" | "boxes"> | null {
+  const width = before.width, height = before.height, unit = Math.max(width, height) / 960;
+  const seedPixels = seed.map(p => ({ x: Math.round(p.x * width), y: Math.round(p.y * height) }));
+  const seedSites = new Set(seedPixels.map(p => p.y * width + p.x));
+  const seedGeometry = fragmentGeometry(seedPixels);
+  const padding = Math.ceil(Math.min(24 * unit, Math.max(8 * unit,
+    .75 * Math.hypot(seedGeometry.maxX - seedGeometry.minX, seedGeometry.maxY - seedGeometry.minY))));
+  const left = Math.max(1, seedGeometry.minX - padding), top = Math.max(1, seedGeometry.minY - padding);
+  const right = Math.min(width - 2, seedGeometry.maxX + padding), bottom = Math.min(height - 2, seedGeometry.maxY + padding);
+  const w = right - left + 1, h = bottom - top + 1;
+  if (w < 3 || h < 3 || w > 96 || h > 96) return null;
+  const eligible = (x: number, y: number) => {
+    if (x < left || x > right || y < top || y > bottom || (validMask && !validMask[y * width + x])) return false;
+    const p = project(calibration.imageToBoard, { x: x / width, y: y / height });
+    return Math.hypot(p.x, p.y) <= 1.12;
+  };
+  const isNovel = (x: number, y: number) => {
+    let low = Infinity, high = -Infinity;
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+      const nx = x + dx, ny = y + dy;
+      if (nx < 0 || nx >= width || ny < 0 || ny >= height || (validMask && !validMask[ny * width + nx])) return false;
+      const value = luminance(before.data, (ny * width + nx) * 4);
+      low = Math.min(low, value); high = Math.max(high, value);
+    }
+    const value = luminance(after.data, (y * width + x) * 4) - brightnessShift;
+    return value < low - threshold || value > high + threshold;
+  };
+  const mask = new Uint8Array(w * h), clean = new Uint8Array(w * h);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const px = left + x, py = top + y, k = (py * width + px) * 4;
+    if (eligible(px, py) && Math.abs(luminance(after.data, k) - luminance(before.data, k) - brightnessShift) > threshold) mask[y * w + x] = 1;
+  }
+  for (let y = 1; y < h - 1; y++) for (let x = 1; x < w - 1; x++) {
+    const i = y * w + x;
+    if (!mask[i]) continue;
+    let neighbours = 0;
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) if (dx || dy) neighbours += mask[i + dy * w + dx];
+    if (neighbours >= 2) clean[i] = 1;
+  }
+  const fragments: { points: Point[]; geometry: FragmentGeometry; seedOverlap: number }[] = [];
+  for (let i = 0; i < clean.length; i++) {
+    if (!clean[i]) continue;
+    const queue = [i], points: Point[] = []; clean[i] = 0;
+    for (let q = 0; q < queue.length; q++) {
+      const index = queue[q], x = index % w, y = Math.floor(index / w);
+      points.push({ x: x + left, y: y + top });
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+        const nx = x + dx, ny = y + dy;
+        if (nx < 0 || nx >= w || ny < 0 || ny >= h) continue;
+        const ni = ny * w + nx;
+        if (clean[ni]) { clean[ni] = 0; queue.push(ni); }
+      }
+    }
+    if (points.length < 8) continue;
+    let novelSites = 0;
+    for (const p of points) {
+      if (isNovel(p.x, p.y)) novelSites++;
+      if (novelSites >= 3) break;
+    }
+    if (novelSites < 3) continue;
+    const geometry = fragmentGeometry(points);
+    // The clean mask excludes the outside row. Reject its adjacent row as well,
+    // so clipping cannot manufacture a new fragment endpoint.
+    if (geometry.minX <= left + 1 || geometry.maxX >= right - 1 || geometry.minY <= top + 1 || geometry.maxY >= bottom - 1) return null;
+    fragments.push({ points, geometry, seedOverlap: points.filter(p => seedSites.has(p.y * width + p.x)).length });
+    if (fragments.length > 2) return null;
+  }
+  // Refuse a choice between competing extensions, even if only one looks likely.
+  if (fragments.length !== 2) return null;
+  fragments.sort((a, b) => b.seedOverlap - a.seedOverlap);
+  const [a, b] = fragments;
+  if (a.seedOverlap < 8 || b.seedOverlap >= 8 || a.geometry.ratio < 2 || b.geometry.ratio < 4) return null;
+  const angle = Math.acos(Math.min(1, Math.abs(a.geometry.ux * b.geometry.ux + a.geometry.uy * b.geometry.uy))) * 180 / Math.PI;
+  const perpendicular = Math.abs((b.geometry.cx - a.geometry.cx) * a.geometry.uy - (b.geometry.cy - a.geometry.cy) * a.geometry.ux);
+  const points = [...a.points, ...b.points], geometry = fragmentGeometry(points);
+  const projection = (p: Point) => (p.x - geometry.cx) * geometry.ux + (p.y - geometry.cy) * geometry.uy;
+  const ta = a.points.map(projection), tb = b.points.map(projection);
+  const minA = Math.min(...ta), maxA = Math.max(...ta), minB = Math.min(...tb), maxB = Math.max(...tb);
+  const span = Math.max(maxA, maxB) - Math.min(minA, minB), gap = Math.max(0, minB - maxA, minA - maxB);
+  // All distances are capture pixels scaled to the 960px capture convention.
+  if (gap <= 0 || angle > 10 || perpendicular > 2.5 * unit || gap > Math.min(16 * unit, .4 * span)
+    || geometry.ratio < 4 || Math.hypot((geometry.maxX - geometry.minX) / width, (geometry.maxY - geometry.minY) / height) < .025) return null;
+  const start = maxA < minB ? maxA : maxB, end = maxA < minB ? minB : minA;
+  const fragmentSites = new Set(points.map(p => p.y * width + p.x));
+  let novelBridge = false;
+  let hits = 0, total = 0, emptyRun = 0;
+  for (let t = start + 1; t < end; t++) {
+    const cx = geometry.cx + t * geometry.ux, cy = geometry.cy + t * geometry.uy;
+    if (!eligible(Math.round(cx), Math.round(cy))) return null;
+    let hit = false;
+    for (let cross = -3 * unit; cross <= 3 * unit; cross += 1) {
+      const x = Math.round(cx - cross * geometry.uy), y = Math.round(cy + cross * geometry.ux);
+      // Invalid/hidden pixels are an absolute barrier, never a tolerable gap.
+      if (!eligible(x, y)) return null;
+      if (mask[(y - top) * w + x - left]) {
+        hit = true;
+        const position = projection({ x, y });
+        // A shifted old wire can fill this corridor with differences. Require
+        // independent new evidence strictly between the observed fragments;
+        // rounding an endpoint into the corridor must not count as a bridge.
+        if (!novelBridge && !fragmentSites.has(y * width + x) && position > start + 1e-7 && position < end - 1e-7 && isNovel(x, y)) novelBridge = true;
+      }
+    }
+    total++;
+    if (hit) { hits++; emptyRun = 0; }
+    else if (++emptyRun > 4 * unit) return null;
+  }
+  if (!total || hits < total * .5 || !novelBridge) return null;
+  const ordered = points.map(point => ({ point, t: projection(point) })).sort((a, b) => a.t - b.t);
+  const first = ordered[0].t, last = ordered[ordered.length - 1].t;
+  const ends = [ordered.filter(item => item.t - first < 1 - 1e-7), ordered.filter(item => last - item.t < 1 - 1e-7)];
+  const candidates = ends.map(end => {
+    const point = { x: end.reduce((sum, item) => sum + item.point.x, 0) / end.length / width,
+      y: end.reduce((sum, item) => sum + item.point.y, 0) / end.length / height };
+    return { point, score: scorePoint(project(calibration.imageToBoard, point)), component: 0 };
+  });
+  return { candidates, boxes: [{ x: geometry.minX / width, y: geometry.minY / height,
+    width: (geometry.maxX - geometry.minX) / width, height: (geometry.maxY - geometry.minY) / height }] };
+}
+
 export function detect(before: Frame, after: Frame, calibration: Calibration, threshold = 30, validMask?: Uint8Array, brightnessOverride?: number): Detection {
   sameFrames(before, after);
   if (!Number.isFinite(threshold) || threshold < 12 || threshold > 80) throw new Error("Seuil invalide.");
@@ -209,6 +357,10 @@ export function detect(before: Frame, after: Frame, calibration: Calibration, th
       const point = { x: end.reduce((s, item) => s + item.point.x, 0) / end.length, y: end.reduce((s, item) => s + item.point.y, 0) / end.length };
       candidates.push({ point, score: scorePoint(project(calibration.imageToBoard, point)), component });
     }
+  }
+  if (!candidates.length && components.length === 1) {
+    const refined = refineFragments(before, after, calibration, threshold, validMask, brightnessShift, components[0]);
+    if (refined) { candidates.push(...refined.candidates); boxes.splice(0, boxes.length, ...refined.boxes); }
   }
   return { ...common, candidates, boxes, status: candidates.length ? "CANDIDATES" : "AMBIGUOUS", reason: candidates.length ? "Extrémités de silhouette proposées, sans certitude sur la pointe. Touchez le véritable point d’entrée et confirmez le secteur observé." : "Changement détecté mais pointe indéterminable. Annotez manuellement ; aucune décision automatique." };
 }
