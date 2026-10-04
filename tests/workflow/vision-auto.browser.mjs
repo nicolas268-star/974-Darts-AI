@@ -26,17 +26,30 @@ export async function testVisionAuto(page, screenshot) {
     await expect(dialog.getByRole('status')).toContainText('Contours proposés',{timeout:30000});
     const initial=JSON.parse(await canvas.getAttribute('data-anchors'));
     expect(initial).toHaveLength(5);expect(Math.hypot(initial[4].x-.5,initial[4].y-.5)).toBeLessThan(.018);
+    await expect(canvas).toHaveAttribute('data-grid-mode','ALIGN');
+    const controls=dialog.getByTestId('vision-image-controls');
+    await expect(controls).toBeVisible();
+    const canvasBox=await canvas.boundingBox(),controlsBox=await controls.boundingBox();
+    expect(controlsBox.x).toBeGreaterThanOrEqual(canvasBox.x-1);
+    expect(controlsBox.y).toBeGreaterThanOrEqual(canvasBox.y-1);
+    expect(controlsBox.x+controlsBox.width).toBeLessThanOrEqual(canvasBox.x+canvasBox.width+1);
+    expect(controlsBox.y+controlsBox.height).toBeLessThanOrEqual(canvasBox.y+canvasBox.height+1);
+    await dialog.getByRole('button',{name:'Grille simple',exact:true}).click();
+    await expect(canvas).toHaveAttribute('data-grid-mode','FULL');
+    await dialog.getByRole('button',{name:'Grille complète',exact:true}).click();
+    await expect(canvas).toHaveAttribute('data-grid-mode','ALIGN');
     await expect(apply).toBeDisabled();
     await dialog.getByLabel('Le centre, les doubles et les triples suivent ma cible.',{exact:true}).check();
     await expect(apply).toBeDisabled();
     await dialog.getByLabel('Le 20 de la grille correspond au vrai 20.',{exact:true}).check();
     await expect(apply).toBeEnabled();
-    await dialog.getByRole('button',{name:'Droite →',exact:true}).click();
+    await dialog.getByRole('button',{name:'Déplacer la grille à droite',exact:true}).click();
     await expect(apply).toBeDisabled();
     const moved=JSON.parse(await canvas.getAttribute('data-anchors'));
-    expect(moved[4].x-initial[4].x).toBeCloseTo(1/width,6);
-    for(const label of ['+ Agrandir','↷ Rotation droite','+ 1 secteur'])await dialog.getByRole('button',{name:label,exact:true}).click();
-    await dialog.getByRole('button',{name:'Rétablir la proposition',exact:true}).click();
+    expect(moved[4].x-initial[4].x).toBeCloseTo(5/width,6);
+    for(const label of ['Agrandir la grille','Tourner la grille à droite'])await dialog.getByRole('button',{name:label,exact:true}).click();
+    await dialog.getByRole('button',{name:'20 + 1 secteur',exact:true}).click();
+    await dialog.getByRole('button',{name:'Rétablir',exact:true}).click();
     expect(JSON.parse(await canvas.getAttribute('data-anchors'))).toEqual(initial);
     await dialog.getByLabel('Le centre, les doubles et les triples suivent ma cible.',{exact:true}).check();
     await dialog.getByLabel('Le 20 de la grille correspond au vrai 20.',{exact:true}).check();
@@ -61,7 +74,7 @@ export async function testVisionAuto(page, screenshot) {
     const mainBox=await main.boundingBox();expect(mainBox.width/mainBox.height).toBeCloseTo(width/height,3);
     await page.getByRole('button',{name:'Détecter ma cible',exact:true}).click();
     await expect(dialog.getByRole('status')).toContainText('Contours proposés');
-    await dialog.getByRole('button',{name:'Bas ↓',exact:true}).click();
+    await dialog.getByRole('button',{name:'Descendre la grille',exact:true}).click();
     await dialog.getByRole('button',{name:'Fermer sans appliquer',exact:true}).click();
     expect(JSON.parse(await main.getAttribute('data-anchors'))).toEqual(initial);
   }
@@ -76,5 +89,5 @@ export async function testVisionAuto(page, screenshot) {
   await expect(dialog.getByRole('button',{name:'Appliquer cette détection',exact:true})).toBeDisabled();
   await page.keyboard.press('Escape');await expect(dialog).toHaveCount(0);
   await expect(page.getByRole('button',{name:'Calibrer en grand · zoom et loupe',exact:true})).toBeEnabled();
-  console.log('PASS vision auto: colour rings, 540x960/960x540, two confirmations, position/size/rotation, reset, identical real pixels after apply, cancel and blank-scene refusal.');
+  console.log('PASS vision auto: colour rings, 540x960/960x540, on-image controls, simplified/full grid, two confirmations, position/size/rotation, reset, identical pixels after apply, cancel and blank-scene refusal.');
 }
