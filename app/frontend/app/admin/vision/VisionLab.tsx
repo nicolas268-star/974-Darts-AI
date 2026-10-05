@@ -73,6 +73,8 @@ async function readImage(file: File): Promise<Snapshot> {
 
 export default function VisionLab() {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const cameraDevice = useRef<string | undefined>(undefined);
+  const [resumeCheck, setResumeCheck] = useState(false);
   const streamRef = useRef<MediaStream | null>(null), timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const wakeRef = useRef<WakeHandle | null>(null), generation = useRef(0), mounted = useRef(false);
   const analysisClient = useRef<AnalysisClient | null>(null), analysisEpoch = useRef(0), calibrationRevision = useRef(0);
@@ -107,38 +109,49 @@ export default function VisionLab() {
     if (videoRef.current) videoRef.current.srcObject = null;
     const lock = wakeRef.current; wakeRef.current = null;
     if (lock) void lock.release().catch(() => {});
-    if (mounted.current) { setCamera(false); setStarting(false); setWake("Désactivé"); }
+    if (mounted.current) { setCamera(false); setStarting(false); setResumeCheck(true); setWake("Désactivé"); }
   }, [pause]);
   useEffect(() => {
     mounted.current = true;
-    const hidden = () => { if (document.visibilityState === "hidden") { stop(); setMessage("Caméra arrêtée lorsque la page passe en arrière-plan. Réactivez-la et refaites la calibration."); } };
+    const hidden = () => { if (document.visibilityState === "hidden") { stop(); setMessage("Caméra suspendue pendant l’absence. Référence, calibration et captures conservées : utilisez « Reprendre la caméra »."); } };
     const leaving = () => stop();
     document.addEventListener("visibilitychange", hidden); window.addEventListener("pagehide", leaving);
     return () => { mounted.current = false; stop(); document.removeEventListener("visibilitychange", hidden); window.removeEventListener("pagehide", leaving); };
   }, [stop]);
 
   function resetReference(snapshot: Snapshot, origin: "camera" | "images") {
-    pause(); setSpatialAnchor(snapshot); setReferenceRaw(snapshot); setReferenceMask(undefined); setAnalysis(null); setView("REFERENCE"); setAnnotation(null); setBefore(snapshot); setAfter(null); setAnchors([]); setCalibration(null); setVerified(false);
+    pause(); setResumeCheck(false); setSpatialAnchor(snapshot); setReferenceRaw(snapshot); setReferenceMask(undefined); setAnalysis(null); setView("REFERENCE"); setAnnotation(null); setBefore(snapshot); setAfter(null); setAnchors([]); setCalibration(null); setVerified(false);
     setResult(null); setSelected(null); setTruth(""); setSaved(false); setSource(origin); setIncludeImages(false);
     setMessage("Image figée. Utilisez « Détecter ma cible », puis vérifiez la grille proposée. La méthode manuelle reste disponible.");
   }
-  async function startCamera() {
+  async function startCamera(resume = false) {
+    const preserve = resume && source === "camera" && Boolean(before && calibration);
     stop();
     const token = generation.current;
     setStarting(true); setMessage("Autorisez la caméra arrière. Le microphone reste désactivé.");
-    setSpatialAnchor(null); setReferenceRaw(null); setReferenceMask(undefined); setAnalysis(null); setBefore(null); setAfter(null); setAnchors([]); setCalibration(null); setVerified(false); setResult(null); setSelected(null); setSaved(false);
+    if (!preserve) {
+      setResumeCheck(false); cameraDevice.current = undefined;
+      setSpatialAnchor(null); setReferenceRaw(null); setReferenceMask(undefined); setAnalysis(null); setBefore(null); setAfter(null); setAnchors([]); setCalibration(null); setVerified(false); setResult(null); setSelected(null); setSaved(false);
+    }
     try {
       if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) throw new Error("La caméra nécessite HTTPS et un navigateur compatible. L’import d’images reste disponible.");
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 15, max: 30 } } });
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: { ...(preserve && cameraDevice.current ? { deviceId: { exact: cameraDevice.current } } : {}), facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 15, max: 30 } } });
       if (!mounted.current || token !== generation.current || document.visibilityState === "hidden") { stream.getTracks().forEach(track => track.stop()); return; }
       streamRef.current = stream;
       const video = videoRef.current;
       if (!video) { stop(); return; }
       video.srcObject = stream; await video.play();
       if (!mounted.current || token !== generation.current) return;
-      stream.getVideoTracks().forEach(track => track.addEventListener("ended", () => { if (streamRef.current === stream) { stop(); setMessage("La caméra a été interrompue. Réactivez-la et recalibrez."); } }));
+      if (preserve && before && (video.videoWidth !== before.sourceWidth || video.videoHeight !== before.sourceHeight)) {
+        stop(); setVerified(false);
+        setMessage("Le format de la caméra a changé. Captures conservées : recommencez la configuration, puis figez une référence vide et recalibrez.");
+        return;
+      }
+      cameraDevice.current = stream.getVideoTracks()[0]?.getSettings().deviceId;
+      setResumeCheck(preserve);
+      stream.getVideoTracks().forEach(track => track.addEventListener("ended", () => { if (streamRef.current === stream) { stop(); setMessage("La caméra a été interrompue. Captures conservées : utilisez « Reprendre la caméra »."); } }));
       setCamera(true); setStarting(false); setSource("camera");
-      setMessage("Immobilisez le téléphone, cible entière et vide. Appuyez sur « Figer la référence ».");
+      setMessage(preserve ? "Caméra reprise, réglages conservés. Vérifiez la vue en direct et confirmez que la caméra et la cible n’ont pas bougé. La détection reste en pause." : "Immobilisez le téléphone, cible entière et vide. Appuyez sur « Figer la référence ».");
       const nav = navigator as Navigator & { wakeLock?: { request: (kind: "screen") => Promise<WakeHandle> } };
       if (nav.wakeLock) {
         try {
@@ -205,7 +218,7 @@ export default function VisionLab() {
   }
   function sampleNow() { arm(true); }
   function arm(manual = false) {
-    if (!before || !calibration || !verified || !camera || after) return;
+    if (!before || !calibration || !verified || !camera || resumeCheck || after) return;
     pause();
     let previous: Frame;
     try { previous = cameraFrame().frame; assertSameCapture(previous); } catch (reason) { setMessage(errorMessage(reason)); return; }
@@ -292,11 +305,16 @@ export default function VisionLab() {
           <h2 id="camera-heading">1. Caméra et référence</h2>
           <p>Téléphone immobilisé hors de la trajectoire des fléchettes. Cible entièrement visible, 20 en haut, sans reflet.</p>
           <div className={styles.buttons}>
-            <button type="button" onClick={() => void startCamera()} disabled={starting || imageBusy}>{starting ? "Autorisation…" : camera ? "Redémarrer la caméra" : "Activer la caméra arrière"}</button>
+            <button type="button" onClick={() => void startCamera(!camera && source === "camera" && Boolean(before && calibration))} disabled={starting || imageBusy}>{starting ? "Autorisation…" : camera ? "Recommencer la configuration caméra" : before && calibration && source === "camera" ? "Reprendre la caméra · conserver les réglages" : "Activer la caméra arrière"}</button>
             <button type="button" onClick={() => { stop(); setMessage("Caméra arrêtée. Les annotations restent en mémoire jusqu’à la fermeture de cette page."); }} disabled={!camera && !starting}>Arrêter la caméra</button>
+            {!camera && before && calibration && <button type="button" onClick={() => void startCamera(false)} disabled={starting || imageBusy}>Recommencer la configuration caméra</button>}
           </div>
           <video ref={videoRef} className={styles.video} autoPlay playsInline muted aria-label="Vue en direct de la cible" />
           <div className={styles.meta}><span>{camera ? "Caméra active" : "Caméra arrêtée"}</span><span>{wake}</span></div>
+          {camera && resumeCheck && <div className={styles.notice}>
+            <p>Vérifiez la vue en direct : même caméra, même cadrage, cible et téléphone immobiles. Si l’un a bougé, figez une nouvelle référence vide et refaites la calibration.</p>
+            <button type="button" onClick={() => { setResumeCheck(false); setMessage(after ? "Reprise confirmée. Annotez la capture puis préparez le lancer suivant." : "Reprise confirmée. Vous pouvez armer la détection."); }}>Je confirme : caméra et cible inchangées</button>
+          </div>}
           <button type="button" onClick={freezeReference} disabled={!camera || watching || busy || imageBusy}>Figer la référence · cible vide</button>
           <details className={styles.details}><summary>Tester avec deux images, sans caméra</summary><p>Même appareil, même cadrage, avant puis après un seul lancer. Aucun fichier n’est envoyé au serveur.</p>
             <label className={styles.fileLabel}>Image AVANT<input type="file" accept="image/jpeg,image/png,image/webp" onChange={event => void importImage(event, "before")} disabled={imageBusy || watching || busy} /></label>
@@ -341,13 +359,16 @@ export default function VisionLab() {
         <h2 id="detection-heading">3. Un lancer à la fois</h2>
         <p>La surveillance attend trois images stables, puis s’arrête dès qu’un changement est proposé. Elle ne valide jamais de score. Pause obligatoire avant de retirer les fléchettes.</p>
         <div className={styles.status} role="status" aria-label="État de la surveillance" aria-live="polite">
-          <strong>{busy ? "Analyse en cours…" : watching ? "Surveillance active · attente d’une image stable" : after ? "Surveillance arrêtée · capture figée" : "Surveillance en pause"}</strong>
-          {after ? <p>Image figée à <time dateTime={after.capturedAt}>{new Date(after.capturedAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}</time> · elle ne se met plus à jour.</p> : !watching && !busy && camera && verified ? <p>Armez la détection avant de lancer.</p> : null}
+          <strong>{busy ? "Analyse en cours…" : watching ? "Surveillance active · attente d’une image stable" : !camera && source === "camera" ? "Caméra arrêtée · reprise nécessaire" : resumeCheck ? "Reprise caméra · vérification nécessaire" : after ? "Surveillance arrêtée · capture figée" : "Surveillance en pause"}</strong>
+          {after ? <p>Image figée à <time dateTime={after.capturedAt}>{new Date(after.capturedAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}</time> · elle ne se met plus à jour.</p> : !watching && !busy && camera && verified && !resumeCheck ? <p>Armez la détection avant de lancer.</p> : null}
         </div>
+        {!camera && source === "camera" && before && calibration && <button type="button" disabled={starting || imageBusy} onClick={() => void startCamera(true)}>Reprendre la caméra · conserver les réglages</button>}
+        {camera && resumeCheck && <p>Confirmez le cadrage dans « 1. Caméra et référence » avant de réarmer.</p>}
+        {after && <p>Pour continuer avec les fléchettes en place, confirmez l’annotation puis utilisez « Garder les fléchettes en place · préparer le lancer suivant ». Pour une nouvelle cible vide, retirez les fléchettes en pause puis figez une nouvelle référence.</p>}
         <div className={styles.buttons}>
-          <button type="button" onClick={() => arm()} disabled={!camera || !verified || watching || Boolean(after) || imageBusy}>Armer la détection</button>
+          <button type="button" onClick={() => arm()} disabled={!camera || !verified || resumeCheck || watching || Boolean(after) || imageBusy}>Armer la détection</button>
           <button type="button" onClick={() => { pause(); setMessage("Surveillance en pause. La caméra reste active jusqu’à son arrêt explicite."); }} disabled={!watching && !busy}>Pause</button>
-          <button type="button" onClick={sampleNow} disabled={!camera || !verified || watching || busy || Boolean(after) || imageBusy}>Comparer maintenant</button>
+          <button type="button" onClick={sampleNow} disabled={!camera || !verified || resumeCheck || watching || busy || Boolean(after) || imageBusy}>Comparer maintenant</button>
           <label className={styles.threshold}>Seuil de différence : {threshold}<input type="range" min="12" max="80" value={threshold} disabled={watching || busy || Boolean(after)} onChange={event => setThreshold(Number(event.target.value))} /></label>
         </div>
         {result && <div className={styles.result}>
