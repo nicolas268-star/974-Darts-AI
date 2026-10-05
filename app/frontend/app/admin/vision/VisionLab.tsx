@@ -5,11 +5,11 @@ import { ANCHOR_LABELS, ENGINE_VERSION, calibrate, motionFraction, project, scor
 import { AnalysisClient } from "@/lib/vision/analysis-client";
 import { canPromote, type AnalysisResult } from "@/lib/vision/analysis-pipeline";
 import { COORDINATES, STABILIZATION_VERSION } from "@/lib/vision/stabilization-types";
+import { capture, nativeSnapshot, type Snapshot } from "@/lib/vision/capture";
 import styles from "./vision.module.css";
 import CalibrationAssistant from "./CalibrationAssistant";
 import VisionFrame from "./VisionFrame";
 
-type Snapshot = { frame: Frame; id: string; capturedAt: string; sourceWidth: number; sourceHeight: number };
 function metadata(analysis: AnalysisResult) { const { aligned: _aligned, validMask: _mask, ...stabilization } = analysis.stabilization; void _aligned; void _mask; return { sessionId: analysis.sessionId, referenceId: analysis.referenceId, captureId: analysis.captureId, stabilization, rawChangedFraction: analysis.rawChangedFraction, totalMs: analysis.totalMs }; }
 type Sample = {
   id: string; capturedAt: string; source: "camera" | "images";
@@ -18,24 +18,12 @@ type Sample = {
   truth: string | null; point: Point | null; processingMs: number; analysis: ReturnType<typeof metadata> | null;
 };
 type WakeHandle = { release: () => Promise<void>; addEventListener: (name: "release", callback: () => void) => void };
-const MAX_SIDE = 960;
 const MAX_SAMPLES = 100;
 
 function metric(value: number | null, digits = 2, suffix = "", scale = 1): string {
   return value === null ? "non calculé" : `${(value * scale).toFixed(digits)}${suffix}`;
 }
 
-function capture(source: CanvasImageSource, width: number, height: number): Snapshot {
-  if (width < 16 || height < 16) throw new Error("Image indisponible. Attendez que la caméra soit prête.");
-  const scale = Math.min(1, MAX_SIDE / Math.max(width, height));
-  const canvas = document.createElement("canvas");
-  canvas.width = Math.round(width * scale); canvas.height = Math.round(height * scale);
-  const ctx = canvas.getContext("2d", { willReadFrequently: true });
-  if (!ctx) throw new Error("Ce navigateur ne permet pas l’analyse Canvas.");
-  ctx.drawImage(source, 0, 0, canvas.width, canvas.height);
-  const frame = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  return { frame, sourceWidth: width, sourceHeight: height, id: typeof crypto.randomUUID === "function" ? crypto.randomUUID() : Array.from(crypto.getRandomValues(new Uint32Array(4)), value => value.toString(16)).join("-"), capturedAt: new Date().toISOString() };
-}
 function paint(canvas: HTMLCanvasElement, frame: Frame) {
   canvas.width = frame.width; canvas.height = frame.height;
   const ctx = canvas.getContext("2d");
@@ -276,6 +264,10 @@ export default function VisionLab() {
       currentAnalysis: analysis ? { ...metadata(analysis), capturedAt: after?.capturedAt, enabled: stabilizationEnabled, calibration, detection: result, width: after?.frame.width, height: after?.frame.height,
         sourceWidth: after?.sourceWidth, sourceHeight: after?.sourceHeight, anchorId: spatialAnchor?.id,
         sourceTranslation: after ? { dx: analysis.stabilization.transform.dx * after.sourceWidth / after.frame.width, dy: analysis.stabilization.transform.dy * after.sourceHeight / after.frame.height } : null } : null,
+      nativePair: includeImages && before && after ? {
+        schemaVersion: 1, coordinateConvention: "raw source pixels, unaligned; pixel centers: native=(analysis+0.5)*scale-0.5; undo stabilization before mapping annotations",
+        before: nativeSnapshot(referenceRaw ?? before), after: nativeSnapshot(after), spatialAnchor: spatialAnchor ? nativeSnapshot(spatialAnchor) : null,
+      } : null,
       currentPair: includeImages && before && after ? { before: imageDataUrl((referenceRaw ?? before).frame), after: imageDataUrl(after.frame), spatialAnchor: spatialAnchor ? imageDataUrl(spatialAnchor.frame) : null, comparisonReference: imageDataUrl(before.frame), aligned: analysis?.stabilization.aligned ? imageDataUrl(analysis.stabilization.aligned) : null, validMask: analysis?.stabilization.validMask ? { encoding: "row-runs-of-valid-pixels", runs: maskRuns(analysis.stabilization.validMask) } : null, captureId: after.id, capturedAt: after.capturedAt, calibration, width: before.frame.width, height: before.frame.height } : null,
     };
     const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" }));
@@ -393,7 +385,9 @@ export default function VisionLab() {
         <div className={styles.stats}><div><strong>{samples.length}</strong><span>échantillons / {MAX_SAMPLES}</span></div><div><strong>{labelled}</strong><span>secteurs annotés</span></div><div><strong>{samples.filter(sample => sample.annotation === "FALSE_POSITIVE").length}</strong><span>fausses détections signalées</span></div></div>
         <p>Ce journal ne mesure pas encore la fiabilité d’un autoscoring : les annotations sont humaines et les candidats peuvent être multiples. Il est perdu au rechargement ou à la fermeture de la page.</p>
         {samples.length > 0 && <div className={styles.log}>{samples.slice(-8).reverse().map(sample => <div key={sample.id}><time>{new Date(sample.capturedAt).toLocaleTimeString("fr-FR")}</time><strong>{sample.truth ?? (sample.annotation === "FALSE_POSITIVE" ? "Fausse détection" : "Indéterminable")}</strong><span>{sample.detection.candidates.map(candidate => candidate.score.label).join(" / ") || "Sans candidat"}</span></div>)}</div>}
-        <label className={styles.check}><input type="checkbox" checked={includeImages} disabled={!before || !after} onChange={event => setIncludeImages(event.target.checked)} />Inclure les deux images brutes, la référence spatiale et les diagnostics dans l’export (elles peuvent montrer les alentours de la cible).</label>
+        <label className={styles.check}><input type="checkbox" checked={includeImages} disabled={!before || !after} onChange={event => setIncludeImages(event.target.checked)} />Inclure les images natives, les captures d’analyse et les diagnostics dans l’export (elles peuvent montrer les alentours de la cible).</label>
+        {before && after && <p>Images natives : {(referenceRaw ?? before).sourceWidth} × {(referenceRaw ?? before).sourceHeight} avant · {after.sourceWidth} × {after.sourceHeight} après. Captures d’analyse : {after.frame.width} × {after.frame.height}.</p>}
+        {before && after && (!(referenceRaw ?? before).nativeCanvas || !after.nativeCanvas || spatialAnchor && !spatialAnchor.nativeCanvas) && <p>Au moins une image native est indisponible (limite : 4 mégapixels par image). Son absence sera indiquée dans l’export ; les captures d’analyse restent disponibles.</p>}
         <div className={styles.buttons}><button type="button" onClick={exportJournal} disabled={!samples.length && !after}>Exporter le journal JSON</button><button type="button" onClick={clearJournal} disabled={!samples.length}>Vider le journal</button></div>
         <p className={styles.meta}>Traitement local · Aucun envoi vidéo · Aucune API payante · Aucune synchronisation de partie à cette étape.</p>
       </section>

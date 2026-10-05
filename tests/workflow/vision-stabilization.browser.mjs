@@ -15,7 +15,7 @@ async function calibrate(page){
 }
 async function importFrame(page,target,frame){await page.getByLabel('Image '+target,{exact:true}).setInputFiles({name:'synthetic.png',mimeType:'image/png',buffer:await png(frame)});}
 async function exported(page){const promise=page.waitForEvent('download');await page.getByRole('button',{name:'Exporter le journal JSON',exact:true}).click();const download=await promise;return JSON.parse(await readFile(await download.path(),'utf8'));}
-const consent='Inclure les deux images brutes, la référence spatiale et les diagnostics dans l’export (elles peuvent montrer les alentours de la cible).';
+const consent='Inclure les images natives, les captures d’analyse et les diagnostics dans l’export (elles peuvent montrer les alentours de la cible).';
 export async function testVisionStabilization(){
  const browser=await chromium.launch({headless:true,args:['--no-sandbox']});
  const context=await browser.newContext({bypassCSP:false,acceptDownloads:true,viewport:{width:390,height:844}});context.setDefaultTimeout(30000);
@@ -35,7 +35,7 @@ export async function testVisionStabilization(){
   await expect(page.getByLabel('Stabilisation automatique',{exact:true})).toBeChecked();
   await importFrame(page,'APRÈS',b);
   await expect(page.getByText('Mesures du recalage · ALIGNED',{exact:true})).toBeVisible();
-  const initial=await exported(page);expect(initial.schemaVersion).toBe(2);expect(initial.currentPair).toBeNull();expect(initial.currentAnalysis.stabilization.state).toBe('ALIGNED');expect(initial.currentAnalysis.detection.status).toBe('CANDIDATES');expect(workers).toBeGreaterThan(0);
+  const initial=await exported(page);expect(initial.schemaVersion).toBe(2);expect(initial.currentPair).toBeNull();expect(initial.nativePair).toBeNull();expect(initial.currentAnalysis.stabilization.state).toBe('ALIGNED');expect(initial.currentAnalysis.detection.status).toBe('CANDIDATES');expect(workers).toBeGreaterThan(0);
   const surveillance=page.getByRole('status',{name:'État de la surveillance',exact:true});
   await expect(surveillance).toContainText('Surveillance arrêtée · capture figée');
   await expect(surveillance.locator('time')).toHaveAttribute('datetime',initial.currentAnalysis.capturedAt);
@@ -47,10 +47,17 @@ export async function testVisionStabilization(){
   await page.getByLabel(consent,{exact:true}).check();
   const withImages=await exported(page);expect(withImages.currentPair.before).toMatch(/^data:image\/png;base64,/);expect(withImages.currentPair.after).toMatch(/^data:image\/png;base64,/);expect(withImages.currentPair.validMask.runs.length).toBeGreaterThan(0);
   expect(withImages.currentPair.capturedAt).toBe(initial.currentAnalysis.capturedAt);
+  expect(withImages.nativePair.after.captureId).toBe(initial.currentAnalysis.captureId);
+  expect(withImages.nativePair.before.captureId).toBe(initial.currentAnalysis.referenceId);
+  expect(withImages.nativePair.after.capturedAt).toBe(initial.currentAnalysis.capturedAt);
+  expect(withImages.nativePair.after.image).toBe(withImages.currentPair.after);
+  expect(withImages.nativePair.spatialAnchor.captureId).toBe(initial.currentAnalysis.anchorId);
   await page.getByLabel('Secteur réel observé',{exact:true}).fill('S20');await page.getByRole('button',{name:'Confirmer l’annotation',exact:true}).click();await expect(page.getByRole('button',{name:'Confirmer l’annotation',exact:true})).toBeDisabled();expect((await exported(page)).samples).toHaveLength(1);
   await page.getByRole('button',{name:'Garder les fléchettes en place · préparer le lancer suivant',exact:true}).click();
   await importFrame(page,'APRÈS',b);await expect(page.getByText('Aucun changement exploitable',{exact:true})).toBeVisible();
   const second=await exported(page);expect(second.currentAnalysis.sessionId).toBe(initial.currentAnalysis.sessionId);expect(second.currentAnalysis.referenceId).toBe(initial.currentAnalysis.captureId);expect(second.currentAnalysis.detection.candidates).toHaveLength(0);
+  await page.getByLabel(consent,{exact:true}).check();
+  const promoted=await exported(page);expect(promoted.nativePair.before.captureId).toBe(withImages.nativePair.after.captureId);expect(promoted.nativePair.before.image).toBe(withImages.nativePair.after.image);
   await page.getByRole('button',{name:'Réessayer la capture',exact:true}).click();
   await expect(surveillance).toContainText('Surveillance en pause');await expect(surveillance.locator('time')).toHaveCount(0);
   await importFrame(page,'APRÈS',fixture(w,h,identity,{flat:true}));await expect(page.getByText('Mesures du recalage · REJECTED',{exact:true})).toBeVisible();
@@ -111,7 +118,7 @@ export async function testVisionStabilization(){
     // The live camera keeps changing after detection, while the inspected capture stays frozen.
     await page.evaluate(url=>window.__setVisionImage(url),beforeUrl);
     await page.waitForTimeout(1100);
-    const frozen=await exported(page);expect(frozen.currentAnalysis.captureId).toBe(result.currentAnalysis.captureId);expect(frozen.currentAnalysis.capturedAt).toBe(result.currentAnalysis.capturedAt);
+    const frozen=await exported(page);expect(frozen.currentAnalysis.captureId).toBe(result.currentAnalysis.captureId);expect(frozen.currentAnalysis.capturedAt).toBe(result.currentAnalysis.capturedAt);expect(frozen.nativePair).toEqual(result.nativePair);
     await expect(page.getByRole('button',{name:'Armer la détection',exact:true})).toBeDisabled();
     await page.evaluate(()=>{Object.defineProperty(document,'visibilityState',{configurable:true,value:'hidden'});document.dispatchEvent(new Event('visibilitychange'));});
     await expect(surveillance).toContainText('Caméra arrêtée · reprise nécessaire');
@@ -124,11 +131,24 @@ export async function testVisionStabilization(){
     expect(resumed.currentAnalysis.calibration).toEqual(result.currentAnalysis.calibration);
     expect(resumed.currentPair.before).toBe(result.currentPair.before);
     expect(resumed.currentPair.after).toBe(result.currentPair.after);
+    expect(resumed.nativePair).toEqual(result.nativePair);
     await page.getByRole('button',{name:'Je confirme : caméra et cible inchangées',exact:true}).click();
     await expect(surveillance).toContainText('Surveillance arrêtée · capture figée');
     await expect(page.getByRole('button',{name:'Armer la détection',exact:true})).toBeDisabled();
     await page.getByRole('button',{name:'Arrêter la caméra',exact:true}).click();
   }
+  // Native export integration: 1280x720 stays intact; analysis remains 960x540.
+  const high=fixture(1280,720);await importFrame(page,'AVANT',high);await calibrate(page);await importFrame(page,'APRÈS',high);
+  await expect(page.getByText('Mesures du recalage · IDENTITY',{exact:true})).toBeVisible();
+  expect((await exported(page)).nativePair).toBeNull();
+  await page.getByLabel(consent,{exact:true}).check();const nativeExport=await exported(page);
+  expect([nativeExport.currentAnalysis.width,nativeExport.currentAnalysis.height]).toEqual([960,540]);
+  expect([nativeExport.nativePair.after.width,nativeExport.nativePair.after.height]).toEqual([1280,720]);
+  const nativePixels=await sharp(Buffer.from(nativeExport.nativePair.after.image.split(',')[1],'base64')).ensureAlpha().raw().toBuffer();
+  expect(nativePixels.equals(Buffer.from(high.data))).toBe(true);
+  expect(nativeExport.nativePair.after.captureId).toBe(nativeExport.currentAnalysis.captureId);
+  await page.getByLabel(consent,{exact:true}).uncheck();const privateExport=await exported(page);
+  expect(privateExport.nativePair).toBeNull();expect(privateExport.currentPair).toBeNull();
   await page.setViewportSize({width:1440,height:1000});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   await page.screenshot({path:resolve(root,'docs/ranking-workflow-preview/vision-stabilization-desktop.png'),fullPage:true});
   expect(writes).toEqual([]);expect(errors).toEqual([]);expect(await page.evaluate(()=>window.__visionCsp)).toEqual([]);
