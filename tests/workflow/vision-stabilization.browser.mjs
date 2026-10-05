@@ -89,7 +89,9 @@ export async function testVisionStabilization(){
   },beforeUrl);
   for(const mode of ['manual','automatic']){
     await page.evaluate(url=>window.__setVisionImage(url),beforeUrl);
-    await page.getByRole('button',{name:/^(Activer la caméra arrière|Redémarrer la caméra)$/}).click();
+    const restart = page.getByRole('button',{name:'Recommencer la configuration caméra',exact:true});
+    if(await restart.count()) await restart.click();
+    else await page.getByRole('button',{name:'Activer la caméra arrière',exact:true}).click();
     await expect(page.getByRole('button',{name:'Figer la référence · cible vide',exact:true})).toBeEnabled();await page.getByRole('button',{name:'Figer la référence · cible vide',exact:true}).click();await calibrate(page);
     if(mode==='automatic'){
       await page.getByRole('button',{name:'Armer la détection',exact:true}).click();
@@ -100,6 +102,7 @@ export async function testVisionStabilization(){
     await page.evaluate(url=>window.__setVisionImage(url),afterUrl);
     if(mode==='manual')await page.getByRole('button',{name:'Comparer maintenant',exact:true}).click();
     await expect(page.getByText('Mesures du recalage · ALIGNED',{exact:true})).toBeVisible();
+    await page.getByLabel(consent,{exact:true}).check();
     const result=await exported(page);expect(result.currentAnalysis.detection.status).toBe(initial.currentAnalysis.detection.status);
     expect(result.currentAnalysis.stabilization.transform.dx).toBeCloseTo(initial.currentAnalysis.stabilization.transform.dx,0);
     expect(result.currentAnalysis.detection.changedFraction).toBeCloseTo(initial.currentAnalysis.detection.changedFraction,2);
@@ -109,6 +112,20 @@ export async function testVisionStabilization(){
     await page.evaluate(url=>window.__setVisionImage(url),beforeUrl);
     await page.waitForTimeout(1100);
     const frozen=await exported(page);expect(frozen.currentAnalysis.captureId).toBe(result.currentAnalysis.captureId);expect(frozen.currentAnalysis.capturedAt).toBe(result.currentAnalysis.capturedAt);
+    await expect(page.getByRole('button',{name:'Armer la détection',exact:true})).toBeDisabled();
+    await page.evaluate(()=>{Object.defineProperty(document,'visibilityState',{configurable:true,value:'hidden'});document.dispatchEvent(new Event('visibilitychange'));});
+    await expect(surveillance).toContainText('Caméra arrêtée · reprise nécessaire');
+    await page.evaluate(()=>{delete document.visibilityState;});
+    await page.getByRole('button',{name:'Reprendre la caméra · conserver les réglages',exact:true}).first().click();
+    await expect(surveillance).toContainText('Reprise caméra · vérification nécessaire');
+    await expect(page.getByRole('button',{name:'Armer la détection',exact:true})).toBeDisabled();
+    const resumed=await exported(page);
+    expect(resumed.currentAnalysis.captureId).toBe(result.currentAnalysis.captureId);
+    expect(resumed.currentAnalysis.calibration).toEqual(result.currentAnalysis.calibration);
+    expect(resumed.currentPair.before).toBe(result.currentPair.before);
+    expect(resumed.currentPair.after).toBe(result.currentPair.after);
+    await page.getByRole('button',{name:'Je confirme : caméra et cible inchangées',exact:true}).click();
+    await expect(surveillance).toContainText('Surveillance arrêtée · capture figée');
     await expect(page.getByRole('button',{name:'Armer la détection',exact:true})).toBeDisabled();
     await page.getByRole('button',{name:'Arrêter la caméra',exact:true}).click();
   }
