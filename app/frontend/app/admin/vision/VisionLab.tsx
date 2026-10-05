@@ -249,7 +249,7 @@ export default function VisionLab() {
       const snapshot = await readImage(file);
       if (!mounted.current || token !== generation.current) return;
       if (target === "before") resetReference(snapshot, "images");
-      else { setSource("images"); await analyse(snapshot); }
+      else { setSource("images"); setResumeCheck(false); await analyse(snapshot); }
     } catch (reason) { if (mounted.current && token === generation.current) setMessage(errorMessage(reason)); }
     finally { if (mounted.current) setImageBusy(false); }
   }
@@ -359,7 +359,7 @@ export default function VisionLab() {
         <h2 id="detection-heading">3. Un lancer à la fois</h2>
         <p>La surveillance attend trois images stables, puis s’arrête dès qu’un changement est proposé. Elle ne valide jamais de score. Pause obligatoire avant de retirer les fléchettes.</p>
         <div className={styles.status} role="status" aria-label="État de la surveillance" aria-live="polite">
-          <strong>{busy ? "Analyse en cours…" : watching ? "Surveillance active · attente d’une image stable" : !camera && source === "camera" ? "Caméra arrêtée · reprise nécessaire" : resumeCheck ? "Reprise caméra · vérification nécessaire" : after ? "Surveillance arrêtée · capture figée" : "Surveillance en pause"}</strong>
+          <strong>{busy ? "Analyse en cours…" : watching ? "Surveillance active · attente d’une image stable" : !camera && source === "camera" ? "Caméra arrêtée · reprise nécessaire" : resumeCheck && source === "camera" ? "Reprise caméra · vérification nécessaire" : after ? "Surveillance arrêtée · capture figée" : "Surveillance en pause"}</strong>
           {after ? <p>Image figée à <time dateTime={after.capturedAt}>{new Date(after.capturedAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}</time> · elle ne se met plus à jour.</p> : !watching && !busy && camera && verified && !resumeCheck ? <p>Armez la détection avant de lancer.</p> : null}
         </div>
         {!camera && source === "camera" && before && calibration && <button type="button" disabled={starting || imageBusy} onClick={() => void startCamera(true)}>Reprendre la caméra · conserver les réglages</button>}
