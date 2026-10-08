@@ -23,7 +23,10 @@ leur propre identifiant et leurs propres dimensions.
 Au plus quatre millions de pixels sont conservés par canvas natif afin de borner
 la mémoire sur téléphone. Les snapshots transitoires de surveillance ne sont pas
 ajoutés au journal. Seuls l’ancre et les captures actuellement retenues restent
-référencées. Les photos importées plus grandes restent analysables, mais leur
+référencées sous forme de pixels en mémoire ; chaque analyse figée est conservée
+séparément en PNG dans un diagnostic JSON stocké comme Blob dans IndexedDB.
+Les exports groupés sont décrits dans [journal-export.md](journal-export.md).
+Les photos importées plus grandes restent analysables, mais leur
 image native est signalée indisponible avec `source_too_large`. Un défaut de
 canvas ou d’encodage produit `canvas_unavailable` ou `encoding_failed`, sans
 présenter une image agrandie comme native.
