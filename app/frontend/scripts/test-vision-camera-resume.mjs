@@ -11,7 +11,7 @@ async function run(resume, { width = 720, height = 1280, fail = false, stale = f
   const before = { sourceWidth: 720, sourceHeight: 1280 };
   const state = { before, calibration: { retained: true }, after: { retained: true }, verified: true, samples: [{ truth: 'S1' }] };
   let constraints, stops = 0;
-  const sandbox = { module: { exports: {} }, source: 'camera', before, calibration: state.calibration, cameraDevice: { current: 'rear-camera' }, generation: { current: 0 }, mounted: { current: true }, window: { isSecureContext: true }, document: { visibilityState: 'visible' }, streamRef: { current: null }, wakeRef: { current: null }, errorMessage: e => e.message };
+  const sandbox = { module: { exports: {} }, journalLock: { current: false }, source: 'camera', before, calibration: state.calibration, cameraDevice: { current: 'rear-camera' }, generation: { current: 0 }, mounted: { current: true }, window: { isSecureContext: true }, document: { visibilityState: 'visible' }, streamRef: { current: null }, wakeRef: { current: null }, errorMessage: e => e.message };
   sandbox.stop = () => { sandbox.generation.current++; state.camera = false; state.starting = false; state.resumeCheck = true; sandbox.streamRef.current?.getTracks().forEach(t => t.stop()); sandbox.streamRef.current = null; };
   const track = { stop: () => stops++, getSettings: () => ({ deviceId: 'rear-camera' }), addEventListener: () => {} };
   sandbox.navigator = { mediaDevices: { getUserMedia: async c => { constraints = c; if (fail) throw Error('Permission refusée'); if (stale) sandbox.generation.current++; return { getTracks: () => [track], getVideoTracks: () => [track] }; } } };

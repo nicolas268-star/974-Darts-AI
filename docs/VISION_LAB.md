@@ -14,8 +14,8 @@ Ce jalon n'est **pas** un autoscoring fiable ni un modèle IA entraîné. Il fou
 4. Vérifier la superposition des six anneaux et des séparations. Cocher la vérification. Une calibration incorrecte fausse tous les scores géométriques ; recommencer en cas de doute.
 5. **Armer la détection**, lancer UNE fléchette, puis attendre l'image stabilisée. Alternativement, **Comparer maintenant** après le lancer. Le programme ne valide aucun score.
 6. Examiner les propositions. Les extrémités des silhouettes ne sont pas nécessairement les pointes ! Cliquer sur le point d'entrée visible et/ou saisir le secteur réel observé. Confirmer, signaler une fausse détection ou une observation indéterminable.
-7. Exporter la paire AVANT/APRÈS si elle est utile au futur corpus, AVANT de passer au lancer suivant : cocher explicitement l'inclusion des images. Sans cette case, seul le journal de coordonnées/annotations est exporté. Les images peuvent inclure les alentours de la cible.
-8. Garder les fléchettes en place pour utiliser l'image annotée comme prochaine référence. Après une volée, mettre en pause, retirer les fléchettes, figer une nouvelle référence et refaire les repères. Toute remise en route de la caméra invalide la calibration.
+7. Attendre la confirmation de conservation dans le journal local. Les captures figées sont enregistrées automatiquement avec leurs images, même sans annotation. À la fin de la séance, cocher l'inclusion des images puis télécharger tout le journal ou sélectionner les essais souhaités : un seul ZIP contient leurs diagnostics JSON. Sans cette case, les images sont exclues du ZIP. En cas d'échec du stockage, exporter immédiatement la capture en JSON individuel avec ses images avant de poursuivre.
+8. Garder les fléchettes en place pour utiliser l'image annotée comme prochaine référence. Après une volée, mettre en pause, retirer les fléchettes, figer une nouvelle référence et refaire les repères. La reprise caméra après un téléchargement conserve la calibration si le format et le cadrage sont inchangés ; confirmer le cadrage avant de réarmer.
 
 L'import de deux JPEG/PNG/WebP de même cadrage et dimensions permet de tester sans caméra. Limites : 12 Mo par fichier, 20 MP au décodage, redimensionnement à 960 pixels maximum sur le plus grand côté. Ne pas importer deux photos prises à la main ou des captures avec un zoom différent.
 
@@ -36,7 +36,9 @@ Caméra accessible uniquement avec action utilisateur sur le document du laborat
 
 Arrêt des pistes caméra, de la surveillance et du maintien d'écran à la fermeture/démontage ou au passage de la page en arrière-plan. Protection contre une autorisation caméra résolue après annulation. Le maintien d'écran est facultatif et peut être refusé/relâché par le navigateur. Écran verrouillé = aucune promesse de fonctionnement.
 
-Les images et les 100 dernières annotations au maximum restent **en mémoire**, pas dans localStorage ni dans Supabase. Le journal doit être exporté avant rechargement/fermeture. L'export JSON peut contenir la paire actuellement inspectée uniquement sur consentement explicite ; pas de vidéo enregistrée, pas d'upload. Ne pas publier des captures personnelles dans le dépôt.
+Les captures figées et leurs annotations restent dans IndexedDB, sur cet appareil et dans ce navigateur, sans synchronisation serveur. Le journal survit au rechargement ; le navigateur peut néanmoins supprimer ses données, notamment lorsque les données du site sont effacées. Limites : 100 captures, 64 Mio par capture, 512 Mio pour le journal, sans éviction silencieuse. Un échec de stockage est affiché ; la capture et son annotation restent exportables individuellement depuis la page ouverte. « Vider le journal » supprime les captures et images locales après confirmation.
+
+L'inclusion des images dans les téléchargements reste décochée par défaut. L'export ZIP regroupe les diagnostics des seuls essais choisis ; l'export JSON historique ne contient les images que de la paire actuellement inspectée. Pas de vidéo enregistrée ni d'upload. Ne pas publier des captures personnelles dans le dépôt. Voir [journal et export groupé](vision/journal-export.md).
 
 ## Tests
 

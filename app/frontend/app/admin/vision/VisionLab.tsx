@@ -6,6 +6,7 @@ import { AnalysisClient } from "@/lib/vision/analysis-client";
 import { canPromote, type AnalysisResult } from "@/lib/vision/analysis-pipeline";
 import { COORDINATES, STABILIZATION_VERSION } from "@/lib/vision/stabilization-types";
 import { capture, nativeSnapshot, type Snapshot } from "@/lib/vision/capture";
+import { putJournalEntry, listJournalEntries, annotateJournalEntry, clearJournalEntries, buildJournalZip, type JournalSummary } from "@/lib/vision/journal";
 import styles from "./vision.module.css";
 import CalibrationAssistant from "./CalibrationAssistant";
 import VisionFrame from "./VisionFrame";
@@ -38,6 +39,32 @@ function maskRuns(mask: Uint8Array): number[][] {
   const runs: number[][] = []; let start = -1;
   for (let i = 0; i <= mask.length; i++) { if (mask[i] && start < 0) start = i; else if (!mask[i] && start >= 0) { runs.push([start, i - start]); start = -1; } }
   return runs;
+}
+type CaptureContext = {
+  before: Snapshot | null; after: Snapshot | null; referenceRaw: Snapshot | null; spatialAnchor: Snapshot | null;
+  analysis: AnalysisResult | null; calibration: Calibration | null; result: Detection | null; stabilizationEnabled: boolean;
+};
+function capturePayload(context: CaptureContext, samples: Sample[], includeImages: boolean) {
+  const { before, after, referenceRaw, spatialAnchor, analysis, calibration, result, stabilizationEnabled } = context;
+  return {
+    schemaVersion: 2, stabilizationVersion: STABILIZATION_VERSION, coordinateConvention: COORDINATES, engineVersion: ENGINE_VERSION, exportedAt: new Date().toISOString(),
+    notice: "Laboratoire expérimental : extrémités de silhouettes, pas de modèle IA entraîné ni de validation automatique. Coordonnées image normalisées. Les annotations ne sont pas des scores de partie.",
+    samples,
+    currentAnalysis: analysis ? { ...metadata(analysis), capturedAt: after?.capturedAt, enabled: stabilizationEnabled, calibration, detection: result, width: after?.frame.width, height: after?.frame.height,
+      sourceWidth: after?.sourceWidth, sourceHeight: after?.sourceHeight, anchorId: spatialAnchor?.id,
+      sourceTranslation: after ? { dx: analysis.stabilization.transform.dx * after.sourceWidth / after.frame.width, dy: analysis.stabilization.transform.dy * after.sourceHeight / after.frame.height } : null } : null,
+    nativePair: includeImages && before && after ? {
+      schemaVersion: 1, coordinateConvention: "raw source pixels, unaligned; pixel centers: native=(analysis+0.5)*scale-0.5; undo stabilization before mapping annotations",
+      before: nativeSnapshot(referenceRaw ?? before), after: nativeSnapshot(after), spatialAnchor: spatialAnchor ? nativeSnapshot(spatialAnchor) : null,
+    } : null,
+    currentPair: includeImages && before && after ? { before: imageDataUrl((referenceRaw ?? before).frame), after: imageDataUrl(after.frame), spatialAnchor: spatialAnchor ? imageDataUrl(spatialAnchor.frame) : null, comparisonReference: imageDataUrl(before.frame), aligned: analysis?.stabilization.aligned ? imageDataUrl(analysis.stabilization.aligned) : null, validMask: analysis?.stabilization.validMask ? { encoding: "row-runs-of-valid-pixels", runs: maskRuns(analysis.stabilization.validMask) } : null, captureId: after.id, capturedAt: after.capturedAt, calibration, width: before.frame.width, height: before.frame.height } : null,
+  };
+}
+function downloadBlob(blob: Blob, filename: string): string {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a"); link.href = url; link.download = filename;
+  document.body.appendChild(link); link.click(); link.remove();
+  return url;
 }
 function errorMessage(reason: unknown): string {
   if (reason instanceof DOMException) {
@@ -82,6 +109,13 @@ export default function VisionLab() {
   const [saved, setSaved] = useState(false), [includeImages, setIncludeImages] = useState(false), [source, setSource] = useState<"camera" | "images">("camera");
   const [imageBusy, setImageBusy] = useState(false);
   const [manualX, setManualX] = useState("50"), [manualY, setManualY] = useState("50");
+  const [journal, setJournal] = useState<JournalSummary[]>([]), [journalReady, setJournalReady] = useState(false);
+  const [journalBusy, setJournalBusy] = useState(false), [exportBusy, setExportBusy] = useState(false);
+  const journalLock = useRef(false), exportLock = useRef(false), archiveUrl = useRef<string | null>(null);
+  const [journalSelection, setJournalSelection] = useState<string[]>([]);
+  const [journalMessage, setJournalMessage] = useState("Chargement du journal local…");
+  const [archivedCaptureId, setArchivedCaptureId] = useState<string | null>(null);
+  const [readyArchive, setReadyArchive] = useState<{ url: string; filename: string } | null>(null);
 
   const pause = useCallback(() => {
     analysisEpoch.current++; analysisClient.current?.cancel();
@@ -106,13 +140,43 @@ export default function VisionLab() {
     document.addEventListener("visibilitychange", hidden); window.addEventListener("pagehide", leaving);
     return () => { mounted.current = false; stop(); document.removeEventListener("visibilitychange", hidden); window.removeEventListener("pagehide", leaving); };
   }, [stop]);
+  useEffect(() => {
+    let active = true;
+    void listJournalEntries().then(entries => {
+      if (active) { setJournal(entries); setJournalMessage(entries.length ? `${entries.length} essai(s) retrouvé(s) sur cet appareil.` : "Le journal est prêt. Chaque capture analysée sera conservée automatiquement."); }
+    }).catch(reason => { if (active) setJournalMessage(errorMessage(reason)); })
+      .finally(() => { if (active) setJournalReady(true); });
+    return () => { active = false; if (archiveUrl.current) { URL.revokeObjectURL(archiveUrl.current); archiveUrl.current = null; } };
+  }, []);
+
+  async function saveCapture(context: CaptureContext, origin: "camera" | "images", sample?: Sample): Promise<boolean> {
+    if (!context.after || !context.analysis || journalLock.current) return false;
+    journalLock.current = true; setJournalBusy(true); setJournalMessage("Enregistrement de la capture sur cet appareil…");
+    try {
+      const entry = sample && archivedCaptureId === context.after.id
+        ? await annotateJournalEntry(context.after.id, sample, sample.annotation, sample.truth)
+        : await putJournalEntry({ id: context.after.id, capturedAt: context.after.capturedAt, source: origin,
+        annotation: sample?.annotation ?? "UNANNOTATED", truth: sample?.truth ?? null,
+        state: context.analysis.stabilization.state, hasImages: true }, capturePayload(context, sample ? [sample] : [], true));
+      if (mounted.current) {
+        setJournal(current => [...current.filter(item => item.id !== entry.id), entry].sort((a, b) => a.capturedAt.localeCompare(b.capturedAt) || a.id.localeCompare(b.id)));
+        setArchivedCaptureId(context.after.id); setJournalMessage("Capture et images conservées dans le journal local.");
+      }
+      return true;
+    } catch (reason) {
+      if (mounted.current) setJournalMessage(`${errorMessage(reason)} La capture actuelle reste disponible : exportez-la individuellement ou réessayez son enregistrement.`);
+      return false;
+    } finally { journalLock.current = false; if (mounted.current) setJournalBusy(false); }
+  }
 
   function resetReference(snapshot: Snapshot, origin: "camera" | "images") {
+    if (journalLock.current) return;
     pause(); setResumeCheck(false); setSpatialAnchor(snapshot); setReferenceRaw(snapshot); setReferenceMask(undefined); setAnalysis(null); setView("REFERENCE"); setAnnotation(null); setBefore(snapshot); setAfter(null); setAnchors([]); setCalibration(null); setVerified(false);
     setResult(null); setSelected(null); setTruth(""); setSaved(false); setSource(origin); setIncludeImages(false);
     setMessage("Image figée. Utilisez « Détecter ma cible », puis vérifiez la grille proposée. La méthode manuelle reste disponible.");
   }
   async function startCamera(resume = false) {
+    if (journalLock.current) return;
     const preserve = resume && source === "camera" && Boolean(before && calibration);
     stop();
     const token = generation.current;
@@ -160,7 +224,7 @@ export default function VisionLab() {
     try { resetReference(cameraFrame(), "camera"); } catch (reason) { setMessage(errorMessage(reason)); }
   }
   function placePoint(point: Point) {
-    if (watching || busy || imageBusy || !before || (after && (view !== "ALIGNED" || !analysis?.stabilization.aligned))) return;
+    if (watching || busy || imageBusy || journalLock.current || !before || (after && (view !== "ALIGNED" || !analysis?.stabilization.aligned))) return;
     if (!calibration) {
       const points = [...anchors, point];
       if (points.length > 5) return;
@@ -185,8 +249,8 @@ export default function VisionLab() {
       throw new Error("Le format de l’image a changé. Figez une nouvelle référence et relancez la calibration.");
     }
   }
-  async function analyse(snapshot: Snapshot, automatic = false): Promise<AnalysisResult | null> {
-    if (!before || !spatialAnchor || !calibration || !verified || analysisClient.current?.busy) return null;
+  async function analyse(snapshot: Snapshot, automatic = false, captureSource = source): Promise<AnalysisResult | null> {
+    if (!before || !spatialAnchor || !calibration || !verified || analysisClient.current?.busy || journalLock.current) return null;
     const token = analysisEpoch.current;
     if (!analysisClient.current) analysisClient.current = new AnalysisClient(() => new Worker(new URL("./vision-analysis.worker.ts", import.meta.url)));
     setBusy(true); setMessage("Recalage de la cible…");
@@ -202,11 +266,12 @@ export default function VisionLab() {
     setProcessingMs(Math.round(output.totalMs)); setSelected(null); setTruth(""); setSaved(false); setAnnotation(null); setIncludeImages(false);
     setView(output.stabilization.aligned ? "ALIGNED" : "RAW");
     setMessage(output.stabilization.reason + (output.detection ? " · " + output.detection.reason : ""));
+    await saveCapture({ before, after: snapshot, referenceRaw, spatialAnchor, analysis: output, calibration, result: output.detection, stabilizationEnabled }, captureSource);
     return output;
   }
   function sampleNow() { arm(true); }
   function arm(manual = false) {
-    if (!before || !calibration || !verified || !camera || resumeCheck || after) return;
+    if (!before || !calibration || !verified || !camera || resumeCheck || after || journalLock.current || !journalReady) return;
     pause();
     let previous: Frame;
     try { previous = cameraFrame().frame; assertSameCapture(previous); } catch (reason) { setMessage(errorMessage(reason)); return; }
@@ -226,63 +291,84 @@ export default function VisionLab() {
     }, 250);
   }
   function retryCapture() {
+    if (journalLock.current) return;
     pause(); setAfter(null); setAnalysis(null); setResult(null); setSelected(null); setTruth(""); setSaved(false); setAnnotation(null); setIncludeImages(false); setView("REFERENCE");
     setMessage("Référence AVANT conservée. Comparez à nouveau ou importez une nouvelle image APRÈS.");
   }
   async function importImage(event: ChangeEvent<HTMLInputElement>, target: "before" | "after") {
     const file = event.target.files?.[0]; event.target.value = "";
-    if (!file) return;
+    if (!file || journalLock.current) return;
     stop(); const token = generation.current; setImageBusy(true);
     try {
       const snapshot = await readImage(file);
       if (!mounted.current || token !== generation.current) return;
       if (target === "before") resetReference(snapshot, "images");
-      else { setSource("images"); setResumeCheck(false); await analyse(snapshot); }
+      else { setSource("images"); setResumeCheck(false); await analyse(snapshot, false, "images"); }
     } catch (reason) { if (mounted.current && token === generation.current) setMessage(errorMessage(reason)); }
     finally { if (mounted.current) setImageBusy(false); }
   }
-  function record(annotation: Sample["annotation"]) {
-    if (busy || !after || !calibration || !result || savedIds.current.has(after.id)) return;
+  async function record(annotation: Sample["annotation"]) {
+    if (busy || journalLock.current || exportLock.current || !after || !calibration || !result || savedIds.current.has(after.id)) return;
     const label = annotation === "LABELLED" ? validLabel(truth) : null;
     if (annotation === "LABELLED" && (!label || label === "UNKNOWN")) { setMessage("Renseignez le secteur réellement observé : S20, D16, T19, 25, 50 ou MISS."); return; }
     if (samples.length >= MAX_SAMPLES) { setMessage("Limite de 100 annotations : exportez le journal puis videz-le avant de poursuivre."); return; }
     savedIds.current.add(after.id);
-    setSamples(current => [...current, { id: after.id, capturedAt: after.capturedAt, source, calibration, threshold, detection: result, annotation, truth: label, point: selected, processingMs, analysis: analysis ? metadata(analysis) : null }]);
-    setSaved(true); setAnnotation(annotation); setMessage("Annotation enregistrée dans ce navigateur, en mémoire uniquement. Aucune partie modifiée.");
+    const sample: Sample = { id: after.id, capturedAt: after.capturedAt, source, calibration, threshold, detection: result, annotation, truth: label, point: selected, processingMs, analysis: analysis ? metadata(analysis) : null };
+    const persisted = await saveCapture({ before, after, referenceRaw, spatialAnchor, analysis, calibration, result, stabilizationEnabled }, source, sample);
+    if (!mounted.current) return;
+    setSamples(current => [...current, sample]);
+    setSaved(true); setAnnotation(annotation);
+    setMessage(persisted ? "Annotation enregistrée dans le journal de cet appareil. Aucune partie modifiée." : "Annotation gardée pour cette page seulement. Exportez le JSON avec les images de la capture avant de poursuivre ; le journal local n’a pas pu être mis à jour.");
   }
   function nextDart() {
-    if (!after || !saved || !canPromote(analysis, annotation, stabilizationEnabled) || !analysis?.stabilization.aligned) return;
+    if (journalLock.current || !after || !saved || !canPromote(analysis, annotation, stabilizationEnabled) || !analysis?.stabilization.aligned) return;
+    if ((archivedCaptureId !== after.id || currentAnnotationPending) && !window.confirm("Cet essai ou son annotation n’est pas conservé dans le journal. Avez-vous téléchargé son JSON avec les images ? Continuer remplacera la capture affichée.")) return;
     pause(); setBefore({ ...after, frame: analysis.stabilization.aligned }); setReferenceRaw(after); setReferenceMask(analysis.stabilization.validMask ?? undefined); setAnalysis(null); setView("REFERENCE"); setAfter(null); setResult(null); setSelected(null); setTruth(""); setSaved(false); setIncludeImages(false);
     setMessage("L’image annotée devient la référence. Ne retirez pas les fléchettes ; armez la détection pour le prochain lancer.");
   }
   function exportJournal() {
     if (!samples.length && !after) return;
-    const payload = {
-      schemaVersion: 2, stabilizationVersion: STABILIZATION_VERSION, coordinateConvention: COORDINATES, engineVersion: ENGINE_VERSION, exportedAt: new Date().toISOString(),
-      notice: "Laboratoire expérimental : extrémités de silhouettes, pas de modèle IA entraîné ni de validation automatique. Coordonnées image normalisées. Les annotations ne sont pas des scores de partie.",
-      samples,
-      currentAnalysis: analysis ? { ...metadata(analysis), capturedAt: after?.capturedAt, enabled: stabilizationEnabled, calibration, detection: result, width: after?.frame.width, height: after?.frame.height,
-        sourceWidth: after?.sourceWidth, sourceHeight: after?.sourceHeight, anchorId: spatialAnchor?.id,
-        sourceTranslation: after ? { dx: analysis.stabilization.transform.dx * after.sourceWidth / after.frame.width, dy: analysis.stabilization.transform.dy * after.sourceHeight / after.frame.height } : null } : null,
-      nativePair: includeImages && before && after ? {
-        schemaVersion: 1, coordinateConvention: "raw source pixels, unaligned; pixel centers: native=(analysis+0.5)*scale-0.5; undo stabilization before mapping annotations",
-        before: nativeSnapshot(referenceRaw ?? before), after: nativeSnapshot(after), spatialAnchor: spatialAnchor ? nativeSnapshot(spatialAnchor) : null,
-      } : null,
-      currentPair: includeImages && before && after ? { before: imageDataUrl((referenceRaw ?? before).frame), after: imageDataUrl(after.frame), spatialAnchor: spatialAnchor ? imageDataUrl(spatialAnchor.frame) : null, comparisonReference: imageDataUrl(before.frame), aligned: analysis?.stabilization.aligned ? imageDataUrl(analysis.stabilization.aligned) : null, validMask: analysis?.stabilization.validMask ? { encoding: "row-runs-of-valid-pixels", runs: maskRuns(analysis.stabilization.validMask) } : null, captureId: after.id, capturedAt: after.capturedAt, calibration, width: before.frame.width, height: before.frame.height } : null,
-    };
-    const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" }));
-    const link = document.createElement("a"); link.href = url; link.download = `974darts-vision-${new Date().toISOString().replace(/[:.]/g, "-")}.json`;
-    document.body.appendChild(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 10_000);
+    const payload = capturePayload({ before, after, referenceRaw, spatialAnchor, analysis, calibration, result, stabilizationEnabled }, samples, includeImages);
+    const url = downloadBlob(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" }), `974darts-vision-${new Date().toISOString().replace(/[:.]/g, "-")}.json`);
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
   }
-  function clearJournal() {
-    if (!window.confirm("Effacer les annotations locales ? Exportez-les d’abord si elles sont utiles.")) return;
-    setSamples([]); savedIds.current.clear();
+  async function exportGroup(all: boolean) {
+    if (journalLock.current || exportLock.current) return;
+    const selectedIds = new Set(journalSelection);
+    const ids = journal.filter(entry => all || selectedIds.has(entry.id)).map(entry => entry.id);
+    if (!ids.length) return;
+    exportLock.current = true; setExportBusy(true); setJournalMessage(`Préparation de ${ids.length} essai(s)…`);
+    try {
+      const blob = await buildJournalZip(ids, { includeImages, onProgress: (done, total) => { if (mounted.current) setJournalMessage(`Préparation du fichier : ${done} / ${total} essais.`); } });
+      if (!mounted.current) return;
+      if (archiveUrl.current) URL.revokeObjectURL(archiveUrl.current);
+      const filename = `974darts-vision-${all ? "journal" : "selection"}-${ids.length}-${new Date().toISOString().replace(/[:.]/g, "-")}.zip`;
+      const url = downloadBlob(blob, filename); archiveUrl.current = url; setReadyArchive({ url, filename });
+      setJournalMessage(`${ids.length} essai(s) regroupé(s) dans un seul ZIP${includeImages ? ", avec les images conservées" : ", sans images"}. Vous pouvez envoyer ce fichier en une seule fois.`);
+    } catch (reason) { if (mounted.current) setJournalMessage(errorMessage(reason)); }
+    finally { exportLock.current = false; if (mounted.current) setExportBusy(false); }
+  }
+  async function clearJournal() {
+    if (journalLock.current || exportLock.current || !window.confirm("Effacer tous les essais et leurs images sur cet appareil ? Téléchargez le journal d’abord si vous souhaitez le conserver.")) return;
+    journalLock.current = true; setJournalBusy(true);
+    try {
+      await clearJournalEntries();
+      if (!mounted.current) return;
+      setJournal([]); setJournalSelection([]); setArchivedCaptureId(null); setSamples([]); savedIds.current.clear();
+      if (archiveUrl.current) URL.revokeObjectURL(archiveUrl.current);
+      archiveUrl.current = null; setReadyArchive(null); setJournalMessage("Journal local vidé.");
+    } catch (reason) { if (mounted.current) setJournalMessage(errorMessage(reason)); }
+    finally { journalLock.current = false; if (mounted.current) setJournalBusy(false); }
     // The currently inspected sample stays resolved: clearing a journal must not change the capture lifecycle.
   }
   const frame = view === "RAW" ? after?.frame : view === "DIFFERENCES" ? analysis?.differences : view === "ALIGNED" ? analysis?.stabilization.aligned : before?.frame;
   const showOverlay = view === "REFERENCE" || view === "ALIGNED" && Boolean(analysis?.stabilization.aligned);
-  const manualAllowed = Boolean(before && !watching && !busy && !imageBusy && (!calibration || (after && !saved && view === "ALIGNED" && analysis?.stabilization.aligned)));
-  const labelled = samples.filter(sample => sample.annotation === "LABELLED").length;
+  const manualAllowed = Boolean(before && !watching && !busy && !imageBusy && !journalBusy && (!calibration || (after && !saved && view === "ALIGNED" && analysis?.stabilization.aligned)));
+  const labelled = journal.filter(sample => sample.annotation === "LABELLED").length;
+  const selectedCount = journal.filter(entry => journalSelection.includes(entry.id)).length;
+  const currentSample = samples.find(sample => sample.id === after?.id);
+  const currentStored = journal.find(entry => entry.id === after?.id);
+  const currentAnnotationPending = Boolean(currentSample && (currentSample.annotation !== currentStored?.annotation || currentSample.truth !== currentStored?.truth));
 
   return (
     <main className={styles.page}>
@@ -297,9 +383,9 @@ export default function VisionLab() {
           <h2 id="camera-heading">1. Caméra et référence</h2>
           <p>Téléphone immobilisé hors de la trajectoire des fléchettes. Cible entièrement visible, 20 en haut, sans reflet.</p>
           <div className={styles.buttons}>
-            <button type="button" onClick={() => void startCamera(!camera && source === "camera" && Boolean(before && calibration))} disabled={starting || imageBusy}>{starting ? "Autorisation…" : camera ? "Recommencer la configuration caméra" : before && calibration && source === "camera" ? "Reprendre la caméra · conserver les réglages" : "Activer la caméra arrière"}</button>
-            <button type="button" onClick={() => { stop(); setMessage("Caméra arrêtée. Les annotations restent en mémoire jusqu’à la fermeture de cette page."); }} disabled={!camera && !starting}>Arrêter la caméra</button>
-            {!camera && before && calibration && <button type="button" onClick={() => void startCamera(false)} disabled={starting || imageBusy}>Recommencer la configuration caméra</button>}
+            <button type="button" onClick={() => void startCamera(!camera && source === "camera" && Boolean(before && calibration))} disabled={starting || imageBusy || journalBusy || !journalReady}>{starting ? "Autorisation…" : camera ? "Recommencer la configuration caméra" : before && calibration && source === "camera" ? "Reprendre la caméra · conserver les réglages" : "Activer la caméra arrière"}</button>
+            <button type="button" onClick={() => { stop(); setMessage("Caméra arrêtée. Les captures enregistrées restent dans le journal de cet appareil."); }} disabled={!camera && !starting}>Arrêter la caméra</button>
+            {!camera && before && calibration && <button type="button" onClick={() => void startCamera(false)} disabled={starting || imageBusy || journalBusy || !journalReady}>Recommencer la configuration caméra</button>}
           </div>
           <video ref={videoRef} className={styles.video} autoPlay playsInline muted aria-label="Vue en direct de la cible" />
           <div className={styles.meta}><span>{camera ? "Caméra active" : "Caméra arrêtée"}</span><span>{wake}</span></div>
@@ -307,15 +393,15 @@ export default function VisionLab() {
             <p>Vérifiez la vue en direct : même caméra, même cadrage, cible et téléphone immobiles. Si l’un a bougé, figez une nouvelle référence vide et refaites la calibration.</p>
             <button type="button" onClick={() => { setResumeCheck(false); setMessage(after ? "Reprise confirmée. Annotez la capture puis préparez le lancer suivant." : "Reprise confirmée. Vous pouvez armer la détection."); }}>Je confirme : caméra et cible inchangées</button>
           </div>}
-          <button type="button" onClick={freezeReference} disabled={!camera || watching || busy || imageBusy}>Figer la référence · cible vide</button>
+          <button type="button" onClick={freezeReference} disabled={!camera || watching || busy || imageBusy || journalBusy}>Figer la référence · cible vide</button>
           <details className={styles.details}><summary>Tester avec deux images, sans caméra</summary><p>Même appareil, même cadrage, avant puis après un seul lancer. Aucun fichier n’est envoyé au serveur.</p>
-            <label className={styles.fileLabel}>Image AVANT<input type="file" accept="image/jpeg,image/png,image/webp" onChange={event => void importImage(event, "before")} disabled={imageBusy || watching || busy} /></label>
-            <label className={styles.fileLabel}>Image APRÈS<input type="file" accept="image/jpeg,image/png,image/webp" onChange={event => void importImage(event, "after")} disabled={!verified || imageBusy || watching || busy || Boolean(after)} /></label>
+            <label className={styles.fileLabel}>Image AVANT<input type="file" accept="image/jpeg,image/png,image/webp" onChange={event => void importImage(event, "before")} disabled={imageBusy || watching || busy || journalBusy || !journalReady} /></label>
+            <label className={styles.fileLabel}>Image APRÈS<input type="file" accept="image/jpeg,image/png,image/webp" onChange={event => void importImage(event, "after")} disabled={!verified || imageBusy || watching || busy || journalBusy || !journalReady || Boolean(after)} /></label>
           </details>
         </section>
         <section className={styles.panel} aria-labelledby="calibration-heading">
           <h2 id="calibration-heading">2. Calibration et inspection</h2>
-          {before && before.id === spatialAnchor?.id && !after && <CalibrationAssistant key={before.id} frame={before.frame} anchors={anchors} disabled={watching || busy || imageBusy} onApply={next => {
+          {before && before.id === spatialAnchor?.id && !after && <CalibrationAssistant key={before.id} frame={before.frame} anchors={anchors} disabled={watching || busy || imageBusy || journalBusy} onApply={next => {
             if (watching || busy || imageBusy || after) return;
             pause(); calibrationRevision.current++; setAnalysis(null); setAnchors(next.anchors); setCalibration(next); setVerified(true);
             setMessage("Calibration appliquée après votre contrôle de la grille. Vous pouvez maintenant armer la détection.");
@@ -326,16 +412,16 @@ export default function VisionLab() {
             markers={showOverlay ? [...anchors.map((point, i) => ({ point, label: String(i + 1) })), ...(result?.candidates ?? []).map((candidate, i) => ({ point: candidate.point, label: `?${i + 1}`, active: true })), ...(selected ? [{ point: selected, label: "Impact", active: true }] : [])] : []}
             boxes={view === "ALIGNED" ? result?.boxes : undefined} label={view === "RAW" ? "Après brut · sans saisie" : view === "DIFFERENCES" ? "Différences · sans saisie" : view === "ALIGNED" ? "Image après lancer : touchez le point d’entrée réel" : "Image de référence : placez les repères"} />
             : <div className={styles.placeholder}>L’image de référence apparaîtra ici.</div>}
-          <div className={styles.buttons}><button type="button" disabled={!before || watching || busy || imageBusy} onClick={() => { pause(); if (spatialAnchor) { setBefore(spatialAnchor); setReferenceRaw(spatialAnchor); } setReferenceMask(undefined); setAnalysis(null); setView("REFERENCE"); setAnchors([]); setCalibration(null); setVerified(false); setAfter(null); setResult(null); setSelected(null); setTruth(""); setSaved(false); setMessage("Recommencez sur la référence figée : détection automatique ou repères manuels."); }}>Recommencer les repères</button></div>
-          {calibration && <label className={styles.check}><input type="checkbox" checked={verified} disabled={watching || busy || Boolean(after)} onChange={event => { pause(); setVerified(event.target.checked); }} />Les anneaux et secteurs se superposent correctement aux fils réels.</label>}
+          <div className={styles.buttons}><button type="button" disabled={!before || watching || busy || imageBusy || journalBusy} onClick={() => { pause(); if (spatialAnchor) { setBefore(spatialAnchor); setReferenceRaw(spatialAnchor); } setReferenceMask(undefined); setAnalysis(null); setView("REFERENCE"); setAnchors([]); setCalibration(null); setVerified(false); setAfter(null); setResult(null); setSelected(null); setTruth(""); setSaved(false); setMessage("Recommencez sur la référence figée : détection automatique ou repères manuels."); }}>Recommencer les repères</button></div>
+          {calibration && <label className={styles.check}><input type="checkbox" checked={verified} disabled={watching || busy || journalBusy || Boolean(after)} onChange={event => { pause(); setVerified(event.target.checked); }} />Les anneaux et secteurs se superposent correctement aux fils réels.</label>}
           <details className={styles.details}><summary>Positionner un point au clavier</summary><div className={styles.coordinates}><label>X (%)<input type="number" min="0" max="100" step="0.1" value={manualX} onChange={event => setManualX(event.target.value)} /></label><label>Y (%)<input type="number" min="0" max="100" step="0.1" value={manualY} onChange={event => setManualY(event.target.value)} /></label><button type="button" onClick={addCoordinates} disabled={!manualAllowed}>Placer le point</button></div></details>
         </section>
       </div>
       <section className={styles.panel} aria-labelledby="detection-heading">
-        <label className={styles.check}><input type="checkbox" checked={stabilizationEnabled} disabled={watching || busy || Boolean(after)} onChange={e => setStabilizationEnabled(e.target.checked)} />Stabilisation automatique</label>
+        <label className={styles.check}><input type="checkbox" checked={stabilizationEnabled} disabled={watching || busy || journalBusy || Boolean(after)} onChange={e => setStabilizationEnabled(e.target.checked)} />Stabilisation automatique</label>
         {after && <div className={styles.buttons}>
           {([["REFERENCE", "Référence"], ["RAW", "Après brut"], ["ALIGNED", "Après recalé"], ["DIFFERENCES", "Différences"]] as const).map(([key, label]) => <button type="button" key={key} aria-pressed={view === key} disabled={key === "ALIGNED" && !analysis?.stabilization.aligned || key === "DIFFERENCES" && !analysis?.differences} onClick={() => setView(key)}>{label}</button>)}
-          <button type="button" onClick={retryCapture} disabled={busy}>Réessayer la capture</button>
+          <button type="button" onClick={retryCapture} disabled={busy || journalBusy}>Réessayer la capture</button>
         </div>}
         {after && !showOverlay && <p>Vue diagnostique : grille et saisie de points désactivées. Les annotations utilisent le repère de référence.</p>}
         {analysis && <details className={styles.details}><summary>Mesures du recalage · {analysis.stabilization.state}</summary>
@@ -354,41 +440,62 @@ export default function VisionLab() {
           <strong>{busy ? "Analyse en cours…" : watching ? "Surveillance active · attente d’une image stable" : !camera && source === "camera" ? "Caméra arrêtée · reprise nécessaire" : resumeCheck && source === "camera" ? "Reprise caméra · vérification nécessaire" : after ? "Surveillance arrêtée · capture figée" : "Surveillance en pause"}</strong>
           {after ? <p>Image figée à <time dateTime={after.capturedAt}>{new Date(after.capturedAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}</time> · elle ne se met plus à jour.</p> : !watching && !busy && camera && verified && !resumeCheck ? <p>Armez la détection avant de lancer.</p> : null}
         </div>
-        {!camera && source === "camera" && before && calibration && <button type="button" disabled={starting || imageBusy} onClick={() => void startCamera(true)}>Reprendre la caméra · conserver les réglages</button>}
+        {!camera && source === "camera" && before && calibration && <button type="button" disabled={starting || imageBusy || journalBusy || !journalReady} onClick={() => void startCamera(true)}>Reprendre la caméra · conserver les réglages</button>}
         {camera && resumeCheck && <p>Confirmez le cadrage dans « 1. Caméra et référence » avant de réarmer.</p>}
         {after && <p>Pour continuer avec les fléchettes en place, confirmez l’annotation puis utilisez « Garder les fléchettes en place · préparer le lancer suivant ». Pour une nouvelle cible vide, retirez les fléchettes en pause puis figez une nouvelle référence.</p>}
         <div className={styles.buttons}>
-          <button type="button" onClick={() => arm()} disabled={!camera || !verified || resumeCheck || watching || Boolean(after) || imageBusy}>Armer la détection</button>
+          <button type="button" onClick={() => arm()} disabled={!camera || !verified || resumeCheck || watching || Boolean(after) || imageBusy || journalBusy || !journalReady}>Armer la détection</button>
           <button type="button" onClick={() => { pause(); setMessage("Surveillance en pause. La caméra reste active jusqu’à son arrêt explicite."); }} disabled={!watching && !busy}>Pause</button>
-          <button type="button" onClick={sampleNow} disabled={!camera || !verified || resumeCheck || watching || busy || Boolean(after) || imageBusy}>Comparer maintenant</button>
-          <label className={styles.threshold}>Seuil de différence : {threshold}<input type="range" min="12" max="80" value={threshold} disabled={watching || busy || Boolean(after)} onChange={event => setThreshold(Number(event.target.value))} /></label>
+          <button type="button" onClick={sampleNow} disabled={!camera || !verified || resumeCheck || watching || busy || Boolean(after) || imageBusy || journalBusy || !journalReady}>Comparer maintenant</button>
+          <label className={styles.threshold}>Seuil de différence : {threshold}<input type="range" min="12" max="80" value={threshold} disabled={watching || busy || journalBusy || Boolean(after)} onChange={event => setThreshold(Number(event.target.value))} /></label>
         </div>
         {result && <div className={styles.result}>
           <strong>{result.status === "NO_CHANGE" ? "Aucun changement exploitable" : result.status === "SCENE_CHANGED" ? "Scène à vérifier — réessayez la capture" : "Changement à annoter"}</strong>
           <p>Vérifiez que la fléchette est visible dans l’image figée. Si elle est absente, utilisez « Réessayer la capture » : la référence AVANT reste conservée.</p>
           <p>{result.reason}</p>
           <p className={styles.meta}>Calcul : {processingMs} ms · Pixels modifiés dans la zone cible : {(result.changedFraction * 100).toFixed(2)} % · Pas de pourcentage de confiance IA.</p>
-          <div className={styles.buttons}>{result.candidates.map((candidate, i) => <button key={i} type="button" disabled={saved} onClick={() => { setSelected(candidate.point); setTruth(candidate.score.label); }}>Extrémité {i + 1} : {candidate.score.label}{candidate.score.nearWire ? " · proche d’un fil" : ""}</button>)}</div>
+          <div className={styles.buttons}>{result.candidates.map((candidate, i) => <button key={i} type="button" disabled={saved || journalBusy || exportBusy} onClick={() => { setSelected(candidate.point); setTruth(candidate.score.label); }}>Extrémité {i + 1} : {candidate.score.label}{candidate.score.nearWire ? " · proche d’un fil" : ""}</button>)}</div>
           <p>Touchez le véritable point d’entrée sur l’image, ou corrigez directement le secteur ci-dessous. Un clic calcule seulement le secteur géométrique.</p>
-          <div className={styles.buttons}><label>Secteur réel observé<input type="text" value={truth} onChange={event => setTruth(event.target.value)} placeholder="T20, D16, S5, 25, 50, MISS" maxLength={8} disabled={saved} autoCapitalize="characters" /></label>
-            <button type="button" disabled={saved} onClick={() => record("LABELLED")}>Confirmer l’annotation</button>
-            <button type="button" disabled={saved} onClick={() => record("FALSE_POSITIVE")}>Ce n’est pas une fléchette</button>
-            <button type="button" disabled={saved} onClick={() => record("UNRESOLVED")}>Impossible à déterminer</button>
+          <div className={styles.buttons}><label>Secteur réel observé<input type="text" value={truth} onChange={event => setTruth(event.target.value)} placeholder="T20, D16, S5, 25, 50, MISS" maxLength={8} disabled={saved || journalBusy || exportBusy} autoCapitalize="characters" /></label>
+            <button type="button" disabled={saved || journalBusy || exportBusy} onClick={() => void record("LABELLED")}>Confirmer l’annotation</button>
+            <button type="button" disabled={saved || journalBusy || exportBusy} onClick={() => void record("FALSE_POSITIVE")}>Ce n’est pas une fléchette</button>
+            <button type="button" disabled={saved || journalBusy || exportBusy} onClick={() => void record("UNRESOLVED")}>Impossible à déterminer</button>
           </div>
           {selected && calibration && scorePoint(project(calibration.imageToBoard, selected)).nearWire && <p className={styles.warning}>Point proche d’une séparation. Contrôlez le secteur sur la cible : aucune précision millimétrique n’est garantie.</p>}
-          <button type="button" disabled={!saved || !canPromote(analysis, annotation, stabilizationEnabled)} onClick={nextDart}>Garder les fléchettes en place · préparer le lancer suivant</button>
+          <button type="button" disabled={journalBusy || !saved || !canPromote(analysis, annotation, stabilizationEnabled)} onClick={nextDart}>Garder les fléchettes en place · préparer le lancer suivant</button>
           {result.status === "SCENE_CHANGED" && <p>Ne réutilisez pas cette image automatiquement. Vérifiez la cible puis réessayez la capture. La référence AVANT reste conservée.</p>}
         </div>}
       </section>
       <section className={styles.panel} aria-labelledby="journal-heading">
         <h2 id="journal-heading">4. Journal d’essais local</h2>
-        <div className={styles.stats}><div><strong>{samples.length}</strong><span>échantillons / {MAX_SAMPLES}</span></div><div><strong>{labelled}</strong><span>secteurs annotés</span></div><div><strong>{samples.filter(sample => sample.annotation === "FALSE_POSITIVE").length}</strong><span>fausses détections signalées</span></div></div>
-        <p>Ce journal ne mesure pas encore la fiabilité d’un autoscoring : les annotations sont humaines et les candidats peuvent être multiples. Il est perdu au rechargement ou à la fermeture de la page.</p>
-        {samples.length > 0 && <div className={styles.log}>{samples.slice(-8).reverse().map(sample => <div key={sample.id}><time>{new Date(sample.capturedAt).toLocaleTimeString("fr-FR")}</time><strong>{sample.truth ?? (sample.annotation === "FALSE_POSITIVE" ? "Fausse détection" : "Indéterminable")}</strong><span>{sample.detection.candidates.map(candidate => candidate.score.label).join(" / ") || "Sans candidat"}</span></div>)}</div>}
-        <label className={styles.check}><input type="checkbox" checked={includeImages} disabled={!before || !after} onChange={event => setIncludeImages(event.target.checked)} />Inclure les images natives, les captures d’analyse et les diagnostics dans l’export (elles peuvent montrer les alentours de la cible).</label>
+        <div className={styles.stats}><div><strong>{journal.length}</strong><span>captures / {MAX_SAMPLES}</span></div><div><strong>{labelled}</strong><span>secteurs annotés</span></div><div><strong>{selectedCount}</strong><span>essais sélectionnés</span></div></div>
+        <p>Chaque capture analysée et ses images sont conservées sur cet appareil, même sans annotation et après un rechargement. Aucun envoi au serveur. Téléchargez une sauvegarde avant d’effacer les données du navigateur.</p>
+        <p>Ce journal ne mesure pas encore la fiabilité d’un autoscoring : les annotations sont humaines et les candidats peuvent être multiples.</p>
+        <div className={styles.status} role="status" aria-label="État du journal" aria-live="polite">{journalMessage}</div>
+        {journal.length > 0 && <>
+          <div className={styles.buttons}>
+            <button type="button" disabled={journalBusy || exportBusy || selectedCount === journal.length} onClick={() => setJournalSelection(journal.map(entry => entry.id))}>Tout sélectionner</button>
+            <button type="button" disabled={journalBusy || exportBusy || !selectedCount} onClick={() => setJournalSelection([])}>Tout désélectionner</button>
+          </div>
+          <div className={styles.journalList}>{journal.map((entry, index) => <label className={styles.journalRow} key={entry.id}>
+            <input type="checkbox" aria-label={`Sélectionner l’essai ${index + 1}`} checked={journalSelection.includes(entry.id)} disabled={journalBusy || exportBusy}
+              onChange={event => setJournalSelection(current => event.target.checked ? [...new Set([...current, entry.id])] : current.filter(id => id !== entry.id))} />
+            <span><strong>Essai {index + 1} · {entry.truth ?? (entry.annotation === "FALSE_POSITIVE" ? "Fausse détection" : entry.annotation === "UNRESOLVED" ? "Indéterminable" : "À annoter")}</strong><time dateTime={entry.capturedAt}>{new Date(entry.capturedAt).toLocaleString("fr-FR")}</time></span>
+            <span>{entry.state === "REJECTED" ? "Recalage refusé" : entry.state === "CANCELLED" ? "Analyse interrompue" : "Capture conservée"} · {(entry.bytes / 1024 / 1024).toFixed(1)} Mo</span>
+          </label>)}</div>
+        </>}
+        <label className={styles.check}><input type="checkbox" checked={includeImages} disabled={exportBusy || !journal.length && (!before || !after)} onChange={event => setIncludeImages(event.target.checked)} />Inclure les images natives, les captures d’analyse et les diagnostics dans l’export (elles peuvent montrer les alentours de la cible).</label>
+        <p>Pour analyser vos lancers, cochez l’option images puis téléchargez un seul ZIP. Il contient un fichier de diagnostic par essai ; vous pouvez envoyer directement le ZIP depuis votre téléphone.</p>
+        <div className={styles.buttons}>
+          <button type="button" onClick={() => void exportGroup(false)} disabled={!journalReady || !selectedCount || journalBusy || exportBusy}>Télécharger la sélection ({selectedCount})</button>
+          <button type="button" onClick={() => void exportGroup(true)} disabled={!journalReady || !journal.length || journalBusy || exportBusy}>Télécharger tout le journal ({journal.length})</button>
+        </div>
+        {readyArchive && <p>Si le téléchargement ne s’est pas ouvert : <a href={readyArchive.url} download={readyArchive.filename}>Récupérer le fichier ZIP préparé</a>.</p>}
+        {after && analysis && (archivedCaptureId !== after.id || currentAnnotationPending) && !journalBusy && <button type="button" disabled={exportBusy} onClick={() => void saveCapture({ before, after, referenceRaw, spatialAnchor, analysis, calibration, result, stabilizationEnabled }, source, currentSample)}>Réessayer l’enregistrement de la capture</button>}
         {before && after && <p>Images natives : {(referenceRaw ?? before).sourceWidth} × {(referenceRaw ?? before).sourceHeight} avant · {after.sourceWidth} × {after.sourceHeight} après. Captures d’analyse : {after.frame.width} × {after.frame.height}.</p>}
         {before && after && (!(referenceRaw ?? before).nativeCanvas || !after.nativeCanvas || spatialAnchor && !spatialAnchor.nativeCanvas) && <p>Au moins une image native est indisponible (limite : 4 mégapixels par image). Son absence sera indiquée dans l’export ; les captures d’analyse restent disponibles.</p>}
-        <div className={styles.buttons}><button type="button" onClick={exportJournal} disabled={!samples.length && !after}>Exporter le journal JSON</button><button type="button" onClick={clearJournal} disabled={!samples.length}>Vider le journal</button></div>
+        <p>L’export JSON individuel conserve seulement les images de la capture actuellement affichée. Utilisez le ZIP pour retrouver les images des essais précédents.</p>
+        <div className={styles.buttons}><button type="button" onClick={exportJournal} disabled={journalBusy || exportBusy || !samples.length && !after}>Exporter le journal JSON</button><button type="button" onClick={() => void clearJournal()} disabled={journalBusy || exportBusy || !journal.length && !samples.length}>Vider le journal</button></div>
         <p className={styles.meta}>Traitement local · Aucun envoi vidéo · Aucune API payante · Aucune synchronisation de partie à cette étape.</p>
       </section>
     </main>
