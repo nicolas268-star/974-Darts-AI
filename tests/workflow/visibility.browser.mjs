@@ -7,8 +7,13 @@ export async function testVisibility(admin, director, screenshot) {
   const evening={id,round:'J1',date:'2026-09-28',home:'Kaz A Darts - A',away:'Kaz A Darts - B',home_score:17,away_score:3};
   const summary={whatsapp:'🎯 Kaz A Darts - A 17–3 Kaz A Darts - B\n45 legs · 10 joueurs\nPlus haut finish : Emmanuel GRASSET, 88.',facebook:'🎯 J1 · Kaz A Darts - A 17–3 Kaz A Darts - B\nBravo aux deux équipes !',mode:'statistics',note:'Résumé statistique prêt.',ai_available:true,fingerprint:'fixture',evening:{url:`https://974darts.re/matches/${id}`,matches:20,legs:45,players:10}};
   const signature='974Darts · NDX Performance Lab';
-  const signedWhatsApp=summary.whatsapp+'\n\n'+signature;
-  const signedFacebook=summary.facebook+'\n\n'+signature;
+  const hashtags='#flechettes974 #dartsreunion #comiteflechettes974 #darts #lareunion #stleu #darts974 #TamponDartsClub #KazADarts974 #PapangueDartsClub #3BDartsClub';
+  const signedWhatsApp=summary.whatsapp+'\n\n'+hashtags+'\n\n'+signature;
+  const signedFacebook=summary.facebook+'\n\n'+hashtags+'\n\n'+signature;
+  function expectHashtags(text) {
+    const tags=(text.match(/#[\p{L}\p{N}_]+/gu)??[]).map(tag=>tag.toLowerCase());
+    for(const tag of hashtags.toLowerCase().split(' ')) expect(tags.filter(value=>value===tag),tag).toHaveLength(1);
+  }
   let generated=0;
   let automaticReady=false;
   let noEvenings=false;
@@ -27,8 +32,11 @@ export async function testVisibility(admin, director, screenshot) {
   await admin.goto(origin+'/admin/visibility');
   await expect(admin.getByLabel('Texte pour le groupe',{exact:false})).toHaveValue(signedWhatsApp,{timeout:30000});
   await expect(admin.locator('#facebook-draft')).toHaveValue(new RegExp(signature+'$'));
-  await admin.getByLabel('Informations',{exact:true}).fill('Une annonce NDX Performance Lab');
+  expectHashtags(await admin.locator('#facebook-draft').inputValue());
+  await admin.getByLabel('Informations',{exact:true}).fill('Une annonce NDX Performance Lab #DARTS #dartsreunion_extra');
+  await expect(admin.locator('#facebook-draft')).toHaveValue(/Une annonce NDX Performance Lab #DARTS #dartsreunion_extra/);
   expect((await admin.locator('#facebook-draft').inputValue()).match(/NDX Performance Lab/g)).toHaveLength(1);
+  expectHashtags(await admin.locator('#facebook-draft').inputValue());
   await expect(admin.getByText('Championnat automatique · à partir de 22 h · suivi pendant 24 h · heure de La Réunion')).toBeVisible();
   await expect(admin.getByText(/Nouvelle vérification toutes les 10 minutes jusqu’à 22 h le lendemain\./)).toBeVisible();
   await expect(admin.getByText(/résultats, classement et statistiques des joueurs et des équipes sont mis à jour/)).toBeVisible();
@@ -71,6 +79,7 @@ export async function testVisibility(admin, director, screenshot) {
   await choice.selectOption('bdc-manche-2');
   await expect(admin.locator('#whatsapp-draft')).toHaveValue(/Blind Draw Championship · Manche 2/);
   const bdcDraft=await admin.locator('#whatsapp-draft').inputValue();
+  expectHashtags(bdcDraft);
   expect(bdcDraft.endsWith(signature)).toBe(true);
   expect(bdcDraft.match(/NDX Performance Lab/g)).toHaveLength(1);
   expect(bdcDraft).toContain('7 doublettes · 14 joueurs · 25 matchs · 64 legs vérifiés');
@@ -84,6 +93,7 @@ export async function testVisibility(admin, director, screenshot) {
   await admin.locator('#whatsapp-draft').fill(editedBdc);
   await admin.getByRole('button',{name:'Préparer la version Facebook'}).click();
   await expect(admin.locator('#facebook-draft')).toHaveValue(/sous réserve de validation du directeur sportif/);
+  expectHashtags(await admin.locator('#facebook-draft').inputValue());
   await expect(admin.locator('#facebook-draft')).toHaveValue(new RegExp(signature+'$'));
   await expect(admin.locator('#whatsapp-draft')).toHaveValue(editedBdc);
   await admin.getByRole('button',{name:'Ouvrir dans WhatsApp',exact:true}).click();

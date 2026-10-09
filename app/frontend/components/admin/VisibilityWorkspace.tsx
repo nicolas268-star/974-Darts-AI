@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { CheckCircle2, Clipboard, ExternalLink, Search, Send, ShieldCheck } from "lucide-react";
 import EveningSummary from "@/components/admin/EveningSummary";
 import type { BdcVisibilityOption } from "@/lib/visibility-summary";
-import { withVisibilitySignature } from "@/lib/visibility-summary";
+import { withVisibilityFooter } from "@/lib/visibility-summary";
 import styles from "@/app/admin/visibility/visibility.module.css";
 
 export default function VisibilityWorkspace({ bdcOptions }: { bdcOptions: BdcVisibilityOption[] }) {
@@ -16,7 +16,7 @@ export default function VisibilityWorkspace({ bdcOptions }: { bdcOptions: BdcVis
   const draft = useMemo(() => {
     const heading = title.trim() || "L’actualité des fléchettes à La Réunion";
     const body = detail.trim() || "Découvrez les derniers résultats et rendez-vous de la communauté 974 Darts.";
-    return withVisibilitySignature(`🎯 ${heading}\n\n${body}\n\n➡️ Toutes les informations sur https://974darts.re\n\n#974Darts #FlechettesReunion #Darts974 #LaReunion`);
+    return withVisibilityFooter(`🎯 ${heading}\n\n${body}\n\n➡️ Toutes les informations sur https://974darts.re\n\n#974Darts #FlechettesReunion #Darts974 #LaReunion`);
   }, [title, detail]);
 
   async function copyDraft(openFacebook = false) {
