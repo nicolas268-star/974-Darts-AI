@@ -191,11 +191,12 @@ export default async function CompetitionsPage() {
                 Retrouvez le classement général, le détail des manches et les
                 performances individuelles de chaque joueur.
               </p>
+              <p>Classement M1 + M2 · Points M2 sous réserve de validation du directeur sportif.</p>
               <small>Ouvrir le Blind Draw Championship →</small>
             </div>
             <div className="bdc-feature-kpis">
               <span><b>{publishedBdcRounds}</b> manches publiées</span>
-              <span><b>{rankedBdcPlayers}</b> joueurs classés · M1</span>
+              <span><b>{rankedBdcPlayers}</b> joueurs classés · M1 + M2</span>
               <span><b>{BDC_ROUNDS.length}</b> manches au calendrier</span>
               <span className="bdc-next-round">
                 <small>PROCHAINE MANCHE</small>

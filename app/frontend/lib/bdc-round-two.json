@@ -6,7 +6,7 @@
   "retrievedOn": "2026-10-09",
   "teamCount": 7,
   "playerCount": 14,
-  "pointsStatus": "pending-format-confirmation",
+  "pointsStatus": "provisional-ds-review",
   "quality": {
     "matches": 25,
     "poolMatches": 21,
@@ -21,8 +21,7 @@
       "name": "Kozu / Vincent",
       "place": 1,
       "poolWins": 4,
-      "points": null,
-      "pointsUnderPublishedScale": 11,
+      "points": 11,
       "stats": {
         "score": 10919,
         "darts": 711,
@@ -44,8 +43,7 @@
       "name": "Kévin / Alexandre",
       "place": 2,
       "poolWins": 6,
-      "points": null,
-      "pointsUnderPublishedScale": 9,
+      "points": 9,
       "stats": {
         "score": 10462,
         "darts": 656,
@@ -67,8 +65,7 @@
       "name": "Benjamin / Stephane",
       "place": 3,
       "poolWins": 4,
-      "points": null,
-      "pointsUnderPublishedScale": 8,
+      "points": 8,
       "stats": {
         "score": 10790,
         "darts": 689,
@@ -90,8 +87,7 @@
       "name": "Guillaume / Yoann",
       "place": 4,
       "poolWins": 3,
-      "points": null,
-      "pointsUnderPublishedScale": 7,
+      "points": 7,
       "stats": {
         "score": 9568,
         "darts": 548,
@@ -113,8 +109,7 @@
       "name": "Nicolas / Laurent",
       "place": 5,
       "poolWins": 2,
-      "points": null,
-      "pointsUnderPublishedScale": 4,
+      "points": 4,
       "stats": {
         "score": 6690,
         "darts": 519,
@@ -136,8 +131,7 @@
       "name": "Dominique / Mario",
       "place": 6,
       "poolWins": 1,
-      "points": null,
-      "pointsUnderPublishedScale": 3,
+      "points": 3,
       "stats": {
         "score": 6666,
         "darts": 492,
@@ -159,8 +153,7 @@
       "name": "Coralie / Maxime",
       "place": 7,
       "poolWins": 1,
-      "points": null,
-      "pointsUnderPublishedScale": 3,
+      "points": 3,
       "stats": {
         "score": 5846,
         "darts": 486,

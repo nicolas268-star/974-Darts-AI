@@ -10,7 +10,7 @@ export function BdcCard() {
       <p>Un nouveau partenaire à chaque manche. Vos points restent les vôtres.</p>
       <div className="bdc-tags"><span>6 manches en double</span><span>Classement individuel</span><span>3 participations minimum</span></div>
       <p className="bdc-opening">Manche 2 terminée · Kozu / Vincent vainqueurs · 25 matchs et 14 joueurs</p>
-      <p>Résultats et statistiques disponibles · Points M2 en attente de confirmation</p>
+      <p>Classement cumulé M1 + M2 · Points M2 sous réserve de validation du directeur sportif</p>
       <Link className="bdc-button" href={BDC_URL}>Voir les manches et le classement →</Link>
     </div>
     <div className="bdc-card-mark" aria-hidden="true">BDC<span>2026 — 2027</span></div>

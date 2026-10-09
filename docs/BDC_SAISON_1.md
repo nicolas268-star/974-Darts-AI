@@ -25,7 +25,7 @@ Les performances personnelles ne sont jamais déduites des seuls totaux de la do
 
 ## Manches suivantes
 
-### Manche 2 — 9 octobre 2026 : résultats prêts, points en attente
+### Manche 2 — 9 octobre 2026 : classement cumulé provisoire
 
 Source publique : https://n01darts.com/n01/league/season.php?id=t_sEW0_8920
 
@@ -33,19 +33,19 @@ Source publique : https://n01darts.com/n01/league/season.php?id=t_sEW0_8920
 
 `bdc-round-two.json` est une sélection publique normalisée des résultats. `audit-bdc-round-two.py` vérifie les 25 rencontres, les 64 legs et les 14 joueurs contre les agrégats Nakka. Chaque attribution utilise les `oid` de l’ordre Nakka propre à chaque leg : l’ordre écrit dans le nom d’une doublette n’est pas une preuve. Les scores, fléchettes, grosses volées et hauts finishes concordent avec les agrégats individuels et collectifs. Les First 9 individuels utilisent les neuf premières fléchettes de chaque joueur dans chaque leg, comme en M1 ; le First 9 brut Nakka du duo reste un indicateur distinct.
 
-La page de l’organisateur pour M2 publie toujours les formats 8 ou 12 doublettes et le même barème : https://tampon-darts-club.assoconnect.com/collect/description/755112-n-blind-draw-championship-by-tdc-saison-1-manche-2. **L’application du barème à 7 doublettes doit être confirmée avant publication des points**. Les `points` M2 restent `null`, les résultats M1 et leur classement ne sont pas modifiés. Le champ de travail `pointsUnderPublishedScale` permet de vérifier la proposition : 11 / 9 / 8 / 7 / 4 / 3 / 3 par joueur. Ces valeurs ne sont pas affichées comme points validés.
+La page de l’organisateur pour M2 publie les formats 8 ou 12 doublettes et le même barème : https://tampon-darts-club.assoconnect.com/collect/description/755112-n-blind-draw-championship-by-tdc-saison-1-manche-2. Nicolas a autorisé le 10 octobre 2026 l’application du **même barème aux 7 doublettes, sous réserve de validation du directeur sportif**, avec cette mention publique. Les points M2 sont donc provisoirement attribués : 11 / 9 / 8 / 7 / 4 / 3 / 3 par joueur, soit 90 points individuels. Le statut de la sélection est `provisional-ds-review` ; `BDC_RESULTS` marque M2 `provisional: true`. Cela ne constitue pas une validation du directeur sportif.
 
-Avant de cumuler, confirmer aussi les correspondances de noms : Stéphane ↔ Abrousse (M1), Mario ↔ Super Mario (M1), Vincent ↔ Vincent (TDC, M1). Les identifiants Nakka M2 sont conservés sans les fusionner automatiquement avec ceux de M1. Les nouveaux noms doivent rester distincts tant qu’aucun alias antérieur n’est confirmé, notamment Kozu.
+Nicolas a confirmé les correspondances : Stéphane ↔ Abrousse (M1), Mario ↔ Super Mario (M1), Vincent ↔ Vincent (TDC, partenaire de Guillaume en M1). Le classement cumulé réutilise leurs identifiants stables de M1. Kozu est un nouveau participant de passage : une participation M2, aucun alias ni résultat M1. Laurent, Dominique, Coralie et Maxime ont également des identifiants distincts sans club supposé. La règle commune des trois participations reste applicable ; le passage de Kozu ne justifie pas une exclusion ou une qualification inventée.
 
-Les rapports publiés sont référencés dans `BDC_ROUND_REPORTS`, séparément des manches à points validés dans `BDC_RESULTS`. Cela permet d’afficher M2, ses statistiques, son statut et ses liens sans annoncer un faux classement cumulé. La page Tournois et le portail Compétitions annoncent deux rapports disponibles ; le classement est explicitement limité à M1.
+Les rapports publiés sont référencés dans `BDC_ROUND_REPORTS`, séparément des manches comptabilisées dans `BDC_RESULTS`. La page Tournois et le portail Compétitions annoncent deux rapports disponibles et le classement cumulé M1 + M2, avec la réserve du directeur sportif. Les cellules M2 et les totaux qui les incluent portent un renvoi explicite. Les 21 joueurs cumulent 196 points ; Vincent mène avec 19 points provisoires, Nicolas en compte 8. Aucun joueur n’a encore trois participations. Une validation ultérieure du directeur sportif devra mettre à jour le statut M2 et ses mentions publiques.
 
 Audit : `python scripts/audit-bdc-round-two.py` (lecture seule) ; ajouter `--write` pour régénérer la sélection publique, après inspection de la source. Aucun import Supabase ni effet sur le championnat officiel.
 
 - Le lien de manche 1 est enregistré, mais aucun mot de passe ni résultat privé n’est inclus dans le code. Aucun import Nakka automatique n’est activé par cette préparation.
-- `app/frontend/lib/bdc.ts` contient les six manches et les résultats de la manche 1. Ajouter seulement les prochains résultats validés, sous forme de doublettes de deux joueurs identifiés par des IDs stables. Les associations sont propres à chaque manche.
+- `app/frontend/lib/bdc.ts` contient les six manches et les résultats des manches 1 et 2. Ajouter seulement les prochains résultats validés, ou explicitement autorisés sous réserve avec un statut provisoire, sous forme de doublettes de deux joueurs identifiés par des IDs stables. Les associations sont propres à chaque manche.
 - Ne pas confondre points BDC et statistiques de lancer. Les statistiques d’une doublette ne permettent pas de reconstituer les moyennes, 180 ou finishes de ses deux membres. Ces statistiques demandent une source individuelle.
 - Le classement de la doublette et les victoires de poules doivent être validés avant attribution des points ; `null` conserve l’état non validé. Ajouter une doublette aux résultats uniquement lorsque sa participation effective est confirmée, pas sur simple inscription.
-- La version actuelle accepte les formats annoncés de 8 ou 12 doublettes. Un autre effectif nécessite une confirmation du barème par l’organisateur.
+- La version actuelle accepte les formats annoncés de 8 ou 12 doublettes, ainsi que l’exception M2 à 7 doublettes expressément autorisée sous réserve du directeur sportif. Tout autre format ou nouvelle exception nécessite une confirmation du barème par l’organisateur.
 - Le classement conserve les égalités. Le règlement PDF et le départage officiel restent à vérifier avant d’annoncer les huit qualifiés. Le statut affiché vérifie uniquement le seuil des trois participations.
 - Les futures modifications de dates doivent être répercutées dans `BDC_ROUNDS` ; les liens du calendrier s’appuient sur le titre BDC et la date pour retrouver la manche.
 

@@ -1,8 +1,8 @@
 """Read-only Nakka audit for BDC M2; write the public snapshot only with --write.
 
 Player identities inside a leg come from Nakka's explicit order/oid, never from
-the order of the names in the team label. Championship points remain pending:
-the organizer must confirm the scale for the actual seven-team format.
+the order of the names in the team label. Nicolas authorized the usual scale
+on 2026-10-10, provisionally and subject to the sporting director's validation.
 """
 import argparse
 from collections import Counter
@@ -178,11 +178,11 @@ def build(event, teams, players, sheets):
             assert source["rank"] == place
         pool_wins = next(r["wins"] for r in standings if r["teamId"] == team_id)
         results.append({"teamId": team_id, "name": entries[team_id], "place": place, "poolWins": pool_wins,
-                        "points": None, "pointsUnderPublishedScale": [8,6,5,4,2,2,2][place-1]+min(pool_wins,3),
+                        "points": [8,6,5,4,2,2,2][place-1]+min(pool_wins,3),
                         "stats": {k: source[k] for k in ["score","darts","leg","winLeg","match","winMatch","ton00","ton40","ton70","ton80","highOut","f9Score","f9Darts"]}})
     return {"round": 2, "date": "2026-10-09", "sourceUrl": f"https://n01darts.com/n01/league/season.php?id={SOURCE_ID}",
             "sourceUpdatedAt": event["updateTime"], "retrievedOn": datetime.now(timezone.utc).date().isoformat(),
-            "teamCount": 7, "playerCount": 14, "pointsStatus": "pending-format-confirmation",
+            "teamCount": 7, "playerCount": 14, "pointsStatus": "provisional-ds-review",
             "quality": {"matches": len(matches), "poolMatches": 21, "finalMatches": 4, "recordedLegs": sum(m["legs"] for m in matches),
                         "verifiedPlayers": 14, "incompleteMatches": 0},
             "results": results, "poolStandings": standings, "matches": matches,
@@ -217,7 +217,7 @@ def main():
     snapshot = build(event, teams, players, sheets)
     if args.write:
         OUTPUT.write_text(json.dumps(snapshot, ensure_ascii=False, indent=2) + "\n")
-    print(json.dumps({"quality": snapshot["quality"], "ranking": [{k:r[k] for k in ["name","place","poolWins","pointsUnderPublishedScale"]} for r in snapshot["results"]]},ensure_ascii=False))
+    print(json.dumps({"quality": snapshot["quality"], "ranking": [{k:r[k] for k in ["name","place","poolWins","points"]} for r in snapshot["results"]]},ensure_ascii=False))
 
 
 if __name__ == "__main__":

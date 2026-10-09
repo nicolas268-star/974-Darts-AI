@@ -1,4 +1,5 @@
 import { StatsTable } from "@/components/stats/StatsTable";
+import { BDC_ROUND_TWO_POINTS_NOTE } from "@/lib/bdc";
 import round from "@/lib/bdc-round-two.json";
 
 const fmt = (value: number | null) => value === null ? "—" : value.toLocaleString("fr-FR", { maximumFractionDigits: 2 });
@@ -90,9 +91,10 @@ export function BdcRoundTwo() {
     <section id="m2-matchs" className="bdc-report-block"><div className="bdc-report-title"><div><span>06</span><h3>Les 25 rencontres en détail</h3></div><small>Ordre chronologique · ouvrir un match</small></div><div className="bdc-match-list">{round.matches.map(match => <MatchDetails key={match.id} match={match} />)}</div></section>
 
     <section id="m2-points" className="bdc-report-block">
-      <div className="bdc-report-title"><div><span>07</span><h3>Classement de la manche et points BDC</h3></div><small>Points en attente</small></div>
-      <p className="bdc-note">Cette manche a réuni 7 doublettes. L’application du barème à cet effectif reste à confirmer auprès de l’organisateur avant le cumul des points individuels. Le classement général ci-dessous couvre encore la manche 1.</p>
-      <div className="bdc-table-scroll" role="region" aria-label="Classement de la manche 2" tabIndex={0}><StatsTable className="bdc-table"><thead><tr><th>Place</th><th>Doublette</th><th>Victoires de poule</th><th>Points par joueur</th></tr></thead><tbody>{round.results.map(team => <tr key={team.teamId}><td>{team.place}</td><th scope="row">{team.name}</th><td>{team.poolWins}/6</td><td>En attente</td></tr>)}</tbody></StatsTable></div>
+      <div className="bdc-report-title"><div><span>07</span><h3>Classement de la manche et points BDC</h3></div><small>Points provisoires</small></div>
+      <p className="bdc-note"><strong>{BDC_ROUND_TWO_POINTS_NOTE}</strong> Les points sont ajoutés au classement cumulé M1 + M2 à titre provisoire.</p>
+      <div className="bdc-table-scroll" role="region" aria-label="Classement de la manche 2" tabIndex={0}><StatsTable className="bdc-table"><thead><tr><th>Place</th><th>Doublette</th><th>Victoires de poule</th><th>Points par joueur</th></tr></thead><tbody>{round.results.map(team => <tr key={team.teamId}><td>{team.place}</td><th scope="row">{team.name}</th><td>{team.poolWins}/6</td><td><strong>{team.points}†</strong></td></tr>)}</tbody></StatsTable></div>
+      <p className="bdc-note">† Sous réserve de validation du directeur sportif. Le bonus de poules est plafonné à 3 points par joueur.</p>
       <p className="bdc-note">Source : résultats et feuilles Nakka du 9 octobre 2026. Les résultats et le classement officiels sont tenus par le directeur sportif du Tampon Darts Club.</p>
     </section>
   </section>;

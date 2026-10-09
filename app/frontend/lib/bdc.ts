@@ -4,6 +4,7 @@
  */
 export const BDC_URL = "/tournaments/blind-draw-championship";
 export const BDC_RULES_URL = "https://tampon-darts-club.assoconnect.com/collect/description/706462-n-blind-draw-championship-by-tdc-saison-1";
+export const BDC_ROUND_TWO_POINTS_NOTE = "Manche 2 : même barème appliqué aux 7 doublettes, sous réserve de validation du directeur sportif.";
 export const BDC_ROUNDS = [
   { number: 1, date: "2026-09-11", location: "Bar Le Cham’Ô · Le Tampon", sourceUrl: "https://n01darts.com/n01/league/season.php?id=t_iIQi_5560" },
   { number: 2, date: "2026-10-09", location: "Bar Le Cham’Ô · Le Tampon", sourceUrl: "https://n01darts.com/n01/league/season.php?id=t_sEW0_8920" },
@@ -16,18 +17,20 @@ export const BDC_ROUNDS = [
 /** Reports may be available before their championship points are validated. */
 export const BDC_ROUND_REPORTS: Partial<Record<number, { status: string; pointsPending: boolean }>> = {
   1: { status: "Terminée · classement corrigé", pointsPending: false },
-  2: { status: "Terminée · points en attente", pointsPending: true },
+  2: { status: "Terminée · points provisoires", pointsPending: false },
 };
 
 export type BdcPlayer = { id: string; name: string };
 export type BdcRoundResult = {
   round: number;
-  teamCount: 8 | 12;
+  teamCount: 7 | 8 | 12;
+  /** Published points may be counted provisionally, with an explicit DS reservation. */
+  provisional?: boolean;
   /** Keep stable player IDs across rounds, even when their partners change. */
   teams: {
     id: string;
     players: [BdcPlayer, BdcPlayer];
-    /** Null means not yet validated, never zero points. */
+    /** Null means the result is unavailable, never zero points. */
     place: number | null;
     poolWins: number | null;
   }[];
@@ -45,10 +48,23 @@ export const BDC_RESULTS: BdcRoundResult[] = [{
     { id: "8Htt", place: 7, poolWins: 2, players: [{ id: "benjamin-tdc", name: "Benjamin (TDC)" }, { id: "julien-kaz", name: "Julien (KAZ)" }] },
     { id: "iTep", place: 8, poolWins: 2, players: [{ id: "nicolas-pdc", name: "Nicolas (PDC)" }, { id: "jeff-tdc", name: "Jeff (TDC)" }] },
   ],
+}, {
+  // Nicolas confirmed the same scale provisionally and these M1/M2 identities
+  // on 2026-10-10. Kozu is a new visiting participant, with no M1 alias.
+  round: 2, teamCount: 7, provisional: true,
+  teams: [
+    { id: "IWoH", place: 1, poolWins: 4, players: [{ id: "kozu", name: "Kozu" }, { id: "vincent-tdc", name: "Vincent (TDC)" }] },
+    { id: "ZYTs", place: 2, poolWins: 6, players: [{ id: "kevin-tdc", name: "Kevin (TDC)" }, { id: "alexandre-pdc", name: "Alexandre (PDC)" }] },
+    { id: "wt4Y", place: 3, poolWins: 4, players: [{ id: "benjamin-tdc", name: "Benjamin (TDC)" }, { id: "abrousse-tdc", name: "Abrousse (TDC)" }] },
+    { id: "6cus", place: 4, poolWins: 3, players: [{ id: "guillaume-tdc", name: "Guillaume (TDC)" }, { id: "yoann-kaz", name: "Yoann (KAZ)" }] },
+    { id: "VABJ", place: 5, poolWins: 2, players: [{ id: "nicolas-pdc", name: "Nicolas (PDC)" }, { id: "laurent-bdc", name: "Laurent" }] },
+    { id: "uyKo", place: 6, poolWins: 1, players: [{ id: "dominique-bdc", name: "Dominique" }, { id: "super-mario-tdc", name: "Super Mario (TDC)" }] },
+    { id: "fgmb", place: 7, poolWins: 1, players: [{ id: "coralie-bdc", name: "Coralie" }, { id: "maxime-bdc", name: "Maxime" }] },
+  ],
 }];
 
-export function bdcPoints(place: number, poolWins: number, teamCount: 8 | 12): number {
-  if (![8, 12].includes(teamCount) || !Number.isInteger(place) || place < 1 || place > teamCount || !Number.isInteger(poolWins) || poolWins < 0) {
+export function bdcPoints(place: number, poolWins: number, teamCount: 7 | 8 | 12): number {
+  if (![7, 8, 12].includes(teamCount) || !Number.isInteger(place) || place < 1 || place > teamCount || !Number.isInteger(poolWins) || poolWins < 0) {
     throw new Error("Résultat BDC invalide");
   }
   const base = place === 1 ? 8 : place === 2 ? 6 : place === 3 ? 5 : place === 4 ? 4 : place <= 8 ? 2 : 1;
@@ -56,10 +72,10 @@ export function bdcPoints(place: number, poolWins: number, teamCount: 8 | 12): n
 }
 
 export function bdcStandings(results: BdcRoundResult[]) {
-  const players = new Map<string, { id: string; name: string; points: (number | null)[]; participations: number; total: number; pending: boolean }>();
+  const players = new Map<string, { id: string; name: string; points: (number | null)[]; participations: number; total: number; pending: boolean; provisionalRounds: number[] }>();
   const seenRounds = new Set<number>();
   for (const result of results) {
-    if (!Number.isInteger(result.round) || result.round < 1 || result.round > 6 || seenRounds.has(result.round) || ![8, 12].includes(result.teamCount) || result.teams.length > result.teamCount) {
+    if (!Number.isInteger(result.round) || result.round < 1 || result.round > 6 || seenRounds.has(result.round) || ![7, 8, 12].includes(result.teamCount) || result.teams.length > result.teamCount) {
       throw new Error("Manche BDC invalide ou dupliquée");
     }
     seenRounds.add(result.round);
@@ -72,11 +88,12 @@ export function bdcStandings(results: BdcRoundResult[]) {
       for (const player of team.players) {
         if (!player.id.trim() || !player.name.trim() || seenPlayers.has(player.id)) throw new Error("Joueur BDC invalide ou présent dans deux doublettes");
         seenPlayers.add(player.id);
-        const row = players.get(player.id) ?? { ...player, points: Array<number | null>(6).fill(null), participations: 0, total: 0, pending: false };
+        const row = players.get(player.id) ?? { ...player, points: Array<number | null>(6).fill(null), participations: 0, total: 0, pending: false, provisionalRounds: [] };
         row.points[result.round - 1] = points;
         row.participations += 1;
         row.total += points ?? 0;
         row.pending ||= points === null;
+        if (result.provisional && points !== null) row.provisionalRounds.push(result.round);
         players.set(player.id, row);
       }
     }

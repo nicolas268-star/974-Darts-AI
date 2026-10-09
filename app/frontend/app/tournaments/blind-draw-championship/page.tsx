@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Sidebar } from "@/components/Sidebar";
 import { BdcRoundOne } from "@/components/BdcRoundOne";
 import { BdcRoundTwo } from "@/components/BdcRoundTwo";
-import { BDC_ROUNDS, BDC_RESULTS, BDC_ROUND_REPORTS, BDC_RULES_URL, bdcDate, bdcStandings } from "@/lib/bdc";
+import { BDC_ROUNDS, BDC_RESULTS, BDC_ROUND_REPORTS, BDC_RULES_URL, BDC_ROUND_TWO_POINTS_NOTE, bdcDate, bdcStandings } from "@/lib/bdc";
 import "../../competitions/competition-hub.css";
 import "./bdc.css";
 
@@ -46,14 +46,14 @@ export default function BdcPage() {
     <section id="classement" className="bdc-section">
       <div className="bdc-heading"><h2>Classement individuel</h2><span className="bdc-status">{standings.length ? "Provisoire" : "En attente des premiers résultats"}</span></div>
       <p>Chaque joueur cumule ses points sur les six manches, même lorsqu’il change de partenaire.</p>
-      <p className="bdc-note"><strong>Après la manche 1 :</strong> les résultats et statistiques de la manche 2 sont disponibles. Ses points et participations seront intégrés au classement après confirmation du barème à 7 doublettes et du rattachement des joueurs entre les manches.</p>
+      <p className="bdc-note"><strong>Classement cumulé après M1 + M2.</strong> {BDC_ROUND_TWO_POINTS_NOTE}</p>
       <p className="bdc-note"><strong>Résultats officiels :</strong> les résultats et le classement officiels sont tenus par le directeur sportif du Tampon Darts Club (TDC). Les données présentées sur 974 Darts AI sont fournies à titre informatif.</p>
       <div className="bdc-table-scroll" role="region" aria-label="Classement individuel BDC" tabIndex={0}>
-        <StatsTable className="bdc-table"><caption>Points par manche, total et seuil de participation</caption><thead><tr><th scope="col">Rang</th><th scope="col">Joueur</th>{BDC_ROUNDS.map((round) => <th scope="col" key={round.number}>M{round.number}</th>)}<th scope="col">Total</th><th scope="col">Manches</th><th scope="col">Seuil de 3 manches</th></tr></thead>
-          <tbody>{standings.length ? standings.map((row) => <tr key={row.id}><td>{row.rank}</td><th scope="row">{row.name}</th>{row.points.map((points, i) => <td key={i}>{points ?? "—"}</td>)}<td><strong>{row.total}{row.pending ? "*" : ""}</strong></td><td>{row.participations}/6</td><td>{row.eligible ? "Atteint" : `${3 - row.participations} restante(s)`}</td></tr>) : <tr><td colSpan={11} className="bdc-empty">Les joueurs et leurs points apparaîtront après la saisie des premiers résultats validés.</td></tr>}</tbody>
+        <StatsTable className="bdc-table"><caption>Points par manche, total et seuil de participation · † points M2 provisoires</caption><thead><tr><th scope="col">Rang</th><th scope="col">Joueur</th>{BDC_ROUNDS.map((round) => <th scope="col" key={round.number}>M{round.number}</th>)}<th scope="col">Total</th><th scope="col">Manches</th><th scope="col">Seuil de 3 manches</th></tr></thead>
+          <tbody>{standings.length ? standings.map((row) => <tr key={row.id}><td>{row.rank}</td><th scope="row">{row.name}</th>{row.points.map((points, i) => <td key={i}>{points ?? "—"}{row.provisionalRounds.includes(i + 1) ? "†" : ""}</td>)}<td><strong>{row.total}{row.pending ? "*" : ""}{row.provisionalRounds.length ? "†" : ""}</strong></td><td>{row.participations}/6</td><td>{row.eligible ? "Atteint" : `${3 - row.participations} restante(s)`}</td></tr>) : <tr><td colSpan={11} className="bdc-empty">Les joueurs et leurs points apparaîtront après la saisie des premiers résultats validés.</td></tr>}</tbody>
         </StatsTable>
       </div>
-      <p className="bdc-note">— : absence ou points non encore validés. * : total incomplet. Les égalités de points restent ex æquo dans l’attente du départage officiel.</p>
+      <p className="bdc-note">— : absence ou points indisponibles. * : total incomplet. † : points M2 et total incluant M2 sous réserve de validation du directeur sportif. Les égalités de points restent ex æquo dans l’attente du départage officiel.</p>
       <aside className="bdc-finale"><strong>Objectif : la Super Finale en simple</strong><p>Les huit meilleurs joueurs éligibles, avec au moins trois manches disputées, accéderont à la finale prévue le 21 février 2027 à 9 h. Lieu à confirmer dans le sud de La Réunion. Atteindre trois participations ne garantit pas la qualification.</p></aside>
     </section>
 
