@@ -114,7 +114,7 @@ export async function testVisibility(admin, director, screenshot) {
   await expect(admin.locator('#whatsapp-draft')).toHaveValue(/Blind Draw Championship · Manche 2/);
   unavailableEvenings=true;
   await admin.reload();
-  await expect(admin.getByRole('alert')).toContainText('Les manches BDC restent disponibles.');
+  await expect(admin.locator('main').getByRole('alert')).toContainText('Les manches BDC restent disponibles.');
   await expect(admin.locator('#whatsapp-draft')).toHaveValue(/Blind Draw Championship · Manche 2/);
   await expect(admin.getByRole('button',{name:'Ouvrir dans WhatsApp',exact:true})).toBeEnabled();
   await admin.unroute('**/api/admin/visibility/**');
