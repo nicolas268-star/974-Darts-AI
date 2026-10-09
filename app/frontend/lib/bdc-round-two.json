@@ -1,0 +1,3850 @@
+{
+  "round": 2,
+  "date": "2026-10-09",
+  "sourceUrl": "https://n01darts.com/n01/league/season.php?id=t_sEW0_8920",
+  "sourceUpdatedAt": 1791577926506,
+  "retrievedOn": "2026-10-09",
+  "teamCount": 7,
+  "playerCount": 14,
+  "pointsStatus": "pending-format-confirmation",
+  "quality": {
+    "matches": 25,
+    "poolMatches": 21,
+    "finalMatches": 4,
+    "recordedLegs": 64,
+    "verifiedPlayers": 14,
+    "incompleteMatches": 0
+  },
+  "results": [
+    {
+      "teamId": "IWoH",
+      "name": "Kozu / Vincent",
+      "place": 1,
+      "poolWins": 4,
+      "points": null,
+      "pointsUnderPublishedScale": 11,
+      "stats": {
+        "score": 10919,
+        "darts": 711,
+        "leg": 23,
+        "winLeg": 14,
+        "match": 8,
+        "winMatch": 6,
+        "ton00": 3,
+        "ton40": 1,
+        "ton70": 0,
+        "ton80": 0,
+        "highOut": 82,
+        "f9Score": 3498,
+        "f9Darts": 207
+      }
+    },
+    {
+      "teamId": "ZYTs",
+      "name": "Kévin / Alexandre",
+      "place": 2,
+      "poolWins": 6,
+      "points": null,
+      "pointsUnderPublishedScale": 9,
+      "stats": {
+        "score": 10462,
+        "darts": 656,
+        "leg": 21,
+        "winLeg": 17,
+        "match": 8,
+        "winMatch": 7,
+        "ton00": 15,
+        "ton40": 2,
+        "ton70": 0,
+        "ton80": 0,
+        "highOut": 89,
+        "f9Score": 3117,
+        "f9Darts": 189
+      }
+    },
+    {
+      "teamId": "wt4Y",
+      "name": "Benjamin / Stephane",
+      "place": 3,
+      "poolWins": 4,
+      "points": null,
+      "pointsUnderPublishedScale": 8,
+      "stats": {
+        "score": 10790,
+        "darts": 689,
+        "leg": 22,
+        "winLeg": 14,
+        "match": 8,
+        "winMatch": 5,
+        "ton00": 13,
+        "ton40": 1,
+        "ton70": 0,
+        "ton80": 0,
+        "highOut": 74,
+        "f9Score": 3545,
+        "f9Darts": 198
+      }
+    },
+    {
+      "teamId": "6cus",
+      "name": "Guillaume / Yoann",
+      "place": 4,
+      "poolWins": 3,
+      "points": null,
+      "pointsUnderPublishedScale": 7,
+      "stats": {
+        "score": 9568,
+        "darts": 548,
+        "leg": 20,
+        "winLeg": 7,
+        "match": 8,
+        "winMatch": 3,
+        "ton00": 13,
+        "ton40": 7,
+        "ton70": 0,
+        "ton80": 0,
+        "highOut": 125,
+        "f9Score": 3655,
+        "f9Darts": 180
+      }
+    },
+    {
+      "teamId": "VABJ",
+      "name": "Nicolas / Laurent",
+      "place": 5,
+      "poolWins": 2,
+      "points": null,
+      "pointsUnderPublishedScale": 4,
+      "stats": {
+        "score": 6690,
+        "darts": 519,
+        "leg": 14,
+        "winLeg": 5,
+        "match": 6,
+        "winMatch": 2,
+        "ton00": 4,
+        "ton40": 1,
+        "ton70": 0,
+        "ton80": 0,
+        "highOut": 42,
+        "f9Score": 2108,
+        "f9Darts": 126
+      }
+    },
+    {
+      "teamId": "uyKo",
+      "name": "Dominique / Mario",
+      "place": 6,
+      "poolWins": 1,
+      "points": null,
+      "pointsUnderPublishedScale": 3,
+      "stats": {
+        "score": 6666,
+        "darts": 492,
+        "leg": 14,
+        "winLeg": 4,
+        "match": 6,
+        "winMatch": 1,
+        "ton00": 7,
+        "ton40": 2,
+        "ton70": 0,
+        "ton80": 0,
+        "highOut": 46,
+        "f9Score": 1987,
+        "f9Darts": 126
+      }
+    },
+    {
+      "teamId": "fgmb",
+      "name": "Coralie / Maxime",
+      "place": 7,
+      "poolWins": 1,
+      "points": null,
+      "pointsUnderPublishedScale": 3,
+      "stats": {
+        "score": 5846,
+        "darts": 486,
+        "leg": 14,
+        "winLeg": 3,
+        "match": 6,
+        "winMatch": 1,
+        "ton00": 1,
+        "ton40": 0,
+        "ton70": 0,
+        "ton80": 0,
+        "highOut": 30,
+        "f9Score": 1580,
+        "f9Darts": 126
+      }
+    }
+  ],
+  "poolStandings": [
+    {
+      "teamId": "ZYTs",
+      "name": "Kévin / Alexandre",
+      "played": 6,
+      "wins": 6,
+      "losses": 0,
+      "legsFor": 12,
+      "legsAgainst": 1,
+      "legsDiff": 11,
+      "points": 12,
+      "average3": 44.9,
+      "rank": 1
+    },
+    {
+      "teamId": "wt4Y",
+      "name": "Benjamin / Stephane",
+      "played": 6,
+      "wins": 4,
+      "losses": 2,
+      "legsFor": 9,
+      "legsAgainst": 5,
+      "legsDiff": 4,
+      "points": 8,
+      "average3": 45.32,
+      "rank": 2
+    },
+    {
+      "teamId": "IWoH",
+      "name": "Kozu / Vincent",
+      "played": 6,
+      "wins": 4,
+      "losses": 2,
+      "legsFor": 8,
+      "legsAgainst": 5,
+      "legsDiff": 3,
+      "points": 8,
+      "average3": 44.58,
+      "rank": 3
+    },
+    {
+      "teamId": "6cus",
+      "name": "Guillaume / Yoann",
+      "played": 6,
+      "wins": 3,
+      "losses": 3,
+      "legsFor": 7,
+      "legsAgainst": 7,
+      "legsDiff": 0,
+      "points": 6,
+      "average3": 52.07,
+      "rank": 4
+    },
+    {
+      "teamId": "VABJ",
+      "name": "Nicolas / Laurent",
+      "played": 6,
+      "wins": 2,
+      "losses": 4,
+      "legsFor": 5,
+      "legsAgainst": 9,
+      "legsDiff": -4,
+      "points": 4,
+      "average3": 38.67,
+      "rank": 5
+    },
+    {
+      "teamId": "uyKo",
+      "name": "Dominique / Mario",
+      "played": 6,
+      "wins": 1,
+      "losses": 5,
+      "legsFor": 4,
+      "legsAgainst": 10,
+      "legsDiff": -6,
+      "points": 2,
+      "average3": 40.65,
+      "rank": 6
+    },
+    {
+      "teamId": "fgmb",
+      "name": "Coralie / Maxime",
+      "played": 6,
+      "wins": 1,
+      "losses": 5,
+      "legsFor": 3,
+      "legsAgainst": 11,
+      "legsDiff": -8,
+      "points": 2,
+      "average3": 36.09,
+      "rank": 7
+    }
+  ],
+  "matches": [
+    {
+      "id": "t_sEW0_8920_rr_0_VABJ_wt4Y",
+      "phase": "Poule",
+      "startedAt": 1791559143,
+      "legs": 3,
+      "teamA": {
+        "teamId": "VABJ",
+        "name": "Nicolas / Laurent",
+        "score": 1,
+        "average3": 34.98,
+        "recordedScore": 1399,
+        "recordedDarts": 120,
+        "players": [
+          {
+            "id": "txnr",
+            "name": "Nicolas",
+            "teamId": "VABJ",
+            "score": 727,
+            "darts": 60,
+            "first9Score": 499,
+            "first9Darts": 27,
+            "visits100": 0,
+            "visits140": 1,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 1,
+            "finishes": [],
+            "average3": 36.35,
+            "first9": 55.44,
+            "bestFinish": null
+          },
+          {
+            "id": "zczg",
+            "name": "Laurent",
+            "teamId": "VABJ",
+            "score": 672,
+            "darts": 60,
+            "first9Score": 406,
+            "first9Darts": 27,
+            "visits100": 1,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 2,
+            "finishes": [
+              {
+                "leg": 2,
+                "value": 2,
+                "darts": 3,
+                "matchId": "t_sEW0_8920_rr_0_VABJ_wt4Y"
+              }
+            ],
+            "average3": 33.6,
+            "first9": 45.11,
+            "bestFinish": 2
+          }
+        ]
+      },
+      "teamB": {
+        "teamId": "wt4Y",
+        "name": "Benjamin / Stephane",
+        "score": 2,
+        "average3": 38.16,
+        "recordedScore": 1501,
+        "recordedDarts": 118,
+        "players": [
+          {
+            "id": "xmn3",
+            "name": "Benjamin",
+            "teamId": "wt4Y",
+            "score": 764,
+            "darts": 60,
+            "first9Score": 422,
+            "first9Darts": 27,
+            "visits100": 2,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 1,
+            "finishes": [],
+            "average3": 38.2,
+            "first9": 46.89,
+            "bestFinish": null
+          },
+          {
+            "id": "g2b2",
+            "name": "Stéphane",
+            "teamId": "wt4Y",
+            "score": 737,
+            "darts": 58,
+            "first9Score": 394,
+            "first9Darts": 27,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 2,
+            "finishes": [
+              {
+                "leg": 1,
+                "value": 12,
+                "darts": 2,
+                "matchId": "t_sEW0_8920_rr_0_VABJ_wt4Y"
+              },
+              {
+                "leg": 3,
+                "value": 16,
+                "darts": 2,
+                "matchId": "t_sEW0_8920_rr_0_VABJ_wt4Y"
+              }
+            ],
+            "average3": 38.12,
+            "first9": 43.78,
+            "bestFinish": 16
+          }
+        ]
+      }
+    },
+    {
+      "id": "t_sEW0_8920_rr_0_6cus_fgmb",
+      "phase": "Poule",
+      "startedAt": 1791559231,
+      "legs": 2,
+      "teamA": {
+        "teamId": "6cus",
+        "name": "Guillaume / Yoann",
+        "score": 2,
+        "average3": 69.91,
+        "recordedScore": 1002,
+        "recordedDarts": 43,
+        "players": [
+          {
+            "id": "pnso",
+            "name": "Yoann",
+            "teamId": "6cus",
+            "score": 581,
+            "darts": 24,
+            "first9Score": 408,
+            "first9Darts": 18,
+            "visits100": 2,
+            "visits140": 1,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 0,
+            "finishes": [
+              {
+                "leg": 1,
+                "value": 125,
+                "darts": 3,
+                "matchId": "t_sEW0_8920_rr_0_6cus_fgmb"
+              }
+            ],
+            "average3": 72.62,
+            "first9": 68.0,
+            "bestFinish": 125
+          },
+          {
+            "id": "t976",
+            "name": "Guillaume",
+            "teamId": "6cus",
+            "score": 421,
+            "darts": 19,
+            "first9Score": 381,
+            "first9Darts": 18,
+            "visits100": 1,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 0,
+            "finishes": [
+              {
+                "leg": 2,
+                "value": 40,
+                "darts": 1,
+                "matchId": "t_sEW0_8920_rr_0_6cus_fgmb"
+              }
+            ],
+            "average3": 66.47,
+            "first9": 63.5,
+            "bestFinish": 40
+          }
+        ]
+      },
+      "teamB": {
+        "teamId": "fgmb",
+        "name": "Coralie / Maxime",
+        "score": 0,
+        "average3": 46.21,
+        "recordedScore": 647,
+        "recordedDarts": 42,
+        "players": [
+          {
+            "id": "t5g8",
+            "name": "Maxime",
+            "teamId": "fgmb",
+            "score": 445,
+            "darts": 24,
+            "first9Score": 334,
+            "first9Darts": 18,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 0,
+            "finishes": [],
+            "average3": 55.62,
+            "first9": 55.67,
+            "bestFinish": null
+          },
+          {
+            "id": "0yqv",
+            "name": "Coralie",
+            "teamId": "fgmb",
+            "score": 202,
+            "darts": 18,
+            "first9Score": 202,
+            "first9Darts": 18,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 0,
+            "finishes": [],
+            "average3": 33.67,
+            "first9": 33.67,
+            "bestFinish": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "t_sEW0_8920_rr_0_ZYTs_uyKo",
+      "phase": "Poule",
+      "startedAt": 1791559295,
+      "legs": 2,
+      "teamA": {
+        "teamId": "ZYTs",
+        "name": "Kévin / Alexandre",
+        "score": 2,
+        "average3": 38.54,
+        "recordedScore": 1002,
+        "recordedDarts": 78,
+        "players": [
+          {
+            "id": "ziof",
+            "name": "Kévin",
+            "teamId": "ZYTs",
+            "score": 507,
+            "darts": 40,
+            "first9Score": 325,
+            "first9Darts": 18,
+            "visits100": 1,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 2,
+            "finishes": [
+              {
+                "leg": 2,
+                "value": 2,
+                "darts": 1,
+                "matchId": "t_sEW0_8920_rr_0_ZYTs_uyKo"
+              }
+            ],
+            "average3": 38.02,
+            "first9": 54.17,
+            "bestFinish": 2
+          },
+          {
+            "id": "8p4d",
+            "name": "Aléxandre",
+            "teamId": "ZYTs",
+            "score": 495,
+            "darts": 38,
+            "first9Score": 267,
+            "first9Darts": 18,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 2,
+            "finishes": [
+              {
+                "leg": 1,
+                "value": 40,
+                "darts": 2,
+                "matchId": "t_sEW0_8920_rr_0_ZYTs_uyKo"
+              }
+            ],
+            "average3": 39.08,
+            "first9": 44.5,
+            "bestFinish": 40
+          }
+        ]
+      },
+      "teamB": {
+        "teamId": "uyKo",
+        "name": "Dominique / Mario",
+        "score": 0,
+        "average3": 37.12,
+        "recordedScore": 965,
+        "recordedDarts": 78,
+        "players": [
+          {
+            "id": "23bi",
+            "name": "Mario",
+            "teamId": "uyKo",
+            "score": 532,
+            "darts": 42,
+            "first9Score": 237,
+            "first9Darts": 18,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 2,
+            "finishes": [],
+            "average3": 38.0,
+            "first9": 39.5,
+            "bestFinish": null
+          },
+          {
+            "id": "zv4q",
+            "name": "Dominique",
+            "teamId": "uyKo",
+            "score": 433,
+            "darts": 36,
+            "first9Score": 256,
+            "first9Darts": 18,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 1,
+            "finishes": [],
+            "average3": 36.08,
+            "first9": 42.67,
+            "bestFinish": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "t_sEW0_8920_rr_0_fgmb_uyKo",
+      "phase": "Poule",
+      "startedAt": 1791560571,
+      "legs": 3,
+      "teamA": {
+        "teamId": "fgmb",
+        "name": "Coralie / Maxime",
+        "score": 2,
+        "average3": 35.76,
+        "recordedScore": 1347,
+        "recordedDarts": 113,
+        "players": [
+          {
+            "id": "t5g8",
+            "name": "Maxime",
+            "teamId": "fgmb",
+            "score": 795,
+            "darts": 58,
+            "first9Score": 428,
+            "first9Darts": 27,
+            "visits100": 1,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 0,
+            "finishes": [
+              {
+                "leg": 3,
+                "value": 30,
+                "darts": 1,
+                "matchId": "t_sEW0_8920_rr_0_fgmb_uyKo"
+              }
+            ],
+            "average3": 41.12,
+            "first9": 47.56,
+            "bestFinish": 30
+          },
+          {
+            "id": "0yqv",
+            "name": "Coralie",
+            "teamId": "fgmb",
+            "score": 552,
+            "darts": 55,
+            "first9Score": 257,
+            "first9Darts": 27,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 0,
+            "finishes": [
+              {
+                "leg": 1,
+                "value": 6,
+                "darts": 1,
+                "matchId": "t_sEW0_8920_rr_0_fgmb_uyKo"
+              }
+            ],
+            "average3": 30.11,
+            "first9": 28.56,
+            "bestFinish": 6
+          }
+        ]
+      },
+      "teamB": {
+        "teamId": "uyKo",
+        "name": "Dominique / Mario",
+        "score": 1,
+        "average3": 39.0,
+        "recordedScore": 1469,
+        "recordedDarts": 113,
+        "players": [
+          {
+            "id": "23bi",
+            "name": "Mario",
+            "teamId": "uyKo",
+            "score": 771,
+            "darts": 59,
+            "first9Score": 400,
+            "first9Darts": 27,
+            "visits100": 2,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 3,
+            "finishes": [
+              {
+                "leg": 2,
+                "value": 20,
+                "darts": 2,
+                "matchId": "t_sEW0_8920_rr_0_fgmb_uyKo"
+              }
+            ],
+            "average3": 39.2,
+            "first9": 44.44,
+            "bestFinish": 20
+          },
+          {
+            "id": "zv4q",
+            "name": "Dominique",
+            "teamId": "uyKo",
+            "score": 698,
+            "darts": 54,
+            "first9Score": 419,
+            "first9Darts": 27,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 1,
+            "finishes": [],
+            "average3": 38.78,
+            "first9": 46.56,
+            "bestFinish": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "t_sEW0_8920_rr_0_IWoH_VABJ",
+      "phase": "Poule",
+      "startedAt": 1791560953,
+      "legs": 2,
+      "teamA": {
+        "teamId": "IWoH",
+        "name": "Kozu / Vincent",
+        "score": 2,
+        "average3": 42.94,
+        "recordedScore": 1002,
+        "recordedDarts": 70,
+        "players": [
+          {
+            "id": "cwym",
+            "name": "Kozu",
+            "teamId": "IWoH",
+            "score": 579,
+            "darts": 37,
+            "first9Score": 285,
+            "first9Darts": 18,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 1,
+            "finishes": [
+              {
+                "leg": 1,
+                "value": 40,
+                "darts": 2,
+                "matchId": "t_sEW0_8920_rr_0_IWoH_VABJ"
+              },
+              {
+                "leg": 2,
+                "value": 4,
+                "darts": 2,
+                "matchId": "t_sEW0_8920_rr_0_IWoH_VABJ"
+              }
+            ],
+            "average3": 46.95,
+            "first9": 47.5,
+            "bestFinish": 40
+          },
+          {
+            "id": "srhw",
+            "name": "Vincent",
+            "teamId": "IWoH",
+            "score": 423,
+            "darts": 33,
+            "first9Score": 293,
+            "first9Darts": 18,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 2,
+            "finishes": [],
+            "average3": 38.45,
+            "first9": 48.83,
+            "bestFinish": null
+          }
+        ]
+      },
+      "teamB": {
+        "teamId": "VABJ",
+        "name": "Nicolas / Laurent",
+        "score": 0,
+        "average3": 38.39,
+        "recordedScore": 883,
+        "recordedDarts": 69,
+        "players": [
+          {
+            "id": "txnr",
+            "name": "Nicolas",
+            "teamId": "VABJ",
+            "score": 391,
+            "darts": 36,
+            "first9Score": 196,
+            "first9Darts": 18,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 1,
+            "finishes": [],
+            "average3": 32.58,
+            "first9": 32.67,
+            "bestFinish": null
+          },
+          {
+            "id": "zczg",
+            "name": "Laurent",
+            "teamId": "VABJ",
+            "score": 492,
+            "darts": 33,
+            "first9Score": 345,
+            "first9Darts": 18,
+            "visits100": 1,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 1,
+            "finishes": [],
+            "average3": 44.73,
+            "first9": 57.5,
+            "bestFinish": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "t_sEW0_8920_rr_0_6cus_wt4Y",
+      "phase": "Poule",
+      "startedAt": 1791561073,
+      "legs": 2,
+      "teamA": {
+        "teamId": "6cus",
+        "name": "Guillaume / Yoann",
+        "score": 0,
+        "average3": 50.0,
+        "recordedScore": 950,
+        "recordedDarts": 57,
+        "players": [
+          {
+            "id": "pnso",
+            "name": "Yoann",
+            "teamId": "6cus",
+            "score": 586,
+            "darts": 30,
+            "first9Score": 355,
+            "first9Darts": 18,
+            "visits100": 0,
+            "visits140": 2,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 0,
+            "finishes": [],
+            "average3": 58.6,
+            "first9": 59.17,
+            "bestFinish": null
+          },
+          {
+            "id": "t976",
+            "name": "Guillaume",
+            "teamId": "6cus",
+            "score": 364,
+            "darts": 27,
+            "first9Score": 262,
+            "first9Darts": 18,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 1,
+            "finishes": [],
+            "average3": 40.44,
+            "first9": 43.67,
+            "bestFinish": null
+          }
+        ]
+      },
+      "teamB": {
+        "teamId": "wt4Y",
+        "name": "Benjamin / Stephane",
+        "score": 2,
+        "average3": 50.95,
+        "recordedScore": 1002,
+        "recordedDarts": 59,
+        "players": [
+          {
+            "id": "xmn3",
+            "name": "Benjamin",
+            "teamId": "wt4Y",
+            "score": 382,
+            "darts": 30,
+            "first9Score": 245,
+            "first9Darts": 18,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 0,
+            "finishes": [],
+            "average3": 38.2,
+            "first9": 40.83,
+            "bestFinish": null
+          },
+          {
+            "id": "g2b2",
+            "name": "Stéphane",
+            "teamId": "wt4Y",
+            "score": 620,
+            "darts": 29,
+            "first9Score": 428,
+            "first9Darts": 18,
+            "visits100": 3,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 0,
+            "finishes": [
+              {
+                "leg": 1,
+                "value": 55,
+                "darts": 2,
+                "matchId": "t_sEW0_8920_rr_0_6cus_wt4Y"
+              },
+              {
+                "leg": 2,
+                "value": 49,
+                "darts": 3,
+                "matchId": "t_sEW0_8920_rr_0_6cus_wt4Y"
+              }
+            ],
+            "average3": 64.14,
+            "first9": 71.33,
+            "bestFinish": 55
+          }
+        ]
+      }
+    },
+    {
+      "id": "t_sEW0_8920_rr_0_IWoH_ZYTs",
+      "phase": "Poule",
+      "startedAt": 1791562105,
+      "legs": 2,
+      "teamA": {
+        "teamId": "IWoH",
+        "name": "Kozu / Vincent",
+        "score": 0,
+        "average3": 43.48,
+        "recordedScore": 913,
+        "recordedDarts": 63,
+        "players": [
+          {
+            "id": "cwym",
+            "name": "Kozu",
+            "teamId": "IWoH",
+            "score": 567,
+            "darts": 33,
+            "first9Score": 355,
+            "first9Darts": 18,
+            "visits100": 1,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 0,
+            "finishes": [],
+            "average3": 51.55,
+            "first9": 59.17,
+            "bestFinish": null
+          },
+          {
+            "id": "srhw",
+            "name": "Vincent",
+            "teamId": "IWoH",
+            "score": 346,
+            "darts": 30,
+            "first9Score": 275,
+            "first9Darts": 18,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 1,
+            "finishes": [],
+            "average3": 34.6,
+            "first9": 45.83,
+            "bestFinish": null
+          }
+        ]
+      },
+      "teamB": {
+        "teamId": "ZYTs",
+        "name": "Kévin / Alexandre",
+        "score": 2,
+        "average3": 45.55,
+        "recordedScore": 1002,
+        "recordedDarts": 66,
+        "players": [
+          {
+            "id": "ziof",
+            "name": "Kévin",
+            "teamId": "ZYTs",
+            "score": 490,
+            "darts": 33,
+            "first9Score": 311,
+            "first9Darts": 18,
+            "visits100": 1,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 0,
+            "finishes": [],
+            "average3": 44.55,
+            "first9": 51.83,
+            "bestFinish": null
+          },
+          {
+            "id": "8p4d",
+            "name": "Aléxandre",
+            "teamId": "ZYTs",
+            "score": 512,
+            "darts": 33,
+            "first9Score": 406,
+            "first9Darts": 18,
+            "visits100": 2,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 2,
+            "finishes": [
+              {
+                "leg": 1,
+                "value": 8,
+                "darts": 3,
+                "matchId": "t_sEW0_8920_rr_0_IWoH_ZYTs"
+              },
+              {
+                "leg": 2,
+                "value": 40,
+                "darts": 3,
+                "matchId": "t_sEW0_8920_rr_0_IWoH_ZYTs"
+              }
+            ],
+            "average3": 46.55,
+            "first9": 67.67,
+            "bestFinish": 40
+          }
+        ]
+      }
+    },
+    {
+      "id": "t_sEW0_8920_rr_0_6cus_uyKo",
+      "phase": "Poule",
+      "startedAt": 1791562327,
+      "legs": 3,
+      "teamA": {
+        "teamId": "6cus",
+        "name": "Guillaume / Yoann",
+        "score": 2,
+        "average3": 46.02,
+        "recordedScore": 1488,
+        "recordedDarts": 97,
+        "players": [
+          {
+            "id": "pnso",
+            "name": "Yoann",
+            "teamId": "6cus",
+            "score": 989,
+            "darts": 51,
+            "first9Score": 665,
+            "first9Darts": 27,
+            "visits100": 1,
+            "visits140": 1,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 0,
+            "finishes": [
+              {
+                "leg": 3,
+                "value": 20,
+                "darts": 3,
+                "matchId": "t_sEW0_8920_rr_0_6cus_uyKo"
+              }
+            ],
+            "average3": 58.18,
+            "first9": 73.89,
+            "bestFinish": 20
+          },
+          {
+            "id": "t976",
+            "name": "Guillaume",
+            "teamId": "6cus",
+            "score": 499,
+            "darts": 46,
+            "first9Score": 372,
+            "first9Darts": 27,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 2,
+            "finishes": [
+              {
+                "leg": 1,
+                "value": 2,
+                "darts": 1,
+                "matchId": "t_sEW0_8920_rr_0_6cus_uyKo"
+              }
+            ],
+            "average3": 32.54,
+            "first9": 41.33,
+            "bestFinish": 2
+          }
+        ]
+      },
+      "teamB": {
+        "teamId": "uyKo",
+        "name": "Dominique / Mario",
+        "score": 1,
+        "average3": 44.08,
+        "recordedScore": 1396,
+        "recordedDarts": 95,
+        "players": [
+          {
+            "id": "23bi",
+            "name": "Mario",
+            "teamId": "uyKo",
+            "score": 582,
+            "darts": 50,
+            "first9Score": 331,
+            "first9Darts": 27,
+            "visits100": 1,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 0,
+            "finishes": [
+              {
+                "leg": 2,
+                "value": 46,
+                "darts": 2,
+                "matchId": "t_sEW0_8920_rr_0_6cus_uyKo"
+              }
+            ],
+            "average3": 34.92,
+            "first9": 36.78,
+            "bestFinish": 46
+          },
+          {
+            "id": "zv4q",
+            "name": "Dominique",
+            "teamId": "uyKo",
+            "score": 814,
+            "darts": 45,
+            "first9Score": 483,
+            "first9Darts": 27,
+            "visits100": 0,
+            "visits140": 2,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 1,
+            "finishes": [],
+            "average3": 54.27,
+            "first9": 53.67,
+            "bestFinish": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "t_sEW0_8920_rr_0_fgmb_wt4Y",
+      "phase": "Poule",
+      "startedAt": 1791562503,
+      "legs": 2,
+      "teamA": {
+        "teamId": "fgmb",
+        "name": "Coralie / Maxime",
+        "score": 0,
+        "average3": 39.65,
+        "recordedScore": 912,
+        "recordedDarts": 69,
+        "players": [
+          {
+            "id": "t5g8",
+            "name": "Maxime",
+            "teamId": "fgmb",
+            "score": 584,
+            "darts": 36,
+            "first9Score": 304,
+            "first9Darts": 18,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 1,
+            "finishes": [],
+            "average3": 48.67,
+            "first9": 50.67,
+            "bestFinish": null
+          },
+          {
+            "id": "0yqv",
+            "name": "Coralie",
+            "teamId": "fgmb",
+            "score": 328,
+            "darts": 33,
+            "first9Score": 187,
+            "first9Darts": 18,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 1,
+            "finishes": [],
+            "average3": 29.82,
+            "first9": 31.17,
+            "bestFinish": null
+          }
+        ]
+      },
+      "teamB": {
+        "teamId": "wt4Y",
+        "name": "Benjamin / Stephane",
+        "score": 2,
+        "average3": 42.94,
+        "recordedScore": 1002,
+        "recordedDarts": 70,
+        "players": [
+          {
+            "id": "xmn3",
+            "name": "Benjamin",
+            "teamId": "wt4Y",
+            "score": 490,
+            "darts": 36,
+            "first9Score": 263,
+            "first9Darts": 18,
+            "visits100": 1,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 2,
+            "finishes": [],
+            "average3": 40.83,
+            "first9": 43.83,
+            "bestFinish": null
+          },
+          {
+            "id": "g2b2",
+            "name": "Stéphane",
+            "teamId": "wt4Y",
+            "score": 512,
+            "darts": 34,
+            "first9Score": 331,
+            "first9Darts": 18,
+            "visits100": 1,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 0,
+            "finishes": [
+              {
+                "leg": 1,
+                "value": 8,
+                "darts": 1,
+                "matchId": "t_sEW0_8920_rr_0_fgmb_wt4Y"
+              },
+              {
+                "leg": 2,
+                "value": 74,
+                "darts": 3,
+                "matchId": "t_sEW0_8920_rr_0_fgmb_wt4Y"
+              }
+            ],
+            "average3": 45.18,
+            "first9": 55.17,
+            "bestFinish": 74
+          }
+        ]
+      }
+    },
+    {
+      "id": "t_sEW0_8920_rr_0_VABJ_ZYTs",
+      "phase": "Poule",
+      "startedAt": 1791563365,
+      "legs": 2,
+      "teamA": {
+        "teamId": "VABJ",
+        "name": "Nicolas / Laurent",
+        "score": 0,
+        "average3": 42.45,
+        "recordedScore": 934,
+        "recordedDarts": 66,
+        "players": [
+          {
+            "id": "txnr",
+            "name": "Nicolas",
+            "teamId": "VABJ",
+            "score": 583,
+            "darts": 33,
+            "first9Score": 327,
+            "first9Darts": 18,
+            "visits100": 2,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 0,
+            "finishes": [],
+            "average3": 53.0,
+            "first9": 54.5,
+            "bestFinish": null
+          },
+          {
+            "id": "zczg",
+            "name": "Laurent",
+            "teamId": "VABJ",
+            "score": 351,
+            "darts": 33,
+            "first9Score": 229,
+            "first9Darts": 18,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 2,
+            "finishes": [],
+            "average3": 31.91,
+            "first9": 38.17,
+            "bestFinish": null
+          }
+        ]
+      },
+      "teamB": {
+        "teamId": "ZYTs",
+        "name": "Kévin / Alexandre",
+        "score": 2,
+        "average3": 46.25,
+        "recordedScore": 1002,
+        "recordedDarts": 65,
+        "players": [
+          {
+            "id": "ziof",
+            "name": "Kévin",
+            "teamId": "ZYTs",
+            "score": 573,
+            "darts": 34,
+            "first9Score": 410,
+            "first9Darts": 18,
+            "visits100": 2,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 1,
+            "finishes": [
+              {
+                "leg": 2,
+                "value": 16,
+                "darts": 1,
+                "matchId": "t_sEW0_8920_rr_0_VABJ_ZYTs"
+              }
+            ],
+            "average3": 50.56,
+            "first9": 68.33,
+            "bestFinish": 16
+          },
+          {
+            "id": "8p4d",
+            "name": "Aléxandre",
+            "teamId": "ZYTs",
+            "score": 429,
+            "darts": 31,
+            "first9Score": 254,
+            "first9Darts": 18,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 1,
+            "finishes": [
+              {
+                "leg": 1,
+                "value": 20,
+                "darts": 1,
+                "matchId": "t_sEW0_8920_rr_0_VABJ_ZYTs"
+              }
+            ],
+            "average3": 41.52,
+            "first9": 42.33,
+            "bestFinish": 20
+          }
+        ]
+      }
+    },
+    {
+      "id": "t_sEW0_8920_rr_0_IWoH_fgmb",
+      "phase": "Poule",
+      "startedAt": 1791564086,
+      "legs": 2,
+      "teamA": {
+        "teamId": "IWoH",
+        "name": "Kozu / Vincent",
+        "score": 2,
+        "average3": 45.55,
+        "recordedScore": 1002,
+        "recordedDarts": 66,
+        "players": [
+          {
+            "id": "cwym",
+            "name": "Kozu",
+            "teamId": "IWoH",
+            "score": 539,
+            "darts": 36,
+            "first9Score": 253,
+            "first9Darts": 18,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 0,
+            "finishes": [
+              {
+                "leg": 1,
+                "value": 78,
+                "darts": 3,
+                "matchId": "t_sEW0_8920_rr_0_IWoH_fgmb"
+              },
+              {
+                "leg": 2,
+                "value": 63,
+                "darts": 3,
+                "matchId": "t_sEW0_8920_rr_0_IWoH_fgmb"
+              }
+            ],
+            "average3": 44.92,
+            "first9": 42.17,
+            "bestFinish": 78
+          },
+          {
+            "id": "srhw",
+            "name": "Vincent",
+            "teamId": "IWoH",
+            "score": 463,
+            "darts": 30,
+            "first9Score": 307,
+            "first9Darts": 18,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 0,
+            "finishes": [],
+            "average3": 46.3,
+            "first9": 51.17,
+            "bestFinish": null
+          }
+        ]
+      },
+      "teamB": {
+        "teamId": "fgmb",
+        "name": "Coralie / Maxime",
+        "score": 0,
+        "average3": 31.14,
+        "recordedScore": 654,
+        "recordedDarts": 63,
+        "players": [
+          {
+            "id": "t5g8",
+            "name": "Maxime",
+            "teamId": "fgmb",
+            "score": 428,
+            "darts": 33,
+            "first9Score": 294,
+            "first9Darts": 18,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 0,
+            "finishes": [],
+            "average3": 38.91,
+            "first9": 49.0,
+            "bestFinish": null
+          },
+          {
+            "id": "0yqv",
+            "name": "Coralie",
+            "teamId": "fgmb",
+            "score": 226,
+            "darts": 30,
+            "first9Score": 126,
+            "first9Darts": 18,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 0,
+            "finishes": [],
+            "average3": 22.6,
+            "first9": 21.0,
+            "bestFinish": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "t_sEW0_8920_rr_0_uyKo_wt4Y",
+      "phase": "Poule",
+      "startedAt": 1791564148,
+      "legs": 2,
+      "teamA": {
+        "teamId": "uyKo",
+        "name": "Dominique / Mario",
+        "score": 0,
+        "average3": 48.37,
+        "recordedScore": 919,
+        "recordedDarts": 57,
+        "players": [
+          {
+            "id": "23bi",
+            "name": "Mario",
+            "teamId": "uyKo",
+            "score": 515,
+            "darts": 30,
+            "first9Score": 363,
+            "first9Darts": 18,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 0,
+            "finishes": [],
+            "average3": 51.5,
+            "first9": 60.5,
+            "bestFinish": null
+          },
+          {
+            "id": "zv4q",
+            "name": "Dominique",
+            "teamId": "uyKo",
+            "score": 404,
+            "darts": 27,
+            "first9Score": 282,
+            "first9Darts": 18,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 0,
+            "finishes": [],
+            "average3": 44.89,
+            "first9": 47.0,
+            "bestFinish": null
+          }
+        ]
+      },
+      "teamB": {
+        "teamId": "wt4Y",
+        "name": "Benjamin / Stephane",
+        "score": 2,
+        "average3": 50.95,
+        "recordedScore": 1002,
+        "recordedDarts": 59,
+        "players": [
+          {
+            "id": "xmn3",
+            "name": "Benjamin",
+            "teamId": "wt4Y",
+            "score": 582,
+            "darts": 30,
+            "first9Score": 441,
+            "first9Darts": 18,
+            "visits100": 1,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 1,
+            "finishes": [],
+            "average3": 58.2,
+            "first9": 73.5,
+            "bestFinish": null
+          },
+          {
+            "id": "g2b2",
+            "name": "Stéphane",
+            "teamId": "wt4Y",
+            "score": 420,
+            "darts": 29,
+            "first9Score": 298,
+            "first9Darts": 18,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 1,
+            "finishes": [
+              {
+                "leg": 1,
+                "value": 66,
+                "darts": 3,
+                "matchId": "t_sEW0_8920_rr_0_uyKo_wt4Y"
+              },
+              {
+                "leg": 2,
+                "value": 20,
+                "darts": 2,
+                "matchId": "t_sEW0_8920_rr_0_uyKo_wt4Y"
+              }
+            ],
+            "average3": 43.45,
+            "first9": 49.67,
+            "bestFinish": 66
+          }
+        ]
+      }
+    },
+    {
+      "id": "t_sEW0_8920_rr_0_6cus_VABJ",
+      "phase": "Poule",
+      "startedAt": 1791565356,
+      "legs": 3,
+      "teamA": {
+        "teamId": "6cus",
+        "name": "Guillaume / Yoann",
+        "score": 1,
+        "average3": 49.5,
+        "recordedScore": 1452,
+        "recordedDarts": 88,
+        "players": [
+          {
+            "id": "pnso",
+            "name": "Yoann",
+            "teamId": "6cus",
+            "score": 925,
+            "darts": 45,
+            "first9Score": 574,
+            "first9Darts": 27,
+            "visits100": 1,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 0,
+            "finishes": [],
+            "average3": 61.67,
+            "first9": 63.78,
+            "bestFinish": null
+          },
+          {
+            "id": "t976",
+            "name": "Guillaume",
+            "teamId": "6cus",
+            "score": 527,
+            "darts": 43,
+            "first9Score": 310,
+            "first9Darts": 27,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 1,
+            "finishes": [
+              {
+                "leg": 1,
+                "value": 40,
+                "darts": 1,
+                "matchId": "t_sEW0_8920_rr_0_6cus_VABJ"
+              }
+            ],
+            "average3": 36.77,
+            "first9": 34.44,
+            "bestFinish": 40
+          }
+        ]
+      },
+      "teamB": {
+        "teamId": "VABJ",
+        "name": "Nicolas / Laurent",
+        "score": 2,
+        "average3": 51.14,
+        "recordedScore": 1483,
+        "recordedDarts": 87,
+        "players": [
+          {
+            "id": "txnr",
+            "name": "Nicolas",
+            "teamId": "VABJ",
+            "score": 800,
+            "darts": 46,
+            "first9Score": 487,
+            "first9Darts": 27,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 0,
+            "finishes": [
+              {
+                "leg": 2,
+                "value": 10,
+                "darts": 1,
+                "matchId": "t_sEW0_8920_rr_0_6cus_VABJ"
+              }
+            ],
+            "average3": 52.17,
+            "first9": 54.11,
+            "bestFinish": 10
+          },
+          {
+            "id": "zczg",
+            "name": "Laurent",
+            "teamId": "VABJ",
+            "score": 683,
+            "darts": 41,
+            "first9Score": 500,
+            "first9Darts": 27,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 0,
+            "finishes": [
+              {
+                "leg": 3,
+                "value": 42,
+                "darts": 2,
+                "matchId": "t_sEW0_8920_rr_0_6cus_VABJ"
+              }
+            ],
+            "average3": 49.98,
+            "first9": 55.56,
+            "bestFinish": 42
+          }
+        ]
+      }
+    },
+    {
+      "id": "t_sEW0_8920_rr_0_IWoH_wt4Y",
+      "phase": "Poule",
+      "startedAt": 1791565745,
+      "legs": 3,
+      "teamA": {
+        "teamId": "IWoH",
+        "name": "Kozu / Vincent",
+        "score": 2,
+        "average3": 42.77,
+        "recordedScore": 1440,
+        "recordedDarts": 101,
+        "players": [
+          {
+            "id": "cwym",
+            "name": "Kozu",
+            "teamId": "IWoH",
+            "score": 808,
+            "darts": 54,
+            "first9Score": 419,
+            "first9Darts": 27,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 0,
+            "finishes": [
+              {
+                "leg": 3,
+                "value": 56,
+                "darts": 3,
+                "matchId": "t_sEW0_8920_rr_0_IWoH_wt4Y"
+              }
+            ],
+            "average3": 44.89,
+            "first9": 46.56,
+            "bestFinish": 56
+          },
+          {
+            "id": "srhw",
+            "name": "Vincent",
+            "teamId": "IWoH",
+            "score": 632,
+            "darts": 47,
+            "first9Score": 387,
+            "first9Darts": 27,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 1,
+            "finishes": [
+              {
+                "leg": 1,
+                "value": 4,
+                "darts": 2,
+                "matchId": "t_sEW0_8920_rr_0_IWoH_wt4Y"
+              }
+            ],
+            "average3": 40.34,
+            "first9": 43.0,
+            "bestFinish": 4
+          }
+        ]
+      },
+      "teamB": {
+        "teamId": "wt4Y",
+        "name": "Benjamin / Stephane",
+        "score": 1,
+        "average3": 44.54,
+        "recordedScore": 1440,
+        "recordedDarts": 97,
+        "players": [
+          {
+            "id": "xmn3",
+            "name": "Benjamin",
+            "teamId": "wt4Y",
+            "score": 754,
+            "darts": 51,
+            "first9Score": 531,
+            "first9Darts": 27,
+            "visits100": 1,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 1,
+            "finishes": [],
+            "average3": 44.35,
+            "first9": 59.0,
+            "bestFinish": null
+          },
+          {
+            "id": "g2b2",
+            "name": "Stéphane",
+            "teamId": "wt4Y",
+            "score": 686,
+            "darts": 46,
+            "first9Score": 503,
+            "first9Darts": 27,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 1,
+            "finishes": [
+              {
+                "leg": 2,
+                "value": 4,
+                "darts": 1,
+                "matchId": "t_sEW0_8920_rr_0_IWoH_wt4Y"
+              }
+            ],
+            "average3": 44.74,
+            "first9": 55.89,
+            "bestFinish": 4
+          }
+        ]
+      }
+    },
+    {
+      "id": "t_sEW0_8920_rr_0_ZYTs_fgmb",
+      "phase": "Poule",
+      "startedAt": 1791565853,
+      "legs": 3,
+      "teamA": {
+        "teamId": "ZYTs",
+        "name": "Kévin / Alexandre",
+        "score": 2,
+        "average3": 40.57,
+        "recordedScore": 1501,
+        "recordedDarts": 111,
+        "players": [
+          {
+            "id": "ziof",
+            "name": "Kévin",
+            "teamId": "ZYTs",
+            "score": 748,
+            "darts": 58,
+            "first9Score": 365,
+            "first9Darts": 27,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 1,
+            "finishes": [
+              {
+                "leg": 3,
+                "value": 4,
+                "darts": 1,
+                "matchId": "t_sEW0_8920_rr_0_ZYTs_fgmb"
+              }
+            ],
+            "average3": 38.69,
+            "first9": 40.56,
+            "bestFinish": 4
+          },
+          {
+            "id": "8p4d",
+            "name": "Aléxandre",
+            "teamId": "ZYTs",
+            "score": 753,
+            "darts": 53,
+            "first9Score": 510,
+            "first9Darts": 27,
+            "visits100": 0,
+            "visits140": 1,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 2,
+            "finishes": [
+              {
+                "leg": 2,
+                "value": 50,
+                "darts": 2,
+                "matchId": "t_sEW0_8920_rr_0_ZYTs_fgmb"
+              }
+            ],
+            "average3": 42.62,
+            "first9": 56.67,
+            "bestFinish": 50
+          }
+        ]
+      },
+      "teamB": {
+        "teamId": "fgmb",
+        "name": "Coralie / Maxime",
+        "score": 1,
+        "average3": 35.67,
+        "recordedScore": 1296,
+        "recordedDarts": 109,
+        "players": [
+          {
+            "id": "t5g8",
+            "name": "Maxime",
+            "teamId": "fgmb",
+            "score": 666,
+            "darts": 55,
+            "first9Score": 265,
+            "first9Darts": 27,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 1,
+            "finishes": [
+              {
+                "leg": 1,
+                "value": 8,
+                "darts": 1,
+                "matchId": "t_sEW0_8920_rr_0_ZYTs_fgmb"
+              }
+            ],
+            "average3": 36.33,
+            "first9": 29.44,
+            "bestFinish": 8
+          },
+          {
+            "id": "0yqv",
+            "name": "Coralie",
+            "teamId": "fgmb",
+            "score": 630,
+            "darts": 54,
+            "first9Score": 368,
+            "first9Darts": 27,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 1,
+            "finishes": [],
+            "average3": 35.0,
+            "first9": 40.89,
+            "bestFinish": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "t_sEW0_8920_rr_0_VABJ_uyKo",
+      "phase": "Poule",
+      "startedAt": 1791567698,
+      "legs": 2,
+      "teamA": {
+        "teamId": "VABJ",
+        "name": "Nicolas / Laurent",
+        "score": 0,
+        "average3": 34.1,
+        "recordedScore": 989,
+        "recordedDarts": 87,
+        "players": [
+          {
+            "id": "txnr",
+            "name": "Nicolas",
+            "teamId": "VABJ",
+            "score": 601,
+            "darts": 45,
+            "first9Score": 364,
+            "first9Darts": 18,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 0,
+            "finishes": [],
+            "average3": 40.07,
+            "first9": 60.67,
+            "bestFinish": null
+          },
+          {
+            "id": "zczg",
+            "name": "Laurent",
+            "teamId": "VABJ",
+            "score": 388,
+            "darts": 42,
+            "first9Score": 152,
+            "first9Darts": 18,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 1,
+            "finishes": [],
+            "average3": 27.71,
+            "first9": 25.33,
+            "bestFinish": null
+          }
+        ]
+      },
+      "teamB": {
+        "teamId": "uyKo",
+        "name": "Dominique / Mario",
+        "score": 2,
+        "average3": 33.78,
+        "recordedScore": 1002,
+        "recordedDarts": 89,
+        "players": [
+          {
+            "id": "23bi",
+            "name": "Mario",
+            "teamId": "uyKo",
+            "score": 643,
+            "darts": 47,
+            "first9Score": 422,
+            "first9Darts": 18,
+            "visits100": 2,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 2,
+            "finishes": [
+              {
+                "leg": 1,
+                "value": 2,
+                "darts": 3,
+                "matchId": "t_sEW0_8920_rr_0_VABJ_uyKo"
+              },
+              {
+                "leg": 2,
+                "value": 2,
+                "darts": 2,
+                "matchId": "t_sEW0_8920_rr_0_VABJ_uyKo"
+              }
+            ],
+            "average3": 41.04,
+            "first9": 70.33,
+            "bestFinish": 2
+          },
+          {
+            "id": "zv4q",
+            "name": "Dominique",
+            "teamId": "uyKo",
+            "score": 359,
+            "darts": 42,
+            "first9Score": 223,
+            "first9Darts": 18,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 1,
+            "finishes": [],
+            "average3": 25.64,
+            "first9": 37.17,
+            "bestFinish": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "t_sEW0_8920_rr_0_ZYTs_wt4Y",
+      "phase": "Poule",
+      "startedAt": 1791568095,
+      "legs": 2,
+      "teamA": {
+        "teamId": "ZYTs",
+        "name": "Kévin / Alexandre",
+        "score": 2,
+        "average3": 53.68,
+        "recordedScore": 1002,
+        "recordedDarts": 56,
+        "players": [
+          {
+            "id": "ziof",
+            "name": "Kévin",
+            "teamId": "ZYTs",
+            "score": 471,
+            "darts": 29,
+            "first9Score": 264,
+            "first9Darts": 18,
+            "visits100": 1,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 0,
+            "finishes": [
+              {
+                "leg": 1,
+                "value": 20,
+                "darts": 2,
+                "matchId": "t_sEW0_8920_rr_0_ZYTs_wt4Y"
+              }
+            ],
+            "average3": 48.72,
+            "first9": 44.0,
+            "bestFinish": 20
+          },
+          {
+            "id": "8p4d",
+            "name": "Aléxandre",
+            "teamId": "ZYTs",
+            "score": 531,
+            "darts": 27,
+            "first9Score": 348,
+            "first9Darts": 18,
+            "visits100": 1,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 0,
+            "finishes": [
+              {
+                "leg": 2,
+                "value": 20,
+                "darts": 3,
+                "matchId": "t_sEW0_8920_rr_0_ZYTs_wt4Y"
+              }
+            ],
+            "average3": 59.0,
+            "first9": 58.0,
+            "bestFinish": 20
+          }
+        ]
+      },
+      "teamB": {
+        "teamId": "wt4Y",
+        "name": "Benjamin / Stephane",
+        "score": 0,
+        "average3": 53.11,
+        "recordedScore": 956,
+        "recordedDarts": 54,
+        "players": [
+          {
+            "id": "xmn3",
+            "name": "Benjamin",
+            "teamId": "wt4Y",
+            "score": 409,
+            "darts": 27,
+            "first9Score": 295,
+            "first9Darts": 18,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 0,
+            "finishes": [],
+            "average3": 45.44,
+            "first9": 49.17,
+            "bestFinish": null
+          },
+          {
+            "id": "g2b2",
+            "name": "Stéphane",
+            "teamId": "wt4Y",
+            "score": 547,
+            "darts": 27,
+            "first9Score": 434,
+            "first9Darts": 18,
+            "visits100": 2,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 1,
+            "finishes": [],
+            "average3": 60.78,
+            "first9": 72.33,
+            "bestFinish": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "t_sEW0_8920_rr_0_6cus_IWoH",
+      "phase": "Poule",
+      "startedAt": 1791568181,
+      "legs": 2,
+      "teamA": {
+        "teamId": "6cus",
+        "name": "Guillaume / Yoann",
+        "score": 2,
+        "average3": 56.72,
+        "recordedScore": 1002,
+        "recordedDarts": 53,
+        "players": [
+          {
+            "id": "pnso",
+            "name": "Yoann",
+            "teamId": "6cus",
+            "score": 615,
+            "darts": 27,
+            "first9Score": 383,
+            "first9Darts": 18,
+            "visits100": 2,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 0,
+            "finishes": [],
+            "average3": 68.33,
+            "first9": 63.83,
+            "bestFinish": null
+          },
+          {
+            "id": "t976",
+            "name": "Guillaume",
+            "teamId": "6cus",
+            "score": 387,
+            "darts": 26,
+            "first9Score": 279,
+            "first9Darts": 18,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 0,
+            "finishes": [
+              {
+                "leg": 1,
+                "value": 40,
+                "darts": 2,
+                "matchId": "t_sEW0_8920_rr_0_6cus_IWoH"
+              },
+              {
+                "leg": 2,
+                "value": 40,
+                "darts": 3,
+                "matchId": "t_sEW0_8920_rr_0_6cus_IWoH"
+              }
+            ],
+            "average3": 44.65,
+            "first9": 46.5,
+            "bestFinish": 40
+          }
+        ]
+      },
+      "teamB": {
+        "teamId": "IWoH",
+        "name": "Kozu / Vincent",
+        "score": 0,
+        "average3": 44.06,
+        "recordedScore": 749,
+        "recordedDarts": 51,
+        "players": [
+          {
+            "id": "cwym",
+            "name": "Kozu",
+            "teamId": "IWoH",
+            "score": 374,
+            "darts": 27,
+            "first9Score": 215,
+            "first9Darts": 18,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 0,
+            "finishes": [],
+            "average3": 41.56,
+            "first9": 35.83,
+            "bestFinish": null
+          },
+          {
+            "id": "srhw",
+            "name": "Vincent",
+            "teamId": "IWoH",
+            "score": 375,
+            "darts": 24,
+            "first9Score": 312,
+            "first9Darts": 18,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 0,
+            "finishes": [],
+            "average3": 46.88,
+            "first9": 52.0,
+            "bestFinish": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "t_sEW0_8920_rr_0_IWoH_uyKo",
+      "phase": "Poule",
+      "startedAt": 1791569555,
+      "legs": 2,
+      "teamA": {
+        "teamId": "IWoH",
+        "name": "Kozu / Vincent",
+        "score": 2,
+        "average3": 50.1,
+        "recordedScore": 1002,
+        "recordedDarts": 60,
+        "players": [
+          {
+            "id": "cwym",
+            "name": "Kozu",
+            "teamId": "IWoH",
+            "score": 532,
+            "darts": 31,
+            "first9Score": 359,
+            "first9Darts": 18,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 0,
+            "finishes": [
+              {
+                "leg": 1,
+                "value": 40,
+                "darts": 1,
+                "matchId": "t_sEW0_8920_rr_0_IWoH_uyKo"
+              }
+            ],
+            "average3": 51.48,
+            "first9": 59.83,
+            "bestFinish": 40
+          },
+          {
+            "id": "srhw",
+            "name": "Vincent",
+            "teamId": "IWoH",
+            "score": 470,
+            "darts": 29,
+            "first9Score": 296,
+            "first9Darts": 18,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 0,
+            "finishes": [
+              {
+                "leg": 2,
+                "value": 68,
+                "darts": 2,
+                "matchId": "t_sEW0_8920_rr_0_IWoH_uyKo"
+              }
+            ],
+            "average3": 48.62,
+            "first9": 49.33,
+            "bestFinish": 68
+          }
+        ]
+      },
+      "teamB": {
+        "teamId": "uyKo",
+        "name": "Dominique / Mario",
+        "score": 0,
+        "average3": 45.75,
+        "recordedScore": 915,
+        "recordedDarts": 60,
+        "players": [
+          {
+            "id": "23bi",
+            "name": "Mario",
+            "teamId": "uyKo",
+            "score": 519,
+            "darts": 30,
+            "first9Score": 335,
+            "first9Darts": 18,
+            "visits100": 2,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 1,
+            "finishes": [],
+            "average3": 51.9,
+            "first9": 55.83,
+            "bestFinish": null
+          },
+          {
+            "id": "zv4q",
+            "name": "Dominique",
+            "teamId": "uyKo",
+            "score": 396,
+            "darts": 30,
+            "first9Score": 223,
+            "first9Darts": 18,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 0,
+            "finishes": [],
+            "average3": 39.6,
+            "first9": 37.17,
+            "bestFinish": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "t_sEW0_8920_rr_0_VABJ_fgmb",
+      "phase": "Poule",
+      "startedAt": 1791569948,
+      "legs": 2,
+      "teamA": {
+        "teamId": "VABJ",
+        "name": "Nicolas / Laurent",
+        "score": 2,
+        "average3": 33.4,
+        "recordedScore": 1002,
+        "recordedDarts": 90,
+        "players": [
+          {
+            "id": "txnr",
+            "name": "Nicolas",
+            "teamId": "VABJ",
+            "score": 608,
+            "darts": 46,
+            "first9Score": 213,
+            "first9Darts": 18,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 2,
+            "finishes": [
+              {
+                "leg": 1,
+                "value": 10,
+                "darts": 1,
+                "matchId": "t_sEW0_8920_rr_0_VABJ_fgmb"
+              }
+            ],
+            "average3": 39.65,
+            "first9": 35.5,
+            "bestFinish": 10
+          },
+          {
+            "id": "zczg",
+            "name": "Laurent",
+            "teamId": "VABJ",
+            "score": 394,
+            "darts": 44,
+            "first9Score": 264,
+            "first9Darts": 18,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 3,
+            "finishes": [
+              {
+                "leg": 2,
+                "value": 8,
+                "darts": 2,
+                "matchId": "t_sEW0_8920_rr_0_VABJ_fgmb"
+              }
+            ],
+            "average3": 26.86,
+            "first9": 44.0,
+            "bestFinish": 8
+          }
+        ]
+      },
+      "teamB": {
+        "teamId": "fgmb",
+        "name": "Coralie / Maxime",
+        "score": 0,
+        "average3": 33.0,
+        "recordedScore": 990,
+        "recordedDarts": 90,
+        "players": [
+          {
+            "id": "t5g8",
+            "name": "Maxime",
+            "teamId": "fgmb",
+            "score": 509,
+            "darts": 45,
+            "first9Score": 218,
+            "first9Darts": 18,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 2,
+            "finishes": [],
+            "average3": 33.93,
+            "first9": 36.33,
+            "bestFinish": null
+          },
+          {
+            "id": "0yqv",
+            "name": "Coralie",
+            "teamId": "fgmb",
+            "score": 481,
+            "darts": 45,
+            "first9Score": 213,
+            "first9Darts": 18,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 2,
+            "finishes": [],
+            "average3": 32.07,
+            "first9": 35.5,
+            "bestFinish": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "t_sEW0_8920_rr_0_6cus_ZYTs",
+      "phase": "Poule",
+      "startedAt": 1791570230,
+      "legs": 2,
+      "teamA": {
+        "teamId": "6cus",
+        "name": "Guillaume / Yoann",
+        "score": 0,
+        "average3": 50.63,
+        "recordedScore": 962,
+        "recordedDarts": 57,
+        "players": [
+          {
+            "id": "pnso",
+            "name": "Yoann",
+            "teamId": "6cus",
+            "score": 504,
+            "darts": 30,
+            "first9Score": 296,
+            "first9Darts": 18,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 0,
+            "finishes": [],
+            "average3": 50.4,
+            "first9": 49.33,
+            "bestFinish": null
+          },
+          {
+            "id": "t976",
+            "name": "Guillaume",
+            "teamId": "6cus",
+            "score": 458,
+            "darts": 27,
+            "first9Score": 400,
+            "first9Darts": 18,
+            "visits100": 1,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 0,
+            "finishes": [],
+            "average3": 50.89,
+            "first9": 66.67,
+            "bestFinish": null
+          }
+        ]
+      },
+      "teamB": {
+        "teamId": "ZYTs",
+        "name": "Kévin / Alexandre",
+        "score": 2,
+        "average3": 50.95,
+        "recordedScore": 1002,
+        "recordedDarts": 59,
+        "players": [
+          {
+            "id": "ziof",
+            "name": "Kévin",
+            "teamId": "ZYTs",
+            "score": 606,
+            "darts": 32,
+            "first9Score": 303,
+            "first9Darts": 18,
+            "visits100": 2,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 0,
+            "finishes": [
+              {
+                "leg": 1,
+                "value": 4,
+                "darts": 2,
+                "matchId": "t_sEW0_8920_rr_0_6cus_ZYTs"
+              },
+              {
+                "leg": 2,
+                "value": 50,
+                "darts": 3,
+                "matchId": "t_sEW0_8920_rr_0_6cus_ZYTs"
+              }
+            ],
+            "average3": 56.81,
+            "first9": 50.5,
+            "bestFinish": 50
+          },
+          {
+            "id": "8p4d",
+            "name": "Aléxandre",
+            "teamId": "ZYTs",
+            "score": 396,
+            "darts": 27,
+            "first9Score": 309,
+            "first9Darts": 18,
+            "visits100": 0,
+            "visits140": 1,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 0,
+            "finishes": [],
+            "average3": 44.0,
+            "first9": 51.5,
+            "bestFinish": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "t_sEW0_8920_t_0_6cus_ZYTs",
+      "phase": "Demi-finale",
+      "startedAt": 1791572222,
+      "legs": 3,
+      "teamA": {
+        "teamId": "6cus",
+        "name": "Guillaume / Yoann",
+        "score": 0,
+        "average3": 55.25,
+        "recordedScore": 1326,
+        "recordedDarts": 72,
+        "players": [
+          {
+            "id": "pnso",
+            "name": "Yoann",
+            "teamId": "6cus",
+            "score": 782,
+            "darts": 36,
+            "first9Score": 682,
+            "first9Darts": 27,
+            "visits100": 2,
+            "visits140": 1,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 1,
+            "finishes": [],
+            "average3": 65.17,
+            "first9": 75.78,
+            "bestFinish": null
+          },
+          {
+            "id": "t976",
+            "name": "Guillaume",
+            "teamId": "6cus",
+            "score": 544,
+            "darts": 36,
+            "first9Score": 419,
+            "first9Darts": 27,
+            "visits100": 0,
+            "visits140": 1,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 1,
+            "finishes": [],
+            "average3": 45.33,
+            "first9": 46.56,
+            "bestFinish": null
+          }
+        ]
+      },
+      "teamB": {
+        "teamId": "ZYTs",
+        "name": "Kévin / Alexandre",
+        "score": 3,
+        "average3": 61.77,
+        "recordedScore": 1503,
+        "recordedDarts": 73,
+        "players": [
+          {
+            "id": "ziof",
+            "name": "Kévin",
+            "teamId": "ZYTs",
+            "score": 761,
+            "darts": 37,
+            "first9Score": 508,
+            "first9Darts": 27,
+            "visits100": 1,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 0,
+            "finishes": [
+              {
+                "leg": 2,
+                "value": 20,
+                "darts": 1,
+                "matchId": "t_sEW0_8920_t_0_6cus_ZYTs"
+              }
+            ],
+            "average3": 61.7,
+            "first9": 56.44,
+            "bestFinish": 20
+          },
+          {
+            "id": "8p4d",
+            "name": "Aléxandre",
+            "teamId": "ZYTs",
+            "score": 742,
+            "darts": 36,
+            "first9Score": 571,
+            "first9Darts": 27,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 0,
+            "finishes": [
+              {
+                "leg": 1,
+                "value": 89,
+                "darts": 3,
+                "matchId": "t_sEW0_8920_t_0_6cus_ZYTs"
+              },
+              {
+                "leg": 3,
+                "value": 22,
+                "darts": 3,
+                "matchId": "t_sEW0_8920_t_0_6cus_ZYTs"
+              }
+            ],
+            "average3": 61.83,
+            "first9": 63.44,
+            "bestFinish": 89
+          }
+        ]
+      }
+    },
+    {
+      "id": "t_sEW0_8920_t_0_IWoH_wt4Y",
+      "phase": "Demi-finale",
+      "startedAt": 1791572432,
+      "legs": 5,
+      "teamA": {
+        "teamId": "IWoH",
+        "name": "Kozu / Vincent",
+        "score": 3,
+        "average3": 47.63,
+        "recordedScore": 2445,
+        "recordedDarts": 154,
+        "players": [
+          {
+            "id": "cwym",
+            "name": "Kozu",
+            "teamId": "IWoH",
+            "score": 1220,
+            "darts": 81,
+            "first9Score": 743,
+            "first9Darts": 45,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 0,
+            "finishes": [],
+            "average3": 45.19,
+            "first9": 49.53,
+            "bestFinish": null
+          },
+          {
+            "id": "srhw",
+            "name": "Vincent",
+            "teamId": "IWoH",
+            "score": 1225,
+            "darts": 73,
+            "first9Score": 706,
+            "first9Darts": 45,
+            "visits100": 1,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 0,
+            "finishes": [
+              {
+                "leg": 1,
+                "value": 82,
+                "darts": 3,
+                "matchId": "t_sEW0_8920_t_0_IWoH_wt4Y"
+              },
+              {
+                "leg": 3,
+                "value": 72,
+                "darts": 2,
+                "matchId": "t_sEW0_8920_t_0_IWoH_wt4Y"
+              },
+              {
+                "leg": 5,
+                "value": 10,
+                "darts": 2,
+                "matchId": "t_sEW0_8920_t_0_IWoH_wt4Y"
+              }
+            ],
+            "average3": 50.34,
+            "first9": 47.07,
+            "bestFinish": 82
+          }
+        ]
+      },
+      "teamB": {
+        "teamId": "wt4Y",
+        "name": "Benjamin / Stephane",
+        "score": 2,
+        "average3": 48.0,
+        "recordedScore": 2384,
+        "recordedDarts": 149,
+        "players": [
+          {
+            "id": "xmn3",
+            "name": "Benjamin",
+            "teamId": "wt4Y",
+            "score": 1010,
+            "darts": 81,
+            "first9Score": 715,
+            "first9Darts": 45,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 3,
+            "finishes": [],
+            "average3": 37.41,
+            "first9": 47.67,
+            "bestFinish": null
+          },
+          {
+            "id": "g2b2",
+            "name": "Stéphane",
+            "teamId": "wt4Y",
+            "score": 1374,
+            "darts": 68,
+            "first9Score": 906,
+            "first9Darts": 45,
+            "visits100": 1,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 0,
+            "finishes": [
+              {
+                "leg": 2,
+                "value": 8,
+                "darts": 1,
+                "matchId": "t_sEW0_8920_t_0_IWoH_wt4Y"
+              },
+              {
+                "leg": 4,
+                "value": 8,
+                "darts": 1,
+                "matchId": "t_sEW0_8920_t_0_IWoH_wt4Y"
+              }
+            ],
+            "average3": 60.62,
+            "first9": 60.4,
+            "bestFinish": 8
+          }
+        ]
+      }
+    },
+    {
+      "id": "t_sEW0_8920_t_1_IWoH_ZYTs",
+      "phase": "Finale",
+      "startedAt": 1791575184,
+      "legs": 5,
+      "teamA": {
+        "teamId": "IWoH",
+        "name": "Kozu / Vincent",
+        "score": 3,
+        "average3": 48.62,
+        "recordedScore": 2366,
+        "recordedDarts": 146,
+        "players": [
+          {
+            "id": "cwym",
+            "name": "Kozu",
+            "teamId": "IWoH",
+            "score": 1122,
+            "darts": 78,
+            "first9Score": 732,
+            "first9Darts": 45,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 1,
+            "finishes": [],
+            "average3": 43.15,
+            "first9": 48.8,
+            "bestFinish": null
+          },
+          {
+            "id": "srhw",
+            "name": "Vincent",
+            "teamId": "IWoH",
+            "score": 1244,
+            "darts": 68,
+            "first9Score": 898,
+            "first9Darts": 45,
+            "visits100": 1,
+            "visits140": 1,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 0,
+            "finishes": [
+              {
+                "leg": 1,
+                "value": 10,
+                "darts": 3,
+                "matchId": "t_sEW0_8920_t_1_IWoH_ZYTs"
+              },
+              {
+                "leg": 4,
+                "value": 10,
+                "darts": 1,
+                "matchId": "t_sEW0_8920_t_1_IWoH_ZYTs"
+              },
+              {
+                "leg": 5,
+                "value": 16,
+                "darts": 1,
+                "matchId": "t_sEW0_8920_t_1_IWoH_ZYTs"
+              }
+            ],
+            "average3": 54.88,
+            "first9": 59.87,
+            "bestFinish": 16
+          }
+        ]
+      },
+      "teamB": {
+        "teamId": "ZYTs",
+        "name": "Kévin / Alexandre",
+        "score": 2,
+        "average3": 49.62,
+        "recordedScore": 2448,
+        "recordedDarts": 148,
+        "players": [
+          {
+            "id": "ziof",
+            "name": "Kévin",
+            "teamId": "ZYTs",
+            "score": 1161,
+            "darts": 76,
+            "first9Score": 741,
+            "first9Darts": 45,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 1,
+            "finishes": [
+              {
+                "leg": 2,
+                "value": 36,
+                "darts": 1,
+                "matchId": "t_sEW0_8920_t_1_IWoH_ZYTs"
+              }
+            ],
+            "average3": 45.83,
+            "first9": 49.4,
+            "bestFinish": 36
+          },
+          {
+            "id": "8p4d",
+            "name": "Aléxandre",
+            "teamId": "ZYTs",
+            "score": 1287,
+            "darts": 72,
+            "first9Score": 849,
+            "first9Darts": 45,
+            "visits100": 4,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 0,
+            "finishes": [
+              {
+                "leg": 3,
+                "value": 30,
+                "darts": 3,
+                "matchId": "t_sEW0_8920_t_1_IWoH_ZYTs"
+              }
+            ],
+            "average3": 53.62,
+            "first9": 56.6,
+            "bestFinish": 30
+          }
+        ]
+      }
+    },
+    {
+      "id": "t_sEW0_8920_t3_0_6cus_wt4Y",
+      "phase": "3e place",
+      "startedAt": 1791575205,
+      "legs": 3,
+      "teamA": {
+        "teamId": "6cus",
+        "name": "Guillaume / Yoann",
+        "score": 0,
+        "average3": 51.33,
+        "recordedScore": 1386,
+        "recordedDarts": 81,
+        "players": [
+          {
+            "id": "pnso",
+            "name": "Yoann",
+            "teamId": "6cus",
+            "score": 977,
+            "darts": 42,
+            "first9Score": 755,
+            "first9Darts": 27,
+            "visits100": 3,
+            "visits140": 1,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 2,
+            "finishes": [],
+            "average3": 69.79,
+            "first9": 83.89,
+            "bestFinish": null
+          },
+          {
+            "id": "t976",
+            "name": "Guillaume",
+            "teamId": "6cus",
+            "score": 409,
+            "darts": 39,
+            "first9Score": 271,
+            "first9Darts": 27,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 0,
+            "finishes": [],
+            "average3": 31.46,
+            "first9": 30.11,
+            "bestFinish": null
+          }
+        ]
+      },
+      "teamB": {
+        "teamId": "wt4Y",
+        "name": "Benjamin / Stephane",
+        "score": 3,
+        "average3": 54.33,
+        "recordedScore": 1503,
+        "recordedDarts": 83,
+        "players": [
+          {
+            "id": "xmn3",
+            "name": "Benjamin",
+            "teamId": "wt4Y",
+            "score": 649,
+            "darts": 45,
+            "first9Score": 504,
+            "first9Darts": 27,
+            "visits100": 0,
+            "visits140": 0,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 0,
+            "finishes": [
+              {
+                "leg": 1,
+                "value": 12,
+                "darts": 3,
+                "matchId": "t_sEW0_8920_t3_0_6cus_wt4Y"
+              },
+              {
+                "leg": 2,
+                "value": 20,
+                "darts": 3,
+                "matchId": "t_sEW0_8920_t3_0_6cus_wt4Y"
+              }
+            ],
+            "average3": 43.27,
+            "first9": 56.0,
+            "bestFinish": 20
+          },
+          {
+            "id": "g2b2",
+            "name": "Stéphane",
+            "teamId": "wt4Y",
+            "score": 854,
+            "darts": 38,
+            "first9Score": 571,
+            "first9Darts": 27,
+            "visits100": 1,
+            "visits140": 1,
+            "visits170": 0,
+            "visits180": 0,
+            "zeroVisits": 0,
+            "finishes": [
+              {
+                "leg": 3,
+                "value": 60,
+                "darts": 2,
+                "matchId": "t_sEW0_8920_t3_0_6cus_wt4Y"
+              }
+            ],
+            "average3": 67.42,
+            "first9": 63.44,
+            "bestFinish": 60
+          }
+        ]
+      }
+    }
+  ],
+  "playerStats": [
+    {
+      "id": "pnso",
+      "name": "Yoann",
+      "teamId": "6cus",
+      "score": 5959,
+      "darts": 285,
+      "first9Score": 4118,
+      "first9Darts": 180,
+      "visits100": 11,
+      "visits140": 6,
+      "visits170": 0,
+      "visits180": 0,
+      "zeroVisits": 3,
+      "finishes": [
+        {
+          "leg": 1,
+          "value": 125,
+          "darts": 3,
+          "matchId": "t_sEW0_8920_rr_0_6cus_fgmb"
+        },
+        {
+          "leg": 3,
+          "value": 20,
+          "darts": 3,
+          "matchId": "t_sEW0_8920_rr_0_6cus_uyKo"
+        }
+      ],
+      "average3": 62.73,
+      "first9": 68.63,
+      "bestFinish": 125,
+      "matches": 8,
+      "legs": 20,
+      "contribution": 62.3
+    },
+    {
+      "id": "g2b2",
+      "name": "Stéphane",
+      "teamId": "wt4Y",
+      "score": 5750,
+      "darts": 329,
+      "first9Score": 3865,
+      "first9Darts": 198,
+      "visits100": 8,
+      "visits140": 1,
+      "visits170": 0,
+      "visits180": 0,
+      "zeroVisits": 5,
+      "finishes": [
+        {
+          "leg": 1,
+          "value": 12,
+          "darts": 2,
+          "matchId": "t_sEW0_8920_rr_0_VABJ_wt4Y"
+        },
+        {
+          "leg": 3,
+          "value": 16,
+          "darts": 2,
+          "matchId": "t_sEW0_8920_rr_0_VABJ_wt4Y"
+        },
+        {
+          "leg": 1,
+          "value": 55,
+          "darts": 2,
+          "matchId": "t_sEW0_8920_rr_0_6cus_wt4Y"
+        },
+        {
+          "leg": 2,
+          "value": 49,
+          "darts": 3,
+          "matchId": "t_sEW0_8920_rr_0_6cus_wt4Y"
+        },
+        {
+          "leg": 1,
+          "value": 8,
+          "darts": 1,
+          "matchId": "t_sEW0_8920_rr_0_fgmb_wt4Y"
+        },
+        {
+          "leg": 2,
+          "value": 74,
+          "darts": 3,
+          "matchId": "t_sEW0_8920_rr_0_fgmb_wt4Y"
+        },
+        {
+          "leg": 1,
+          "value": 66,
+          "darts": 3,
+          "matchId": "t_sEW0_8920_rr_0_uyKo_wt4Y"
+        },
+        {
+          "leg": 2,
+          "value": 20,
+          "darts": 2,
+          "matchId": "t_sEW0_8920_rr_0_uyKo_wt4Y"
+        },
+        {
+          "leg": 2,
+          "value": 4,
+          "darts": 1,
+          "matchId": "t_sEW0_8920_rr_0_IWoH_wt4Y"
+        },
+        {
+          "leg": 2,
+          "value": 8,
+          "darts": 1,
+          "matchId": "t_sEW0_8920_t_0_IWoH_wt4Y"
+        },
+        {
+          "leg": 4,
+          "value": 8,
+          "darts": 1,
+          "matchId": "t_sEW0_8920_t_0_IWoH_wt4Y"
+        },
+        {
+          "leg": 3,
+          "value": 60,
+          "darts": 2,
+          "matchId": "t_sEW0_8920_t3_0_6cus_wt4Y"
+        }
+      ],
+      "average3": 52.43,
+      "first9": 58.56,
+      "bestFinish": 74,
+      "matches": 8,
+      "legs": 22,
+      "contribution": 53.3
+    },
+    {
+      "id": "8p4d",
+      "name": "Aléxandre",
+      "teamId": "ZYTs",
+      "score": 5145,
+      "darts": 317,
+      "first9Score": 3514,
+      "first9Darts": 189,
+      "visits100": 7,
+      "visits140": 2,
+      "visits170": 0,
+      "visits180": 0,
+      "zeroVisits": 7,
+      "finishes": [
+        {
+          "leg": 1,
+          "value": 20,
+          "darts": 1,
+          "matchId": "t_sEW0_8920_rr_0_VABJ_ZYTs"
+        },
+        {
+          "leg": 2,
+          "value": 20,
+          "darts": 3,
+          "matchId": "t_sEW0_8920_rr_0_ZYTs_wt4Y"
+        },
+        {
+          "leg": 2,
+          "value": 50,
+          "darts": 2,
+          "matchId": "t_sEW0_8920_rr_0_ZYTs_fgmb"
+        },
+        {
+          "leg": 1,
+          "value": 40,
+          "darts": 2,
+          "matchId": "t_sEW0_8920_rr_0_ZYTs_uyKo"
+        },
+        {
+          "leg": 1,
+          "value": 8,
+          "darts": 3,
+          "matchId": "t_sEW0_8920_rr_0_IWoH_ZYTs"
+        },
+        {
+          "leg": 2,
+          "value": 40,
+          "darts": 3,
+          "matchId": "t_sEW0_8920_rr_0_IWoH_ZYTs"
+        },
+        {
+          "leg": 1,
+          "value": 89,
+          "darts": 3,
+          "matchId": "t_sEW0_8920_t_0_6cus_ZYTs"
+        },
+        {
+          "leg": 3,
+          "value": 22,
+          "darts": 3,
+          "matchId": "t_sEW0_8920_t_0_6cus_ZYTs"
+        },
+        {
+          "leg": 3,
+          "value": 30,
+          "darts": 3,
+          "matchId": "t_sEW0_8920_t_1_IWoH_ZYTs"
+        }
+      ],
+      "average3": 48.69,
+      "first9": 55.78,
+      "bestFinish": 89,
+      "matches": 8,
+      "legs": 21,
+      "contribution": 49.2
+    },
+    {
+      "id": "ziof",
+      "name": "Kévin",
+      "teamId": "ZYTs",
+      "score": 5317,
+      "darts": 339,
+      "first9Score": 3227,
+      "first9Darts": 189,
+      "visits100": 8,
+      "visits140": 0,
+      "visits170": 0,
+      "visits180": 0,
+      "zeroVisits": 5,
+      "finishes": [
+        {
+          "leg": 2,
+          "value": 16,
+          "darts": 1,
+          "matchId": "t_sEW0_8920_rr_0_VABJ_ZYTs"
+        },
+        {
+          "leg": 1,
+          "value": 20,
+          "darts": 2,
+          "matchId": "t_sEW0_8920_rr_0_ZYTs_wt4Y"
+        },
+        {
+          "leg": 1,
+          "value": 4,
+          "darts": 2,
+          "matchId": "t_sEW0_8920_rr_0_6cus_ZYTs"
+        },
+        {
+          "leg": 2,
+          "value": 50,
+          "darts": 3,
+          "matchId": "t_sEW0_8920_rr_0_6cus_ZYTs"
+        },
+        {
+          "leg": 3,
+          "value": 4,
+          "darts": 1,
+          "matchId": "t_sEW0_8920_rr_0_ZYTs_fgmb"
+        },
+        {
+          "leg": 2,
+          "value": 2,
+          "darts": 1,
+          "matchId": "t_sEW0_8920_rr_0_ZYTs_uyKo"
+        },
+        {
+          "leg": 2,
+          "value": 20,
+          "darts": 1,
+          "matchId": "t_sEW0_8920_t_0_6cus_ZYTs"
+        },
+        {
+          "leg": 2,
+          "value": 36,
+          "darts": 1,
+          "matchId": "t_sEW0_8920_t_1_IWoH_ZYTs"
+        }
+      ],
+      "average3": 47.05,
+      "first9": 51.22,
+      "bestFinish": 50,
+      "matches": 8,
+      "legs": 21,
+      "contribution": 50.8
+    },
+    {
+      "id": "srhw",
+      "name": "Vincent",
+      "teamId": "IWoH",
+      "score": 5178,
+      "darts": 334,
+      "first9Score": 3474,
+      "first9Darts": 207,
+      "visits100": 2,
+      "visits140": 1,
+      "visits170": 0,
+      "visits180": 0,
+      "zeroVisits": 4,
+      "finishes": [
+        {
+          "leg": 1,
+          "value": 4,
+          "darts": 2,
+          "matchId": "t_sEW0_8920_rr_0_IWoH_wt4Y"
+        },
+        {
+          "leg": 2,
+          "value": 68,
+          "darts": 2,
+          "matchId": "t_sEW0_8920_rr_0_IWoH_uyKo"
+        },
+        {
+          "leg": 1,
+          "value": 82,
+          "darts": 3,
+          "matchId": "t_sEW0_8920_t_0_IWoH_wt4Y"
+        },
+        {
+          "leg": 3,
+          "value": 72,
+          "darts": 2,
+          "matchId": "t_sEW0_8920_t_0_IWoH_wt4Y"
+        },
+        {
+          "leg": 5,
+          "value": 10,
+          "darts": 2,
+          "matchId": "t_sEW0_8920_t_0_IWoH_wt4Y"
+        },
+        {
+          "leg": 1,
+          "value": 10,
+          "darts": 3,
+          "matchId": "t_sEW0_8920_t_1_IWoH_ZYTs"
+        },
+        {
+          "leg": 4,
+          "value": 10,
+          "darts": 1,
+          "matchId": "t_sEW0_8920_t_1_IWoH_ZYTs"
+        },
+        {
+          "leg": 5,
+          "value": 16,
+          "darts": 1,
+          "matchId": "t_sEW0_8920_t_1_IWoH_ZYTs"
+        }
+      ],
+      "average3": 46.51,
+      "first9": 50.35,
+      "bestFinish": 82,
+      "matches": 8,
+      "legs": 23,
+      "contribution": 47.4
+    },
+    {
+      "id": "cwym",
+      "name": "Kozu",
+      "teamId": "IWoH",
+      "score": 5741,
+      "darts": 377,
+      "first9Score": 3361,
+      "first9Darts": 207,
+      "visits100": 1,
+      "visits140": 0,
+      "visits170": 0,
+      "visits180": 0,
+      "zeroVisits": 2,
+      "finishes": [
+        {
+          "leg": 1,
+          "value": 40,
+          "darts": 2,
+          "matchId": "t_sEW0_8920_rr_0_IWoH_VABJ"
+        },
+        {
+          "leg": 2,
+          "value": 4,
+          "darts": 2,
+          "matchId": "t_sEW0_8920_rr_0_IWoH_VABJ"
+        },
+        {
+          "leg": 3,
+          "value": 56,
+          "darts": 3,
+          "matchId": "t_sEW0_8920_rr_0_IWoH_wt4Y"
+        },
+        {
+          "leg": 1,
+          "value": 78,
+          "darts": 3,
+          "matchId": "t_sEW0_8920_rr_0_IWoH_fgmb"
+        },
+        {
+          "leg": 2,
+          "value": 63,
+          "darts": 3,
+          "matchId": "t_sEW0_8920_rr_0_IWoH_fgmb"
+        },
+        {
+          "leg": 1,
+          "value": 40,
+          "darts": 1,
+          "matchId": "t_sEW0_8920_rr_0_IWoH_uyKo"
+        }
+      ],
+      "average3": 45.68,
+      "first9": 48.71,
+      "bestFinish": 78,
+      "matches": 8,
+      "legs": 23,
+      "contribution": 52.6
+    },
+    {
+      "id": "xmn3",
+      "name": "Benjamin",
+      "teamId": "wt4Y",
+      "score": 5040,
+      "darts": 360,
+      "first9Score": 3416,
+      "first9Darts": 198,
+      "visits100": 5,
+      "visits140": 0,
+      "visits170": 0,
+      "visits180": 0,
+      "zeroVisits": 8,
+      "finishes": [
+        {
+          "leg": 1,
+          "value": 12,
+          "darts": 3,
+          "matchId": "t_sEW0_8920_t3_0_6cus_wt4Y"
+        },
+        {
+          "leg": 2,
+          "value": 20,
+          "darts": 3,
+          "matchId": "t_sEW0_8920_t3_0_6cus_wt4Y"
+        }
+      ],
+      "average3": 42.0,
+      "first9": 51.76,
+      "bestFinish": 20,
+      "matches": 8,
+      "legs": 22,
+      "contribution": 46.7
+    },
+    {
+      "id": "txnr",
+      "name": "Nicolas",
+      "teamId": "VABJ",
+      "score": 3710,
+      "darts": 266,
+      "first9Score": 2086,
+      "first9Darts": 126,
+      "visits100": 2,
+      "visits140": 1,
+      "visits170": 0,
+      "visits180": 0,
+      "zeroVisits": 4,
+      "finishes": [
+        {
+          "leg": 2,
+          "value": 10,
+          "darts": 1,
+          "matchId": "t_sEW0_8920_rr_0_6cus_VABJ"
+        },
+        {
+          "leg": 1,
+          "value": 10,
+          "darts": 1,
+          "matchId": "t_sEW0_8920_rr_0_VABJ_fgmb"
+        }
+      ],
+      "average3": 41.84,
+      "first9": 49.67,
+      "bestFinish": 10,
+      "matches": 6,
+      "legs": 14,
+      "contribution": 55.5
+    },
+    {
+      "id": "23bi",
+      "name": "Mario",
+      "teamId": "uyKo",
+      "score": 3562,
+      "darts": 258,
+      "first9Score": 2088,
+      "first9Darts": 126,
+      "visits100": 7,
+      "visits140": 0,
+      "visits170": 0,
+      "visits180": 0,
+      "zeroVisits": 8,
+      "finishes": [
+        {
+          "leg": 1,
+          "value": 2,
+          "darts": 3,
+          "matchId": "t_sEW0_8920_rr_0_VABJ_uyKo"
+        },
+        {
+          "leg": 2,
+          "value": 2,
+          "darts": 2,
+          "matchId": "t_sEW0_8920_rr_0_VABJ_uyKo"
+        },
+        {
+          "leg": 2,
+          "value": 46,
+          "darts": 2,
+          "matchId": "t_sEW0_8920_rr_0_6cus_uyKo"
+        },
+        {
+          "leg": 2,
+          "value": 20,
+          "darts": 2,
+          "matchId": "t_sEW0_8920_rr_0_fgmb_uyKo"
+        }
+      ],
+      "average3": 41.42,
+      "first9": 49.71,
+      "bestFinish": 46,
+      "matches": 6,
+      "legs": 14,
+      "contribution": 53.4
+    },
+    {
+      "id": "t976",
+      "name": "Guillaume",
+      "teamId": "6cus",
+      "score": 3609,
+      "darts": 263,
+      "first9Score": 2694,
+      "first9Darts": 180,
+      "visits100": 2,
+      "visits140": 1,
+      "visits170": 0,
+      "visits180": 0,
+      "zeroVisits": 5,
+      "finishes": [
+        {
+          "leg": 1,
+          "value": 40,
+          "darts": 1,
+          "matchId": "t_sEW0_8920_rr_0_6cus_VABJ"
+        },
+        {
+          "leg": 2,
+          "value": 40,
+          "darts": 1,
+          "matchId": "t_sEW0_8920_rr_0_6cus_fgmb"
+        },
+        {
+          "leg": 1,
+          "value": 2,
+          "darts": 1,
+          "matchId": "t_sEW0_8920_rr_0_6cus_uyKo"
+        },
+        {
+          "leg": 1,
+          "value": 40,
+          "darts": 2,
+          "matchId": "t_sEW0_8920_rr_0_6cus_IWoH"
+        },
+        {
+          "leg": 2,
+          "value": 40,
+          "darts": 3,
+          "matchId": "t_sEW0_8920_rr_0_6cus_IWoH"
+        }
+      ],
+      "average3": 41.17,
+      "first9": 44.9,
+      "bestFinish": 40,
+      "matches": 8,
+      "legs": 20,
+      "contribution": 37.7
+    },
+    {
+      "id": "t5g8",
+      "name": "Maxime",
+      "teamId": "fgmb",
+      "score": 3427,
+      "darts": 251,
+      "first9Score": 1843,
+      "first9Darts": 126,
+      "visits100": 1,
+      "visits140": 0,
+      "visits170": 0,
+      "visits180": 0,
+      "zeroVisits": 4,
+      "finishes": [
+        {
+          "leg": 3,
+          "value": 30,
+          "darts": 1,
+          "matchId": "t_sEW0_8920_rr_0_fgmb_uyKo"
+        },
+        {
+          "leg": 1,
+          "value": 8,
+          "darts": 1,
+          "matchId": "t_sEW0_8920_rr_0_ZYTs_fgmb"
+        }
+      ],
+      "average3": 40.96,
+      "first9": 43.88,
+      "bestFinish": 30,
+      "matches": 6,
+      "legs": 14,
+      "contribution": 58.6
+    },
+    {
+      "id": "zv4q",
+      "name": "Dominique",
+      "teamId": "uyKo",
+      "score": 3104,
+      "darts": 234,
+      "first9Score": 1886,
+      "first9Darts": 126,
+      "visits100": 0,
+      "visits140": 2,
+      "visits170": 0,
+      "visits180": 0,
+      "zeroVisits": 4,
+      "finishes": [],
+      "average3": 39.79,
+      "first9": 44.9,
+      "bestFinish": null,
+      "matches": 6,
+      "legs": 14,
+      "contribution": 46.6
+    },
+    {
+      "id": "zczg",
+      "name": "Laurent",
+      "teamId": "VABJ",
+      "score": 2980,
+      "darts": 253,
+      "first9Score": 1896,
+      "first9Darts": 126,
+      "visits100": 2,
+      "visits140": 0,
+      "visits170": 0,
+      "visits180": 0,
+      "zeroVisits": 9,
+      "finishes": [
+        {
+          "leg": 2,
+          "value": 2,
+          "darts": 3,
+          "matchId": "t_sEW0_8920_rr_0_VABJ_wt4Y"
+        },
+        {
+          "leg": 3,
+          "value": 42,
+          "darts": 2,
+          "matchId": "t_sEW0_8920_rr_0_6cus_VABJ"
+        },
+        {
+          "leg": 2,
+          "value": 8,
+          "darts": 2,
+          "matchId": "t_sEW0_8920_rr_0_VABJ_fgmb"
+        }
+      ],
+      "average3": 35.34,
+      "first9": 45.14,
+      "bestFinish": 42,
+      "matches": 6,
+      "legs": 14,
+      "contribution": 44.5
+    },
+    {
+      "id": "0yqv",
+      "name": "Coralie",
+      "teamId": "fgmb",
+      "score": 2419,
+      "darts": 235,
+      "first9Score": 1353,
+      "first9Darts": 126,
+      "visits100": 0,
+      "visits140": 0,
+      "visits170": 0,
+      "visits180": 0,
+      "zeroVisits": 4,
+      "finishes": [
+        {
+          "leg": 1,
+          "value": 6,
+          "darts": 1,
+          "matchId": "t_sEW0_8920_rr_0_fgmb_uyKo"
+        }
+      ],
+      "average3": 30.88,
+      "first9": 32.21,
+      "bestFinish": 6,
+      "matches": 6,
+      "legs": 14,
+      "contribution": 41.4
+    }
+  ]
+}

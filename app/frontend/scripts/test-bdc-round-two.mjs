@@ -1,0 +1,45 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+
+const round = JSON.parse(readFileSync(new URL('../lib/bdc-round-two.json', import.meta.url)));
+assert.equal(round.sourceUrl, 'https://n01darts.com/n01/league/season.php?id=t_sEW0_8920');
+assert.equal(round.pointsStatus, 'pending-format-confirmation');
+assert.ok(round.results.every(team => team.points === null), 'Do not award unconfirmed seven-team points');
+assert.equal(round.results.length, 7);
+assert.equal(round.playerStats.length, 14);
+assert.equal(round.matches.length, 25);
+assert.equal(new Set(round.matches.map(match => match.id)).size, 25);
+const pool = round.matches.filter(match => match.phase === 'Poule');
+assert.equal(pool.length, 21);
+assert.equal(new Set(pool.map(match => [match.teamA.teamId, match.teamB.teamId].sort().join(':'))).size, 21);
+for (const team of round.results) {
+  const matches = round.matches.filter(match => [match.teamA.teamId, match.teamB.teamId].includes(team.teamId));
+  const own = match => match.teamA.teamId === team.teamId ? match.teamA : match.teamB;
+  assert.equal(matches.length, team.stats.match);
+  assert.equal(matches.filter(match => match.phase === 'Poule').length, 6);
+  assert.equal(matches.filter(match => match.phase === 'Poule' && own(match).score === 2).length, team.poolWins);
+  assert.equal(matches.reduce((total, match) => total + own(match).recordedScore, 0), team.stats.score);
+  assert.equal(matches.reduce((total, match) => total + own(match).recordedDarts, 0), team.stats.darts);
+  const players = round.playerStats.filter(player => player.teamId === team.teamId);
+  assert.equal(players.length, 2);
+  assert.equal(players.reduce((total, player) => total + player.score, 0), team.stats.score);
+  assert.equal(players.reduce((total, player) => total + player.darts, 0), team.stats.darts);
+}
+assert.equal(round.matches.reduce((total, match) => total + match.legs, 0), 64);
+assert.equal(round.playerStats.reduce((total, player) => total + player.finishes.length, 0), 64);
+const final = round.matches.find(match => match.phase === 'Finale');
+const winner = final.teamA.score > final.teamB.score ? final.teamA : final.teamB;
+assert.equal(winner.name, 'Kozu / Vincent');
+assert.equal(winner.score, 3);
+assert.equal(final.legs, 5);
+assert.deepEqual(round.results.map(team => team.poolWins), [4, 6, 4, 3, 2, 1, 1]);
+assert.deepEqual(round.results.map(team => team.pointsUnderPublishedScale), [11, 9, 8, 7, 4, 3, 3]);
+const yoann = round.playerStats.find(player => player.name === 'Yoann');
+assert.equal(yoann.bestFinish, 125);
+assert.equal(round.playerStats.reduce((total, player) => total + player.visits180, 0), 0);
+const nicolas = round.playerStats.find(player => player.name === 'Nicolas');
+assert.equal(nicolas.average3, 41.84);
+assert.equal(nicolas.score, 3710);
+assert.equal(nicolas.darts, 266);
+assert.equal(round.matches.every(match => match.teamA.score + match.teamB.score === match.legs), true);
+console.log('BDC M2: 25 matches, 64 legs and 14 player totals reconciled; championship points remain pending.');

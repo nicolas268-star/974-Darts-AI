@@ -3,7 +3,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Sidebar } from "@/components/Sidebar";
 import { BdcRoundOne } from "@/components/BdcRoundOne";
-import { BDC_ROUNDS, BDC_RESULTS, BDC_RULES_URL, bdcDate, bdcStandings } from "@/lib/bdc";
+import { BdcRoundTwo } from "@/components/BdcRoundTwo";
+import { BDC_ROUNDS, BDC_RESULTS, BDC_ROUND_REPORTS, BDC_RULES_URL, bdcDate, bdcStandings } from "@/lib/bdc";
 import "../../competitions/competition-hub.css";
 import "./bdc.css";
 
@@ -22,21 +23,22 @@ export default function BdcPage() {
         <h1>Blind Draw Championship</h1>
         <p>Six manches en double. Un classement individuel.</p>
         <div className="bdc-tags"><span>Nouveau tirage à chaque manche</span><span>501 · Double Out</span><span>Sept. 2026 → fév. 2027</span></div>
-        <nav className="bdc-links" aria-label="Dans le BDC"><a href="#resultats-manche-1">Résultats et statistiques M1</a><a href="#classement">Classement individuel</a><a href="#manches">Les manches</a><a href="#bareme">Barème</a></nav>
+        <nav className="bdc-links" aria-label="Dans le BDC"><a href="#resultats-manche-2">Résultats et statistiques M2</a><a href="#resultats-manche-1">Résultats et statistiques M1</a><a href="#classement">Classement individuel</a><a href="#manches">Les manches</a><a href="#bareme">Barème</a></nav>
       </div><div className="bdc-card-mark" aria-hidden="true">BDC<span>2026 — 2027</span></div>
     </header>
 
+    <BdcRoundTwo />
     <BdcRoundOne />
 
     <section id="manches" className="bdc-section">
       <div className="bdc-heading"><h2>Les six manches</h2><Link href="/calendar">Calendrier complet →</Link></div>
       <div className="bdc-rounds">{BDC_ROUNDS.map((round) => {
-        const result = BDC_RESULTS.find((item) => item.round === round.number);
+        const report = BDC_ROUND_REPORTS[round.number];
         return <article id={`manche-${round.number}`} className="bdc-round" key={round.number}>
           <span className="bdc-eyebrow">MANCHE {round.number}</span><h3><time dateTime={round.date}>{bdcDate(round.date)}</time></h3>
           <p>19 h · heure de La Réunion</p><p>{round.location}</p>
-          <span className="bdc-status">{result ? "Terminée · classement corrigé" : "Résultats à venir"}</span>
-          {result ? <a href="#resultats-manche-1">Consulter tous les résultats →</a> : <small>Doublettes et résultats à venir.</small>}
+          <span className="bdc-status">{report?.status ?? "Résultats à venir"}</span>
+          {report ? <a href={`#resultats-manche-${round.number}`}>Consulter tous les résultats →</a> : <small>Doublettes et résultats à venir.</small>}
         </article>;
       })}</div>
     </section>
@@ -44,6 +46,7 @@ export default function BdcPage() {
     <section id="classement" className="bdc-section">
       <div className="bdc-heading"><h2>Classement individuel</h2><span className="bdc-status">{standings.length ? "Provisoire" : "En attente des premiers résultats"}</span></div>
       <p>Chaque joueur cumule ses points sur les six manches, même lorsqu’il change de partenaire.</p>
+      <p className="bdc-note"><strong>Après la manche 1 :</strong> les résultats et statistiques de la manche 2 sont disponibles. Ses points et participations seront intégrés au classement après confirmation du barème à 7 doublettes et du rattachement des joueurs entre les manches.</p>
       <p className="bdc-note"><strong>Résultats officiels :</strong> les résultats et le classement officiels sont tenus par le directeur sportif du Tampon Darts Club (TDC). Les données présentées sur 974 Darts AI sont fournies à titre informatif.</p>
       <div className="bdc-table-scroll" role="region" aria-label="Classement individuel BDC" tabIndex={0}>
         <StatsTable className="bdc-table"><caption>Points par manche, total et seuil de participation</caption><thead><tr><th scope="col">Rang</th><th scope="col">Joueur</th>{BDC_ROUNDS.map((round) => <th scope="col" key={round.number}>M{round.number}</th>)}<th scope="col">Total</th><th scope="col">Manches</th><th scope="col">Seuil de 3 manches</th></tr></thead>

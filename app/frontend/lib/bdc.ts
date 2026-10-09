@@ -6,12 +6,18 @@ export const BDC_URL = "/tournaments/blind-draw-championship";
 export const BDC_RULES_URL = "https://tampon-darts-club.assoconnect.com/collect/description/706462-n-blind-draw-championship-by-tdc-saison-1";
 export const BDC_ROUNDS = [
   { number: 1, date: "2026-09-11", location: "Bar Le Cham’Ô · Le Tampon", sourceUrl: "https://n01darts.com/n01/league/season.php?id=t_iIQi_5560" },
-  { number: 2, date: "2026-10-09", location: "Lieu à confirmer", sourceUrl: null },
+  { number: 2, date: "2026-10-09", location: "Bar Le Cham’Ô · Le Tampon", sourceUrl: "https://n01darts.com/n01/league/season.php?id=t_sEW0_8920" },
   { number: 3, date: "2026-11-06", location: "Lieu à confirmer", sourceUrl: null },
   { number: 4, date: "2026-12-11", location: "Lieu à confirmer", sourceUrl: null },
   { number: 5, date: "2027-01-08", location: "Lieu à confirmer", sourceUrl: null },
   { number: 6, date: "2027-02-05", location: "Lieu à confirmer", sourceUrl: null },
 ] as const;
+
+/** Reports may be available before their championship points are validated. */
+export const BDC_ROUND_REPORTS: Partial<Record<number, { status: string; pointsPending: boolean }>> = {
+  1: { status: "Terminée · classement corrigé", pointsPending: false },
+  2: { status: "Terminée · points en attente", pointsPending: true },
+};
 
 export type BdcPlayer = { id: string; name: string };
 export type BdcRoundResult = {
