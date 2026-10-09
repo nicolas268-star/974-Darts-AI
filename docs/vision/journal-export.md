@@ -14,10 +14,21 @@ Chaque ligne affiche le numéro, la date, l'annotation, l'état et la taille de 
 
 Les nouvelles captures restent disponibles après un rechargement dans le même navigateur. Cela ne restaure pas la caméra ni sa calibration en mémoire après un rechargement complet. Les anciennes images perdues avant cette mise à jour ne peuvent pas être récupérées depuis l'ancien journal ; les JSON déjà téléchargés restent utilisables.
 
+### Capture sans proposition
+
+Si le recalage est refusé ou l'analyse interrompue, le panneau « Capture sans proposition » permet de reprendre le même lancer :
+
+1. Garder les fléchettes en place, sans nouveau lancer.
+2. Facultativement, saisir le secteur réellement observé et choisir « Enregistrer le secteur observé ». Cette saisie fournit une vérité humaine pour le diagnostic, sans point calculé et sans score de partie.
+3. Choisir « Réessayer ce lancer · garder les fléchettes », puis « Comparer maintenant ». Si la caméra est arrêtée, la reprendre et confirmer le cadrage avant de comparer. En mode images, importer une nouvelle image APRÈS.
+
+La référence AVANT, la calibration et les réglages sont conservés. La capture refusée et son annotation restent dans le journal. Un refus de stockage impose une confirmation avant de remplacer l'unique capture en mémoire. Une image non recalée ne peut pas devenir la référence du lancer suivant, même après une annotation manuelle. Ne pas figer une référence « cible vide » avec les fléchettes encore en place.
+
 ## Fichiers et données
 
 - ZIP standard sans compression supplémentaire, contenant un JSON `schemaVersion: 2` par essai et un `manifest.json` qui relie les fichiers aux identifiants, dates et annotations.
 - Les JSON individuels conservent les conventions natives et recalées documentées dans [native-export.md](native-export.md). Chacun contient uniquement l'annotation de sa capture.
+- Les nouvelles annotations précisent `annotationMode: "REFERENCE_POINT"` ou `"SECTOR_ONLY"`. Les lecteurs doivent tolérer l'absence de ce champ dans les anciens exports. Une annotation de capture sans proposition a `detection: null`, `point: null` et `annotationMode: "SECTOR_ONLY"` ; `truth` reste le secteur déclaré par la personne. Ne jamais en déduire une détection réussie ni une position de pointe. L'état de recalage d'origine et les images restent inchangés.
 - Les données sont stockées localement comme Blobs JSON dans IndexedDB, avec un index de résumés séparé. React ne garde pas les images historiques en mémoire.
 - Le ZIP lit les essais successivement et calcule leurs CRC par tranches ; il ne construit pas un grand tableau de pixels ou un ArrayBuffer complet de l'archive.
 - Si l'option images est décochée, `nativePair` et `currentPair` sont nuls dans chaque fichier exporté. La préparation ne modifie pas les données originales conservées.
