@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Clipboard, ExternalLink, LoaderCircle, MessageCircle, RefreshCw, Sparkles } from "lucide-react";
 import type { BdcVisibilityOption, VisibilitySummary as Summary } from "@/lib/visibility-summary";
+import { signVisibilitySummary } from "@/lib/visibility-summary";
 import styles from "@/app/admin/visibility/visibility.module.css";
 
 type Evening = { id: string; round: string; date: string | null; home: string; away: string; home_score: number; away_score: number };
@@ -56,6 +57,7 @@ export default function EveningSummary({ bdcOptions, onFacebookReady }: { bdcOpt
     const bdc = bdcOptions.find(item => item.id === selected);
     const request = bdc ? Promise.resolve(bdc.summary) : fetch(`/api/admin/visibility/summary?result_id=${encodeURIComponent(selected)}`, { signal: controller.signal, cache: "no-store" }).then(responseJson<Summary>);
     request
+      .then(signVisibilitySummary)
       .then((data) => { if (!controller.signal.aborted && current === generation.current) { setSummary(data); setDraft(data.whatsapp); } })
       .catch((reason) => { if (!controller.signal.aborted) setError(reason instanceof Error ? reason.message : "Résumé indisponible."); })
       .finally(() => { if (!controller.signal.aborted && current === generation.current) setBusy(false); });
@@ -63,9 +65,9 @@ export default function EveningSummary({ bdcOptions, onFacebookReady }: { bdcOpt
   }, [selected, reload, bdcOptions]);
 
   async function generate(preserveDraft = false) {
-    const data = await responseJson<Summary>(await fetch("/api/admin/visibility/summary", {
+    const data = signVisibilitySummary(await responseJson<Summary>(await fetch("/api/admin/visibility/summary", {
       method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ result_id: selected }),
-    }));
+    })));
     if (!mounted.current) throw new Error("La page a été fermée.");
     setSummary(data);
     if (!preserveDraft) { setDraft(data.whatsapp); setEdited(false); }
