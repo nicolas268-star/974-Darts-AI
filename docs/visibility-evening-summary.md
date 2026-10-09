@@ -10,6 +10,16 @@ La dernière rencontre interclubs publiée, détaillée et vérifiée de la sais
 
 L’application n’envoie pas de message directement et ne prétend pas connaître l’état de publication. Aucune intégration non officielle de WhatsApp Web n’est utilisée.
 
+### Blind Draw Championship
+
+La liste « Rencontre ou manche BDC » regroupe les rencontres interclubs et les manches BDC publiées, avec M2 puis M1 dans le groupe « Blind Draw Championship ». La dernière rencontre interclubs reste sélectionnée à l’ouverture ; sans rencontre disponible, M2 est proposée. Les manches BDC restent utilisables si le service interclubs est indisponible.
+
+Les textes BDC sont préparés côté serveur depuis les mêmes résultats audités que la page publique. Seuls les textes et les indicateurs utiles sont transmis au navigateur. Aucun appel IA ou import dans les résultats interclubs n’est effectué pour une manche BDC.
+
+Le résumé M2 contient le podium, le score de finale, les performances individuelles, les premiers du classement cumulé et la mention « même barème appliqué aux 7 doublettes, sous réserve de validation du directeur sportif ». Le résumé M1 utilise uniquement les points de M1 et indique les statistiques partielles dues à l’incident Nakka. Chaque texte renvoie vers sa manche sur le site.
+
+Le partage WhatsApp conserve les modifications manuelles. La version Facebook réutilise le résultat sélectionné et conserve elle aussi les réserves applicables. L’utilisateur choisit toujours le destinataire et confirme l’envoi. Déploiement : reconstruire uniquement le frontend ; aucune migration ni modification backend.
+
 ## Publication automatique du championnat
 
 Le service Compose `interclub-analysis` vérifie le calendrier au début de chaque minute. Les soirs de rencontre `CHAMPIONSHIP` non annulée, il commence à **22 h, heure de La Réunion (UTC+4, soit 18 h UTC)**, puis réessaie **toutes les 10 minutes pendant 24 heures, jusqu’à 22 h le lendemain inclus**, si la rencontre est incomplète ou la source indisponible. Après ce dernier créneau, aucune nouvelle collecte automatique n’est lancée pour cette rencontre. Les rencontres déjà publiées ne sont plus collectées. Un redémarrage reprend au prochain créneau depuis le volume persistant. Un report ou une annulation est relu avant la publication.
