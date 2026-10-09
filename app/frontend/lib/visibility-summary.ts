@@ -13,3 +13,18 @@ export type BdcVisibilityOption = {
   label: string;
   summary: VisibilitySummary;
 };
+
+const VISIBILITY_SIGNATURE = "974Darts · NDX Performance Lab";
+
+export function withVisibilitySignature(text: string): string {
+  if (!text.trim() || /\bNDX\s+Performance\s+Lab\b/i.test(text)) return text;
+  return `${text.trimEnd()}\n\n${VISIBILITY_SIGNATURE}`;
+}
+
+export function signVisibilitySummary(summary: VisibilitySummary): VisibilitySummary {
+  return {
+    ...summary,
+    whatsapp: withVisibilitySignature(summary.whatsapp),
+    facebook: withVisibilitySignature(summary.facebook),
+  };
+}

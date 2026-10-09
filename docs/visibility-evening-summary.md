@@ -8,6 +8,8 @@ La dernière rencontre interclubs publiée, détaillée et vérifiée de la sais
 
 « Préparer la version Facebook » charge une version plus courte dans le bloc existant. « Copier et ouvrir Facebook » copie le texte et ouvre Facebook ; l’utilisateur choisit sa page ou son groupe et publie. Les annonces libres et le texte réutilisable pour Instagram restent disponibles.
 
+La signature « 974Darts · NDX Performance Lab » est ajoutée automatiquement aux textes préparés dans Visibilité : WhatsApp, version Facebook, annonces libres, interclubs et BDC. Elle apparaît dans l’aperçu avant copie ou partage, y compris pour les résumés déjà en cache ou préparés par l’IA. Une mention NDX Performance Lab déjà présente n’est pas ajoutée une seconde fois. Le texte reste entièrement modifiable ; les corrections manuelles sont conservées telles quelles lors du partage.
+
 L’application n’envoie pas de message directement et ne prétend pas connaître l’état de publication. Aucune intégration non officielle de WhatsApp Web n’est utilisée.
 
 ### Blind Draw Championship

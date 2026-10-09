@@ -6,6 +6,9 @@ export async function testVisibility(admin, director, screenshot) {
   const id='f678a113-699e-496e-ae0a-944d37d25893';
   const evening={id,round:'J1',date:'2026-09-28',home:'Kaz A Darts - A',away:'Kaz A Darts - B',home_score:17,away_score:3};
   const summary={whatsapp:'🎯 Kaz A Darts - A 17–3 Kaz A Darts - B\n45 legs · 10 joueurs\nPlus haut finish : Emmanuel GRASSET, 88.',facebook:'🎯 J1 · Kaz A Darts - A 17–3 Kaz A Darts - B\nBravo aux deux équipes !',mode:'statistics',note:'Résumé statistique prêt.',ai_available:true,fingerprint:'fixture',evening:{url:`https://974darts.re/matches/${id}`,matches:20,legs:45,players:10}};
+  const signature='974Darts · NDX Performance Lab';
+  const signedWhatsApp=summary.whatsapp+'\n\n'+signature;
+  const signedFacebook=summary.facebook+'\n\n'+signature;
   let generated=0;
   let automaticReady=false;
   let noEvenings=false;
@@ -22,7 +25,10 @@ export async function testVisibility(admin, director, screenshot) {
     return route.fulfill({json:automaticReady?{...summary,mode:'ai',note:'Analyse préparée automatiquement.'}:summary});
   });
   await admin.goto(origin+'/admin/visibility');
-  await expect(admin.getByLabel('Texte pour le groupe',{exact:false})).toHaveValue(summary.whatsapp,{timeout:30000});
+  await expect(admin.getByLabel('Texte pour le groupe',{exact:false})).toHaveValue(signedWhatsApp,{timeout:30000});
+  await expect(admin.locator('#facebook-draft')).toHaveValue(new RegExp(signature+'$'));
+  await admin.getByLabel('Informations',{exact:true}).fill('Une annonce NDX Performance Lab');
+  expect((await admin.locator('#facebook-draft').inputValue()).match(/NDX Performance Lab/g)).toHaveLength(1);
   await expect(admin.getByText('Championnat automatique · à partir de 22 h · suivi pendant 24 h · heure de La Réunion')).toBeVisible();
   await expect(admin.getByText(/Nouvelle vérification toutes les 10 minutes jusqu’à 22 h le lendemain\./)).toBeVisible();
   await expect(admin.getByText(/résultats, classement et statistiques des joueurs et des équipes sont mis à jour/)).toBeVisible();
@@ -36,11 +42,11 @@ export async function testVisibility(admin, director, screenshot) {
   expect(generated).toBe(1);
   let shared=await admin.evaluate(()=>window.__visibilityShares);
   expect(new URL(shared[0]).origin).toBe('https://wa.me');
-  expect(new URL(shared[0]).searchParams.get('text')).toBe(summary.whatsapp);
+  expect(new URL(shared[0]).searchParams.get('text')).toBe(signedWhatsApp);
   const edited='Mon résumé modifié pour le groupe 🎯';
   await admin.locator('#whatsapp-draft').fill(edited);
   await admin.getByRole('button',{name:'Préparer la version Facebook'}).click();
-  await expect(admin.locator('#facebook-draft')).toHaveValue(summary.facebook);
+  await expect(admin.locator('#facebook-draft')).toHaveValue(signedFacebook);
   await expect(admin.locator('#whatsapp-draft')).toHaveValue(edited);
   await admin.getByRole('button',{name:'Ouvrir dans WhatsApp',exact:true}).click();
   expect(generated).toBe(1);
@@ -48,7 +54,7 @@ export async function testVisibility(admin, director, screenshot) {
   expect(new URL(shared[1]).searchParams.get('text')).toBe(edited);
   await admin.getByRole('button',{name:'Copier et ouvrir Facebook'}).click();
   await expect(admin.getByText('Texte copié. Colle-le dans ta publication Facebook, puis publie depuis ton compte.')).toBeVisible();
-  expect(await admin.evaluate(()=>window.__visibilityCopied)).toBe(summary.facebook);
+  expect(await admin.evaluate(()=>window.__visibilityCopied)).toBe(signedFacebook);
   expect(await admin.evaluate(()=>window.__visibilityShares.at(-1))).toBe('https://www.facebook.com/');
   await screenshot(admin,'06-visibilite.png');
   await admin.setViewportSize({width:390,height:844});
@@ -65,6 +71,8 @@ export async function testVisibility(admin, director, screenshot) {
   await choice.selectOption('bdc-manche-2');
   await expect(admin.locator('#whatsapp-draft')).toHaveValue(/Blind Draw Championship · Manche 2/);
   const bdcDraft=await admin.locator('#whatsapp-draft').inputValue();
+  expect(bdcDraft.endsWith(signature)).toBe(true);
+  expect(bdcDraft.match(/NDX Performance Lab/g)).toHaveLength(1);
   expect(bdcDraft).toContain('7 doublettes · 14 joueurs · 25 matchs · 64 legs vérifiés');
   expect(bdcDraft).toContain('Kozu / Vincent s’imposent 3–2');
   expect(bdcDraft).toContain('Vincent (TDC) — 19 pts');
@@ -76,6 +84,7 @@ export async function testVisibility(admin, director, screenshot) {
   await admin.locator('#whatsapp-draft').fill(editedBdc);
   await admin.getByRole('button',{name:'Préparer la version Facebook'}).click();
   await expect(admin.locator('#facebook-draft')).toHaveValue(/sous réserve de validation du directeur sportif/);
+  await expect(admin.locator('#facebook-draft')).toHaveValue(new RegExp(signature+'$'));
   await expect(admin.locator('#whatsapp-draft')).toHaveValue(editedBdc);
   await admin.getByRole('button',{name:'Ouvrir dans WhatsApp',exact:true}).click();
   expect(new URL(await admin.evaluate(()=>window.__visibilityShares.at(-1))).searchParams.get('text')).toBe(editedBdc);
@@ -91,7 +100,7 @@ export async function testVisibility(admin, director, screenshot) {
   expect(firstRound).not.toContain('19 pts');
   expect(firstRound).not.toContain('Meilleure moyenne');
   await choice.selectOption(id);
-  await expect(admin.locator('#whatsapp-draft')).toHaveValue(summary.whatsapp);
+  await expect(admin.locator('#whatsapp-draft')).toHaveValue(signedWhatsApp);
   // APIRequestContext bypasses the browser route mocks, exercising the real proxy guards.
   const denied=await director.request.get(origin+'/api/admin/visibility/evenings');
   expect(denied.status()).toBe(403);
@@ -104,7 +113,7 @@ export async function testVisibility(admin, director, screenshot) {
   await anonymous.close();
   automaticReady=true;
   await admin.reload();
-  await expect(admin.getByLabel('Texte pour le groupe',{exact:false})).toHaveValue(summary.whatsapp);
+  await expect(admin.getByLabel('Texte pour le groupe',{exact:false})).toHaveValue(signedWhatsApp);
   await expect(admin.getByText('Synthèse IA',{exact:true})).toBeVisible();
   await expect(admin.getByRole('button',{name:'Ouvrir dans WhatsApp',exact:true})).toBeEnabled();
   expect(generated).toBe(1); // Reading a prepared nightly analysis never triggers another AI request.
