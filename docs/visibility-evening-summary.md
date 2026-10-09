@@ -10,6 +10,8 @@ La dernière rencontre interclubs publiée, détaillée et vérifiée de la sais
 
 La signature « 974Darts · NDX Performance Lab » est ajoutée automatiquement aux textes préparés dans Visibilité : WhatsApp, version Facebook, annonces libres, interclubs et BDC. Elle apparaît dans l’aperçu avant copie ou partage, y compris pour les résumés déjà en cache ou préparés par l’IA. Une mention NDX Performance Lab déjà présente n’est pas ajoutée une seconde fois. Le texte reste entièrement modifiable ; les corrections manuelles sont conservées telles quelles lors du partage.
 
+Les mêmes textes incluent automatiquement les hashtags demandés : `#flechettes974 #dartsreunion #comiteflechettes974 #darts #lareunion #stleu #darts974 #TamponDartsClub #KazADarts974 #PapangueDartsClub #3BDartsClub`. Seuls les hashtags absents sont ajoutés, sans tenir compte des majuscules et en comparant le hashtag complet (`#darts974` ne remplace pas `#darts`). Les hashtags déjà présents sont conservés. Les URL de suivi Facebook ne sont pas intégrées aux publications.
+
 L’application n’envoie pas de message directement et ne prétend pas connaître l’état de publication. Aucune intégration non officielle de WhatsApp Web n’est utilisée.
 
 ### Blind Draw Championship
