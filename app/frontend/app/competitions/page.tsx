@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Sidebar } from "@/components/Sidebar";
-import { BDC_RESULTS, BDC_ROUNDS, BDC_URL, bdcDate, bdcStandings } from "@/lib/bdc";
+import { BDC_RESULTS, BDC_ROUNDS, BDC_ROUND_REPORTS, BDC_URL, bdcDate, bdcStandings } from "@/lib/bdc";
 import { committeeCalendarEvents } from "@/lib/committee-ranking";
 import type {
   ChampionshipCard,
@@ -75,10 +75,8 @@ export default async function CompetitionsPage() {
   const today = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Indian/Reunion",
   }).format(new Date());
-  const nextBdcRound = BDC_ROUNDS.find((round) => round.date >= today);
-  const publishedBdcRounds = BDC_RESULTS.filter((round) =>
-    round.teams.every((team) => team.place !== null && team.poolWins !== null),
-  ).length;
+  const nextBdcRound = BDC_ROUNDS.find((round) => round.date >= today && !BDC_ROUND_REPORTS[round.number]);
+  const publishedBdcRounds = Object.keys(BDC_ROUND_REPORTS).length;
   const rankedBdcPlayers = bdcStandings(BDC_RESULTS).length;
   const committeeTournaments = (data?.tournaments ?? []).filter(
     (tournament) => tournament.classification === "COMMITTEE_RECOGNIZED",
@@ -193,11 +191,12 @@ export default async function CompetitionsPage() {
                 Retrouvez le classement général, le détail des manches et les
                 performances individuelles de chaque joueur.
               </p>
+              <p>Classement M1 + M2 · Points M2 sous réserve de validation du directeur sportif.</p>
               <small>Ouvrir le Blind Draw Championship →</small>
             </div>
             <div className="bdc-feature-kpis">
-              <span><b>{publishedBdcRounds}</b> manche publiée</span>
-              <span><b>{rankedBdcPlayers}</b> joueurs classés</span>
+              <span><b>{publishedBdcRounds}</b> manches publiées</span>
+              <span><b>{rankedBdcPlayers}</b> joueurs classés · M1 + M2</span>
               <span><b>{BDC_ROUNDS.length}</b> manches au calendrier</span>
               <span className="bdc-next-round">
                 <small>PROCHAINE MANCHE</small>

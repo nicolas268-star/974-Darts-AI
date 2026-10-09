@@ -31,7 +31,7 @@ assert.throws(() => bdcStandings([round(7, [a, b])]), /Manche/);
 assert.equal(bdcCalendarRound('Blind Draw Championship by TDC - Manche 1', '2026-09-11').number, 1);
 assert.equal(bdcCalendarRound('Autre tournoi', '2026-09-11'), undefined);
 assert.deepEqual(bdcStandings([]), []);
-const finalRows = bdcStandings(BDC_RESULTS);
+const finalRows = bdcStandings(BDC_RESULTS.filter(result => result.round === 1));
 assert.equal(finalRows.length, 16);
 assert.ok(finalRows.every(row => row.participations === 1 && !row.eligible && !row.pending));
 assert.equal(finalRows.find(row => row.id === 'nicolas-pdc').total, 4);
