@@ -14,8 +14,9 @@ import VisionFrame from "./VisionFrame";
 function metadata(analysis: AnalysisResult) { const { aligned: _aligned, validMask: _mask, ...stabilization } = analysis.stabilization; void _aligned; void _mask; return { sessionId: analysis.sessionId, referenceId: analysis.referenceId, captureId: analysis.captureId, stabilization, rawChangedFraction: analysis.rawChangedFraction, totalMs: analysis.totalMs }; }
 type Sample = {
   id: string; capturedAt: string; source: "camera" | "images";
-  calibration: Calibration; threshold: number; detection: Detection;
+  calibration: Calibration; threshold: number; detection: Detection | null;
   annotation: "LABELLED" | "FALSE_POSITIVE" | "UNRESOLVED";
+  annotationMode: "REFERENCE_POINT" | "SECTOR_ONLY";
   truth: string | null; point: Point | null; processingMs: number; analysis: ReturnType<typeof metadata> | null;
 };
 type WakeHandle = { release: () => Promise<void>; addEventListener: (name: "release", callback: () => void) => void };
@@ -291,9 +292,10 @@ export default function VisionLab() {
     }, 250);
   }
   function retryCapture() {
-    if (journalLock.current) return;
+    if (busy || imageBusy || journalLock.current || exportLock.current) return;
+    if (after && (archivedCaptureId !== after.id || currentAnnotationPending) && !window.confirm("Cet essai ou son annotation n’est pas conservé dans le journal. Avez-vous téléchargé son JSON avec les images ? Réessayer remplacera la capture affichée.")) return;
     pause(); setAfter(null); setAnalysis(null); setResult(null); setSelected(null); setTruth(""); setSaved(false); setAnnotation(null); setIncludeImages(false); setView("REFERENCE");
-    setMessage("Référence AVANT conservée. Comparez à nouveau ou importez une nouvelle image APRÈS.");
+    setMessage(source === "camera" ? "Gardez les fléchettes en place. Référence AVANT et calibration conservées : cliquez sur « Comparer maintenant » pour reprendre ce lancer. Si la caméra est arrêtée, reprenez-la d’abord et confirmez le cadrage." : "Référence AVANT et calibration conservées. Importez une nouvelle image APRÈS du même lancer, avec les fléchettes en place.");
   }
   async function importImage(event: ChangeEvent<HTMLInputElement>, target: "before" | "after") {
     const file = event.target.files?.[0]; event.target.value = "";
@@ -308,12 +310,15 @@ export default function VisionLab() {
     finally { if (mounted.current) setImageBusy(false); }
   }
   async function record(annotation: Sample["annotation"]) {
-    if (busy || journalLock.current || exportLock.current || !after || !calibration || !result || savedIds.current.has(after.id)) return;
+    if (busy || imageBusy || journalLock.current || exportLock.current || !after || !calibration || !analysis || analysis.captureId !== after.id || savedIds.current.has(after.id)) return;
     const label = annotation === "LABELLED" ? validLabel(truth) : null;
     if (annotation === "LABELLED" && (!label || label === "UNKNOWN")) { setMessage("Renseignez le secteur réellement observé : S20, D16, T19, 25, 50 ou MISS."); return; }
     if (samples.length >= MAX_SAMPLES) { setMessage("Limite de 100 annotations : exportez le journal puis videz-le avant de poursuivre."); return; }
     savedIds.current.add(after.id);
-    const sample: Sample = { id: after.id, capturedAt: after.capturedAt, source, calibration, threshold, detection: result, annotation, truth: label, point: selected, processingMs, analysis: analysis ? metadata(analysis) : null };
+    // A failed alignment has no usable point in the reference image. Keep the
+    // human sector as diagnostic truth, never as a generated detection or score.
+    const point = result && analysis.stabilization.aligned ? selected : null;
+    const sample: Sample = { id: after.id, capturedAt: after.capturedAt, source, calibration, threshold, detection: result, annotation, annotationMode: point ? "REFERENCE_POINT" : "SECTOR_ONLY", truth: label, point, processingMs, analysis: metadata(analysis) };
     const persisted = await saveCapture({ before, after, referenceRaw, spatialAnchor, analysis, calibration, result, stabilizationEnabled }, source, sample);
     if (!mounted.current) return;
     setSamples(current => [...current, sample]);
@@ -369,6 +374,7 @@ export default function VisionLab() {
   const currentSample = samples.find(sample => sample.id === after?.id);
   const currentStored = journal.find(entry => entry.id === after?.id);
   const currentAnnotationPending = Boolean(currentSample && (currentSample.annotation !== currentStored?.annotation || currentSample.truth !== currentStored?.truth));
+  const captureWithoutProposal = Boolean(after && analysis?.captureId === after.id && !result && !busy && !imageBusy);
 
   return (
     <main className={styles.page}>
@@ -391,7 +397,7 @@ export default function VisionLab() {
           <div className={styles.meta}><span>{camera ? "Caméra active" : "Caméra arrêtée"}</span><span>{wake}</span></div>
           {camera && resumeCheck && <div className={styles.notice}>
             <p>Vérifiez la vue en direct : même caméra, même cadrage, cible et téléphone immobiles. Si l’un a bougé, figez une nouvelle référence vide et refaites la calibration.</p>
-            <button type="button" onClick={() => { setResumeCheck(false); setMessage(after ? "Reprise confirmée. Annotez la capture puis préparez le lancer suivant." : "Reprise confirmée. Vous pouvez armer la détection."); }}>Je confirme : caméra et cible inchangées</button>
+            <button type="button" onClick={() => { setResumeCheck(false); setMessage(after ? result ? "Reprise confirmée. Annotez la capture puis préparez le lancer suivant." : "Reprise confirmée. Gardez les fléchettes en place et réessayez ce lancer dans « Capture sans proposition »." : "Reprise confirmée. Vous pouvez armer la détection."); }}>Je confirme : caméra et cible inchangées</button>
           </div>}
           <button type="button" onClick={freezeReference} disabled={!camera || watching || busy || imageBusy || journalBusy}>Figer la référence · cible vide</button>
           <details className={styles.details}><summary>Tester avec deux images, sans caméra</summary><p>Même appareil, même cadrage, avant puis après un seul lancer. Aucun fichier n’est envoyé au serveur.</p>
@@ -421,7 +427,7 @@ export default function VisionLab() {
         <label className={styles.check}><input type="checkbox" checked={stabilizationEnabled} disabled={watching || busy || journalBusy || Boolean(after)} onChange={e => setStabilizationEnabled(e.target.checked)} />Stabilisation automatique</label>
         {after && <div className={styles.buttons}>
           {([["REFERENCE", "Référence"], ["RAW", "Après brut"], ["ALIGNED", "Après recalé"], ["DIFFERENCES", "Différences"]] as const).map(([key, label]) => <button type="button" key={key} aria-pressed={view === key} disabled={key === "ALIGNED" && !analysis?.stabilization.aligned || key === "DIFFERENCES" && !analysis?.differences} onClick={() => setView(key)}>{label}</button>)}
-          <button type="button" onClick={retryCapture} disabled={busy || journalBusy}>Réessayer la capture</button>
+          <button type="button" onClick={retryCapture} disabled={busy || imageBusy || journalBusy || exportBusy}>Réessayer la capture</button>
         </div>}
         {after && !showOverlay && <p>Vue diagnostique : grille et saisie de points désactivées. Les annotations utilisent le repère de référence.</p>}
         {analysis && <details className={styles.details}><summary>Mesures du recalage · {analysis.stabilization.state}</summary>
@@ -442,7 +448,21 @@ export default function VisionLab() {
         </div>
         {!camera && source === "camera" && before && calibration && <button type="button" disabled={starting || imageBusy || journalBusy || !journalReady} onClick={() => void startCamera(true)}>Reprendre la caméra · conserver les réglages</button>}
         {camera && resumeCheck && <p>Confirmez le cadrage dans « 1. Caméra et référence » avant de réarmer.</p>}
-        {after && <p>Pour continuer avec les fléchettes en place, confirmez l’annotation puis utilisez « Garder les fléchettes en place · préparer le lancer suivant ». Pour une nouvelle cible vide, retirez les fléchettes en pause puis figez une nouvelle référence.</p>}
+        {after && result && <p>Pour continuer avec les fléchettes en place, confirmez l’annotation puis utilisez « Garder les fléchettes en place · préparer le lancer suivant ». Pour une nouvelle cible vide, retirez les fléchettes en pause puis figez une nouvelle référence.</p>}
+        {captureWithoutProposal && <div className={styles.result} role="region" aria-labelledby="capture-recovery-heading">
+          <strong id="capture-recovery-heading">Capture sans proposition</strong>
+          <p>{analysis?.stabilization.state === "CANCELLED" ? "L’analyse a été interrompue." : "Le recalage n’a pas fourni d’image exploitable."} Aucun point d’impact ni score n’a été calculé pour cette capture.</p>
+          <p>Gardez les fléchettes en place, sans nouveau lancer. La référence AVANT et la calibration restent conservées.</p>
+          <button type="button" onClick={retryCapture} disabled={journalBusy || exportBusy}>Réessayer ce lancer · garder les fléchettes</button>
+          <p>{source === "camera" ? "Puis cliquez sur « Comparer maintenant ». Si la caméra est arrêtée, reprenez-la et confirmez le cadrage avant de comparer." : "Puis importez une nouvelle image APRÈS du même lancer."} Ne figez pas une référence « cible vide » avec les fléchettes en place.</p>
+          <p>Vous pouvez aussi noter le secteur réellement observé pour le diagnostic. Cette annotation ne place aucun point et ne prépare pas le lancer suivant.</p>
+          <div className={styles.buttons}>
+            <label>Secteur réel observé<input type="text" value={truth} onChange={event => setTruth(event.target.value)} placeholder="T20, D16, S5, 25, 50, MISS" maxLength={8} disabled={saved || journalBusy || exportBusy} autoCapitalize="characters" /></label>
+            <button type="button" disabled={saved || journalBusy || exportBusy} onClick={() => void record("LABELLED")}>Enregistrer le secteur observé</button>
+            <button type="button" disabled={saved || journalBusy || exportBusy} onClick={() => void record("UNRESOLVED")}>Impossible à déterminer</button>
+          </div>
+          {saved && <p>Saisie conservée pour cette capture. Réessayez ce lancer avant de lancer la fléchette suivante.</p>}
+        </div>}
         <div className={styles.buttons}>
           <button type="button" onClick={() => arm()} disabled={!camera || !verified || resumeCheck || watching || Boolean(after) || imageBusy || journalBusy || !journalReady}>Armer la détection</button>
           <button type="button" onClick={() => { pause(); setMessage("Surveillance en pause. La caméra reste active jusqu’à son arrêt explicite."); }} disabled={!watching && !busy}>Pause</button>
