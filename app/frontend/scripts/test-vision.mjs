@@ -358,7 +358,11 @@ test("camera permission exception is confined to exact lab path", () => {
   const config = readFileSync(resolve(root, "next.config.ts"), "utf8");
   assert.match(config, /camera=\(\), microphone=\(\), geolocation=\(\)/);
   assert.match(config, /source: "\/admin\/vision"/);
-  assert.equal((config.match(/camera=\(self\)/g) ?? []).length, 1);
+  // Player Card adds opt-in document exceptions. Keep checking the lab rule itself,
+  // and exercise the complete default/enabled policy matrix in test-player-card.mjs.
+  const lab = config.slice(config.indexOf('source: "/admin/vision"'), config.indexOf('...(process.env.PLAYER_CARD_ENABLED'));
+  assert.equal((lab.match(/camera=\(self\)/g) ?? []).length, 1);
+  assert.match(config, /process\.env\.PLAYER_CARD_ENABLED === "true"/);
 });
 test("navigation reloads the document when entering the lab", () => {
   const nav = readFileSync(resolve(root, "components/admin/AdminNavigation.tsx"), "utf8");

@@ -61,6 +61,22 @@ const nextConfig: NextConfig = {
           { key: "Content-Security-Policy", value: securityHeaders.find(header => header.key === "Content-Security-Policy")!.value + "; media-src 'self' blob:; worker-src 'self'" },
         ],
       },
+      ...(process.env.PLAYER_CARD_ENABLED === "true" ? [
+        {
+          source: "/players/:player_id/card",
+          headers: [
+            { key: "Permissions-Policy", value: "camera=(self), microphone=(), geolocation=()" },
+            { key: "Content-Security-Policy", value: securityHeaders.find(header => header.key === "Content-Security-Policy")!.value + "; media-src 'self' blob:" },
+          ],
+        },
+        ...(process.env.NODE_ENV !== "production" && process.env.PLAYER_CARD_PREVIEW === "true" ? [{
+          source: "/player-card-preview",
+          headers: [
+            { key: "Permissions-Policy", value: "camera=(self), microphone=(), geolocation=()" },
+            { key: "Content-Security-Policy", value: securityHeaders.find(header => header.key === "Content-Security-Policy")!.value + "; media-src 'self' blob:" },
+          ],
+        }] : []),
+      ] : []),
     ];
   },
 };
