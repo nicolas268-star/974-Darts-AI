@@ -93,5 +93,16 @@ try {
     process.env.NODE_ENV="development"; rules=await config.headers(); assert.ok(rules.find(r=>r.source==="/player-card-preview"));
     const profile=readFileSync(resolve(root,"app/players/[player_id]/page.tsx"),"utf8"); assert.match(profile, /<a className="btn btn-primary" href=\{`\/players/);
   });
+  await test("Docker production activation reaches both build-time headers and runtime guards, default off", () => {
+    const dockerfile=readFileSync(resolve(root,"Dockerfile"),"utf8");
+    assert.match(dockerfile,/ARG PLAYER_CARD_ENABLED=false/);
+    assert.match(dockerfile,/ENV PLAYER_CARD_ENABLED=\$\{PLAYER_CARD_ENABLED\}/);
+    assert.ok(dockerfile.indexOf("ENV PLAYER_CARD_ENABLED=") < dockerfile.indexOf("RUN npm run build"));
+    const compose=readFileSync(resolve(root,"../../deploy/compose.yaml"),"utf8");
+    const frontend=compose.split("  frontend:\n")[1].split("  interclub-analysis:\n")[0];
+    const [build,runtime]=frontend.split("    env_file:\n");
+    assert.match(build,/PLAYER_CARD_ENABLED: "\$\{PLAYER_CARD_ENABLED:-false\}"/);
+    assert.match(runtime,/PLAYER_CARD_ENABLED: "\$\{PLAYER_CARD_ENABLED:-false\}"/);
+  });
   console.log(`${checks} player card test groups passed.`);
 } finally { process.env = originalEnv; }

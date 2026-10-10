@@ -52,6 +52,7 @@ services:
         NEXT_PUBLIC_SUPABASE_ANON_KEY: "${NEXT_PUBLIC_SUPABASE_ANON_KEY:?NEXT_PUBLIC_SUPABASE_ANON_KEY absente}"
         NEXT_PUBLIC_DEMO_MODE: "false"
         NEXT_PUBLIC_SITE_URL: "https://${SITE_DOMAIN}"
+        PLAYER_CARD_ENABLED: "${PLAYER_CARD_ENABLED:-false}"
     env_file:
       - /etc/974darts/production.env
     environment:
@@ -60,6 +61,7 @@ services:
       NEXT_PUBLIC_SITE_URL: "https://${SITE_DOMAIN}"
       PYTHON_API_URL: "http://backend:8000"
       BACKEND_API_URL: "http://backend:8000"
+      PLAYER_CARD_ENABLED: "${PLAYER_CARD_ENABLED:-false}"
     expose:
       - "3000"
     depends_on:

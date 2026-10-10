@@ -6,6 +6,8 @@ The existing public profile at `app/frontend/app/players/[player_id]/page.tsx` g
 
 Set `PLAYER_CARD_ENABLED=true` **at build time and runtime in validation**. Next.js compiles the document security headers at build time. The default is disabled in every environment, including production. An enabled runtime with a disabled build does not acquire the camera exception. The page and GET data endpoint independently check activation; hiding the link is not the access control.
 
+The frontend Dockerfile accepts `PLAYER_CARD_ENABLED` as a build argument. Production Compose passes the same setting from its environment to the build and the running frontend; both default to `false`. Persist `PLAYER_CARD_ENABLED=true` in `/etc/974darts/production.env` when activating an authorized production release, then rebuild and recreate **only** the frontend with that env file. An existing image built without activation must be rebuilt to obtain camera headers. `PLAYER_CARD_PREVIEW` remains a development-only switch and is unnecessary in production.
+
 The new endpoint `/api/player-card/{id}?season=2027` reads the existing Python dashboard endpoint, checks `public_profile === true`, strips unrelated/private/internal identity fields, and returns only card information plus available filters. Non-public profiles receive 403, unavailable data 503, invalid filters 400, missing players/disabled feature 404. Responses use `private, no-store`. There are no database writes, privileged browser keys, migrations or photo uploads. Exporting a public profile is a public read operation; it does not establish ownership or confer profile-editing rights.
 
 ## Statistics and scope
@@ -92,4 +94,14 @@ It starts its own localhost Next.js and synthetic read-only backend, exports and
 
 Actual phone hardware, iPhone/Safari/WebKit behavior, native mobile share sheets, photo-library save destination and the deployed reverse-proxy response remain manual checks. Browser emulation and fake camera are not physical-phone tests. The environment's standard Playwright browser download was unavailable; Chromium validation uses a temporary runtime outside the repository. No browser package was added to application dependencies.
 
-Before any separately authorized deployment: verify actual team UUID associations, exercise staging with build/runtime activation, compare live public profile values, test a real iPhone and Android (portrait import/rotation, capture, cancellation and file sharing), and inspect the staging response headers. Activate production only through the project's release process. This task does not merge, deploy, change secrets, restart live containers, run remote migrations or write production data.
+Before any separately authorized deployment: verify actual team UUID associations, exercise staging with build/runtime activation, compare live public profile values, test a real iPhone and Android (portrait import/rotation, capture, cancellation and file sharing), and inspect the staging response headers. Activate production only through the project's release process. The implementation/review phase did not merge, deploy, change secrets, restart live containers, run remote migrations or write production data. A subsequent production authorization permits the frontend release; it does not require a database migration, photo upload, backend restart or Caddy change.
+
+After updating `/opt/974darts/current` to the verified merged commit and saving the non-secret activation setting, use:
+
+```bash
+docker compose --env-file /etc/974darts/production.env -f deploy/compose.yaml build frontend
+docker compose --env-file /etc/974darts/production.env -f deploy/compose.yaml up -d --no-deps --wait --wait-timeout 180 frontend
+curl -fsS https://974darts.re/api/health
+```
+
+Check a public profile for **Créer ma carte**, then its card page for HTTP 200 and `Permissions-Policy: camera=(self), microphone=(), geolocation=()`. The home page must still deny camera, and `/player-card-preview` must return 404. Check native photo capture and file sharing on a real phone after release. Rollback is a frontend image built from the previous verified commit (with activation off); rebuild and recreate only that service. Reverting the runtime flag alone hides the feature but does not remove camera headers compiled into an enabled image.
