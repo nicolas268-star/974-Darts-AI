@@ -16,6 +16,7 @@ import type { PlayerDNAResponse } from "@/lib/player/dna-types";
 import type { PlayerCoachResponse } from "@/lib/player/coach-types";
 import type { PlayerOverview } from "@/lib/types/sprint4";
 import type { CompetitionCatalog } from "@/lib/types/sprint14";
+import { playerCardEnabled } from "@/lib/player-card/feature";
 import "./player-premium.css";
 import "./player-affiliation-timeline.css";
 import "./player-network.css";
@@ -153,6 +154,7 @@ export default async function PlayerDashboardPage({ params, searchParams }: { pa
         </div>
         <h2>{data.player.name}</h2>
         <p>{data.player.team ?? "Équipe non renseignée"}{data.player.club ? ` · ${data.player.club}` : ""}</p>
+        {playerCardEnabled() && data.player.public_profile === true && <a className="btn btn-primary" href={`/players/${encodeURIComponent(data.player.id)}/card${season ? `?season=${encodeURIComponent(season)}` : ""}`}>Créer ma carte</a>}
         <div className="player-badges">
           {rank > 0 && <span className="performance-badge top">Classement moyenne #{rank}</span>}
           {progression != null && <span className={`performance-badge ${progression >= 0 ? "positive" : "negative"}`}><TrendingUp size={13}/> {progression >= 0 ? "+" : ""}{number(progression)} pts</span>}

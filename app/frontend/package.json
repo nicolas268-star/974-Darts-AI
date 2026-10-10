@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "test:control": "node scripts/control-check.mjs",
     "check:release": "node scripts/check-release-version.mjs",
-    "test": "npm run lint && npm run typecheck && npm run test:control && npm run check:release && npm run test:play && npm run test:vision",
+    "test": "npm run lint && npm run typecheck && npm run test:control && npm run check:release && npm run test:play && npm run test:vision && npm run test:player-card",
+    "test:player-card": "node scripts/test-player-card.mjs",
     "test:play": "node scripts/test-play.mjs",
     "test:vision": "node scripts/test-vision.mjs && node scripts/test-vision-calibration.mjs && node scripts/test-vision-auto.mjs && node scripts/test-vision-stabilization.mjs && node scripts/test-vision-camera-resume.mjs && node scripts/test-vision-journal.mjs"
   },
