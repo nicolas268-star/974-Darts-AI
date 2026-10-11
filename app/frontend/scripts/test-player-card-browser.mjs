@@ -10,8 +10,13 @@ const require = createRequire(import.meta.url);
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE_PATH || "playwright");
 const root = resolve(dirname(new URL(import.meta.url).pathname), "..");
 const out = resolve(process.env.PLAYER_CARD_QA_OUTPUT || "/tmp/player-card-qa"); mkdirSync(out, { recursive: true });
+const clubSources = {
+  "validation-3bdc": {theme:"3bdc", teamId:"ea7206d1-bf26-48d1-ae8d-7213ef94884c", team:"3B Darts Club - A(mbré)", club:"3B Darts Club"},
+  "validation-kazadarts": {theme:"kazadarts", teamId:"7e2f62a9-e0cc-490e-b8eb-bc19c1f182e3", team:"Kaz A Darts - A", club:"Kaz A Darts 974"},
+  "validation-tdc": {theme:"tdc", teamId:"a6810fe2-6469-463e-bea7-65061727e92d", team:"Tampon Darts Club - Zarboutan", club:"Tampon Darts Club"},
+};
 const dashboard = (season, id) => ({
-  player: { id, name: "Joueur de validation", public_profile: id !== "private-player", team_id: "validated-team-uuid", team: "Équipe de validation", club_id: "validated-club-uuid", club: "Club de validation" },
+  player: { id, name: "Joueur de validation", public_profile: id !== "private-player", team_id: clubSources[id]?.teamId || "validated-team-uuid", team: clubSources[id]?.team || "Équipe de validation", club_id: "validated-club-uuid", club: clubSources[id]?.club || "Club de validation" },
   season: { id: season === "all" ? "all" : "season-2027", name: season === "all" ? "Toute la carrière" : season === "2026" ? "2025-2026" : "2026-2027", is_active: true },
   kpis: { legs_played: 8, legs_won: 3, win_rate: 37.5, average_3_darts: season === "2026" ? 44 : 50, first_9: null, best_finish: 64, average_finish: null },
   scoring: { scores_100_plus: 5, scores_140_plus: 0, scores_180: 0, scores_80_plus: 1, scores_170_plus: 0, no_score: 0 },
@@ -97,6 +102,19 @@ try {
     await page.setViewportSize({width:390,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);await page.screenshot({path:resolve(out,"studio-photo-kpi-mobile.png"),fullPage:true,style:"nextjs-portal{display:none}"});await page.setViewportSize({width:1440,height:1080});
     await page.getByRole("button",{name:"Portrait rond",exact:true}).click();await page.getByRole("button",{name:"Modifier ma photo",exact:true}).click();assert.deepEqual(await page.locator("dialog canvas").evaluate(c=>[c.width,c.height]),[400,400]);await page.getByRole("button",{name:"Valider le cadrage",exact:true}).click();
     await page.getByRole("button",{name:"Publication",exact:true}).click();await exportPNG(page,"publication-photo-round.png",1350);
+  });
+  await test("three club themes default from source IDs and export both formats without changing photo, KPIs or affiliation",async()=>{
+    await page.getByRole("button",{name:"Photo en grand",exact:true}).click();
+    for(const [id,label] of [["3bdc","3 Brasseurs"],["kazadarts","Kaz A Darts"],["tdc","TDC Tampon"]]){
+      const source=clubSources["validation-"+id],response=await context.request.get(base+"/api/player-card/validation-"+id+"?season=2027");assert.equal(response.status(),200);
+      const payload=await response.json();assert.equal(payload.theme,id);assert.equal(payload.data.team,source.team);assert.equal(payload.data.club,source.club);assert.equal(payload.data.stats.average,50);
+      await page.getByRole("button",{name:label,exact:true}).click();await page.getByRole("button",{name:"Publication",exact:true}).click();await exportPNG(page,"publication-"+id+".png",1350);
+      assert.equal(await page.getByRole("checkbox",{checked:true}).count(),6);
+      const values=await page.evaluate(()=>window.__cardCanvasTexts.get(document.querySelector("img.pc-card").src));for(const value of ["Papangue Dart Club","PDC La Fournaise","43,14","104","52,96"])assert.ok(values.includes(value));
+      await page.getByRole("button",{name:"Modifier ma photo",exact:true}).click();assert.deepEqual(await page.locator("dialog canvas").evaluate(c=>[c.width,c.height]),[400,500]);await page.getByRole("button",{name:"Annuler",exact:true}).click();
+      await page.getByRole("button",{name:"Story",exact:true}).click();await exportPNG(page,"story-"+id+".png",1920);
+    }
+    await page.setViewportSize({width:390,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);await page.setViewportSize({width:1440,height:1080});
   });
   await test("native sharing unsupported and cancelled: no automatic download",async()=>{
     await page.goto(base+"/player-card-preview");await ready(page);await page.evaluate(()=>{Object.defineProperty(navigator,"canShare",{configurable:true,value:()=>false});});await page.getByRole("button",{name:"Partager ma carte",exact:true}).click();await page.getByRole("status").filter({hasText:"partage de fichiers"}).waitFor();

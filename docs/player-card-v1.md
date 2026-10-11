@@ -34,14 +34,24 @@ The snapshot includes the public data, theme, format, selected KPI IDs, photo pr
 
 Essential Story content is kept within approximately y=180…1640, x=64…1016. The remaining lower area is decoration. These margins are design conventions, not a guarantee about every social application's UI.
 
-`themes.ts` defines Fournaise, Neige and neutral tokens independently of data/layout. Existing decorative banners from `public/team-themes` are reused. Identity and numbers are code-rendered text. No logo is invented. Selecting Neige on a Fournaise player changes scenery and colors, never the affiliation. An unavailable decorative banner falls back to a procedural background with an explicit message.
+`themes.ts` defines six selectable themes independently of data/layout: Fournaise, Neige, 3 Brasseurs, Kaz A Darts, TDC Tampon and neutral 974Darts. Existing decorative banners from `public/team-themes` are reused for Fournaise, Neige and 3 Brasseurs. The new club palettes follow the existing team pages: turquoise/copper for 3B, blue/red/yellow for Kaz, green/red/white on a dark background for TDC. Kaz/TDC use Canvas bands/rings and light glows; no new bitmap, logo or external font is generated or loaded. Identity and numbers are code-rendered text. Selecting another club's theme changes scenery and colors, never the player's affiliation, photo or selected statistics. An unavailable decorative banner falls back to a procedural background with an explicit message.
 
-Default associations use **exact IDs**. The official roster IDs `pdc-fournaise` and `pdc-neige` are supported, alongside the database IDs verified from the live public [2026 championship](https://974darts.re/championships/2026) on 11 October 2026:
+Default associations use **exact IDs**. The official roster IDs `pdc-fournaise`, `pdc-neige`, `3bdc-ambre`, `3bdc-blonde`, `kaz-a`, `kaz-b`, `tdc-zarboutan` and `tdc-zarlor` are supported. Database IDs were verified from links on the live public [2026 championship](https://974darts.re/championships/2026) and [2027 championship](https://974darts.re/championships/2027) on 11 October 2026:
 
 | Team | Verified database ID | Theme |
 | --- | --- | --- |
 | PDC Fournaise | `87719ebb-183e-43ac-a96a-5bf4c657939b` | Fournaise |
 | PDC Neige | `4a3849c5-3096-4443-87e0-9ce5fd248a46` | Neige |
+| 3BDC (2026) | `c16214bf-1ae3-48e2-a1d9-0bfd451f60a3` | 3 Brasseurs |
+| 3B A(mbré) (2027) | `ea7206d1-bf26-48d1-ae8d-7213ef94884c` | 3 Brasseurs |
+| 3B B(londe) (2027) | `9b85ca85-4c9a-4bb7-8d73-c92e19ae7de3` | 3 Brasseurs |
+| Kazadarts A (2026) | `7f265d6f-7f40-4b83-b046-ace3663b5de4` | Kaz A Darts |
+| Kazadarts B (2026) | `047a30ee-ad3d-472b-854e-2e5575c08bd1` | Kaz A Darts |
+| Kaz A (2027) | `7e2f62a9-e0cc-490e-b8eb-bc19c1f182e3` | Kaz A Darts |
+| Kaz B (2027) | `9e79f660-c8ca-411b-a5fd-5584e58f46b6` | Kaz A Darts |
+| TDC (2026) | `7f8f200c-709c-4734-ba51-ffdc0c15563d` | TDC Tampon |
+| TDC Zarboutan (2027) | `a6810fe2-6469-463e-bea7-65061727e92d` | TDC Tampon |
+| TDC Zarlor (2027) | `311d3ddc-a7dc-4494-9252-03b736b501ce` | TDC Tampon |
 
 New season-specific or other validation database IDs can be explicitly configured; roster slugs are never assumed to equal database UUIDs:
 
@@ -94,7 +104,7 @@ PLAYER_CARD_QA_OUTPUT=/tmp/player-card-qa \
 node scripts/test-player-card-browser.mjs
 ```
 
-It starts its own localhost Next.js and synthetic read-only backend, exports and checks PNG dimensions, captures desktop/mobile views, checks unchecked KPI values are absent from the current export, tests zero/one/twelve selections and reset, exercises both photo presentations and crops, sharing fallbacks/cancellation, simulated camera capture/denial/late cleanup, direct/full document navigation, permissions, private-profile denial and source-error retry. It never uses production credentials. By default it imports generated synthetic validation images; optionally set `PLAYER_CARD_REFERENCE_IMAGE` to an explicitly supplied local reference to produce review examples. Such a reference is never committed or uploaded by the application. `CHROMIUM_EXECUTABLE_PATH` may be omitted with a standard Playwright browser installation.
+It starts its own localhost Next.js and synthetic read-only backend, exports and checks PNG dimensions, captures desktop/mobile views, checks unchecked KPI values are absent from the current export, tests zero/one/twelve selections and reset, exercises both photo presentations and crops, verifies the three added club themes in Publication/Story while preserving photo, KPI selection and original affiliation, checks automatic source-ID theme selection, sharing fallbacks/cancellation, simulated camera capture/denial/late cleanup, direct/full document navigation, permissions, private-profile denial and source-error retry. It never uses production credentials. By default it imports generated synthetic validation images; optionally set `PLAYER_CARD_REFERENCE_IMAGE` to an explicitly supplied local reference to produce review examples. Such a reference is never committed or uploaded by the application. `CHROMIUM_EXECUTABLE_PATH` may be omitted with a standard Playwright browser installation.
 
 ## Remaining validation and deployment
 
