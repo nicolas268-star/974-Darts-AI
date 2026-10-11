@@ -38,6 +38,18 @@ try {
     const bindings = themes.parseBindings('{"teams":{"team-uuid":"fournaise"},"clubs":{"club-uuid":"neige"}}');
     assert.equal(themes.defaultTheme("team-uuid", "club-uuid", bindings), "fournaise"); assert.equal(themes.defaultTheme(null, "club-uuid", bindings), "neige"); assert.equal(themes.defaultTheme("Fournaise", null, bindings), "neutral");
     assert.equal(themes.defaultTheme("87719ebb-183e-43ac-a96a-5bf4c657939b",null),"fournaise"); assert.equal(themes.defaultTheme("4a3849c5-3096-4443-87e0-9ce5fd248a46",null),"neige"); assert.equal(themes.defaultTheme("toString",null),"neutral");
+    const clubTeams = {
+      "3bdc": ["3bdc-ambre","3bdc-blonde","c16214bf-1ae3-48e2-a1d9-0bfd451f60a3","ea7206d1-bf26-48d1-ae8d-7213ef94884c","9b85ca85-4c9a-4bb7-8d73-c92e19ae7de3"],
+      kazadarts: ["kaz-a","kaz-b","7f265d6f-7f40-4b83-b046-ace3663b5de4","047a30ee-ad3d-472b-854e-2e5575c08bd1","7e2f62a9-e0cc-490e-b8eb-bc19c1f182e3","9e79f660-c8ca-411b-a5fd-5584e58f46b6"],
+      tdc: ["tdc-zarboutan","tdc-zarlor","7f8f200c-709c-4734-ba51-ffdc0c15563d","a6810fe2-6469-463e-bea7-65061727e92d","311d3ddc-a7dc-4494-9252-03b736b501ce"],
+    };
+    for (const [theme,ids] of Object.entries(clubTeams)) {
+      for (const id of ids) assert.equal(themes.defaultTheme(id,null),theme);
+      const custom=themes.parseBindings(JSON.stringify({teams:{"custom-team":theme},clubs:{"custom-club":theme}}));
+      assert.equal(themes.defaultTheme("custom-team",null,custom),theme);assert.equal(themes.defaultTheme("unknown","custom-club",custom),theme);
+      assert.equal(themes.defaultTheme("pdc-neige",null,custom),"neige");
+      assert.equal(themes.defaultTheme(themes.THEMES[theme].label,null),"neutral");
+    }
     assert.throws(() => themes.parseBindings('{"teams":{"x":"unknown"}}'));
     assert.equal(data.adaptDashboard(dashboard, null).team, "Équipe actuelle");
   });

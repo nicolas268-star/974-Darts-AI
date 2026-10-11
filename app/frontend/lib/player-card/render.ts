@@ -60,10 +60,25 @@ export async function renderCard(snapshot: CardSnapshot): Promise<{ canvas: HTML
     c.save(); c.globalAlpha = 0.48; c.drawImage(texture, 0, H - 250, W, 250); c.restore();
     const fade = c.createLinearGradient(0, H - 270, 0, H); fade.addColorStop(0, "#06090cff"); fade.addColorStop(0.5, "#06090c55"); fade.addColorStop(1, "#06090cbb"); c.fillStyle = fade; c.fillRect(0, H - 270, W, 270);
   }
+  if (theme.secondary) {
+    c.save();
+    const glow = c.createRadialGradient(W * .85, H * .4, 0, W * .85, H * .4, W * .8);
+    glow.addColorStop(0, theme.secondary + "24"); glow.addColorStop(1, theme.secondary + "00"); c.fillStyle = glow; c.fillRect(0, 0, W, H);
+    if (theme.pattern === "bands") {
+      c.globalAlpha = .12;
+      [theme.accent, theme.secondary, theme.tertiary!].forEach((color, i) => {
+        c.fillStyle = color; c.beginPath(); c.moveTo(W - 290 + i * 95, 0); c.lineTo(W - 245 + i * 95, 0); c.lineTo(W, H * .62 + i * 95); c.lineTo(W, H * .68 + i * 95); c.closePath(); c.fill();
+      });
+    } c.restore();
+  }
   // Deterministic sparks and target segments; all identity and numbers are drawn separately.
   c.save(); for (let i = 0; i < 100; i++) { const x = (i * 307 + 19) % W, y = (i * 173 + 71) % H; c.globalAlpha = 0.07 + (i % 4) * 0.035; c.fillStyle = theme.light; c.fillRect(x, y, 1.5, 1.5); } c.restore();
   c.save(); c.strokeStyle = theme.accent; c.globalAlpha = 0.065; c.lineWidth = 2;
-  for (const r of [170, 185, 310, 330, 440]) { c.beginPath(); c.arc(1000, story ? 870 : 530, r, 0, Math.PI * 2); c.stroke(); }
+  [170, 185, 310, 330, 440].forEach((r, i) => {
+    if (theme.pattern === "rings") { c.strokeStyle = [theme.accent, theme.secondary!, theme.tertiary!][i % 3]; c.lineWidth = 10; c.globalAlpha = .14; }
+    c.beginPath(); c.arc(1000, story ? 870 : 530, r, 0, Math.PI * 2); c.stroke();
+  });
+  c.strokeStyle = theme.accent; c.lineWidth = 2; c.globalAlpha = .065;
   for (let i = 0; i < 20; i++) { const a = i * Math.PI / 10; c.beginPath(); c.moveTo(1000 + Math.cos(a) * 185, (story ? 870 : 530) + Math.sin(a) * 185); c.lineTo(1000 + Math.cos(a) * 440, (story ? 870 : 530) + Math.sin(a) * 440); c.stroke(); } c.restore();
   c.save(); c.strokeStyle = theme.accent + "88"; c.lineWidth = 1; c.beginPath(); c.roundRect(24, 24, W - 48, H - 48, 32); c.stroke(); c.restore();
   if (poster && portrait) {
