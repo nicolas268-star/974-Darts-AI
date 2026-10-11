@@ -8,11 +8,13 @@ Les tournois sont rattachés à leur saison annoncée (année de fin, comme le c
 
 Le Club 180 conserve le filtre Toutes compétitions / Championnat / Tournois lorsque l’année change. Ses totaux, podium et détails suivent le périmètre et l’année. Les liens de profils et les libellés de records conservent également l’année.
 
+Les noms d’équipe affichés dans les finishs, les 180, les statistiques joueurs et le MVP suivent également la saison sélectionnée. Pour 2027, l’effectif officiel publié dans `/teams` prévaut sur l’ancienne équipe du profil, y compris pour les résultats de tournoi avant le premier match de championnat. Ainsi, Pierre BERLET apparaît en PDC Fournaise en 2026 et en Papangue Darts Club - Neige en 2027. Les années historiques conservent l’équipe des résultats de leur saison ; l’effectif 2027 ne s’applique jamais à 2026 ou 2028. Sans effectif officiel ni résultat de championnat pour l’année choisie, l’équipe reste non renseignée, plutôt que de reprendre une affectation globale d’une autre saison. Cette même attribution alimente les podiums et les records/totaux par équipe.
+
 Dans `/players`, `?team=<nom officiel>` filtre les membres de l’équipe du championnat actuel. Pour 2027, la liste complète vient du même effectif officiel que `/teams`, avec huit équipes, même lorsque des rencontres ne sont pas encore publiées. Les affectations actuelles publiées permettent de distinguer les changements d’équipe et les anciens groupes TDC/3BDC. Sur une année historique, les statistiques et l’équipe affichée dans la ligne restent historiques ; la notice précise que le filtre porte sur l’effectif actuel. Le changement de saison conserve l’équipe, et Toutes les équipes conserve la saison. Une équipe sans statistiques a un état vide explicite.
 
 ## Vérification
 
-- `npm test` inclut dix groupes pour les paramètres, le rattachement annuel des tournois, les UUID, les réponses d’une autre saison, les alias et les équipes actuelles.
+- `npm test` inclut douze groupes pour les paramètres, le rattachement annuel des tournois, les UUID, les réponses d’une autre saison, les alias, les équipes actuelles et les noms d’équipe par année. Les tests MVP vérifient aussi le transfert de Pierre.
 - `PLAYER_CARD_ENABLED=true npm run build` vérifie la compilation de production.
 - `scripts/test-statistics-filters-browser.mjs` vérifie les totaux et les records 2026/2027, la conservation des filtres et des liens, les changements d’équipe, les saisons futures et les rendus à 320/390/430 pixels.
 - Le test responsive du workflow complet continue à exercer les pages records et joueurs avec l’API FastAPI et les sources isolées du projet.

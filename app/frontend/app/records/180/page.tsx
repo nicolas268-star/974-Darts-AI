@@ -3,7 +3,6 @@ import Link from "next/link";
 import { Award, Flame, Target, Trophy, Users } from "lucide-react";
 import type { Metadata } from "next";
 import { Sidebar } from "@/components/Sidebar";
-import { canonicalTeamName } from "@/lib/team-identity";
 import type { PlayerOverview } from "@/lib/types/sprint4";
 import { getRecordSeasonData } from "@/lib/statistics-data";
 import { firstQueryValue, recordPlayerLookup, statisticsHref } from "@/lib/statistics-filters";
@@ -46,11 +45,9 @@ export default async function Club180Page({ searchParams }: PageProps) {
     ? requestedScope
     : "all";
   const { season, players, knownPlayers, tournamentRecords } = await getRecordSeasonData(query?.season);
-  const officialPlayers = players
-    .map((player) => ({ ...player, team: canonicalTeamName(player.team) }))
-  const findPlayer = recordPlayerLookup(knownPlayers.map(player => ({ ...player, team: canonicalTeamName(player.team) })));
+  const findPlayer = recordPlayerLookup(knownPlayers);
   const sourceRows = [
-    ...officialPlayers.map((player) => ({
+    ...players.map((player) => ({
       ...player,
       competition: `Championnat ${season}`,
       source_type: "championship" as const,

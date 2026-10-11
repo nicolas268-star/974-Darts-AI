@@ -8,7 +8,7 @@ const nativeRequire = createRequire(import.meta.url), root = resolve(dirname(new
 function load(path) {
   const file = path.endsWith(".ts") ? path : path + ".ts", mod = { exports: {} };
   const js = ts.transpileModule(readFileSync(file, "utf8"), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
-  new Function("require", "module", "exports", js)(p => p.startsWith(".") ? load(resolve(dirname(file), p)) : nativeRequire(p), mod, mod.exports);
+  new Function("require", "module", "exports", js)(p => p.startsWith("@/") ? load(resolve(root, p.slice(2))) : p.startsWith(".") ? load(resolve(dirname(file), p)) : nativeRequire(p), mod, mod.exports);
   return mod.exports;
 }
 const { buildMvpPlayers, mvpStanding, playersForMvpSeason } = load(resolve(root, "lib/records/mvp.ts"));
@@ -57,10 +57,11 @@ try {
     const calls = [];
     globalThis.fetch = async (input, options) => {
       const url = new URL(input); calls.push(url); assert.equal(options.cache, "no-store");
-      return Response.json(url.pathname.endsWith("competitions") ? catalog : { players: [player({ season_id: `season-${year}` })] });
+      return Response.json(url.pathname.endsWith("competitions") ? catalog : { players: [player({ name: "Pierre BERLET", team: "PDC Fournaise", season_id: `season-${year}` })] });
     };
     const result = await loadMvpSeason(year);
     assert.equal(result.status, "ready"); assert.equal(result.players.length, 1);
+    assert.equal(result.players[0].team, year === "2027" ? "Papangue Darts Club - Neige" : "PDC Fournaise");
     assert.equal(calls[1].searchParams.get("season_id"), `season-${year}`); assert.equal(calls.length, 2);
   });
   await test("a planned season makes no player request and never substitutes the active season", async () => {
