@@ -1,5 +1,6 @@
 import type { PlayerDashboard } from "../player/dashboard-types";
 import type { CardData } from "./types";
+import { seasonLabel } from "../season-label";
 
 export function finite(value: unknown): number | null {
   return typeof value === "number" && Number.isFinite(value) && value >= 0 ? value : null;
@@ -26,7 +27,7 @@ export function adaptDashboard(source: PlayerDashboard, competition: string | nu
   return {
     name: source.player.name.trim(), nickname: null, initials: initials(source.player.name),
     club: source.player.club || null, team: source.player.team || null,
-    period: source.season?.id === "all" ? "Toute la carrière" : source.season?.name ? `Saison ${source.season.name}` : "Période non renseignée",
+    period: seasonLabel(source.season),
     competition, hasData, demonstration: false,
     stats: {
       average: hasData ? finite(source.kpis.average_3_darts) : null,

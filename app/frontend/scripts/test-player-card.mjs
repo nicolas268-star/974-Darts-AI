@@ -23,7 +23,7 @@ const dashboard = {
 };
 try {
   await test("profile adapter preserves source values, canonical public identity and categories", () => {
-    const d = data.adaptDashboard(dashboard, "Interclubs"); assert.equal(d.stats.average, 43.14); assert.equal(d.stats.scores100, 44); assert.equal(d.stats.scores140, 9); assert.equal(d.stats.bestAverage, null); assert.equal(d.nickname, null); assert.equal(d.period, "Saison 2026-2027"); assert.equal(d.demonstration, false); assert.equal(d.initials, "NÉ"); assert.equal(d.name, dashboard.player.name);
+    const d = data.adaptDashboard(dashboard, "Interclubs"); assert.equal(d.stats.average, 43.14); assert.equal(d.stats.scores100, 44); assert.equal(d.stats.scores140, 9); assert.equal(d.stats.bestAverage, null); assert.equal(d.nickname, null); assert.equal(d.period, "Saison 2027"); assert.equal(d.demonstration, false); assert.equal(d.initials, "NÉ"); assert.equal(d.name, dashboard.player.name);
     assert.doesNotMatch(JSON.stringify(d), /canonical-player|team-uuid|club-uuid|email|phone|DataMan/);
     assert.throws(() => data.adaptDashboard({ ...dashboard, player: { ...dashboard.player, public_profile: false } }, null));
   });

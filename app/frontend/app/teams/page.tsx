@@ -76,7 +76,7 @@ export default async function TeamsPage() {
         {activeSeason?.year === 2027 ? (
           <section className="teams-rosters-2027">
             <div className="teams-rosters-heading">
-              <div><strong>{activeSeason.name}</strong><h2>8 équipes officielles</h2><p>{TEAM_ROSTERS_2027_PLAYER_COUNT} joueurs inscrits pour la saison 2026/2027.</p></div>
+              <div><strong>Championnat 2027</strong><h2>8 équipes officielles</h2><p>{TEAM_ROSTERS_2027_PLAYER_COUNT} joueurs inscrits pour la saison 2027.</p></div>
               <Link href="/championships/2026">Championnat 2026 historique →</Link>
             </div>
             <div className="teams-rosters-grid">

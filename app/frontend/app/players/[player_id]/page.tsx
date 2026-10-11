@@ -17,6 +17,8 @@ import type { PlayerCoachResponse } from "@/lib/player/coach-types";
 import type { PlayerOverview } from "@/lib/types/sprint4";
 import type { CompetitionCatalog } from "@/lib/types/sprint14";
 import { playerCardEnabled } from "@/lib/player-card/feature";
+import { playerSeasonAffiliations } from "@/lib/player/season-affiliations";
+import { seasonLabel } from "@/lib/season-label";
 import "./player-premium.css";
 import "./player-affiliation-timeline.css";
 import "./player-network.css";
@@ -88,7 +90,7 @@ export default async function PlayerDashboardPage({ params, searchParams }: { pa
   const { player_id } = await params;
   const requestedSeason = (await searchParams).season;
   const season = requestedSeason === "all" || ["2026", "2027", "2028", "2029"].includes(requestedSeason ?? "") ? requestedSeason : undefined;
-  const [data, network, dna, coach, players, tournamentSummary, affiliations, catalog] = await Promise.all([getDashboard(player_id, season), getNetwork(player_id, season), getDNA(player_id, season), getCoach(player_id, season), getPlayers(season), getTournamentSummary(player_id), getAffiliations(player_id), getCompetitionCatalog()]);
+  const [data, network, dna, coach, players, tournamentSummary, affiliations, catalog, historical] = await Promise.all([getDashboard(player_id, season), getNetwork(player_id, season), getDNA(player_id, season), getCoach(player_id, season), getPlayers(season), getTournamentSummary(player_id), getAffiliations(player_id), getCompetitionCatalog(), getDashboard(player_id, "2026")]);
   if (!data) notFound();
 
   const yearsInSeasonName = data.season?.name.match(/20\d{2}/g) ?? [];
@@ -122,7 +124,7 @@ export default async function PlayerDashboardPage({ params, searchParams }: { pa
   const tier = playerTier(playerIndex, rank, data.kpis.legs_played);
   const formLabel = recent.length === 0 ? "Données limitées" : recentWins >= 4 ? "Excellente forme" : recentWins >= 3 ? "Bonne dynamique" : recentWins >= 2 ? "Forme stable" : "Forme à relancer";
   const affiliationView = data.affiliations ?? affiliations ?? { current: { team: data.player.team, club: data.player.club, start_date: null }, upcoming: [], history: [], has_history: false };
-  const previousAffiliation = affiliationView.history.length > 1 ? affiliationView.history[affiliationView.history.length - 2] : null;
+  const { previous: previousAffiliation, current: currentAffiliation } = playerSeasonAffiliations(data.player, historical);
   const nextAffiliation = affiliationView.upcoming[0] ?? null;
 
   const kpis = [
@@ -149,11 +151,11 @@ export default async function PlayerDashboardPage({ params, searchParams }: { pa
       </div>
       <div className="player-identity player-premium-identity">
         <div className="player-premium-badges">
-          <span className="badge">Profil joueur · {data.season?.id === "all" ? "Toute la carrière" : `Saison ${data.season?.name ?? "—"}`}</span>
+          <span className="badge">Profil joueur · {seasonLabel(data.season)}</span>
           <span className={`player-tier-badge player-tier-${tier.tone}`}>{tier.icon} {tier.label}</span>
         </div>
         <h2>{data.player.name}</h2>
-        <p>{data.player.team ?? "Équipe non renseignée"}{data.player.club ? ` · ${data.player.club}` : ""}</p>
+        <p>{currentAffiliation ? `${currentAffiliation.team} · ${currentAffiliation.club}` : "Affiliation 2027 non renseignée"}</p>
         {playerCardEnabled() && data.player.public_profile === true && <a className="btn btn-primary" href={`/players/${encodeURIComponent(data.player.id)}/card${season ? `?season=${encodeURIComponent(season)}` : ""}`}>Créer ma carte</a>}
         <div className="player-badges">
           {rank > 0 && <span className="performance-badge top">Classement moyenne #{rank}</span>}
@@ -161,7 +163,7 @@ export default async function PlayerDashboardPage({ params, searchParams }: { pa
           <span className="performance-badge">{formLabel}</span>
         </div>
       </div>
-      <div className="player-affiliation-card"><header><span>Parcours</span><Link href={`/players/${player_id}/career`}>Historique complet →</Link></header><div className="player-affiliation-timeline"><section><span>Précédent</span><strong>{previousAffiliation?.team||"—"}</strong><small>{previousAffiliation?.club||"Aucune équipe précédente"}</small></section><i>→</i><section className="is-current"><span>Actuel</span><strong>{affiliationView.current.team||data.player.team||"À confirmer"}</strong><small>{affiliationView.current.club||data.player.club||"Club à confirmer"}</small></section><i>→</i><section className={nextAffiliation?"is-next":""}><span>Prochain</span><strong>{nextAffiliation?.team||"—"}</strong><small>{nextAffiliation?`${nextAffiliation.club||"Club à confirmer"} · ${new Date(`${nextAffiliation.effective_date}T12:00:00`).toLocaleDateString("fr-FR")}`:"Aucun transfert prévu"}</small></section></div></div>
+      <div className="player-affiliation-card"><header><span>Parcours</span><Link href={`/players/${player_id}/career`}>Historique complet →</Link></header><div className="player-affiliation-timeline"><section><span>Précédent · 2026</span><strong>{previousAffiliation?.team||"—"}</strong><small>{previousAffiliation ? previousAffiliation.club || "Club 2026 non renseigné" : "Affiliation 2026 non renseignée"}</small></section><i>→</i><section className="is-current"><span>Actuel · 2027</span><strong>{currentAffiliation?.team||"—"}</strong><small>{currentAffiliation?.club||"Absent de la liste officielle 2027"}</small></section><i>→</i><section className={nextAffiliation?"is-next":""}><span>Prochain</span><strong>{nextAffiliation?.team||"—"}</strong><small>{nextAffiliation?`${nextAffiliation.club||"Club à confirmer"} · ${new Date(`${nextAffiliation.effective_date}T12:00:00`).toLocaleDateString("fr-FR")}`:"Aucun transfert prévu"}</small></section></div></div>
       <div className="player-premium-score">
         <span>Indice joueur</span><strong>{playerIndex}</strong><small>/ 100</small>
         <div className="player-premium-score-track"><i style={{ width: `${playerIndex}%` }}/></div>
