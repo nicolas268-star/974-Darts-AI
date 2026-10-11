@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Crosshair, Gauge, Medal, Target, TrendingUp, Trophy } from "lucide-react";
+import { ArrowLeft, BookOpen, Crosshair, Gauge, Medal, Target, TrendingUp, Trophy } from "lucide-react";
 import { Sidebar } from "@/components/Sidebar";
 import { PlayerCharts } from "@/components/player/PlayerCharts";
 import { PlayerDashboardControls } from "@/components/player/PlayerDashboardControls";
@@ -140,6 +140,7 @@ export default async function PlayerDashboardPage({ params, searchParams }: { pa
     <Link href={`/players/${player_id}/career`} className="career-link">Identité & carrière · équipes, saisons et alias</Link>
     <PlayerDashboardControls players={players.map((player) => ({ player_id: player.player_id, name: player.name, team: player.team }))} currentPlayerId={player_id} season={selectedSeason}/>
     <PlayerSeasonFilter playerId={player_id} selected={selectedSeason} seasons={seasonOptions}/>
+    <Link href={`/players/kpi?season=${selectedSeason}`} className="back-link"><BookOpen size={17}/> Comprendre tous les KPI de cette fiche</Link>
 
     <header className="player-hero card player-premium-hero">
       <div className="player-premium-avatar-wrap">
