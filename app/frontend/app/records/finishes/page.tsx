@@ -3,7 +3,6 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { Award, Crosshair, ShieldCheck, Sparkles, Target, Trophy } from "lucide-react";
 import { Sidebar } from "@/components/Sidebar";
-import { canonicalTeamName } from "@/lib/team-identity";
 import type { PlayerOverview } from "@/lib/types/sprint4";
 import { getRecordSeasonData } from "@/lib/statistics-data";
 import { recordPlayerLookup, statisticsHref } from "@/lib/statistics-filters";
@@ -30,11 +29,9 @@ const finishLevel = (finish: number) => {
 
 export default async function HighestFinishesPage({ searchParams }: { searchParams?: Promise<{ season?: string | string[] }> }) {
   const { season, players, knownPlayers, tournamentRecords } = await getRecordSeasonData((await searchParams)?.season);
-  const officialPlayers = players
-    .map((player) => ({ ...player, team: canonicalTeamName(player.team) }))
-  const findPlayer = recordPlayerLookup(knownPlayers.map(player => ({ ...player, team: canonicalTeamName(player.team) })));
+  const findPlayer = recordPlayerLookup(knownPlayers);
   const finishers = [
-    ...officialPlayers.map((player) => ({
+    ...players.map((player) => ({
       ...player,
       competition: `Championnat ${season}`,
       finish_count_known: true,

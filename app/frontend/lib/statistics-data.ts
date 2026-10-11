@@ -3,6 +3,7 @@ import type { CompetitionCatalog, ChampionshipHub } from "./types/sprint14";
 import { TEAM_ROSTERS_2027 } from "./team-rosters-2027";
 import { selectedStatisticsYear } from "./statistics-filters";
 import { getTournamentRecords } from "./tournament-records";
+import { playerForStatisticsSeason } from "./statistics-affiliations";
 
 const backend = process.env.PYTHON_API_URL ?? "http://127.0.0.1:8000";
 async function read(path: string) {
@@ -27,7 +28,7 @@ export async function getStatisticsPlayers(catalog: CompetitionCatalog | null, y
   if (!seasonId) return [];
   const data = await read(`players?season_id=${encodeURIComponent(seasonId)}`);
   if (!Array.isArray(data?.players) || data.players.some((player: { season_id?: string } | null) => player?.season_id !== seasonId)) return [];
-  return data.players;
+  return data.players.map((player: PlayerOverview) => playerForStatisticsSeason(player, year));
 }
 
 export async function getCurrentChampionshipTeams(catalog: CompetitionCatalog | null): Promise<string[]> {
@@ -43,7 +44,9 @@ export async function getRecordSeasonData(requested: string | string[] | undefin
   const catalog = await getStatisticsCatalog();
   const season = selectedStatisticsYear(requested, catalog);
   const [players, identities, tournamentRecords] = await Promise.all([getStatisticsPlayers(catalog, season), getPlayerIdentities(), getTournamentRecords(season)]);
-  // Season-specific profiles take precedence for team attribution; identity reads add no statistics.
-  const knownPlayers = [...new Map([...identities, ...players].map(player => [player.player_id, player])).values()];
+  // Unscoped identities resolve names, not affiliations. Only a published roster
+  // or a profile with play in the selected season can supply the displayed team.
+  const seasonIdentities = identities.map(player => playerForStatisticsSeason({ ...player, team: "" }, season));
+  const knownPlayers = [...new Map([...seasonIdentities, ...players].map(player => [player.player_id, player])).values()];
   return { season, players, knownPlayers, tournamentRecords };
 }

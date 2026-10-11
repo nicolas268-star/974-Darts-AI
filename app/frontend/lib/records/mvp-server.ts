@@ -1,5 +1,6 @@
 import type { CompetitionCatalog } from "../types/sprint14";
 import { playersForMvpSeason, type MvpSeason, type SeasonPlayer } from "./mvp";
+import { playerForStatisticsSeason } from "../statistics-affiliations";
 
 export type MvpSource = { status: "ready" | "awaiting" | "unavailable"; players: SeasonPlayer[]; publishedRounds: number };
 const backend = process.env.PYTHON_API_URL ?? "http://127.0.0.1:8000";
@@ -24,6 +25,6 @@ export async function loadMvpSeason(season: MvpSeason): Promise<MvpSource> {
     const response = await fetch(`${backend}/api/v1/players?season_id=${encodeURIComponent(championship.id)}`, { cache: "no-store", signal: AbortSignal.timeout(5000) });
     if (!response.ok) return unavailable;
     const players = playersForMvpSeason(await response.json(), championship.id);
-    return players ? { status: "ready", players, publishedRounds: championship.published_rounds } : unavailable;
+    return players ? { status: "ready", players: players.map(player => playerForStatisticsSeason(player, season)), publishedRounds: championship.published_rounds } : unavailable;
   } catch { return unavailable; }
 }
