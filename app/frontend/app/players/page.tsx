@@ -3,35 +3,22 @@ import Link from "next/link";
 import { Activity, BookOpen, ShieldCheck, Users } from "lucide-react";
 import { Sidebar } from "@/components/Sidebar";
 import type { PlayerOverview } from "@/lib/types/sprint4";
+import { getCurrentChampionshipTeams, getPlayerIdentities, getStatisticsCatalog, getStatisticsPlayers } from "@/lib/statistics-data";
+import { firstQueryValue, PLAYER_YEARS, playersInCurrentTeam, selectedStatisticsYear, statisticsHref } from "@/lib/statistics-filters";
 import "./players.css";
-
-const SEASONS = [2026, 2027, 2028, 2029] as const;
-
-async function getPlayers(season?: string): Promise<PlayerOverview[]> {
-  const base = process.env.PYTHON_API_URL ?? "http://127.0.0.1:8000";
-  const query = season ? `?season_id=${encodeURIComponent(season)}` : "";
-  try {
-    const response = await fetch(`${base}/api/v1/players${query}`, {
-      cache: "no-store",
-      signal: AbortSignal.timeout(5000),
-    });
-    return response.ok ? (await response.json()).players : [];
-  } catch {
-    return [];
-  }
-}
 
 const number = (value: number | null, digits = 2) =>
   value == null ? "—" : Number(value).toFixed(digits);
 
-export default async function PlayersPage({ searchParams }: { searchParams: Promise<{ season?: string }> }) {
-  const requestedSeason = (await searchParams).season;
-  const fallbackSeason = SEASONS.includes(new Date().getFullYear() as (typeof SEASONS)[number])
-    ? String(new Date().getFullYear())
-    : String(SEASONS.at(-1));
-  const selectedSeason = SEASONS.map(String).includes(requestedSeason ?? "") ? requestedSeason as string : fallbackSeason;
-  const [allPlayers, players] = await Promise.all([getPlayers(), getPlayers(selectedSeason)]);
-  const rankedPlayers = players.filter((player) => (player.legs_played ?? 0) > 0);
+export default async function PlayersPage({ searchParams }: { searchParams: Promise<{ season?: string | string[]; team?: string | string[] }> }) {
+  const query = await searchParams;
+  const catalog = await getStatisticsCatalog();
+  const selectedSeason = selectedStatisticsYear(query.season, catalog, PLAYER_YEARS);
+  const [allPlayers, players, championshipTeams] = await Promise.all([getPlayerIdentities(), getStatisticsPlayers(catalog, selectedSeason), getCurrentChampionshipTeams(catalog)]);
+  const requestedTeam = firstQueryValue(query.team);
+  const selectedTeam = championshipTeams.find(team => team === requestedTeam);
+  const activeYear = catalog?.active_championship?.year;
+  const rankedPlayers: PlayerOverview[] = playersInCurrentTeam(players.filter(player => (player.legs_played ?? 0) > 0), selectedTeam, activeYear);
   const teams = new Set(rankedPlayers.map((player) => player.team).filter(Boolean));
 
   return (
@@ -53,12 +40,21 @@ export default async function PlayersPage({ searchParams }: { searchParams: Prom
             <strong>Saison {selectedSeason}</strong>
           </div>
           <div className="players-season-options">
-            {SEASONS.map((year) => (
-              <Link className={selectedSeason === String(year) ? "is-active" : ""} href={`/players?season=${year}`} key={year}>
+            {PLAYER_YEARS.map((year) => (
+              <Link className={selectedSeason === String(year) ? "is-active" : ""} href={statisticsHref("/players",year,{team:selectedTeam})} aria-current={selectedSeason === String(year) ? "page" : undefined} key={year}>
                 {year}
               </Link>
             ))}
           </div>
+        </nav>
+
+        <nav className="players-team-filter" aria-label="Filtrer les joueurs par équipe">
+          <strong>Équipe{activeYear ? ` · championnat ${activeYear}` : ""}</strong>
+          <div className="players-team-options">
+            <Link href={statisticsHref("/players",selectedSeason)} className={!selectedTeam ? "is-active" : ""} aria-current={!selectedTeam ? "page" : undefined}>Toutes les équipes</Link>
+            {championshipTeams.map(team => <Link key={team} href={statisticsHref("/players",selectedSeason,{team})} className={selectedTeam === team ? "is-active" : ""} aria-current={selectedTeam === team ? "page" : undefined}>{team}</Link>)}
+          </div>
+          <p>{championshipTeams.length ? `Filtre par équipe du championnat actuel. Les statistiques restent celles de la saison ${selectedSeason}.` : "La liste des équipes du championnat actuel est temporairement indisponible."}</p>
         </nav>
 
         <Link className="players-guide-link" href={`/players/kpi?season=${selectedSeason}`}><BookOpen size={18} /> Comprendre les KPI des joueurs →</Link>
@@ -76,7 +72,7 @@ export default async function PlayersPage({ searchParams }: { searchParams: Prom
 
         <section className="players-table-panel">
           <div className="players-table-heading">
-            <div><span>SAISON OFFICIELLE</span><h2>Classement des performances — Saison {selectedSeason}</h2></div>
+            <div><span>SAISON OFFICIELLE</span><h2>Classement des performances — Saison {selectedSeason}</h2>{selectedTeam && <p className="players-selected-team">{selectedTeam}</p>}</div>
             <p>Comparez les moyennes, les legs gagnés et les meilleures performances de chaque joueur.</p>
           </div>
           <p className="table-scroll-hint">Faites glisser le tableau horizontalement pour consulter tous les indicateurs.</p><div className="players-table-scroll" tabIndex={0} role="region" aria-label="Statistiques des joueurs">
@@ -106,7 +102,7 @@ export default async function PlayersPage({ searchParams }: { searchParams: Prom
                     <td>{player.scores_180}</td><td>{player.scores_140}</td><td>{player.scores_100}</td><td>{player.elo ?? "—"}</td>
                   </tr>
                 )) : (
-                  <tr className="players-empty"><td colSpan={10}><strong>Aucune statistique publiée pour la saison {selectedSeason}</strong><span>Les joueurs apparaîtront ici dès que les données officielles de la saison seront disponibles.</span></td></tr>
+                  <tr className="players-empty"><td colSpan={10}><strong>{selectedTeam ? `Aucune statistique publiée pour cette équipe en ${selectedSeason}` : `Aucune statistique publiée pour la saison ${selectedSeason}`}</strong><span>{selectedTeam && `${selectedTeam}. `}Les joueurs apparaîtront ici dès que les données officielles de la saison seront disponibles.</span></td></tr>
                 )}
               </tbody>
             </StatsTable>

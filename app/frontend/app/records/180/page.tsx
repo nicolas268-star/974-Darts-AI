@@ -4,42 +4,18 @@ import { Award, Flame, Target, Trophy, Users } from "lucide-react";
 import type { Metadata } from "next";
 import { Sidebar } from "@/components/Sidebar";
 import { canonicalTeamName } from "@/lib/team-identity";
-import type { PlayerOverview, RankingPayload } from "@/lib/types/sprint4";
-import { getTournamentRecords, normalizedPlayerName } from "@/lib/tournament-records";
+import type { PlayerOverview } from "@/lib/types/sprint4";
+import { getRecordSeasonData } from "@/lib/statistics-data";
+import { firstQueryValue, recordPlayerLookup, statisticsHref } from "@/lib/statistics-filters";
+import { StatisticsSeasonFilter } from "@/components/stats/StatisticsSeasonFilter";
 import "./club-180.css";
 import "./club-180-filters.css";
 import "../competition-badges.css";
-
-const backend = process.env.PYTHON_API_URL ?? "http://127.0.0.1:8000";
 
 export const metadata: Metadata = {
   title: "Club des 180",
   description: "Classement des scores de 180 réalisés en championnat et en tournoi.",
 };
-
-async function getPlayers(): Promise<PlayerOverview[]> {
-  try {
-    const response = await fetch(`${backend}/api/v1/players`, {
-      cache: "no-store",
-      signal: AbortSignal.timeout(5000),
-    });
-    return response.ok ? (await response.json()).players ?? [] : [];
-  } catch {
-    return [];
-  }
-}
-
-async function getRanking(): Promise<RankingPayload | null> {
-  try {
-    const response = await fetch(`${backend}/api/v1/ranking`, {
-      cache: "no-store",
-      signal: AbortSignal.timeout(5000),
-    });
-    return response.ok ? await response.json() : null;
-  } catch {
-    return null;
-  }
-}
 
 const decimal = new Intl.NumberFormat("fr-FR", {
   minimumFractionDigits: 1,
@@ -54,7 +30,7 @@ function frequency(player: PlayerOverview) {
 type Scope = "all" | "championship" | "tournament";
 
 type PageProps = {
-  searchParams?: Promise<{ scope?: string }>;
+  searchParams?: Promise<{ scope?: string | string[]; season?: string | string[] }>;
 };
 
 const scopeLabels: Record<Scope, string> = {
@@ -64,16 +40,15 @@ const scopeLabels: Record<Scope, string> = {
 };
 
 export default async function Club180Page({ searchParams }: PageProps) {
-  const requestedScope = (await searchParams)?.scope;
+  const query = await searchParams;
+  const requestedScope = firstQueryValue(query?.scope);
   const scope: Scope = requestedScope === "championship" || requestedScope === "tournament"
     ? requestedScope
     : "all";
-  const [players, ranking, tournamentRecords] = await Promise.all([getPlayers(), getRanking(), getTournamentRecords()]);
+  const { season, players, knownPlayers, tournamentRecords } = await getRecordSeasonData(query?.season);
   const officialPlayers = players
     .map((player) => ({ ...player, team: canonicalTeamName(player.team) }))
-  const playerByName = new Map(officialPlayers.map((player) => [normalizedPlayerName(player.name), player]));
-  const playerById = new Map(officialPlayers.map((player) => [player.player_id, player]));
-  const season = ranking?.season?.name ?? "2026";
+  const findPlayer = recordPlayerLookup(knownPlayers.map(player => ({ ...player, team: canonicalTeamName(player.team) })));
   const sourceRows = [
     ...officialPlayers.map((player) => ({
       ...player,
@@ -81,9 +56,7 @@ export default async function Club180Page({ searchParams }: PageProps) {
       source_type: "championship" as const,
     })),
     ...tournamentRecords.flatMap((record) => {
-      const player =
-        playerById.get(record.canonical_player_id ?? "") ??
-        playerByName.get(normalizedPlayerName(record.name));
+      const player = findPlayer(record);
       return player ? [{
         ...player,
         legs_played: record.legs_played,
@@ -159,6 +132,8 @@ export default async function Club180Page({ searchParams }: PageProps) {
           <div className="club180-live"><i /> Données officielles</div>
         </section>
 
+        <StatisticsSeasonFilter path="/records/180" selected={season} extra={{ scope: scope === "all" ? undefined : scope }} />
+
         <section className="club180-kpis" aria-label="Résumé des scores de 180">
           <article className="card">
             <Target size={22} />
@@ -195,7 +170,8 @@ export default async function Club180Page({ searchParams }: PageProps) {
             {(Object.keys(scopeLabels) as Scope[]).map((item) => (
               <Link
                 className={item === scope ? "active" : ""}
-                href={item === "all" ? "/records/180" : `/records/180?scope=${item}`}
+                href={statisticsHref("/records/180", season, { scope: item === "all" ? undefined : item })}
+                aria-current={item === scope ? "page" : undefined}
                 key={item}
               >
                 {scopeLabels[item]}
@@ -220,7 +196,7 @@ export default async function Club180Page({ searchParams }: PageProps) {
                   return (
                     <Link
                       className={`club180-podium-card podium-${index + 1}`}
-                      href={`/players/${player.player_id}`}
+                      href={statisticsHref(`/players/${player.player_id}`, season)}
                       key={player.player_id}
                     >
                       <span className="club180-medal">#{index + 1}</span>
@@ -271,7 +247,7 @@ export default async function Club180Page({ searchParams }: PageProps) {
                         <tr key={player.player_id}>
                           <td><span className={`club180-rank rank-${Math.min(index + 1, 4)}`}>#{index + 1}</span></td>
                           <td>
-                            <Link className="club180-player-link" href={`/players/${player.player_id}`}>
+                            <Link className="club180-player-link" href={statisticsHref(`/players/${player.player_id}`, season)}>
                               <strong>{player.name}</strong>
                               <span>Voir le profil →</span>
                             </Link>
@@ -297,7 +273,7 @@ export default async function Club180Page({ searchParams }: PageProps) {
                   <span className="eyebrow">Traçabilité</span>
                   <h2>Détail par compétition</h2>
                 </div>
-                <span className="club180-count">{sourceRows.length} source{sourceRows.length > 1 ? "s" : ""}</span>
+                <span className="club180-count">{scorers.length} source{scorers.length > 1 ? "s" : ""}</span>
               </div>
               <p className="club180-detail-intro">
                 Ce tableau explique le total consolidé sans créer plusieurs positions pour un même joueur.
@@ -306,11 +282,11 @@ export default async function Club180Page({ searchParams }: PageProps) {
                 <StatsTable className="table club180-table">
                   <thead><tr><th>Joueur</th><th>Équipe</th><th>Compétition</th><th>Type</th><th>180</th><th>Legs joués</th><th>180 / 100 legs</th></tr></thead>
                   <tbody>
-                    {sourceRows.map((player) => {
+                    {scorers.map((player) => {
                       const per100 = player.legs_played ? (player.scores_180 * 100) / player.legs_played : null;
                       return (
                         <tr key={`${player.player_id}-${player.source_type}-${player.competition}`}>
-                          <td><Link className="club180-player-link" href={`/players/${player.player_id}`}><strong>{player.name}</strong><span>Voir le profil →</span></Link></td>
+                          <td><Link className="club180-player-link" href={statisticsHref(`/players/${player.player_id}`, season)}><strong>{player.name}</strong><span>Voir le profil →</span></Link></td>
                           <td>{player.team || "—"}</td>
                           <td><span className="club180-competition">{player.competition}</span></td>
                           <td>{player.source_type === "championship" ? "Championnat" : "Tournoi"}</td>
@@ -348,14 +324,14 @@ export default async function Club180Page({ searchParams }: PageProps) {
         ) : (
           <section className="card club180-empty">
             <Target size={42} />
-            <h2>Aucun score de 180 enregistré</h2>
-            <p>La page se remplira automatiquement dès qu’un 180 sera présent dans les données Nakka validées.</p>
+            <h2>Aucun score de 180 enregistré en {season}</h2>
+            <p>Choisissez une autre année ou un autre périmètre. Les prochains scores Nakka validés de cette période apparaîtront automatiquement.</p>
           </section>
         )}
 
         <div className="club180-integrity">
-          La rencontre J1 Kazadarts A – Kazadarts B reste comptée collectivement,
-          mais aucun 180 individuel n’est inventé lorsque le détail PvP est absent.
+          Seuls les scores individuels publiés sont comptabilisés. Un résultat
+          collectif sans détail PvP ne permet pas d’attribuer des 180 aux joueurs.
         </div>
       </main>
     </div>

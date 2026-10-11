@@ -1,5 +1,6 @@
 import type { TournamentCard, TournamentHub, TournamentParticipant } from "@/lib/types/sprint14";
 import bdcRoundOneDetails from "@/lib/bdc-round-one-details.json";
+import { tournamentRecordYear } from "./statistics-filters";
 
 const backend = process.env.PYTHON_API_URL ?? "http://127.0.0.1:8000";
 
@@ -7,6 +8,7 @@ export type TournamentRecord = TournamentParticipant & {
   code: string;
   competition: string;
   date: string | null;
+  season: string | null;
 };
 
 export function normalizedPlayerName(value: string | null | undefined) {
@@ -74,11 +76,12 @@ function getBdcRoundOneRecords(): TournamentRecord[] {
       code: "BDC-M1",
       competition: "Blind Draw Championship — Manche 1",
       date: "2026-09-11",
+      season: "2026-2027",
     }];
   });
 }
 
-export async function getTournamentRecords(): Promise<TournamentRecord[]> {
+export async function getTournamentRecords(year?: string): Promise<TournamentRecord[]> {
   try {
     const catalogResponse = await fetch(`${backend}/api/v1/competitions/tournaments`, {
       cache: "no-store",
@@ -113,11 +116,12 @@ export async function getTournamentRecords(): Promise<TournamentRecord[]> {
               code: tournament.code,
               competition: tournament.event_name || tournament.date_label || tournament.name,
               date: tournament.date,
+              season: tournament.season ?? cards.find(card => card.code === tournament.code)?.season ?? null,
             };
           })
         : [],
     );
-    return [...tournamentRows, ...getBdcRoundOneRecords()];
+    return [...tournamentRows, ...getBdcRoundOneRecords()].filter(record => !year || tournamentRecordYear(record) === year);
   } catch {
     return [];
   }
