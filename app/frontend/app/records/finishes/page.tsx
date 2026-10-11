@@ -4,41 +4,17 @@ import type { Metadata } from "next";
 import { Award, Crosshair, ShieldCheck, Sparkles, Target, Trophy } from "lucide-react";
 import { Sidebar } from "@/components/Sidebar";
 import { canonicalTeamName } from "@/lib/team-identity";
-import type { PlayerOverview, RankingPayload } from "@/lib/types/sprint4";
-import { getTournamentRecords, normalizedPlayerName } from "@/lib/tournament-records";
+import type { PlayerOverview } from "@/lib/types/sprint4";
+import { getRecordSeasonData } from "@/lib/statistics-data";
+import { recordPlayerLookup, statisticsHref } from "@/lib/statistics-filters";
+import { StatisticsSeasonFilter } from "@/components/stats/StatisticsSeasonFilter";
 import "../record-pages.css";
 import "../competition-badges.css";
-
-const backend = process.env.PYTHON_API_URL ?? "http://127.0.0.1:8000";
 
 export const metadata: Metadata = {
   title: "Meilleurs finishs",
   description: "Classement des plus hauts finishs réalisés en championnat et en tournoi.",
 };
-
-async function getPlayers(): Promise<PlayerOverview[]> {
-  try {
-    const response = await fetch(`${backend}/api/v1/players`, {
-      cache: "no-store",
-      signal: AbortSignal.timeout(5000),
-    });
-    return response.ok ? (await response.json()).players ?? [] : [];
-  } catch {
-    return [];
-  }
-}
-
-async function getRanking(): Promise<RankingPayload | null> {
-  try {
-    const response = await fetch(`${backend}/api/v1/ranking`, {
-      cache: "no-store",
-      signal: AbortSignal.timeout(5000),
-    });
-    return response.ok ? await response.json() : null;
-  } catch {
-    return null;
-  }
-}
 
 const decimal = new Intl.NumberFormat("fr-FR", {
   minimumFractionDigits: 1,
@@ -52,13 +28,11 @@ const finishLevel = (finish: number) => {
   return "Finish confirmé";
 };
 
-export default async function HighestFinishesPage() {
-  const [players, ranking, tournamentRecords] = await Promise.all([getPlayers(), getRanking(), getTournamentRecords()]);
+export default async function HighestFinishesPage({ searchParams }: { searchParams?: Promise<{ season?: string | string[] }> }) {
+  const { season, players, knownPlayers, tournamentRecords } = await getRecordSeasonData((await searchParams)?.season);
   const officialPlayers = players
     .map((player) => ({ ...player, team: canonicalTeamName(player.team) }))
-  const playerByName = new Map(officialPlayers.map((player) => [normalizedPlayerName(player.name), player]));
-  const playerById = new Map(officialPlayers.map((player) => [player.player_id, player]));
-  const season = ranking?.season?.name ?? "2026";
+  const findPlayer = recordPlayerLookup(knownPlayers.map(player => ({ ...player, team: canonicalTeamName(player.team) })));
   const finishers = [
     ...officialPlayers.map((player) => ({
       ...player,
@@ -66,9 +40,7 @@ export default async function HighestFinishesPage() {
       finish_count_known: true,
     })),
     ...tournamentRecords.flatMap((record) => {
-      const player =
-        playerById.get(record.canonical_player_id ?? "") ??
-        playerByName.get(normalizedPlayerName(record.name));
+      const player = findPlayer(record);
       return player ? [{
         ...player,
         legs_played: record.legs_played,
@@ -146,10 +118,12 @@ export default async function HighestFinishesPage() {
           <span className="record-data-badge"><i /> Données officielles</span>
         </section>
 
+        <StatisticsSeasonFilter path="/records/finishes" selected={season} />
+
         <section className="record-kpis" aria-label="Résumé des finishs">
           <article className="card">
             <Trophy size={22} />
-            <span>Record 2026</span>
+            <span>Record {season}</span>
             <strong>{leader?.best_finish ?? "—"}</strong>
             <small>{leader?.name ?? "Aucun finish disponible"}</small>
           </article>
@@ -178,7 +152,7 @@ export default async function HighestFinishesPage() {
             <section className="card record-podium">
               <div className="record-section-heading">
                 <div>
-                  <span className="eyebrow">Podium 2026</span>
+                  <span className="eyebrow">Podium {season}</span>
                   <h2>Les maîtres du finish</h2>
                 </div>
                 <Crosshair size={26} />
@@ -187,7 +161,7 @@ export default async function HighestFinishesPage() {
                 {bestFinishers.slice(0, 3).map((player, index) => (
                   <Link
                     className={`record-podium-card podium-${index + 1}`}
-                    href={`/players/${player.player_id}`}
+                    href={statisticsHref(`/players/${player.player_id}`, season)}
                     key={player.player_id}
                   >
                     <span className="record-medal">#{index + 1}</span>
@@ -242,7 +216,7 @@ export default async function HighestFinishesPage() {
                           </span>
                         </td>
                         <td>
-                          <Link className="record-player-link" href={`/players/${player.player_id}`}>
+                          <Link className="record-player-link" href={statisticsHref(`/players/${player.player_id}`, season)}>
                             <strong>{player.name}</strong>
                             <span>Voir le profil →</span>
                           </Link>
@@ -295,8 +269,8 @@ export default async function HighestFinishesPage() {
         ) : (
           <section className="card record-empty">
             <Crosshair size={42} />
-            <h2>Aucun finish individuel enregistré</h2>
-            <p>Cette page se remplira automatiquement avec les prochaines données Nakka validées.</p>
+            <h2>Aucun finish individuel enregistré en {season}</h2>
+            <p>Choisissez une autre année. Les prochaines volées de fermeture Nakka validées de cette période apparaîtront automatiquement.</p>
           </section>
         )}
 
@@ -304,9 +278,8 @@ export default async function HighestFinishesPage() {
           <ShieldCheck size={17} />
           <span>
             Un finish correspond au total de la volée gagnante publié par Nakka.
-            Aucun double touché ni chemin de checkout n’est reconstitué. La J1
-            Kazadarts A – Kazadarts B reste exclue des statistiques individuelles
-            faute de détail PvP.
+            Aucun double touché ni chemin de checkout n’est reconstitué. Un résultat
+            collectif sans détail PvP ne permet pas d’attribuer un finish individuel.
           </span>
         </div>
       </main>

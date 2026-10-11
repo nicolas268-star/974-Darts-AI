@@ -1,0 +1,11 @@
+.statistics-season-filter{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 20px;margin:18px 0;padding:16px 18px}
+.statistics-season-filter>div:first-child{display:grid;gap:4px}
+.statistics-season-filter>div:first-child span{color:#9cb5cd;font-size:max(var(--stats-text-floor,0px),.75rem);text-transform:uppercase;letter-spacing:.08em;font-weight:850}
+.statistics-season-filter strong{font-size:1rem}
+.statistics-season-options{display:flex;flex-wrap:wrap;gap:8px}
+.statistics-season-options a{display:grid;place-items:center;min-width:66px;min-height:44px;padding:9px 14px;border:1px solid #445b76;border-radius:999px;color:#c8d9eb;background:#111f32;font-weight:850}
+.statistics-season-options a:hover{border-color:#ffad46;color:#fff}
+.statistics-season-options a.active{border-color:#ffad46;color:#071426;background:#ffad46}
+.statistics-season-options a:focus-visible{outline:3px solid #ffad46;outline-offset:3px}
+.statistics-season-filter p{flex-basis:100%;margin:0;color:#9cb5cd;font-size:max(var(--stats-text-floor,0px),.78rem);line-height:1.5}
+@media(max-width:720px){.statistics-season-filter{align-items:flex-start;flex-direction:column}.statistics-season-options{width:100%}.statistics-season-options a{flex:1}}
