@@ -98,3 +98,5 @@
     grid-template-columns: 1fr;
   }
 }
+.mvp-provisional-note{margin-top:18px;line-height:1.7}
+.mvp-provisional-note strong{color:#f0dcff}

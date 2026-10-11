@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { UpcomingMvpSeason } from "../UpcomingMvpSeason";
+import { MvpSeasonPage } from "../MvpSeasonPage";
 
 export const metadata: Metadata = {
   title: "MVP 2028",
-  description: "Future page du classement analytique MVP 2028.",
+  description: "Classement analytique MVP du championnat 974 pour la saison 2028.",
 };
 
 export default function Mvp2028Page() {
-  return <UpcomingMvpSeason season="2028" />;
+  return <MvpSeasonPage season="2028" />;
 }

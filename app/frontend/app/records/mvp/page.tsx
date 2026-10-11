@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { CalendarDays, Crown, ShieldCheck, Sparkles } from "lucide-react";
 import { Sidebar } from "@/components/Sidebar";
+import { loadMvpCatalog } from "@/lib/records/mvp-server";
 import "../record-pages.css";
 import "./mvp-seasons.css";
 
@@ -10,28 +11,18 @@ export const metadata: Metadata = {
   description: "Retrouvez les classements MVP de chaque saison du championnat 974.",
 };
 
-const seasons = [
-  {
-    year: "2026",
-    status: "Saison analysée",
-    description: "Le classement MVP 2026 est calculé à partir des données Nakka validées.",
-    active: true,
-  },
-  {
-    year: "2027",
-    status: "À venir",
-    description: "Cette saison sera activée lorsque les premières données 2027 seront publiées.",
-    active: false,
-  },
-  {
-    year: "2028",
-    status: "À venir",
-    description: "Cette saison est déjà préparée et restera séparée des données précédentes.",
-    active: false,
-  },
-] as const;
-
-export default function MvpHubPage() {
+export default async function MvpHubPage() {
+  const catalog = await loadMvpCatalog();
+  const seasons = ["2026", "2027", "2028"].map(year => {
+    const championship = catalog?.championships.find(item => item.year === Number(year));
+    const published = (championship?.published_rounds ?? 0) > 0;
+    const active = published || championship?.is_active === true;
+    return {
+      year, active,
+      status: !catalog ? "Statut indisponible" : championship?.is_active ? "Saison en cours" : published ? "Saison analysée" : "En attente de résultats",
+      description: published ? `Le MVP ${year} utilise les statistiques individuelles publiées de cette saison.` : !catalog ? "Consultez la page de la saison pour réessayer le chargement." : `Les premiers résultats individuels alimenteront automatiquement le MVP ${year}.`,
+    };
+  });
   return (
     <div className="dashboard">
       <Sidebar />
@@ -83,8 +74,8 @@ export default function MvpHubPage() {
           <ShieldCheck size={17} />
           <span>
             Chaque saison possède sa propre page et ses propres données. Les
-            classements 2027 et 2028 resteront vides jusqu’à leur alimentation
-            officielle par l’Agent Nakka.
+            classements se mettent à jour avec les statistiques individuelles publiées.
+            Au début d’une saison, un classement provisoire est affiché tant qu’aucun profil n’atteint 20 legs.
           </span>
         </div>
       </main>
