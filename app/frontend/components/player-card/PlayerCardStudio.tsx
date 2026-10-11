@@ -1,12 +1,13 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { Camera, Download, Share2, SlidersHorizontal } from "lucide-react";
-import type { CardFormat, CardPayload, CardSnapshot, Crop, ThemeId } from "@/lib/player-card/types";
+import type { CardFormat, CardMetricId, CardPayload, CardSnapshot, Crop, PhotoStyle, ThemeId } from "@/lib/player-card/types";
 import { DEFAULT_CROP } from "@/lib/player-card/types";
 import { THEMES } from "@/lib/player-card/themes";
 import { renderCard } from "@/lib/player-card/render";
 import { canShareFile, downloadFile, filename, pngBlob, shareFile } from "@/lib/player-card/export";
 import { PhotoEditor } from "./PhotoEditor";
+import { CARD_METRICS, DEFAULT_CARD_METRICS, MAX_CARD_METRICS, metricValue, selectedMetrics } from "@/lib/player-card/metrics";
 import "./player-card.css";
 
 type Ready = { key: string; url: string; file: File; snapshot: CardSnapshot; warnings: string[] };
@@ -14,6 +15,7 @@ export default function PlayerCardStudio({ playerId, season, initial, maxPhotoBy
   const [payload, setPayload] = useState<CardPayload | null>(initial ?? null), [selectedSeason, setSeason] = useState(season ?? initial?.selectedSeason ?? "");
   const [theme, setTheme] = useState<ThemeId>(initial?.theme ?? "neutral"), [format, setFormat] = useState<CardFormat>("publication");
   const [photo, setPhoto] = useState<string | null>(null), [crop, setCrop] = useState<Crop>(DEFAULT_CROP), [editor, setEditor] = useState(false);
+  const [metrics, setMetrics] = useState<CardMetricId[]>(() => [...DEFAULT_CARD_METRICS]), [photoStyle, setPhotoStyle] = useState<PhotoStyle>("poster");
   const [ready, setReady] = useState<Ready | null>(null), [error, setError] = useState(""), [message, setMessage] = useState(""), [retry, setRetry] = useState(0), [sharing, setSharing] = useState(false);
   const [revision, setRevision] = useState(0);
   const defaultApplied = useRef(Boolean(initial)), version = useRef(0);
@@ -27,18 +29,18 @@ export default function PlayerCardStudio({ playerId, season, initial, maxPhotoBy
     }).catch(e => { if (!controller.signal.aborted && generation === version.current) setError(e instanceof Error ? e.message : "Statistiques indisponibles."); });
     return () => { controller.abort(); };
   }, [initial, playerId, selectedSeason, retry]);
-  const key = JSON.stringify([payload, selectedSeason, theme, format, photo, crop, retry, revision]);
+  const key = JSON.stringify([payload, selectedSeason, theme, format, photo, crop, metrics, photoStyle, retry, revision]);
   useEffect(() => {
     if (!payload) return;
     let cancelled = false; let url: string | undefined;
-    const snapshot: CardSnapshot = { data: payload.data, theme, format, photo, crop: { ...crop }, generatedAt: new Date().toISOString() };
+    const snapshot: CardSnapshot = { data: payload.data, theme, format, photo, crop: { ...crop }, metrics: [...metrics], photoStyle, generatedAt: new Date().toISOString() };
     renderCard(snapshot).then(async result => {
       const blob = await pngBlob(result.canvas); if (cancelled) return;
       const file = new File([blob], filename(snapshot), { type: "image/png" }); url = URL.createObjectURL(blob);
       setReady({ key, url, file, snapshot, warnings: result.warnings });
     }).catch(e => { if (!cancelled) setError(e instanceof Error ? e.message : "Export indisponible."); });
     return () => { cancelled = true; if (url) URL.revokeObjectURL(url); };
-  }, [payload, theme, format, photo, crop, retry, key]);
+  }, [payload, theme, format, photo, crop, metrics, photoStyle, retry, key]);
   const current = ready?.key === key && payload && !editor ? ready : null;
   function invalidate() { setReady(null); setMessage(""); setError(""); setRevision(value => value + 1); }
   async function share() {
@@ -60,11 +62,12 @@ export default function PlayerCardStudio({ playerId, season, initial, maxPhotoBy
         {current ? <>
           {/* This PNG is the exact prepared download and share file. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img className={`pc-card pc-card-${format}`} src={current.url} alt={`Carte ${payload!.data.name}, ${payload!.data.period}, thème ${THEMES[theme].label}`} width={1080} height={format === "story" ? 1920 : 1350}/>
+          <img className={`pc-card pc-card-${format}`} src={current.url} alt={`Carte ${payload!.data.name}, ${payload!.data.period}, thème ${THEMES[theme].label}. Statistiques : ${CARD_METRICS.filter(m => metrics.includes(m.id)).map(m => m.label).join(", ") || "aucune"}.`} width={1080} height={format === "story" ? 1920 : 1350}/>
           <span className="pc-export-state">PNG prêt · 1080 × {format === "story" ? "1920" : "1350"}</span>
         </> : <div className="pc-preparing" role="status">{error ? "La carte n’a pas pu être préparée." : editor ? "Personnalisation de votre photo…" : "Préparation de votre carte…"}</div>}
       </section>
       <aside className="pc-settings">
+        <div className="pc-actions"><button className="pc-primary" disabled={!current || sharing} onClick={() => void share()}><Share2 size={19}/>{sharing ? "Partage…" : "Partager ma carte"}</button><button disabled={!current || sharing} onClick={() => { if (current) { downloadFile(current.file); setMessage("Téléchargement du PNG demandé."); } }}><Download size={19}/> Télécharger en PNG</button></div>
         {payload?.data.demonstration && <p className="pc-demo-notice">Statistiques de démonstration — à actualiser</p>}
         {!payload?.data.hasData && payload && <p className="pc-demo-notice">Aucune statistique disponible pour cette période. Les valeurs restent indiquées par un tiret.</p>}
         <details className="pc-customize" open={undefined}><summary><SlidersHorizontal size={18}/> Personnaliser</summary>
@@ -74,17 +77,26 @@ export default function PlayerCardStudio({ playerId, season, initial, maxPhotoBy
             {payload.seasons.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
           </select></label>}
           {payload?.data.competition && <p className="pc-competition">{payload.data.competition}</p>}
+          <fieldset disabled={sharing}><legend>Présentation de la photo</legend><div className="pc-segments">{([['poster', 'Photo en grand'], ['portrait', 'Portrait rond']] as const).map(([id, label]) => <button key={id} aria-pressed={photoStyle === id} onClick={() => { invalidate(); setPhotoStyle(id); }}>{label}</button>)}</div></fieldset>
           <button className="pc-photo-button" disabled={sharing} onClick={() => setEditor(true)}><Camera size={18}/> Modifier ma photo</button>
-          <p className="pc-local-note">La photo importée reste locale à votre carte.</p>
+          <p className="pc-local-note">Importez une photo ou utilisez la caméra. Le cadrage reste local ; le fond de votre photo est conservé.</p>
+          <fieldset disabled={sharing} className="pc-metrics"><legend>Statistiques sur la carte</legend>
+            <p className="pc-selection-count" aria-live="polite">{metrics.length} / {MAX_CARD_METRICS} statistiques choisies</p>
+            <div className="pc-metric-options">{CARD_METRICS.map(metric => <label key={metric.id}>
+              <input type="checkbox" aria-label={metric.label} checked={metrics.includes(metric.id)} disabled={!metrics.includes(metric.id) && metrics.length >= MAX_CARD_METRICS} onChange={e => { invalidate(); setMetrics(selectedMetrics(e.target.checked ? [...metrics, metric.id] : metrics.filter(id => id !== metric.id))); }}/>
+              <span>{metric.label}</span><strong>{payload ? metricValue(metric.id, payload.data.stats) : "—"}</strong>
+            </label>)}</div>
+            <small>Jusqu’à {MAX_CARD_METRICS} KPI. Les valeurs indisponibles restent « — » ; les scores suivent les catégories du profil.</small>
+            <button className="pc-reset-metrics" onClick={() => { invalidate(); setMetrics([...DEFAULT_CARD_METRICS]); }}>Réinitialiser les KPI</button>
+          </fieldset>
         </details>
         {error && <div className="pc-error" role="alert"><p>{error}</p><button onClick={() => { invalidate(); if (!initial) { version.current++; setPayload(null); } setRetry(retry + 1); }}>Réessayer</button></div>}
         {current?.warnings.map(w => <p className="pc-demo-notice" key={w}>{w}</p>)}
-        <div className="pc-actions"><button className="pc-primary" disabled={!current || sharing} onClick={() => void share()}><Share2 size={19}/>{sharing ? "Partage…" : "Partager ma carte"}</button><button disabled={!current || sharing} onClick={() => { if (current) { downloadFile(current.file); setMessage("Téléchargement du PNG demandé."); } }}><Download size={19}/> Télécharger en PNG</button></div>
         {current && !canShareFile(current.file) && <p className="pc-local-note">Téléchargez le PNG pour le partager depuis votre appareil.</p>}
         <p className="pc-message" role="status">{message}</p>
         <p className="pc-local-note">Carte composée à partir des statistiques publiques du profil, sans ressaisie.</p>
       </aside>
     </div>
-    {editor && <PhotoEditor photo={photo} crop={crop} maxBytes={maxPhotoBytes} onClose={() => setEditor(false)} onApply={(value, framing) => { invalidate(); setPhoto(value); setCrop(framing); }}/ >}
+    {editor && <PhotoEditor photo={photo} crop={crop} aspect={photoStyle === "poster" ? 4 / 5 : 1} maxBytes={maxPhotoBytes} onClose={() => setEditor(false)} onApply={(value, framing) => { invalidate(); setPhoto(value); setCrop(framing); }}/ >}
   </main>;
 }

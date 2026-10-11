@@ -13,7 +13,7 @@ function load(path) {
   new Function("require", "module", "exports", "__dirname", js)(p => p.startsWith(".") ? load(resolve(dirname(file), p)) : p.startsWith("@/") ? load(p.slice(2)) : require(p), mod, mod.exports, dirname(file));
   return mod.exports;
 }
-const data = load("lib/player-card/data"), themes = load("lib/player-card/themes"), photo = load("lib/player-card/photo"), exporter = load("lib/player-card/export"), feature = load("lib/player-card/feature"), source = load("lib/player-card/server"), route = load("app/api/player-card/[player_id]/route");
+const data = load("lib/player-card/data"), metrics = load("lib/player-card/metrics"), themes = load("lib/player-card/themes"), photo = load("lib/player-card/photo"), exporter = load("lib/player-card/export"), feature = load("lib/player-card/feature"), source = load("lib/player-card/server"), route = load("app/api/player-card/[player_id]/route");
 const originalEnv = { ...process.env }; let checks = 0;
 const test = async (label, fn) => { await fn(); checks++; console.log("PASS player card: " + label); };
 const dashboard = {
@@ -103,6 +103,27 @@ try {
     const [build,runtime]=frontend.split("    env_file:\n");
     assert.match(build,/PLAYER_CARD_ENABLED: "\$\{PLAYER_CARD_ENABLED:-false\}"/);
     assert.match(runtime,/PLAYER_CARD_ENABLED: "\$\{PLAYER_CARD_ENABLED:-false\}"/);
+  });
+  await test("KPI selection is ordered, bounded, optional, and renders only source values including real zero", () => {
+    assert.deepEqual(metrics.selectedMetrics(),metrics.DEFAULT_CARD_METRICS);
+    assert.deepEqual(metrics.selectedMetrics([]),[]);
+    assert.deepEqual(metrics.selectedMetrics(["scores180","average","email","average"]),["average","scores180"]);
+    assert.equal(metrics.selectedMetrics(metrics.CARD_METRICS.map(m=>m.id)).length,12);
+    const d=data.adaptDashboard({...dashboard,kpis:{...dashboard.kpis,average_finish:39.2},scoring:{...dashboard.scoring,scores_180:0,scores_170_plus:3,scores_80_plus:12,no_score:5}},null);
+    assert.equal(metrics.metricValue("averageFinish",d.stats),"39,20");assert.equal(metrics.metricValue("scores180",d.stats),"0");assert.equal(metrics.metricValue("winRate",d.stats),"46,0 %");assert.equal(d.stats.scores170,3);assert.equal(d.stats.noScore,5);
+    assert.equal(metrics.metricValue("bestAverage",d.stats),"—");
+    for(const format of ["publication","story"])for(let n=0;n<=12;n++){
+      const ids=metrics.CARD_METRICS.slice(0,n).map(m=>m.id),cells=metrics.metricCells(ids,format);
+      assert.equal(cells.length,n);
+      for(const cell of cells){assert.ok(cell.x>=64&&cell.x+cell.width<=1016.001);assert.ok(cell.y+cell.height<(format==="story"?1496:1155));}
+      for(let i=0;i<cells.length;i++)for(let j=i+1;j<cells.length;j++){const a=cells[i],b=cells[j];assert.ok(a.x+a.width<=b.x||b.x+b.width<=a.x||a.y+a.height<=b.y||b.y+b.height<=a.y);}
+    }
+  });
+  await test("large photo 4:5 crop matches editor and both export formats without stretching", () => {
+    const crop={x:1,y:0,zoom:2},rect=photo.cropForAspect(1200,800,crop,4/5);
+    assert.deepEqual(rect,{sx:880,sy:0,sw:320,sh:400});
+    assert.equal(rect.sw/rect.sh,496/620);assert.equal(rect.sw/rect.sh,620/775);
+    const square=photo.cropForAspect(1200,800,crop,1);assert.deepEqual(square,{sx:800,sy:0,sw:400,sh:400});
   });
   console.log(`${checks} player card test groups passed.`);
 } finally { process.env = originalEnv; }
