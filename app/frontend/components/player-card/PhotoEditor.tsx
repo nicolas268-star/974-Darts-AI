@@ -1,9 +1,9 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { CameraSession, cameraError, decodeImage, drawPortrait, normalizePhoto } from "@/lib/player-card/photo";
+import { CameraSession, cameraError, decodeImage, drawPhoto, normalizePhoto } from "@/lib/player-card/photo";
 import { DEFAULT_CROP, type Crop } from "@/lib/player-card/types";
 
-export function PhotoEditor({ photo, crop, maxBytes, onApply, onClose }: { photo: string | null; crop: Crop; maxBytes: number; onApply: (photo: string | null, crop: Crop) => void; onClose: () => void }) {
+export function PhotoEditor({ photo, crop, maxBytes, aspect = 1, onApply, onClose }: { photo: string | null; crop: Crop; maxBytes: number; aspect?: number; onApply: (photo: string | null, crop: Crop) => void; onClose: () => void }) {
   const [draft, setDraft] = useState(photo), [framing, setFraming] = useState(crop);
   const [mode, setMode] = useState<"choice" | "camera" | "crop">(photo ? "crop" : "choice");
   const [error, setError] = useState(""), [busy, setBusy] = useState(false), [live, setLive] = useState(false);
@@ -25,10 +25,10 @@ export function PhotoEditor({ photo, crop, maxBytes, onApply, onClose }: { photo
     decodeImage(draft).then(image => {
       if (cancelled || !canvas.current) return;
       const ctx = canvas.current.getContext("2d"); if (!ctx) return;
-      ctx.clearRect(0, 0, 400, 400); drawPortrait(ctx, image, framing, 0, 0, 400);
+      ctx.clearRect(0, 0, canvas.current.width, canvas.current.height); drawPhoto(ctx, image, framing, 0, 0, canvas.current.width, canvas.current.height);
     }).catch(() => { if (!cancelled) setError("Photo illisible. Importez une autre image."); });
     return () => { cancelled = true; };
-  }, [draft, framing, mode]);
+  }, [draft, framing, mode, aspect]);
   async function importFile(file?: File) {
     if (!file) return;
     stop(); const id = ++request.current; setBusy(true); setError("");
@@ -74,7 +74,7 @@ export function PhotoEditor({ photo, crop, maxBytes, onApply, onClose }: { photo
       {!live && !busy && <button onClick={() => void startCamera()}>Reprendre la caméra</button>}
     </section>}
     {mode === "crop" && draft && <section>
-      <canvas ref={canvas} width={400} height={400} aria-label="Cadrage de votre photo"/>
+      <canvas className={aspect === 1 ? "pc-crop-round" : "pc-crop-poster"} ref={canvas} width={400} height={Math.round(400 / aspect)} aria-label="Cadrage de votre photo"/>
       {([['zoom', 'Zoom', 1, 3], ['x', 'Position horizontale', 0, 1], ['y', 'Position verticale', 0, 1]] as const).map(([key, label, min, max]) => <label className="pc-range" key={key}>{label}<input type="range" min={min} max={max} step={0.01} value={framing[key]} onChange={e => setFraming({ ...framing, [key]: Number(e.target.value) })}/></label>)}
       <div className="pc-photo-choices"><button className="pc-primary" onClick={() => { stop(); onApply(draft, framing); onClose(); }}>Valider le cadrage</button><button onClick={() => void startCamera()}>Reprendre une photo</button></div>
     </section>}

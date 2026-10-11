@@ -39,6 +39,15 @@ try {
   for(let i=0;i<60;i++){try{if((await fetch(base+"/api/health")).ok)break;}catch{}await new Promise(r=>setTimeout(r,500));if(i===59)throw Error(serverLog);}
   browser=await chromium.launch({executablePath:process.env.CHROMIUM_EXECUTABLE_PATH,args:["--no-sandbox","--use-fake-device-for-media-stream","--use-fake-ui-for-media-stream",...(process.env.CHROMIUM_EXTRA_ARGS ? JSON.parse(process.env.CHROMIUM_EXTRA_ARGS) : [])]});
   const context=await browser.newContext({viewport:{width:1440,height:1080},acceptDownloads:true,permissions:["camera"]});const page=await context.newPage();page.on("pageerror",e=>errors.push(e.message));
+  await page.addInitScript(()=>{
+    const logs=new WeakMap(),blobs=new WeakMap(),urls=new Map();window.__cardCanvasTexts=urls;
+    const fill=CanvasRenderingContext2D.prototype.fillText;
+    CanvasRenderingContext2D.prototype.fillText=function(value,...args){const items=logs.get(this.canvas)||[];items.push(String(value));logs.set(this.canvas,items);return fill.call(this,value,...args);};
+    const toBlob=HTMLCanvasElement.prototype.toBlob;
+    HTMLCanvasElement.prototype.toBlob=function(callback,...args){const values=[...(logs.get(this)||[])];return toBlob.call(this,blob=>{if(blob)blobs.set(blob,values);callback(blob);},...args);};
+    const create=URL.createObjectURL;
+    URL.createObjectURL=function(blob){const url=create.call(this,blob);urls.set(url,blobs.get(blob)||[]);return url;};
+  });
   await test("Fournaise publication and story export exact physical PNG dimensions",async()=>{
     await page.goto(base+"/player-card-preview");await exportPNG(page,"publication-fournaise.png",1350);await page.screenshot({path:resolve(out,"studio-desktop.png"),fullPage:true});
     await page.getByText("Personnaliser",{exact:true}).click();await page.getByRole("button",{name:"Story",exact:true}).click();await exportPNG(page,"story-fournaise.png",1920);
@@ -51,6 +60,43 @@ try {
   await test("partial data, accents, long names and absent affiliations export cleanly",async()=>{
     await page.goto(base+"/player-card-preview?partial=1");await exportPNG(page,"publication-partial.png",1350);
     await page.goto(base+"/player-card-preview?long=1");await exportPNG(page,"publication-long-name.png",1350);
+  });
+  await test("KPI selection hides unchecked values, permits none, caps at twelve and refreshes the PNG",async()=>{
+    await page.goto(base+"/player-card-preview");await ready(page);const before=await page.locator("img.pc-card").getAttribute("src");
+    await page.getByText("Personnaliser",{exact:true}).click();
+    for(const box of await page.getByRole("checkbox").all())if(await box.isChecked())await box.uncheck();
+    await ready(page);assert.notEqual(await page.locator("img.pc-card").getAttribute("src"),before);
+    let values=await page.evaluate(()=>window.__cardCanvasTexts.get(document.querySelector("img.pc-card").src));assert.ok(!values.includes("43,14")&&!values.includes("104"));
+    await exportPNG(page,"publication-no-kpi.png",1350);
+    await page.getByRole("checkbox",{name:"First 9",exact:true}).check();await ready(page);
+    values=await page.evaluate(()=>window.__cardCanvasTexts.get(document.querySelector("img.pc-card").src));assert.ok(values.includes("52,96"));assert.ok(!values.includes("43,14"));
+    await exportPNG(page,"publication-one-kpi.png",1350);
+    for(const box of await page.getByRole("checkbox").all())if(!(await box.isDisabled()))await box.check();
+    assert.equal(await page.getByRole("checkbox",{checked:true}).count(),12);assert.equal(await page.getByRole("checkbox",{disabled:true}).count(),2);
+    await exportPNG(page,"publication-twelve-kpi.png",1350);
+    await page.getByRole("button",{name:"Story",exact:true}).click();await exportPNG(page,"story-twelve-kpi.png",1920);
+    await page.getByRole("button",{name:"Réinitialiser les KPI",exact:true}).click();assert.equal(await page.getByRole("checkbox",{checked:true}).count(),7);
+  });
+  await test("poster photo keeps 4:5 framing in both PNGs; switching to a round portrait preserves the local photo",async()=>{
+    await page.goto(base+"/player-card-preview");await ready(page);await page.getByText("Personnaliser",{exact:true}).click();
+    for(const box of await page.getByRole("checkbox").all())if(await box.isChecked())await box.uncheck();
+    for(const name of ["Moyenne 3 fléchettes","Meilleur finish","Taux de legs gagnés","Legs gagnés","Legs joués","First 9"])await page.getByRole("checkbox",{name,exact:true}).check();
+    await page.getByRole("button",{name:"Modifier ma photo",exact:true}).click();
+    if(process.env.PLAYER_CARD_REFERENCE_IMAGE){
+      await page.locator('input[type="file"]').setInputFiles(process.env.PLAYER_CARD_REFERENCE_IMAGE);
+    }else{
+      const photo=await page.evaluate(()=>{const c=document.createElement("canvas");c.width=600;c.height=900;const x=c.getContext("2d");x.fillStyle="#183649";x.fillRect(0,0,600,900);x.fillStyle="#ffc597";x.beginPath();x.arc(300,290,140,0,Math.PI*2);x.fill();x.fillStyle="#dd6222";x.fillRect(150,420,300,480);return c.toDataURL("image/png");});
+      await page.locator('input[type="file"]').setInputFiles({name:"synthetic-portrait.png",mimeType:"image/png",buffer:Buffer.from(photo.split(",")[1],"base64")});
+    }
+    await page.getByRole("button",{name:"Valider le cadrage",exact:true}).waitFor();
+    assert.deepEqual(await page.locator("dialog canvas").evaluate(c=>[c.width,c.height]),[400,500]);
+    if(process.env.PLAYER_CARD_REFERENCE_IMAGE){await page.getByLabel("Zoom",{exact:true}).fill("1.6");await page.getByLabel("Position horizontale",{exact:true}).fill("1");await page.getByLabel("Position verticale",{exact:true}).fill("0.1");}
+    await page.getByRole("button",{name:"Valider le cadrage",exact:true}).click();await exportPNG(page,"publication-photo-kpi.png",1350);
+    await page.screenshot({path:resolve(out,"studio-photo-kpi-desktop.png"),fullPage:true,style:"nextjs-portal{display:none}"});
+    await page.getByRole("button",{name:"Story",exact:true}).click();await exportPNG(page,"story-photo-kpi.png",1920);
+    await page.setViewportSize({width:390,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);await page.screenshot({path:resolve(out,"studio-photo-kpi-mobile.png"),fullPage:true,style:"nextjs-portal{display:none}"});await page.setViewportSize({width:1440,height:1080});
+    await page.getByRole("button",{name:"Portrait rond",exact:true}).click();await page.getByRole("button",{name:"Modifier ma photo",exact:true}).click();assert.deepEqual(await page.locator("dialog canvas").evaluate(c=>[c.width,c.height]),[400,400]);await page.getByRole("button",{name:"Valider le cadrage",exact:true}).click();
+    await page.getByRole("button",{name:"Publication",exact:true}).click();await exportPNG(page,"publication-photo-round.png",1350);
   });
   await test("native sharing unsupported and cancelled: no automatic download",async()=>{
     await page.goto(base+"/player-card-preview");await ready(page);await page.evaluate(()=>{Object.defineProperty(navigator,"canShare",{configurable:true,value:()=>false});});await page.getByRole("button",{name:"Partager ma carte",exact:true}).click();await page.getByRole("status").filter({hasText:"partage de fichiers"}).waitFor();

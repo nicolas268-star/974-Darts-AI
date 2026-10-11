@@ -43,6 +43,15 @@ export function drawPortrait(ctx: CanvasRenderingContext2D, image: HTMLImageElem
   const { sx, sy, side } = cropRectangle(image.naturalWidth, image.naturalHeight, crop);
   ctx.drawImage(image, sx, sy, side, side, x, y, diameter, diameter);
 }
+export function cropForAspect(width: number, height: number, crop: Crop, aspect: number) {
+  const zoom = Math.max(1, Math.min(3, crop.zoom));
+  const sw = Math.min(width, height * aspect) / zoom, sh = sw / aspect;
+  return { sx: (width - sw) * Math.max(0, Math.min(1, crop.x)), sy: (height - sh) * Math.max(0, Math.min(1, crop.y)), sw, sh };
+}
+export function drawPhoto(ctx: CanvasRenderingContext2D, image: HTMLImageElement, crop: Crop, x: number, y: number, width: number, height: number) {
+  const { sx, sy, sw, sh } = cropForAspect(image.naturalWidth, image.naturalHeight, crop, width / height);
+  ctx.drawImage(image, sx, sy, sw, sh, x, y, width, height);
+}
 export class CameraSession {
   private generation = 0;
   private stream: MediaStream | null = null;

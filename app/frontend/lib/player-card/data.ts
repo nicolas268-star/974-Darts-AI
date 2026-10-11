@@ -37,6 +37,11 @@ export function adaptDashboard(source: PlayerDashboard, competition: string | nu
       bestAverage: null,
       scores100: scoringAvailable ? count(source.scoring.scores_100_plus) : null,
       scores140: scoringAvailable ? count(source.scoring.scores_140_plus) : null,
+      averageFinish: hasData ? finite(source.kpis.average_finish) : null,
+      scores80: scoringAvailable ? count(source.scoring.scores_80_plus) : null,
+      scores170: scoringAvailable ? count(source.scoring.scores_170_plus) : null,
+      scores180: scoringAvailable ? count(source.scoring.scores_180) : null,
+      noScore: scoringAvailable ? count(source.scoring.no_score) : null,
     },
   };
 }

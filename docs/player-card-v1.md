@@ -16,15 +16,21 @@ The new endpoint `/api/player-card/{id}?season=2027` reads the existing Python d
 
 The optional `/api/v1/competitions` catalog supplies the current championship label and available 2026–2029 filters, plus `all`, consistent with `PlayerSeasonFilter`. The profile has no separate competition dropdown; this version consequently does not invent one. Season labels are the actual backend labels. `all` retains the source's career scope. No exact calendar bounds are invented where the source only certifies a season.
 
-The adapter retains average, First 9, finish and the source's score categories verbatim. Legs won / played are validated integers; the rate is computed only for a positive denominator with `won <= played`. Missing, invalid and non-finite values become a dash; valid zero stays zero. Without data all metrics remain unavailable. Scores are unavailable when the quality metadata reports no underlying scoring rows, even if a daily/profile fallback contains other statistics.
+The adapter retains average, First 9, best/average finish, legs won/played and the source's score categories (80+, 100+, 140+, 170+, 180 and no score) verbatim. Legs won / played are validated integers; the rate is computed only for a positive denominator with `won <= played`. Missing, invalid and non-finite values become a dash; valid zero stays zero. Without data all metrics remain unavailable. Scores are unavailable when the quality metadata reports no underlying scoring rows, even if a daily/profile fallback contains other statistics. Score categories retain their existing dashboard semantics; no threshold totals are recomputed.
 
 The current dashboard contract has **no portrait, nickname or defined best-average record**. These are not inferred from names, recent-match maxima or the demo. Production cards use the public display name, initials and a dash for best average. Extending these sources is future work. There is no existing verified portrait update flow reused in this implementation, so no **also use as profile photo** option or persistence is offered.
 
+## Selectable statistics
+
+The customization panel lists fourteen KPI checkboxes with their current public values. Up to twelve can be selected; the initial seven reproduce the V1 selection and **Réinitialiser les KPI** restores them. Selecting none is supported. Unavailable metrics, including best average until the source defines it, display a dash when selected. These settings remain local to the open studio and survive changes of format, theme, photo and season; they are not saved to a player profile.
+
+`lib/player-card/metrics.ts` owns the typed whitelist, labels, formatting and measured grid. Unsupported IDs and duplicates are discarded, canonical order is stable, and the renderer also enforces the twelve-metric limit. The grid adapts from one to three rows without overlapping the footer. Unchecked metrics are absent from the actual prepared PNG, which is shared by the preview, download and native share actions.
+
 ## Rendering and themes
 
-`lib/player-card/render.ts` paints a deterministic Canvas composition. Publication is 1080 × 1350; Story is 1080 × 1920 with a centered portrait and rearranged hierarchy. The PNG has these physical dimensions regardless of devicePixelRatio. The rendered PNG itself is the preview, download and share file: there is no separate screenshot/export layout. It contains neither UI controls nor IDs/contact information.
+`lib/player-card/render.ts` paints a deterministic Canvas composition. Publication is 1080 × 1350; Story is 1080 × 1920. The round presentation retains the original portrait hierarchy. **Photo en grand** places an imported/captured photo on the right and identity on the left, with the selected statistics underneath, in both formats. Without a photo the original initials presentation remains available. The PNG has these physical dimensions regardless of devicePixelRatio. The rendered PNG itself is the preview, download and share file: there is no separate screenshot/export layout. It contains neither UI controls nor IDs/contact information.
 
-The snapshot includes the public data, theme, format, photo/crop and actual generation timestamp. Fonts and images are decoded before encoding. A request revision invalidates old exports; stale asynchronous responses/render completions are discarded. French formatting uses `fr-FR`, dates and filenames use `Indian/Reunion`.
+The snapshot includes the public data, theme, format, selected KPI IDs, photo presentation/crop and actual generation timestamp. Fonts and images are decoded before encoding. A request revision invalidates old exports; stale asynchronous responses/render completions are discarded. French formatting uses `fr-FR`, dates and filenames use `Indian/Reunion`.
 
 Essential Story content is kept within approximately y=180…1640, x=64…1016. The remaining lower area is decoration. These margins are design conventions, not a guarantee about every social application's UI.
 
@@ -51,7 +57,7 @@ To add a theme, extend `ThemeId`, the typed registry, and its tokens/local autho
 
 Photos remain transient in the browser. JPEG, PNG and WebP imports are checked by MIME, file signature, size, decode and dimensions. The default limit is 10 MiB; `PLAYER_CARD_MAX_PHOTO_MB` permits 1–20 MiB. Inputs below 64 px, above 40 megapixels or above 16000 px on one axis are rejected. Native decoding applies EXIF orientation; Canvas normalization downsizes the long side to at most 1600 px and emits PNG without EXIF/GPS metadata. HEIC/HEIF is explicitly unsupported with a JPEG alternative. Object URLs are released.
 
-Zoom and horizontal/vertical position define a normalized square crop used identically by the crop preview and both card formats. A validated local photo can be recropped. Cancel leaves the previous photo intact; initials remove it. The current data source supplies no profile-photo option because no photo exists in that contract.
+Zoom and horizontal/vertical position define a normalized square crop for **Portrait rond**, or a 4:5 crop for **Photo en grand**. The editor and both exports use the same source rectangle, without stretching the picture. Switching presentations keeps the local photo; it can be recropped. The large photo uses soft edge fades to blend into the existing theme. Its face and background remain those of the imported picture: no synthetic player, automatic background removal or replacement logo is introduced. Transparent PNG imports can provide an already isolated player. Cancel leaves the previous photo intact; initials remove it. The current data source supplies no profile-photo option because no photo exists in that contract.
 
 Camera is opened only after **Prendre une photo**. Requests use `audio:false` and prefer the front camera. The editor permits switching facing mode, capture, retake, validation and cancellation. Front video is mirrored for framing; the captured image retains its natural orientation. Every track is stopped after capture, close, cancellation, visibility loss, pagehide/unmount and late permission completion. Denial, absent/busy camera and insecure/incompatible browsers retain import as the alternative.
 
@@ -77,7 +83,7 @@ npm test
 npm run build
 ```
 
-The added `npm run test:player-card` is part of the normal test command. It exercises source/identity mapping, filters, rate validation, missing/zero data, public authorization, fixture isolation, themes, photo validation/crop, stream lifetime, sharing and the complete permission matrix. Existing Jeux/Vision/control/release suites remain enabled. The old Vision assertion was scoped to its own exception; the new matrix checks that the default configuration still authorizes only Vision.
+The added `npm run test:player-card` is part of the normal test command. Its thirteen test groups exercise source/identity mapping, filters, rate validation, missing/zero data, public authorization, fixture isolation, themes, the KPI whitelist and grid for every selection size and format, square/4:5 crop geometry, stream lifetime, sharing and the complete permission matrix. Existing Jeux/Vision/control/release suites remain enabled. The old Vision assertion was scoped to its own exception; the new matrix checks that the default configuration still authorizes only Vision.
 
 Optional real-browser integration suite (Playwright is a validation-runtime prerequisite, not a production dependency):
 
@@ -88,7 +94,7 @@ PLAYER_CARD_QA_OUTPUT=/tmp/player-card-qa \
 node scripts/test-player-card-browser.mjs
 ```
 
-It starts its own localhost Next.js and synthetic read-only backend, exports and checks PNG dimensions, captures desktop/mobile views, exercises import/crop, sharing fallbacks/cancellation, simulated camera capture/denial/late cleanup, direct/full document navigation, permissions, private-profile denial and source-error retry. It never uses production credentials or user photos. `CHROMIUM_EXECUTABLE_PATH` may be omitted with a standard Playwright browser installation.
+It starts its own localhost Next.js and synthetic read-only backend, exports and checks PNG dimensions, captures desktop/mobile views, checks unchecked KPI values are absent from the current export, tests zero/one/twelve selections and reset, exercises both photo presentations and crops, sharing fallbacks/cancellation, simulated camera capture/denial/late cleanup, direct/full document navigation, permissions, private-profile denial and source-error retry. It never uses production credentials. By default it imports generated synthetic validation images; optionally set `PLAYER_CARD_REFERENCE_IMAGE` to an explicitly supplied local reference to produce review examples. Such a reference is never committed or uploaded by the application. `CHROMIUM_EXECUTABLE_PATH` may be omitted with a standard Playwright browser installation.
 
 ## Remaining validation and deployment
 

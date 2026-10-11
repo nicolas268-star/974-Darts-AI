@@ -1,8 +1,8 @@
 import type { CardSnapshot } from "./types";
 import { CARD_SIZE } from "./types";
 import { THEMES } from "./themes";
-import { formatNumber, winRate } from "./data";
-import { decodeImage, drawPortrait } from "./photo";
+import { decodeImage, drawPhoto, drawPortrait } from "./photo";
+import { CARD_METRICS, metricCells, metricValue, selectedMetrics } from "./metrics";
 
 export function fitText(ctx: CanvasRenderingContext2D, text: string, width: number, size: number, min: number, family: string, weight = "400") {
   while (size > min) { ctx.font = `${weight} ${size}px ${family}`; if (ctx.measureText(text).width <= width) break; size--; }
@@ -38,7 +38,8 @@ export async function renderCard(snapshot: CardSnapshot): Promise<{ canvas: HTML
     theme.texture ? decodeImage(theme.texture).catch(() => { warnings.push("Décor indisponible : fond graphique utilisé."); return null; }) : null,
     snapshot.photo ? decodeImage(snapshot.photo) : null,
   ]);
-  const d = snapshot.data, s = d.stats;
+  const d = snapshot.data, poster = Boolean(portrait && snapshot.photoStyle === "poster");
+  const metrics = selectedMetrics(snapshot.metrics);
   const text = (value: string, x: number, y: number, width: number, size = 24, color = "#f4f4f0", weight = "400", align: CanvasTextAlign = "left", min = size) => {
     c.save(); c.fillStyle = color; c.textAlign = align; c.textBaseline = "top";
     const fit = fitText(c, value, width, size, min, theme.font, weight);
@@ -65,16 +66,27 @@ export async function renderCard(snapshot: CardSnapshot): Promise<{ canvas: HTML
   for (const r of [170, 185, 310, 330, 440]) { c.beginPath(); c.arc(1000, story ? 870 : 530, r, 0, Math.PI * 2); c.stroke(); }
   for (let i = 0; i < 20; i++) { const a = i * Math.PI / 10; c.beginPath(); c.moveTo(1000 + Math.cos(a) * 185, (story ? 870 : 530) + Math.sin(a) * 185); c.lineTo(1000 + Math.cos(a) * 440, (story ? 870 : 530) + Math.sin(a) * 440); c.stroke(); } c.restore();
   c.save(); c.strokeStyle = theme.accent + "88"; c.lineWidth = 1; c.beginPath(); c.roundRect(24, 24, W - 48, H - 48, 32); c.stroke(); c.restore();
+  if (poster && portrait) {
+    // Identical 4:5 crop in the editor and both formats. Fade only the edges; never alter the player's face.
+    const w = story ? 620 : 496, h = story ? 775 : 620;
+    const layer = document.createElement("canvas"); layer.width = w; layer.height = h;
+    const ctx = layer.getContext("2d")!; drawPhoto(ctx, portrait, snapshot.crop, 0, 0, w, h);
+    ctx.globalCompositeOperation = "destination-in";
+    const sides = ctx.createLinearGradient(0, 0, w, 0); sides.addColorStop(0, "#0000"); sides.addColorStop(.2, "#000f"); sides.addColorStop(.94, "#000f"); sides.addColorStop(1, "#0009"); ctx.fillStyle = sides; ctx.fillRect(0, 0, w, h);
+    const edges = ctx.createLinearGradient(0, 0, 0, h); edges.addColorStop(0, "#0000"); edges.addColorStop(.06, "#000f"); edges.addColorStop(.86, "#000f"); edges.addColorStop(1, "#0000"); ctx.fillStyle = edges; ctx.fillRect(0, 0, w, h);
+    c.drawImage(layer, story ? 396 : 520, story ? 315 : 130);
+  }
   const top = story ? 194 : 66;
-  text("974", 64, top, 240, 88, "#fafafa", "900");
-  c.save(); c.font = `italic 800 80px ${theme.displayFont}`; c.fillStyle = theme.accent; c.fillText("Darts", 237, top + 72); c.restore();
-  text("LA RÉUNION JOUE FLÉCHETTES", 68, top + 104, 730, 19, "#aab2b7");
-  line(64, top + 148, 952, 0.35);
-  const periodY = top + 170;
-  text(d.period, 64, periodY, 952, 25, theme.light, "600", "left", 22);
-  if (d.competition) text(d.competition, 64, periodY + 58, 952, 21, "#b7c0c8");
+  text("974", 64, top, 240, poster ? 56 : 88, "#fafafa", "900");
+  c.save(); c.font = `italic 800 ${poster ? 52 : 80}px ${theme.displayFont}`; c.fillStyle = theme.accent; c.fillText("Darts", poster ? 176 : 237, top + (poster ? 47 : 72)); c.restore();
+  text("LA RÉUNION JOUE FLÉCHETTES", 68, top + (poster ? 72 : 104), 730, poster ? 14 : 19, "#aab2b7");
+  line(64, top + (poster ? 108 : 148), 952, 0.35);
+  const periodY = top + (poster ? 132 : 170), identityWidth = poster ? (story ? 330 : 410) : 952;
+  text(d.period, 64, periodY, identityWidth, 25, theme.light, "600", "left", 22);
+  if (d.competition) text(d.competition, 64, periodY + 58, identityWidth, 21, "#b7c0c8");
 
   const radius = story ? 170 : 154, cx = story ? 540 : 252, cy = story ? 618 : 487;
+  if (!poster) {
   c.save(); c.shadowColor = theme.accent; c.shadowBlur = 26; c.strokeStyle = theme.accent; c.lineWidth = 3;
   c.beginPath(); c.arc(cx, cy, radius + 6, 0, Math.PI * 2); c.stroke(); c.restore();
   c.save(); c.beginPath(); c.arc(cx, cy, radius, 0, Math.PI * 2); c.clip();
@@ -85,35 +97,25 @@ export async function renderCard(snapshot: CardSnapshot): Promise<{ canvas: HTML
     c.save(); c.globalAlpha = 0.35; c.strokeStyle = theme.accent; c.lineWidth = 3; c.beginPath(); c.moveTo(cx - radius, cy + 96); c.lineTo(cx - 60, cy + 73); c.lineTo(cx - 8, cy + 36); c.lineTo(cx + 30, cy + 61); c.lineTo(cx + radius, cy + 101); c.stroke(); c.restore();
   } c.restore();
   if (!story) text("974DARTS  /  PLAYER", cx, cy + radius + 37, 350, 19, theme.light, "600", "center");
-  const nx = story ? 540 : 466, nameY = story ? 815 : 363, nameWidth = story ? 920 : 550;
-  const nameHeight = text(d.name.toLocaleUpperCase("fr-FR"), nx, nameY, nameWidth, story ? 88 : 94, "#f7f7f5", "900", story ? "center" : "left", 36);
+  }
+  const centered = story && !poster;
+  const nx = poster ? 64 : story ? 540 : 466, nameY = poster ? (story ? 610 : 350) : story ? 815 : 363, nameWidth = poster ? (story ? 330 : 410) : story ? 920 : 550;
+  const nameHeight = text(d.name.toLocaleUpperCase("fr-FR"), nx, nameY, nameWidth, poster ? 86 : story ? 88 : 94, "#f7f7f5", "900", centered ? "center" : "left", poster ? 26 : 36);
   let affiliationY = nameY + nameHeight + 16;
-  if (d.nickname) { text(d.nickname, nx, affiliationY, nameWidth, 43, theme.accent, "700", story ? "center" : "left", 30); affiliationY += 61; }
-  const affiliationWidth = story ? 920 : 545;
+  if (d.nickname) { text(d.nickname, nx, affiliationY, nameWidth, 43, theme.accent, "700", centered ? "center" : "left", 30); affiliationY += 61; }
+  const affiliationWidth = poster ? nameWidth : story ? 920 : 545;
   for (const affiliation of [d.club, d.team].filter((v): v is string => Boolean(v))) {
-    affiliationY += text(affiliation, nx, affiliationY, affiliationWidth, 27, "#b9c3cb", "400", story ? "center" : "left", 22) + 8;
+    affiliationY += text(affiliation, nx, affiliationY, affiliationWidth, 27, "#b9c3cb", "400", centered ? "center" : "left", 22) + 8;
   }
 
-  const primaryY = story ? 1120 : 777, primaryH = story ? 205 : 210;
-  panel(64, primaryY, 952, primaryH);
-  const primary = [
-    { label: "MOYENNE 3 FLÉCHETTES", value: formatNumber(s.average), detail: "" },
-    { label: "MEILLEUR FINISH", value: formatNumber(s.finish, 0), detail: "" },
-    { label: "LEGS GAGNÉS", value: winRate(s.won, s.played) === null ? "—" : `${formatNumber(winRate(s.won, s.played), 1)} %`, detail: s.won !== null && s.played !== null ? `${s.won} / ${s.played} legs` : "" },
-  ];
-  primary.forEach((metric, i) => {
-    const x = 64 + (952 / 3) * (i + 0.5);
-    if (i) { c.save(); c.strokeStyle = "#ffffff22"; c.beginPath(); c.moveTo(64 + 952 / 3 * i, primaryY + 28); c.lineTo(64 + 952 / 3 * i, primaryY + primaryH - 28); c.stroke(); c.restore(); }
-    text(metric.label, x, primaryY + 31, 285, 20, "#c2c9ce", "500", "center", 18);
-    text(metric.value, x, primaryY + 79, 283, 72, theme.accent, "900", "center", 52);
-    if (metric.detail) text(metric.detail, x, primaryY + 168, 280, 23, "#f0f3f4", "400", "center");
-    else line(x - 24, primaryY + 177, 48);
-  });
-  const secondaryY = primaryY + primaryH + 24;
-  panel(64, secondaryY, 952, 133);
-  [["First 9", formatNumber(s.first9)], ["Meilleure moyenne", formatNumber(s.bestAverage)], ["100+", formatNumber(s.scores100, 0)], ["140+", formatNumber(s.scores140, 0)]].forEach(([label, value], i) => {
-    const x = 64 + 238 * (i + 0.5); text(label, x, secondaryY + 23, 220, 21, "#b8c2ca", "400", "center", 18); text(value, x, secondaryY + 62, 218, 47, "#f7f8f8", "800", "center", 38);
-  });
+  for (const cell of metricCells(metrics, snapshot.format)) {
+    const definition = CARD_METRICS.find(metric => metric.id === cell.id)!;
+    panel(cell.x, cell.y, cell.width, cell.height);
+    const center = cell.x + cell.width / 2, large = metrics.length <= 3;
+    text(definition.cardLabel, center, cell.y + (large ? 38 : 15), cell.width - 28, cell.compact ? 17 : large ? 22 : 19, "#c2c9ce", "500", "center", cell.compact ? 15 : 17);
+    text(metricValue(cell.id, d.stats), center, cell.y + (large ? 117 : cell.compact ? 52 : 67), cell.width - 30, large ? 108 : cell.compact ? 44 : cell.width > 300 ? 68 : 54, theme.accent, "900", "center", cell.compact ? 34 : 42);
+    if (!cell.compact) line(center - 24, cell.y + cell.height - (large ? 55 : 16), 48);
+  }
   const footerY = story ? 1532 : 1191;
   if (d.demonstration) text("Statistiques de démonstration — à actualiser", 540, footerY - 36, 952, 22, "#cbd1d5", "400", "center");
   else if (!d.hasData) text("Aucune statistique disponible pour cette période", 540, footerY - 36, 952, 22, "#cbd1d5", "400", "center");
