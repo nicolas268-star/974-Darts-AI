@@ -31,6 +31,9 @@ const dashboard = (season, id) => ({
   meta: { has_data: !(season === "2026" && affiliationSources[id]?.noHistory), nakka_note: "Source synthétique de validation", data_quality: { player_stat_rows: 8 } },
 });
 let failSource = false;
+let guideState = "data";
+const guideIds = ["1ebcd851-c20e-46b1-adb0-8642873a4adb", "cdee1b70-516a-4b23-85fc-4421d1da4da3"];
+const guideRequests = [];
 const backend = createServer((req,res) => {
   const url = new URL(req.url,"http://localhost"); let body;
   if (url.pathname === "/api/v1/competitions") body={active_championship:{id:"season-2027",year:2027,name:"2026-2027"},championships:[{id:"season-2027",year:2027,name:"Championnat de validation",has_data:true},{id:"season-2026",year:2026,has_data:true}]};
@@ -39,6 +42,15 @@ const backend = createServer((req,res) => {
   else if (url.pathname === "/api/v1/players") body={players:[{player_id:"validation-player",name:"Joueur de validation",team:"Équipe de validation",average_3_darts:50,win_rate:37.5}]};
   else if (url.pathname === "/api/v1/players/affiliation-pierre/affiliations") body={current:{team:"PDC Fournaise"},history:[],upcoming:[{team:"Équipe future",club:"Club futur",effective_date:"2028-01-01"}],has_history:true};
   else { res.statusCode=404; body={}; }
+  const guideIndex = guideIds.indexOf(url.pathname.split("/").at(-2));
+  if (guideIndex >= 0 && url.pathname.endsWith("/dashboard") && !failSource) {
+    guideRequests.push(url.searchParams.get("season_id"));
+    body.player.name = guideIndex === 0 ? "Nicolas DUPONT" : "Alexandre SANZ VILLAR";
+    body.kpis = { legs_played: guideIndex === 0 ? 20 : 10, legs_won: guideIndex === 0 ? 12 : 6, win_rate: 60, average_3_darts: guideIndex === 0 ? 45 : 50, first_9: guideIndex === 0 ? 52 : null, best_finish: guideIndex === 0 ? 104 : 80, average_finish: null };
+    if (guideState === "empty") { body.meta.has_data = false; body.kpis.legs_played = 0; }
+    if (guideState === "private") { body.player.public_profile = false; body.player.name = "Confidentiel"; body.kpis.average_3_darts = 99.99; }
+    if (guideState === "wrong-season") body.season = { id: "old-season", name: "2025-2026" };
+  }
   res.setHeader("Content-Type","application/json");res.end(JSON.stringify(body));
 });
 await new Promise(r=>backend.listen(8011,"127.0.0.1",r));
@@ -61,6 +73,43 @@ try {
     HTMLCanvasElement.prototype.toBlob=function(callback,...args){const values=[...(logs.get(this)||[])];return toBlob.call(this,blob=>{if(blob)blobs.set(blob,values);callback(blob);},...args);};
     const create=URL.createObjectURL;
     URL.createObjectURL=function(blob){const url=create.call(this,blob);urls.set(url,blobs.get(blob)||[]);return url;};
+  });
+  await test("KPI guide covers visible metrics, formulas and real-source example calculations", async()=>{
+    await page.goto(base+"/players/kpi");
+    assert.match(await page.locator("h1").textContent(), /Comprendre les KPI/);
+    const sections = ["essentiels", "tendances", "scoring", "profil", "adn", "reseau", "coach", "exemples"];
+    for (const id of sections) { assert.equal(await page.locator("#"+id).count(), 1); assert.equal(await page.locator('.kpi-guide-toc a[href="#'+id+'"]').count(), 1); }
+    for (const title of ["Moyenne 3 fléchettes", "First 9", "Finish moyen", "ELO", "No Score", "Maîtrise", "Wilson", "Niveau de confiance du Coach"]) assert.equal(await page.getByRole("heading", { name: title, exact: true }).count(), 1);
+    await page.locator("#essentiels details").first().locator("summary").click();
+    assert.match(await page.locator("#essentiels details[open]").textContent(), /points marqués ÷ fléchettes lancées × 3/);
+    const nico = page.locator(`[data-example="${guideIds[0]}"]`), alex = page.locator(`[data-example="${guideIds[1]}"]`);
+    assert.match(await nico.textContent(), /12 ÷ 20 × 100 = 60,0 %/); assert.match(await nico.textContent(), /\+7,00 points/);
+    assert.match(await alex.textContent(), /6 ÷ 10 × 100 = 60,0 %/); assert.match(await alex.textContent(), /comparaison First 9.*indisponible/);
+    assert.match(await page.locator("#exemples").textContent(), /Écart de moyenne Nico − Alex : −?[-]?5,00/);
+    assert.equal(await nico.getByRole("link").getAttribute("href"), `/players/${guideIds[0]}?season=2026`);
+    assert.ok(guideRequests.every(s=>s==="2026"));
+    await page.screenshot({path:resolve(out,"kpi-guide-desktop.png"),fullPage:true});
+  });
+  await test("KPI guide period selection and unavailable/private sources never substitute historical or demo numbers", async()=>{
+    guideState="empty";await page.goto(base+"/players/kpi?season=2027");
+    assert.equal(await page.locator(".kpi-example-values").count(),0); assert.equal(await page.locator(".kpi-example-empty").count(),2);
+    assert.equal(await page.locator('.kpi-example-seasons a[aria-current="page"]').textContent(),"Saison 2027");
+    assert.doesNotMatch(await page.locator("#exemples").textContent(),/2026.2027|12 ÷ 20/);
+    guideState="private";await page.goto(base+"/players/kpi?season=2026");assert.equal(await page.locator(".kpi-example-values").count(),0);assert.doesNotMatch(await page.locator("main").textContent(),/Confidentiel|99,99/);
+    guideState="wrong-season";await page.goto(base+"/players/kpi?season=2027");assert.equal(await page.locator(".kpi-example-values").count(),0);
+    failSource=true;await page.goto(base+"/players/kpi?season=2026");assert.equal(await page.locator(".kpi-guide-entry").count(),37);assert.equal(await page.locator(".kpi-example-empty").count(),2);
+    failSource=false;guideState="data";
+    await page.goto(base+"/players/kpi?season=all");assert.equal(await page.locator(".kpi-example-values").count(),2);assert.equal(await page.locator('.kpi-example-seasons a[aria-current="page"]').textContent(),"Toute la carrière");
+  });
+  await test("KPI guide mobile anchors and entry links preserve the chosen statistics period", async()=>{
+    await page.setViewportSize({width:390,height:844});await page.goto(base+"/players/kpi?season=2026");
+    await page.locator('.kpi-guide-toc a[href="#reseau"]').click();assert.ok(page.url().endsWith("#reseau"));
+    await page.locator("#reseau details").first().locator("summary").click();
+    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),true);
+    await page.screenshot({path:resolve(out,"kpi-guide-mobile-network.png"),fullPage:true});
+    await page.goto(base+"/players/validation-player?season=2027");assert.equal(await page.getByRole("link",{name:"Comprendre tous les KPI de cette fiche"}).getAttribute("href"),"/players/kpi?season=2027");
+    await page.goto(base+"/players?season=2027");assert.equal(await page.getByRole("link",{name:"Comprendre les KPI des joueurs →"}).getAttribute("href"),"/players/kpi?season=2027");
+    await page.setViewportSize({width:1440,height:1080});
   });
   await test("Fournaise publication and story export exact physical PNG dimensions",async()=>{
     await page.goto(base+"/player-card-preview");await exportPNG(page,"publication-fournaise.png",1350);await page.screenshot({path:resolve(out,"studio-desktop.png"),fullPage:true});

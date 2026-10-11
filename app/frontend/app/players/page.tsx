@@ -1,6 +1,6 @@
 import { StatsTable } from "@/components/stats/StatsTable";
 import Link from "next/link";
-import { Activity, ShieldCheck, Users } from "lucide-react";
+import { Activity, BookOpen, ShieldCheck, Users } from "lucide-react";
 import { Sidebar } from "@/components/Sidebar";
 import type { PlayerOverview } from "@/lib/types/sprint4";
 import "./players.css";
@@ -60,6 +60,8 @@ export default async function PlayersPage({ searchParams }: { searchParams: Prom
             ))}
           </div>
         </nav>
+
+        <Link className="players-guide-link" href={`/players/kpi?season=${selectedSeason}`}><BookOpen size={18} /> Comprendre les KPI des joueurs →</Link>
 
         <section className="players-summary" aria-label={`Synthèse des joueurs pour la saison ${selectedSeason}`}>
           <article><Users size={21} /><div><strong>{allPlayers.length}</strong><span>identités publiques</span></div></article>
