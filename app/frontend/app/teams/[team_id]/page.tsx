@@ -156,7 +156,7 @@ export default async function TeamDetailPage({
           </div>
           <div className="team-hero-copy">
             <span>
-              {theme.label} · SAISON {ranking?.season?.name ?? "—"}
+              {theme.label} · SAISON {seasonYear ?? "—"}
             </span>
             <h1>{team.name}</h1>
             <p>

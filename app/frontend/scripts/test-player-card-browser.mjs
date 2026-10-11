@@ -15,20 +15,29 @@ const clubSources = {
   "validation-kazadarts": {theme:"kazadarts", teamId:"7e2f62a9-e0cc-490e-b8eb-bc19c1f182e3", team:"Kaz A Darts - A", club:"Kaz A Darts 974"},
   "validation-tdc": {theme:"tdc", teamId:"a6810fe2-6469-463e-bea7-65061727e92d", team:"Tampon Darts Club - Zarboutan", club:"Tampon Darts Club"},
 };
+const affiliationSources = {
+  "affiliation-pierre": { name: "Pierre BERLET", oldTeam: "PDC Fournaise" },
+  "affiliation-nico": { name: "Nicolas DUPONT", oldTeam: "PDC Fournaise" },
+  "affiliation-fran": { name: "Fran", oldTeam: "TDC" },
+  "affiliation-new": { name: "Hugo MAGARIAN", oldTeam: "Kazadarts B", noHistory: true },
+  "affiliation-unlisted": { name: "Sebastien", oldTeam: "Kazadarts A" },
+};
 const dashboard = (season, id) => ({
-  player: { id, name: "Joueur de validation", public_profile: id !== "private-player", team_id: clubSources[id]?.teamId || "validated-team-uuid", team: clubSources[id]?.team || "Équipe de validation", club_id: "validated-club-uuid", club: clubSources[id]?.club || "Club de validation" },
+  player: { id, name: affiliationSources[id]?.name || "Joueur de validation", public_profile: id !== "private-player", team_id: clubSources[id]?.teamId || "validated-team-uuid", team: affiliationSources[id]?.oldTeam || clubSources[id]?.team || "Équipe de validation", club_id: "validated-club-uuid", club: affiliationSources[id] ? null : clubSources[id]?.club || "Club de validation" },
   season: { id: season === "all" ? "all" : "season-2027", name: season === "all" ? "Toute la carrière" : season === "2026" ? "2025-2026" : "2026-2027", is_active: true },
   kpis: { legs_played: 8, legs_won: 3, win_rate: 37.5, average_3_darts: season === "2026" ? 44 : 50, first_9: null, best_finish: 64, average_finish: null },
   scoring: { scores_100_plus: 5, scores_140_plus: 0, scores_180: 0, scores_80_plus: 1, scores_170_plus: 0, no_score: 0 },
   trends: [], recent_matches: [], elo: { available: false, value: null, history: [] },
-  meta: { has_data: true, nakka_note: "Source synthétique de validation", data_quality: { player_stat_rows: 8 } },
+  meta: { has_data: !(season === "2026" && affiliationSources[id]?.noHistory), nakka_note: "Source synthétique de validation", data_quality: { player_stat_rows: 8 } },
 });
 let failSource = false;
 const backend = createServer((req,res) => {
   const url = new URL(req.url,"http://localhost"); let body;
-  if (url.pathname === "/api/v1/competitions") body={championships:[{id:"season-2027",year:2027,name:"Championnat de validation",has_data:true},{id:"season-2026",year:2026,has_data:true}]};
+  if (url.pathname === "/api/v1/competitions") body={active_championship:{id:"season-2027",year:2027,name:"2026-2027"},championships:[{id:"season-2027",year:2027,name:"Championnat de validation",has_data:true},{id:"season-2026",year:2026,has_data:true}]};
+  else if (url.pathname === "/api/v1/competitions/championships/2027") body={summary:{},standings:[],data_quality_notes:[]};
   else if (url.pathname.endsWith("/dashboard")) { if (failSource) { res.statusCode=503; body={error:"offline"}; } else body=dashboard(url.searchParams.get("season_id"),url.pathname.split("/").at(-2)); }
   else if (url.pathname === "/api/v1/players") body={players:[{player_id:"validation-player",name:"Joueur de validation",team:"Équipe de validation",average_3_darts:50,win_rate:37.5}]};
+  else if (url.pathname === "/api/v1/players/affiliation-pierre/affiliations") body={current:{team:"PDC Fournaise"},history:[],upcoming:[{team:"Équipe future",club:"Club futur",effective_date:"2028-01-01"}],has_history:true};
   else { res.statusCode=404; body={}; }
   res.setHeader("Content-Type","application/json");res.end(JSON.stringify(body));
 });
@@ -37,7 +46,7 @@ const env={...process.env,PLAYER_CARD_ENABLED:"true",PLAYER_CARD_PREVIEW:"true",
 const server=spawn(process.execPath,[resolve(root,"node_modules/next/dist/bin/next"),"dev","--webpack","--hostname","127.0.0.1","--port","3011"],{cwd:root,env,stdio:["ignore","pipe","pipe"]});
 let serverLog="";server.stdout.on("data",b=>serverLog+=b);server.stderr.on("data",b=>serverLog+=b);
 const base="http://127.0.0.1:3011";let browser;const errors=[];const results=[];
-async function test(label,fn){await fn();results.push(label);console.log("PASS browser: "+label);}
+async function test(label,fn){if(process.env.PLAYER_CARD_QA_GROUP && !label.includes(process.env.PLAYER_CARD_QA_GROUP)) return;await fn();results.push(label);console.log("PASS browser: "+label);}
 async function ready(page){await page.locator(".pc-export-state").waitFor(); await page.getByRole("button",{name:"Télécharger en PNG",exact:true}).waitFor({state:"visible"});}
 async function exportPNG(page,name,height){await ready(page);const dl=page.waitForEvent("download");await page.getByRole("button",{name:"Télécharger en PNG",exact:true}).click();const file=await dl;await file.saveAs(resolve(out,name));const b=readFileSync(resolve(out,name));assert.equal(b.readUInt32BE(16),1080);assert.equal(b.readUInt32BE(20),height);assert.doesNotMatch(file.suggestedFilename(), /@|uuid|private|canonical/);}
 try {
@@ -162,13 +171,41 @@ try {
     const response=await page.goto(base+"/players/validation-player?season=2027");assert.match(response.headers()["permissions-policy"],/camera=\(\)/);await page.screenshot({path:resolve(out,"profile-integration.png"),fullPage:true});
     let request;page.once("request",r=>request=r);const next=page.waitForNavigation();await page.getByRole("link",{name:"Créer ma carte",exact:true}).click();const navigated=await next;assert.equal(request.isNavigationRequest(),true);assert.match(page.url(),/\/card\?season=2027$/);assert.match(navigated.headers()["permissions-policy"],/camera=\(self\)/);await ready(page);
     const payload=await (await context.request.get(base+"/api/player-card/validation-player?season=2027")).json();assert.equal(payload.data.stats.average,50);assert.equal(payload.theme,"fournaise");assert.equal(payload.data.demonstration,false);
-    await page.getByText("Personnaliser",{exact:true}).click();await page.getByLabel("Période statistique",{exact:true}).selectOption("2026");await ready(page);assert.match(await page.locator("img.pc-card").getAttribute("alt"),/2025-2026/);
+    await page.getByText("Personnaliser",{exact:true}).click();await page.getByLabel("Période statistique",{exact:true}).selectOption("2026");await ready(page);assert.match(await page.locator("img.pc-card").getAttribute("alt"),/Saison 2026/);
+  });
+  await test("profile separates 2026 history from the official 2027 roster across stat filters, handles aliases/missing registrations and preserves future transfers",async()=>{
+    await page.setViewportSize({width:390,height:844});
+    const sections = () => page.locator(".player-affiliation-timeline section");
+    for (const season of ["2026","2027","all"]) {
+      await page.goto(base+"/players/affiliation-pierre?season="+season);
+      assert.equal(await sections().nth(0).locator("span").textContent(),"Précédent · 2026");
+      assert.equal(await sections().nth(0).locator("strong").textContent(),"PDC Fournaise");
+      assert.equal(await sections().nth(0).locator("small").textContent(),"Papangue Darts Club");
+      assert.equal(await sections().nth(1).locator("span").textContent(),"Actuel · 2027");
+      assert.equal(await sections().nth(1).locator("strong").textContent(),"Papangue Darts Club - Neige");
+      assert.equal(await sections().nth(1).locator("small").textContent(),"Papangue Darts Club");
+      assert.match(await sections().nth(2).textContent(),/Équipe future.*Club futur/);
+      assert.match(await page.locator(".player-premium-identity > p").textContent(),/Neige/);
+      assert.equal(await page.locator(".player-premium-badges .badge").textContent(),"Profil joueur · "+(season === "all" ? "Toute la carrière" : "Saison "+season));
+      assert.equal(await page.locator(".player-chart-wide .chart-chip").textContent(),season === "all" ? "Toute la carrière" : "Saison "+season);
+      assert.equal(await page.locator(".player-kpi").first().locator("strong").textContent(),season === "2026" ? "44,00" : "50,00");
+      assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+    }
+    await page.screenshot({path:resolve(out,"profile-pierre-affiliations-mobile.png"),fullPage:true});
+    for (const [id,team] of [["affiliation-nico","Papangue Darts Club - Fournaise"],["affiliation-fran","Tampon Darts Club - Zarlor"],["affiliation-new","Kaz A Darts - B"]]) {
+      await page.goto(base+"/players/"+id+"?season=2027");assert.equal(await sections().nth(1).locator("strong").textContent(),team);
+      if(id === "affiliation-new") assert.equal(await sections().nth(0).locator("small").textContent(),"Affiliation 2026 non renseignée");
+    }
+    await page.goto(base+"/players/affiliation-unlisted?season=2026");assert.equal(await sections().nth(0).locator("strong").textContent(),"Kazadarts A");assert.equal(await sections().nth(1).locator("small").textContent(),"Absent de la liste officielle 2027");
+    await page.setViewportSize({width:1600,height:1000});await page.goto(base+"/players/affiliation-pierre?season=2027");assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);await page.screenshot({path:resolve(out,"profile-pierre-affiliations-desktop.png"),fullPage:true});
+    await page.goto(base+"/teams");assert.match(await page.locator(".teams-rosters-heading").textContent(),/Championnat 2027.*51 joueurs inscrits pour la saison 2027/);assert.doesNotMatch(await page.locator(".teams-rosters-heading").textContent(),/2026.2027/);
   });
   await test("public/private authorization and source failure retry without demo fallback",async()=>{
     const denied=await context.request.get(base+"/api/player-card/private-player");assert.equal(denied.status(),403);assert.doesNotMatch(await denied.text(),/Joueur de validation/);
     failSource=true;await page.goto(base+"/players/validation-player/card?season=2027");await page.getByRole("alert").filter({hasText:"Statistiques indisponibles"}).waitFor();assert.equal(await page.locator("img.pc-card").count(),0);failSource=false;await page.getByRole("button",{name:"Réessayer",exact:true}).click();await ready(page);
     const direct=await context.request.get(base+"/players/validation-player/card?season=2027");assert.match(direct.headers()["permissions-policy"],/camera=\(self\)/);const lab=await context.request.get(base+"/admin/vision",{maxRedirects:0});assert.match(lab.headers()["permissions-policy"],/screen-wake-lock=\(self\)/);
   });
+  assert.ok(results.length>0,"No browser groups matched PLAYER_CARD_QA_GROUP.");
   assert.deepEqual(errors,[]);
   console.log(`${results.length} browser groups passed (Chromium desktop/mobile emulation; fake camera, synthetic backend; not a physical phone).`);
 } finally {

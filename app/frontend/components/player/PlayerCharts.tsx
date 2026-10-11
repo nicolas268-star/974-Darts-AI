@@ -15,6 +15,7 @@ import {
   YAxis,
 } from "recharts";
 import type { PlayerDashboard } from "@/lib/player/dashboard-types";
+import { seasonLabel } from "@/lib/season-label";
 
 const tooltipStyle = { background: "#111c2e", border: "1px solid rgba(255,255,255,.12)", borderRadius: 12, color: "#f6f8fb" };
 const roundNumber = (label: string) => Number(label.replace(/\D/g, "")) || 0;
@@ -66,7 +67,7 @@ export function PlayerCharts({ data, championshipAverage }: { data: PlayerDashbo
       <div className="chart-frame"><ResponsiveContainer width="100%" height="100%"><LineChart data={trend} margin={{ top: 12, right: 12, left: 4, bottom: 0 }}><CartesianGrid stroke="rgba(255,255,255,.07)" vertical={false}/><XAxis dataKey="round" stroke="#9aa9bd" tickLine={false} axisLine={false}/><YAxis width={52} stroke="#9aa9bd" tickLine={false} axisLine={false} domain={[0,100]} tickFormatter={(value) => `${value}%`}/><Tooltip contentStyle={tooltipStyle} formatter={(value) => [`${Number(value).toFixed(1)} %`, "Victoires"]}/><ReferenceLine y={50} stroke="rgba(255,255,255,.25)" strokeDasharray="5 5"/><Line type="monotone" dataKey="victoire" stroke="#34d399" strokeWidth={3} dot={{ r: 4 }}/></LineChart></ResponsiveContainer></div>
     </section>
     <section className="card player-chart-card player-chart-wide">
-      <div className="section-heading"><div><span className="eyebrow">Scoring</span><h3>Volumes de scores</h3></div><span className="chart-chip">{data.season?.id === "all" ? "Toute la carrière" : `Saison ${data.season?.name ?? "—"}`}</span></div>
+      <div className="section-heading"><div><span className="eyebrow">Scoring</span><h3>Volumes de scores</h3></div><span className="chart-chip">{seasonLabel(data.season)}</span></div>
       <div className="chart-frame chart-frame-short"><ResponsiveContainer width="100%" height="100%"><BarChart data={scoring} margin={{ top: 12, right: 12, left: -20, bottom: 0 }}><CartesianGrid stroke="rgba(255,255,255,.07)" vertical={false}/><XAxis dataKey="label" stroke="#9aa9bd" tickLine={false} axisLine={false}/><YAxis stroke="#9aa9bd" tickLine={false} axisLine={false} allowDecimals={false}/>
 <Tooltip
   contentStyle={{
