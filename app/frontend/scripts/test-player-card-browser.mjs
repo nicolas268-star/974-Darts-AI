@@ -32,6 +32,15 @@ const dashboard = (season, id) => ({
 });
 let failSource = false;
 let guideState = "data";
+let mvpState = "early", mvp2028Published = false;
+const mvpPlayer = (player_id, name, overrides = {}) => ({ player_id, name, team: "Équipe de validation", legs_played: 13, legs_won: 11, average_3_darts: 53.87, first_9: 64.06, best_finish: 61, scores_100: 8, scores_140: 2, scores_180: 0, ...overrides });
+const mvpEarly = [
+  mvpPlayer("mvp-esteban", "Esteban THOMAS"),
+  mvpPlayer("mvp-jacky", "Jacky VERDIER", { legs_played:14, legs_won:12, average_3_darts:44.55, first_9:50.35, best_finish:59, scores_100:8, scores_140:0 }),
+  mvpPlayer("mvp-stephane", "Stéphane ABROUSSE", { legs_played:7, legs_won:5, average_3_darts:51.6, first_9:55.33, best_finish:59, scores_100:3, scores_140:2, scores_180:1 }),
+  mvpPlayer("mvp-yoann", "Yoann MARQUES", { legs_played:6, legs_won:4, average_3_darts:50.25, first_9:59.06, best_finish:40, scores_100:6, scores_140:0, scores_180:1 }),
+];
+const mvpHistorical = mvpPlayer("mvp-historic", "Ancien MVP 2026", { season_id:"season-2026", legs_played:100, legs_won:70, average_3_darts:56, first_9:64, best_finish:102, scores_100:20, scores_140:10 });
 const guideIds = ["1ebcd851-c20e-46b1-adb0-8642873a4adb", "cdee1b70-516a-4b23-85fc-4421d1da4da3"];
 const guideRequests = [];
 const backend = createServer((req,res) => {
@@ -42,6 +51,21 @@ const backend = createServer((req,res) => {
   else if (url.pathname === "/api/v1/players") body={players:[{player_id:"validation-player",name:"Joueur de validation",team:"Équipe de validation",average_3_darts:50,win_rate:37.5}]};
   else if (url.pathname === "/api/v1/players/affiliation-pierre/affiliations") body={current:{team:"PDC Fournaise"},history:[],upcoming:[{team:"Équipe future",club:"Club futur",effective_date:"2028-01-01"}],has_history:true};
   else { res.statusCode=404; body={}; }
+  if (url.pathname === "/api/v1/competitions") {
+    Object.assign(body.championships[0], { is_active:true, published_rounds:1 });
+    Object.assign(body.championships[1], { is_active:false, published_rounds:9 });
+    body.championships.push({ id:mvp2028Published ? "season-2028" : null, year:2028, is_active:false, published_rounds:mvp2028Published ? 1 : 0, has_data:mvp2028Published });
+  }
+  if (url.pathname === "/api/v1/players" && url.searchParams.get("season_id")?.startsWith("season-")) {
+    const seasonId = url.searchParams.get("season_id");
+    let players = seasonId === "season-2026" ? [mvpHistorical] : seasonId === "season-2028" ? [mvpPlayer("mvp-future", "Premier joueur 2028", { legs_played:3, legs_won:1 })] : mvpEarly;
+    players = players.map(p=>({...p,season_id:seasonId}));
+    if (mvpState === "confirmed") players.push(mvpPlayer("mvp-qualified", "Joueur confirmé 2027", {season_id:seasonId,legs_played:20,legs_won:10}));
+    if (mvpState === "empty") players=[];
+    if (mvpState === "incomplete") players=players.map(p=>({...p,average_3_darts:null}));
+    if (mvpState === "wrong-season") players=[mvpHistorical];
+    body={players};if(mvpState === "outage"){res.statusCode=503;body={error:"offline"};}
+  }
   const guideIndex = guideIds.indexOf(url.pathname.split("/").at(-2));
   if (guideIndex >= 0 && url.pathname.endsWith("/dashboard") && !failSource) {
     guideRequests.push(url.searchParams.get("season_id"));
@@ -73,6 +97,30 @@ try {
     HTMLCanvasElement.prototype.toBlob=function(callback,...args){const values=[...(logs.get(this)||[])];return toBlob.call(this,blob=>{if(blob)blobs.set(blob,values);callback(blob);},...args);};
     const create=URL.createObjectURL;
     URL.createObjectURL=function(blob){const url=create.call(this,blob);urls.set(url,blobs.get(blob)||[]);return url;};
+  });
+  await test("MVP 2027 uses early published results with a provisional podium and season-preserving links", async()=>{
+    await page.goto(base+"/records/mvp/2027");assert.equal(await page.getByRole("heading",{name:"MVP 2027",exact:true}).count(),1);
+    assert.match(await page.locator(".mvp-provisional-note").textContent(),/provisoire.*20 legs/);
+    assert.equal(await page.locator(".mvp-table tbody tr").count(),4);assert.equal(await page.locator(".record-podium-card").count(),3);
+    assert.equal(await page.locator(".mvp-winner h2").textContent(),"Esteban THOMAS");assert.equal(await page.locator(".mvp-winner-score strong").textContent(),"55");
+    assert.equal(await page.locator(".record-kpis article").filter({hasText:"Profils confirmés"}).locator("strong").textContent(),"0");
+    for(const link of await page.locator(".mvp-winner a,.record-podium-card,.mvp-table a").all()) assert.match(await link.getAttribute("href"),/\?season=2027$/);
+    assert.doesNotMatch(await page.locator("main").textContent(),/Saison à venir|Aucune donnée 2027 publiée|Ancien MVP 2026/);
+    await page.screenshot({path:resolve(out,"mvp-2027-desktop.png"),fullPage:true});
+  });
+  await test("MVP seasons and legacy 2026 URL stay isolated; the hub and a future season activate from published data", async()=>{
+    for(const path of ["/records/mvp/2026","/records/mvp-2026"]){await page.goto(base+path);assert.equal(await page.locator(".mvp-winner h2").textContent(),"Ancien MVP 2026");assert.equal(await page.locator(".mvp-winner-score strong").textContent(),"75");assert.equal(await page.locator(".mvp-provisional-note").count(),0);assert.doesNotMatch(await page.locator("main").textContent(),/Esteban THOMAS|Saison 2027/);assert.match(await page.locator(".mvp-winner a").getAttribute("href"),/season=2026$/);}
+    await page.goto(base+"/records/mvp/2028");assert.equal(await page.locator(".mvp-table").count(),0);assert.equal(await page.getByRole("heading",{name:"En attente des statistiques individuelles 2028",exact:true}).count(),1);
+    mvp2028Published=true;await page.reload();assert.equal(await page.locator(".mvp-winner h2").textContent(),"Premier joueur 2028");assert.match(await page.locator(".mvp-winner a").getAttribute("href"),/season=2028$/);mvp2028Published=false;
+    await page.goto(base+"/records/mvp");assert.match(await page.locator('.mvp-season-card[href="/records/mvp/2027"]').textContent(),/Saison en cours/);assert.match(await page.locator('.mvp-season-card[href="/records/mvp/2026"]').textContent(),/Saison analysée/);
+  });
+  await test("MVP handles confirmation, missing individual stats, foreign-season data, outages and mobile rendering", async()=>{
+    mvpState="confirmed";await page.goto(base+"/records/mvp/2027");assert.equal(await page.locator(".mvp-provisional-note").count(),0);assert.equal(await page.locator(".mvp-table tbody tr").count(),1);assert.equal(await page.locator(".mvp-winner h2").textContent(),"Joueur confirmé 2027");
+    mvpState="empty";await page.reload();assert.equal(await page.getByRole("heading",{name:"En attente des statistiques individuelles 2027",exact:true}).count(),1);assert.match(await page.locator(".record-empty").textContent(),/Des journées sont publiées/);
+    mvpState="incomplete";await page.reload();assert.equal(await page.getByRole("heading",{name:"Statistiques individuelles incomplètes",exact:true}).count(),1);assert.equal(await page.locator(".mvp-winner").count(),0);
+    for(const state of ["wrong-season","outage"]){mvpState=state;await page.reload();assert.equal(await page.getByRole("heading",{name:"Statistiques temporairement indisponibles",exact:true}).count(),1);assert.doesNotMatch(await page.locator("main").textContent(),/Ancien MVP 2026/);assert.equal(await page.locator(".record-kpis article").filter({hasText:"Joueurs classés"}).locator("strong").textContent(),"—");}
+    mvpState="early";await page.getByRole("link",{name:"Réessayer",exact:true}).click();await page.locator(".mvp-winner").waitFor();assert.equal(await page.locator(".mvp-table tbody tr").count(),4);
+    await page.setViewportSize({width:390,height:844});await page.evaluate(()=>window.scrollTo(0,0));assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),true);await page.screenshot({path:resolve(out,"mvp-2027-mobile.png"),fullPage:true});await page.setViewportSize({width:1440,height:1080});
   });
   await test("KPI guide covers visible metrics, formulas and real-source example calculations", async()=>{
     await page.goto(base+"/players/kpi");

@@ -6,7 +6,8 @@ export async function testMobileStatistics(page, screenshot) {
     ['/teams', false], ['/teams/a', false], ['/matches/result1', true],
     ['/players/p1?season=2027', true], ['/players/compare/p1/p3', false],
     ['/players/p1/tournaments', true], ['/duos', true], ['/duos/p1/p2', true],
-    ['/records/180', true], ['/records/finishes', true], ['/records/mvp-2026', true],
+    ['/records/180', true], ['/records/finishes', true], ['/records/mvp-2026', false],
+    ['/records/mvp/2026', false], ['/records/mvp/2027', true], ['/records/mvp/2028', false],
     ['/competitions/classement-individuel', true], ['/tournaments', false],
     ['/tournaments/blind-draw-championship', true],
     ['/tournaments/blind-draw-championship/manche-1/joueurs/nicolas-pdc', false],
@@ -21,6 +22,12 @@ export async function testMobileStatistics(page, screenshot) {
       expect(response.status(), route).toBe(200);
       await expect(page.locator('main.stats-responsive')).toBeVisible();
       await page.locator('main h1, main h2, main h3').first().waitFor();
+      // This fixture contains only 2027 data. Archives must not borrow the active season.
+      if (/\/records\/mvp(?:-2026|\/2026|\/2028)$/.test(route)) {
+        const year = route.endsWith('2026') ? '2026' : '2028';
+        await expect(page.getByRole('heading', {name: `En attente des statistiques individuelles ${year}`, exact: true})).toBeVisible();
+        await expect(page.locator('.mvp-winner, [data-stats-cards]')).toHaveCount(0);
+      }
       // Tournament statistics are intentionally behind user-operated disclosures.
       const closedTournamentSections=page.locator('details.tournament-disclosure:not([open]) > summary');
       while(await closedTournamentSections.count()) await closedTournamentSections.first().click();
