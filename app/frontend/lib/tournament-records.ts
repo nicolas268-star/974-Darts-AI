@@ -25,7 +25,7 @@ const historicalTournamentAliases: Record<string, Record<string, string>> = {
   T4: { vincenttdc: "Vincent G" },
 };
 
-const bdcCanonicalNames: Record<string, string> = {
+export const bdcCanonicalNames: Record<string, string> = {
   vincenttdc: "Vincent G",
   abroussetdc: "Stéphane A",
   kevintdc: "Kevin",

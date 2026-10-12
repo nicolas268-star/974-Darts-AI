@@ -10,14 +10,16 @@
     "typecheck": "tsc --noEmit",
     "test:control": "node scripts/control-check.mjs",
     "check:release": "node scripts/check-release-version.mjs",
-    "test": "npm run lint && npm run typecheck && npm run test:control && npm run check:release && npm run test:play && npm run test:vision && npm run test:player-card && npm run test:player-affiliations && npm run test:kpi-guide && npm run test:mvp && npm run test:statistics-filters",
+    "test": "npm run lint && npm run typecheck && npm run test:control && npm run check:release && npm run test:play && npm run test:vision && npm run test:player-card && npm run test:player-affiliations && npm run test:kpi-guide && npm run test:mvp && npm run test:statistics-filters && npm run test:bdc",
     "test:statistics-filters": "node scripts/test-statistics-filters.mjs",
     "test:mvp": "node scripts/test-mvp.mjs",
     "test:kpi-guide": "node scripts/test-kpi-guide.mjs",
     "test:player-affiliations": "node scripts/test-player-affiliations.mjs",
     "test:player-card": "node scripts/test-player-card.mjs",
     "test:play": "node scripts/test-play.mjs",
-    "test:vision": "node scripts/test-vision.mjs && node scripts/test-vision-calibration.mjs && node scripts/test-vision-auto.mjs && node scripts/test-vision-stabilization.mjs && node scripts/test-vision-camera-resume.mjs && node scripts/test-vision-journal.mjs"
+    "test:vision": "node scripts/test-vision.mjs && node scripts/test-vision-calibration.mjs && node scripts/test-vision-auto.mjs && node scripts/test-vision-stabilization.mjs && node scripts/test-vision-camera-resume.mjs && node scripts/test-vision-journal.mjs",
+    "test:bdc": "node scripts/test-bdc.mjs && node scripts/test-bdc-round-two.mjs && node scripts/test-bdc-partners.mjs",
+    "test:bdc:browser": "node scripts/test-bdc-partners-browser.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.7.0",

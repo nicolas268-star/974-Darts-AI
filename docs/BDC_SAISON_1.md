@@ -51,6 +51,8 @@ Audit : `python scripts/audit-bdc-round-two.py` (lecture seule) ; ajouter `--wri
 
 ## Vérification
 
+L’[analyse des partenaires](BDC_PARTNER_ANALYSIS.md) relie maintenant les associations M1/M2, avec résultats corrigés, moyennes pondérées et couverture par duo. Elle reste descriptive et respecte les points M2 provisoires.
+
 Depuis `app/frontend` : `node scripts/test-bdc.mjs`, `node scripts/test-bdc-round-two.mjs`, puis `npm run build`.
 
 Le composant est autonome si le backend des tournois ne répond pas. Il n’écrit pas dans Supabase, ne modifie pas le championnat officiel et ne configure pas la surveillance Nakka.

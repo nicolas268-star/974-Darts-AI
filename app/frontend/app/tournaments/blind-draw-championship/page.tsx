@@ -5,6 +5,7 @@ import { Sidebar } from "@/components/Sidebar";
 import { BdcRoundOne } from "@/components/BdcRoundOne";
 import { BdcRoundTwo } from "@/components/BdcRoundTwo";
 import { BDC_ROUNDS, BDC_RESULTS, BDC_ROUND_REPORTS, BDC_RULES_URL, BDC_ROUND_TWO_POINTS_NOTE, bdcDate, bdcStandings } from "@/lib/bdc";
+import { bdcPartnerHref } from "@/lib/bdc-profile-links";
 import "../../competitions/competition-hub.css";
 import "./bdc.css";
 
@@ -23,7 +24,7 @@ export default function BdcPage() {
         <h1>Blind Draw Championship</h1>
         <p>Six manches en double. Un classement individuel.</p>
         <div className="bdc-tags"><span>Nouveau tirage à chaque manche</span><span>501 · Double Out</span><span>Sept. 2026 → fév. 2027</span></div>
-        <nav className="bdc-links" aria-label="Dans le BDC"><a href="#resultats-manche-2">Résultats et statistiques M2</a><a href="#resultats-manche-1">Résultats et statistiques M1</a><a href="#classement">Classement individuel</a><a href="#manches">Les manches</a><a href="#bareme">Barème</a></nav>
+        <nav className="bdc-links" aria-label="Dans le BDC"><Link href={bdcPartnerHref()}>Analyse des partenaires</Link><a href="#resultats-manche-2">Résultats et statistiques M2</a><a href="#resultats-manche-1">Résultats et statistiques M1</a><a href="#classement">Classement individuel</a><a href="#manches">Les manches</a><a href="#bareme">Barème</a></nav>
       </div><div className="bdc-card-mark" aria-hidden="true">BDC<span>2026 — 2027</span></div>
     </header>
 
@@ -50,7 +51,7 @@ export default function BdcPage() {
       <p className="bdc-note"><strong>Résultats officiels :</strong> les résultats et le classement officiels sont tenus par le directeur sportif du Tampon Darts Club (TDC). Les données présentées sur 974 Darts AI sont fournies à titre informatif.</p>
       <div className="bdc-table-scroll" role="region" aria-label="Classement individuel BDC" tabIndex={0}>
         <StatsTable className="bdc-table"><caption>Points par manche, total et seuil de participation · † points M2 provisoires</caption><thead><tr><th scope="col">Rang</th><th scope="col">Joueur</th>{BDC_ROUNDS.map((round) => <th scope="col" key={round.number}>M{round.number}</th>)}<th scope="col">Total</th><th scope="col">Manches</th><th scope="col">Seuil de 3 manches</th></tr></thead>
-          <tbody>{standings.length ? standings.map((row) => <tr key={row.id}><td>{row.rank}</td><th scope="row">{row.name}</th>{row.points.map((points, i) => <td key={i}>{points ?? "—"}{row.provisionalRounds.includes(i + 1) ? "†" : ""}</td>)}<td><strong>{row.total}{row.pending ? "*" : ""}{row.provisionalRounds.length ? "†" : ""}</strong></td><td>{row.participations}/6</td><td>{row.eligible ? "Atteint" : `${3 - row.participations} restante(s)`}</td></tr>) : <tr><td colSpan={11} className="bdc-empty">Les joueurs et leurs points apparaîtront après la saisie des premiers résultats validés.</td></tr>}</tbody>
+          <tbody>{standings.length ? standings.map((row) => <tr key={row.id}><td>{row.rank}</td><th scope="row"><Link href={bdcPartnerHref(row.id)} title={`Analyse des partenaires de ${row.name}`}>{row.name}</Link></th>{row.points.map((points, i) => <td key={i}>{points ?? "—"}{row.provisionalRounds.includes(i + 1) ? "†" : ""}</td>)}<td><strong>{row.total}{row.pending ? "*" : ""}{row.provisionalRounds.length ? "†" : ""}</strong></td><td>{row.participations}/6</td><td>{row.eligible ? "Atteint" : `${3 - row.participations} restante(s)`}</td></tr>) : <tr><td colSpan={11} className="bdc-empty">Les joueurs et leurs points apparaîtront après la saisie des premiers résultats validés.</td></tr>}</tbody>
         </StatsTable>
       </div>
       <p className="bdc-note">— : absence ou points indisponibles. * : total incomplet. † : points M2 et total incluant M2 sous réserve de validation du directeur sportif. Les égalités de points restent ex æquo dans l’attente du départage officiel.</p>
