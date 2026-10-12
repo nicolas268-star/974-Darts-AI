@@ -4,6 +4,7 @@ import { Activity, Award, Crown, Gauge, Medal, ShieldCheck, Target, Trophy } fro
 import { Sidebar } from "@/components/Sidebar";
 import { MINIMUM_LEGS, mvpStanding, type MvpSeason } from "@/lib/records/mvp";
 import { loadMvpSeason } from "@/lib/records/mvp-server";
+import { Mvp2027Hero } from "./Mvp2027Hero";
 import "../record-pages.css";
 import "./mvp-seasons.css";
 
@@ -18,7 +19,7 @@ export async function MvpSeasonPage({ season }: { season: MvpSeason }) {
       <Sidebar />
       <main className="stats-responsive main record-page mvp-page">
         <Link className="back-link" href="/records/mvp">← Retour aux saisons MVP</Link>
-        <section className="record-hero mvp-hero">
+        {season === "2027" ? <Mvp2027Hero provisional={standing.provisional} /> : <section className="record-hero mvp-hero">
           <div className="record-hero-icon mvp-crown" aria-hidden="true">
             <Crown size={44} />
             <span>MVP</span>
@@ -32,7 +33,7 @@ export async function MvpSeasonPage({ season }: { season: MvpSeason }) {
             </p>
           </div>
           <span className="record-data-badge mvp-badge"><i /> {standing.provisional ? "Classement provisoire" : "Calcul transparent"}</span>
-        </section>
+        </section>}
 
         {standing.provisional && <aside className="record-integrity mvp-integrity mvp-provisional-note"><ShieldCheck size={17}/><span><strong>Classement provisoire de début de saison.</strong> Aucun joueur n’a encore atteint le seuil de {MINIMUM_LEGS} legs avec une moyenne exploitable. Les premiers résultats individuels sont affichés ; le classement principal retiendra les joueurs ayant au moins {MINIMUM_LEGS} legs.</span></aside>}
 
