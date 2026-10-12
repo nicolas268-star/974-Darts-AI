@@ -64,7 +64,7 @@ export const TEAM_ROSTERS_2027: TeamRoster2027[] = [
     { officialName: "Stephan PERRIAU", nakkaName: "Stephan", license: "97404006" },
     { officialName: "Caroline PARET", nakkaName: "Caroline", license: "97404004" },
   ] },
-  { id: "3bdc-blonde", name: "3B Darts Club - B(londe)", club: "3B Darts Club", players: [
+  { id: "3bdc-blonde", name: "3B Darts Club - B(rune)", club: "3B Darts Club", players: [
     { officialName: "David DESCHRYVER", nakkaName: "David", license: "97404003" },
     { officialName: "Martin ROCHE", nakkaName: "Martin", license: "97404007" },
     { officialName: "Uldrich TECHER", nakkaName: "Uldrich", license: "97404010" },

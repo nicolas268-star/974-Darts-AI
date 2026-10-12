@@ -11,6 +11,7 @@ import {
   type CalendarPayload,
 } from "@/lib/calendar/types";
 import { TEAM_ROSTERS_2027 } from "@/lib/team-rosters-2027";
+import { displayTeamNames } from "@/lib/team-identity";
 import "./calendar.css";
 import "./calendar-team-filter.css";
 
@@ -73,7 +74,7 @@ function officialCalendarTeam(value: string): string {
     "kaz-a": ["KAD A", "Kaz A Darts A"],
     "kaz-b": ["KAD B", "Kaz A Darts B"],
     "3bdc-ambre": ["3BDC A", "3B DC A", "3B Darts Club A", "3B Darts Club Ambré"],
-    "3bdc-blonde": ["3BDC B", "3B DC B", "3B Darts Club B", "3B Darts Club Blonde"],
+    "3bdc-blonde": ["3BDC B", "3B DC B", "3B Darts Club B", "3B Darts Club Blonde", "3B Darts Club Brune", "3B Darts Club - B(londe)"],
   };
   return TEAM_ROSTERS_2027.find((team) =>
     [team.name, ...(aliases[team.id] ?? [])].some((name) =>
@@ -149,7 +150,7 @@ function EventCard({ event }: { event: CalendarEvent }) {
 
   return <article className={`calendar-event type-${event.event_type.toLowerCase()} ${bdcRound ? "event-bdc" : ""} ${event.ranking_category ? `ranking-category-${event.ranking_category.toLowerCase()}` : ""} ${event.status === "CANCELLED" ? "cancelled" : ""}`}>
     <div className="calendar-date"><strong>{String(date.getDate()).padStart(2, "0")}</strong><span>{date.toLocaleDateString("fr-FR", { month: "short", timeZone: "Indian/Reunion" })}</span></div>
-    <div className="calendar-event-main"><div className="calendar-event-meta"><span>{rankingLabel}</span>{event.status === "CANCELLED" && <b>Annulé</b>}</div><h2>{event.title}</h2><p><CalendarDays size={16} /> {dateFormatter.format(date)}{event.end_date && event.end_date !== event.start_date ? ` au ${dateFormatter.format(new Date(`${event.end_date}T12:00:00+04:00`))}` : ""}</p><p><Clock3 size={16} /> {event.start_time || "Horaire à confirmer"}</p><p><MapPin size={16} /> {event.location}{event.address ? ` · ${event.address}` : ""}</p>{event.description && <small>{event.description}</small>}</div>
+    <div className="calendar-event-main"><div className="calendar-event-meta"><span>{rankingLabel}</span>{event.status === "CANCELLED" && <b>Annulé</b>}</div><h2>{displayTeamNames(event.title)}</h2><p><CalendarDays size={16} /> {dateFormatter.format(date)}{event.end_date && event.end_date !== event.start_date ? ` au ${dateFormatter.format(new Date(`${event.end_date}T12:00:00+04:00`))}` : ""}</p><p><Clock3 size={16} /> {event.start_time || "Horaire à confirmer"}</p><p><MapPin size={16} /> {event.location}{event.address ? ` · ${event.address}` : ""}</p>{event.description && <small>{displayTeamNames(event.description)}</small>}</div>
     {bdcRound ? <div className="calendar-event-actions"><Link href={`${BDC_URL}#manche-${bdcRound.number}`}>Manche {bdcRound.number} et classement BDC →</Link>{event.source_url && <Link href={event.source_url} target="_blank" rel="noreferrer">Voir les détails →</Link>}</div> : event.source_url && <Link href={event.source_url} target="_blank" rel="noreferrer">Voir les détails →</Link>}
   </article>;
 }

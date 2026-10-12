@@ -65,7 +65,7 @@ SEASON_PROFILES: dict[int, SeasonProfile] = {
             "Tampon Darts Club - Zarboutan",
             "Tampon Darts Club - Zarlor",
             "3B Darts Club - A(mbré)",
-            "3B Darts Club - B(londe)",
+            "3B Darts Club - B(rune)",
         ),
         expected_clubs=(
             "Kazadarts",
@@ -98,7 +98,7 @@ TEAM_CLUBS: dict[str, str] = {
     "Tampon Darts Club - Zarboutan": "Tampon Darts Club",
     "Tampon Darts Club - Zarlor": "Tampon Darts Club",
     "3B Darts Club - A(mbré)": "3B Darts Club",
-    "3B Darts Club - B(londe)": "3B Darts Club",
+    "3B Darts Club - B(rune)": "3B Darts Club",
 }
 
 
@@ -135,6 +135,12 @@ TEAM_ALIASES: dict[str, str] = {
         "3BDC": ("3BDC", "3 BDC", "3 Brasseurs Darts Club"),
         "3BDC A": ("3BDC A", "3 BDC A", "3 Brasseurs Darts Club A"),
         "3BDC B": ("3BDC B", "3 BDC B", "3 Brasseurs Darts Club B"),
+        "3B Darts Club - B(rune)": (
+            "3B Darts Club - B(rune)",
+            "3B Darts Club - B(londe)",
+            "3B Darts Club Brune",
+            "3B Darts Club Blonde",
+        ),
     }.items()
     for alias in aliases
 }
@@ -142,6 +148,12 @@ TEAM_ALIASES: dict[str, str] = {
 
 def canonical_team_name(value: str | None, season: int | None = None) -> str:
     normalized = normalize_team_name(value)
+    # The corrected name is display-only: old source labels keep the same team.
+    if normalized in {
+        "3b darts club b londe", "3b darts club blonde",
+        "3b darts club b rune", "3b darts club brune",
+    }:
+        return "3B Darts Club - B(rune)"
     # En 2026, les suffixes A/B n'existent pas pour TDC et 3BDC.
     if season == 2026 and normalized in {"tdc a", "tdc b"}:
         return "TDC"
@@ -157,7 +169,7 @@ def canonical_team_name(value: str | None, season: int | None = None) -> str:
             "tdc a": "Tampon Darts Club - Zarboutan", "tdc zarboutan": "Tampon Darts Club - Zarboutan",
             "tdc b": "Tampon Darts Club - Zarlor", "tdc zarlor": "Tampon Darts Club - Zarlor",
             "3bdc a": "3B Darts Club - A(mbré)", "3 bdc a": "3B Darts Club - A(mbré)",
-            "3bdc b": "3B Darts Club - B(londe)", "3 bdc b": "3B Darts Club - B(londe)",
+            "3bdc b": "3B Darts Club - B(rune)", "3 bdc b": "3B Darts Club - B(rune)",
         }
         return official_2027.get(normalized, str(value or "").strip())
 

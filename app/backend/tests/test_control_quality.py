@@ -55,7 +55,10 @@ class ControlQualityCatalogTests(unittest.TestCase):
         self.assertEqual(canonical_team_name("TDC A", 2026), "TDC")
         self.assertEqual(canonical_team_name("3BDC B", 2026), "3BDC")
         self.assertEqual(canonical_team_name("TDC A", 2027), "Tampon Darts Club - Zarboutan")
-        self.assertEqual(canonical_team_name("3BDC B", 2027), "3B Darts Club - B(londe)")
+        self.assertEqual(canonical_team_name("3BDC B", 2027), "3B Darts Club - B(rune)")
+        self.assertEqual(canonical_team_name("3B Darts Club - B(londe)", 2027), "3B Darts Club - B(rune)")
+        self.assertEqual(canonical_team_name("3B Darts Club - B(londe)"), "3B Darts Club - B(rune)")
+        self.assertEqual(club_name("3B Darts Club - B(londe)", 2027), "3B Darts Club")
 
     def test_dynamic_route_manifest_is_complete(self) -> None:
         templates = {item["template"] for item in ROUTE_MANIFEST}
