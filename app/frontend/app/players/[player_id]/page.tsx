@@ -19,6 +19,7 @@ import type { CompetitionCatalog } from "@/lib/types/sprint14";
 import { playerCardEnabled } from "@/lib/player-card/feature";
 import { playerSeasonAffiliations } from "@/lib/player/season-affiliations";
 import { seasonLabel } from "@/lib/season-label";
+import { bdcPartnerHref, bdcPlayerForPublicProfile } from "@/lib/bdc-profile-links";
 import "./player-premium.css";
 import "./player-affiliation-timeline.css";
 import "./player-network.css";
@@ -92,6 +93,7 @@ export default async function PlayerDashboardPage({ params, searchParams }: { pa
   const season = requestedSeason === "all" || ["2026", "2027", "2028", "2029"].includes(requestedSeason ?? "") ? requestedSeason : undefined;
   const [data, network, dna, coach, players, tournamentSummary, affiliations, catalog, historical] = await Promise.all([getDashboard(player_id, season), getNetwork(player_id, season), getDNA(player_id, season), getCoach(player_id, season), getPlayers(season), getTournamentSummary(player_id), getAffiliations(player_id), getCompetitionCatalog(), getDashboard(player_id, "2026")]);
   if (!data) notFound();
+  const bdcPlayerId = bdcPlayerForPublicProfile(data.player.name);
 
   const yearsInSeasonName = data.season?.name.match(/20\d{2}/g) ?? [];
   const selectedSeason = season ?? yearsInSeasonName.at(-1) ?? "all";
@@ -156,6 +158,7 @@ export default async function PlayerDashboardPage({ params, searchParams }: { pa
           <span className={`player-tier-badge player-tier-${tier.tone}`}>{tier.icon} {tier.label}</span>
         </div>
         <h2>{data.player.name}</h2>
+        {bdcPlayerId && <Link className="btn" href={bdcPartnerHref(bdcPlayerId)}>BDC · Analyse des partenaires</Link>}
         <p>{currentAffiliation ? `${currentAffiliation.team} · ${currentAffiliation.club}` : "Affiliation 2027 non renseignée"}</p>
         {playerCardEnabled() && data.player.public_profile === true && <a className="btn btn-primary" href={`/players/${encodeURIComponent(data.player.id)}/card${season ? `?season=${encodeURIComponent(season)}` : ""}`}>Créer ma carte</a>}
         <div className="player-badges">

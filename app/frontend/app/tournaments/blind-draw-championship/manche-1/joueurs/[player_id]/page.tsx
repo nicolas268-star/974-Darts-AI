@@ -5,6 +5,7 @@ import { Sidebar } from "@/components/Sidebar";
 import detailsData from "@/lib/bdc-round-one-details.json";
 import sourceData from "@/lib/bdc-round-one.json";
 import { BDC_RESULTS, BDC_URL } from "@/lib/bdc";
+import { bdcPartnerHref } from "@/lib/bdc-profile-links";
 import {
   BDC_UNAVAILABLE,
   buildBdcPlayerRoundProfile,
@@ -83,7 +84,7 @@ function Sparkline({
     <svg viewBox="0 0 100 44" role="img" aria-label={`${label}, évolution sur ${values.length} matchs couverts`}>
       <line x1="7" y1="36" x2="93" y2="36" />
       <polyline points={points.map((point) => `${point.x},${point.y}`).join(" ")} />
-      {points.map((point) => <circle cx={point.x} cy={point.y} r="2.1" key={`${point.match}-${point.value}`}><title>Match {point.match} : {decimal(point.value, suffix)}</title></circle>)}
+      {points.map((point) => <circle cx={point.x} cy={point.y} r="2.1" key={`${point.match}-${point.value}`}><title>{`Match ${point.match} : ${decimal(point.value, suffix)}`}</title></circle>)}
     </svg>
     <div className="bdc-spark-values">{values.map((entry) => <small key={entry.match}>M{entry.match}<b>{decimal(entry.value, suffix)}</b></small>)}</div>
   </article>;
@@ -172,7 +173,8 @@ export default async function BdcPlayerRoundPage({
       <section className="bdc-player-section" aria-labelledby="partenaire-joueur">
         <div className="bdc-report-title"><div><span>03</span><h2 id="partenaire-joueur">Partenaire de la manche</h2></div><small>Tirage au sort de la Manche 01</small></div>
         <article className="bdc-partner-card"><div><span>PARTENAIRE TIRÉ AU SORT</span><strong>{profile.partner.name}</strong><small>{profile.teamName}</small></div><dl><div><dt>Matchs ensemble</dt><dd>{profile.matchesPlayed}</dd></div><div><dt>Taux de victoire</dt><dd>{decimal(winRate, "%")}</dd></div><div><dt>Moyenne du duo</dt><dd>{decimal(profile.duoAverage3)}</dd></div><div><dt>Contribution du joueur</dt><dd>{summary ? decimal(summary.contribution, "%") : "—"}</dd></div></dl></article>
-        <p className="bdc-note">Un seul partenaire est attribué à chaque joueur pour toute la manche. Les comparaisons « meilleur partenaire » et « association la plus difficile » seront réservées à la future fiche globale BDC, après plusieurs manches suffisamment documentées.</p>
+        <Link className="bdc-button" href={bdcPartnerHref(player_id)}>Analyse des partenaires · toutes les manches →</Link>
+        <p className="bdc-note">Le comparatif BDC rassemble les associations observées dans la saison et précise la couverture de chaque duo.</p>
       </section>
 
       <section className="bdc-player-section" aria-labelledby="matchs-joueur">

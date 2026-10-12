@@ -65,7 +65,7 @@ export default async function PlayerKpiGuidePage({ searchParams }: { searchParam
 
     <nav className="card kpi-guide-toc" aria-label="Sommaire du guide KPI">
       <h2>Que voulez-vous comprendre ?</h2>
-      <div>{KPI_GUIDE.map((section, i) => <a key={section.id} href={`#${section.id}`}><span>{String(i + 1).padStart(2, "0")}</span>{section.title}</a>)}<a href="#exemples"><span>08</span>Les cas de Nico et Alex</a></div>
+      <div>{KPI_GUIDE.map((section, i) => <a key={section.id} href={`#${section.id}`}><span>{String(i + 1).padStart(2, "0")}</span>{section.title}</a>)}<a href="#exemples"><span>{String(KPI_GUIDE.length + 1).padStart(2, "0")}</span>Les cas de Nico et Alex</a></div>
     </nav>
 
     {KPI_GUIDE.map((section, i) => <section className="kpi-guide-section" id={section.id} key={section.id} aria-labelledby={`heading-${section.id}`}>
@@ -79,7 +79,7 @@ export default async function PlayerKpiGuidePage({ searchParams }: { searchParam
     </section>)}
 
     <section className="kpi-guide-section" id="exemples" aria-labelledby="heading-exemples">
-      <header><span className="eyebrow">08 · À vous de lire les chiffres</span><h2 id="heading-exemples">Nico et Alex, en pratique</h2><p>Deux profils publics, la même période. Les valeurs viennent des statistiques publiées ; l’équipe indiquée correspond aux données de cette période. La saison 2026 est proposée au départ pour illustrer une saison passée, sans la mélanger avec 2027.</p></header>
+      <header><span className="eyebrow">{String(KPI_GUIDE.length + 1).padStart(2, "0")} · À vous de lire les chiffres</span><h2 id="heading-exemples">Nico et Alex, en pratique</h2><p>Deux profils publics, la même période. Les valeurs viennent des statistiques publiées ; l’équipe indiquée correspond aux données de cette période. La saison 2026 est proposée au départ pour illustrer une saison passée, sans la mélanger avec 2027.</p></header>
       <nav className="kpi-example-seasons" aria-label="Période des exemples">{["2026", "2027", "2028", "2029", "all"].map(value => <Link aria-current={season === value ? "page" : undefined} href={`/players/kpi?season=${value}#exemples`} key={value}>{periodLabel(value)}</Link>)}</nav>
       <div className="kpi-example-grid">{GUIDE_PLAYERS.map((player, i) => <Example key={player.id} player={player} data={examples[i]} season={season} />)}</div>
       {comparison != null && <aside className="kpi-guide-notice"><Target size={20} /><p><strong>Comparer sans raccourci.</strong> Écart de moyenne Nico − Alex : {comparison >= 0 ? "+" : ""}{number(comparison)} points sur {periodLabel(season).toLowerCase()}. Nico a {nico!.kpis.legs_played} legs observés et Alex {alex!.kpis.legs_played}. Cet écart ne prédit pas le résultat d’un duel ; l’historique, les adversaires et le volume comptent aussi.</p></aside>}
