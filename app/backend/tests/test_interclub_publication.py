@@ -64,7 +64,11 @@ class PublicationTests(unittest.TestCase):
 
     def test_observed_source_team_aliases_and_roster_sync(self):
         self.assertEqual(resolve_team("Tampon DC - Zarboutan")["id"], "tdc-zarboutan")
-        self.assertEqual(resolve_team("3B darts club - B(rune)")["id"], "3bdc-blonde")
+        current = resolve_team("3B darts club - B(rune)")
+        legacy = resolve_team("3B darts club - B(londe)")
+        self.assertEqual(current["id"], "3bdc-blonde")
+        self.assertEqual(current["name"], "3B Darts Club - B(rune)")
+        self.assertEqual(legacy, current)
         self.assertEqual(resolve_team("Papangue DC - Fournaise")["id"], "pdc-fournaise")
         with self.assertRaises(SummaryUnavailable): resolve_team("Équipe X")
         source = Path(__file__).parents[2] / "frontend/lib/team-rosters-2027.ts"

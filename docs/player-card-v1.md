@@ -46,7 +46,7 @@ Default associations use **exact IDs**. The official roster IDs `pdc-fournaise`,
 | PDC Neige | `4a3849c5-3096-4443-87e0-9ce5fd248a46` | Neige |
 | 3BDC (2026) | `c16214bf-1ae3-48e2-a1d9-0bfd451f60a3` | 3 Brasseurs |
 | 3B A(mbré) (2027) | `ea7206d1-bf26-48d1-ae8d-7213ef94884c` | 3 Brasseurs |
-| 3B B(londe) (2027) | `9b85ca85-4c9a-4bb7-8d73-c92e19ae7de3` | 3 Brasseurs |
+| 3B B(rune) (2027) | `9b85ca85-4c9a-4bb7-8d73-c92e19ae7de3` | 3 Brasseurs |
 | Kazadarts A (2026) | `7f265d6f-7f40-4b83-b046-ace3663b5de4` | Kaz A Darts |
 | Kazadarts B (2026) | `047a30ee-ad3d-472b-854e-2e5575c08bd1` | Kaz A Darts |
 | Kaz A (2027) | `7e2f62a9-e0cc-490e-b8eb-bc19c1f182e3` | Kaz A Darts |

@@ -26,7 +26,7 @@ def resolve_team(name):
         name_key("Papangue DC - Fournaise"): "pdc-fournaise",
         name_key("Papangue DC - Neige"): "pdc-neige",
         name_key("3B Darts Club - A(mbrée)"): "3bdc-ambre",
-        name_key("3B Darts Club - B(rune)"): "3bdc-blonde",
+        name_key("3B Darts Club - B(londe)"): "3bdc-blonde",
     }
     found = [r for r in ROSTERS if name_key(r["name"]) == name_key(name) or r["id"] == aliases.get(name_key(name))]
     if len(found) != 1:

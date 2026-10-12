@@ -17,6 +17,7 @@ function load(path) {
 const { officialPlayerRoster2027 } = load("lib/team-roster");
 const { playerSeasonAffiliations } = load("lib/player/season-affiliations");
 const { seasonLabel } = load("lib/season-label");
+const { canonicalTeamName, sameTeam, displayTeamNames } = load("lib/team-identity");
 let checks = 0;
 function test(label, run) { run(); checks++; console.log("PASS affiliations: " + label); }
 const historical = (name, team, club = null) => ({ player: { id: "canonical", name, team, club }, season: { id: "old", name: "2026" }, meta: { has_data: true } });
@@ -33,6 +34,12 @@ test("same team in both seasons stays visible; current roster supports clubs wit
   assert.equal(playerSeasonAffiliations(nico.player, nico).current.team, "Papangue Darts Club - Fournaise");
   assert.equal(officialPlayerRoster2027("Guillaume HOARAU").id, "tdc-zarboutan");
   assert.equal(officialPlayerRoster2027("David DESCHRYVER").id, "3bdc-blonde");
+  assert.equal(officialPlayerRoster2027("David DESCHRYVER").name, "3B Darts Club - B(rune)");
+  const david = historical("David DESCHRYVER", "3BDC");
+  assert.equal(playerSeasonAffiliations(david.player, david).current.team, "3B Darts Club - B(rune)");
+  assert.equal(canonicalTeamName("3B Darts Club - B(londe)"), "3B Darts Club - B(rune)");
+  assert.equal(sameTeam("3B Darts Club - B(londe)", "3B Darts Club - B(rune)"), true);
+  assert.equal(displayTeamNames("J2 · 3B Darts Club - B(londe) vs Kaz A Darts - A"), "J2 · 3B Darts Club - B(rune) vs Kaz A Darts - A");
   assert.equal(officialPlayerRoster2027("Yoann MARQUES").id, "kaz-a");
 });
 test("only exact full names and published aliases match; accents work and ambiguous aliases stay unset", () => {
