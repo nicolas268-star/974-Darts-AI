@@ -1,5 +1,5 @@
 export type CardFormat = "publication" | "story";
-export type ThemeId = "fournaise" | "neige" | "3bdc" | "kazadarts" | "tdc" | "neutral";
+export type ThemeId = "fournaise" | "neige" | "3bdc" | "kazadarts" | "tdc" | "neutral" | "ambre" | "brune" | "kaz-a" | "kaz-b" | "zarboutant" | "zarlord";
 export type PhotoStyle = "portrait" | "poster";
 export type CardStats = {
   average: number | null; finish: number | null; won: number | null; played: number | null;

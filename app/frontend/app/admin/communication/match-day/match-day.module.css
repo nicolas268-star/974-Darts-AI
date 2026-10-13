@@ -1,0 +1,345 @@
+.studio {
+  max-width:1600px;
+  margin:0 auto;
+  padding:28px 28px 70px;
+  color:#eef3fb}
+  .header {
+    display:flex;
+    justify-content:space-between;
+    gap:24px;
+    padding:32px;
+    background:radial-gradient(ellipse at 90% 0,#69512844,transparent 70%),#0c1523;
+    border:1px solid #b18a4140;
+    border-radius:22px}
+    .header p {
+      letter-spacing:.18em;
+      font-size:11px;
+      color:#dfb46b;
+      margin:0 0 12px}
+      .header h1 {
+        font-size:clamp(30px,4vw,49px);
+        margin:0 0 12px;
+        line-height:1.15}
+        .header em {
+          color:#e7b569;
+          font-style:normal}
+          .header span,.muted {
+            color:#9babc1;
+            font-size:14px;
+            line-height:1.6}
+            .header b {
+              text-align:right;
+              font-size:24px;
+              color:#e7b569;
+              align-self:center}
+              .header small {
+                display:block;
+                font-size:10px;
+                letter-spacing:.08em;
+                color:#aab8cb;
+                margin-top:10px}
+                .studio button {
+                  border:1px solid #35465e;
+                  border-radius:9px;
+                  background:#172335;
+                  color:#eff3fa;
+                  padding:10px 13px;
+                  cursor:pointer;
+                  font:inherit;
+                  font-size:13px}
+                  .studio button:hover:not(:disabled) {
+                    border-color:#e6b76c;
+                    background:#273146}
+                    .studio button:disabled {
+                      opacity:.45;
+                      cursor:not-allowed}
+                      .studio button[aria-pressed="true"] {
+                        color:#f4ce8d;
+                        border-color:#d0a65f;
+                        background:#28251e}
+                        .studio input:not([type="checkbox"]),.studio select,.studio textarea {
+                          width:100%;
+                          box-sizing:border-box;
+                          min-width:0;
+                          border:1px solid #35465e;
+                          border-radius:8px;
+                          color:#eff3fa;
+                          background:#0a1422;
+                          padding:10px;
+                          font:inherit}
+                          .studio input[type="checkbox"] {
+                            accent-color:#dfb469}
+                            .studio textarea {
+                              resize:vertical;
+                              line-height:1.6}
+                              .studio label {
+                                display:grid;
+                                gap:8px;
+                                color:#bbc9db;
+                                font-size:13px;
+                                min-width:0;
+                                margin:14px 0}
+                                .studio .check {
+                                  display:flex;
+                                  align-items:center;
+                                  flex-wrap:wrap;
+                                  gap:8px;
+                                  font-size:13px;
+                                  margin:8px 0}
+                                  .studio fieldset {
+                                    min-width:0;
+                                    border:1px solid #2c3b50;
+                                    border-radius:12px;
+                                    padding:16px}
+                                    .studio legend {
+                                      font-size:13px;
+                                      padding:0 6px}
+                                      .studio a {
+                                        color:#efc787}
+                                        .tabs,.steps,.topbar,.actions {
+                                          display:flex;
+                                          flex-wrap:wrap;
+                                          gap:10px;
+                                          align-items:center}
+                                          .tabs {
+                                            margin:24px 0}
+                                            .tabs button {
+                                              padding:13px 20px}
+                                              .topbar {
+                                                margin:12px 0;
+                                                align-items:flex-end}
+                                                .topbar>label {
+                                                  flex:1;
+                                                  min-width:160px;
+                                                  margin:0}
+                                                  .steps {
+                                                    margin:24px 0}
+                                                    .steps button {
+                                                      background:transparent;
+                                                      padding:10px 8px;
+                                                      flex:1;
+                                                      min-width:150px;
+                                                      text-align:left}
+                                                      .steps span {
+                                                        display:inline-grid;
+                                                        place-content:center;
+                                                        width:24px;
+                                                        height:24px;
+                                                        border-radius:50%;
+                                                        background:#263247;
+                                                        margin-right:9px}
+                                                        .steps [aria-current="step"] {
+                                                          border-color:#d0a65f;
+                                                          color:#f0c784}
+                                                          .workspace {
+                                                            display:grid;
+                                                            grid-template-columns:minmax(0,.95fr) minmax(0,1fr);
+                                                            gap:24px;
+                                                            align-items:start}
+                                                            .studio .settings {
+                                                              background:#101a2a;
+                                                              padding:24px;
+                                                              border-radius:18px}
+                                                              .settings h2 {
+                                                                font-size:21px;
+                                                                margin:0 0 22px}
+                                                                .side {
+                                                                  border-top:1px solid #304159;
+                                                                  margin:20px 0;
+                                                                  padding:12px 0}
+                                                                  .side h3 {
+                                                                    color:#e9bd78;
+                                                                    font-size:15px;
+                                                                    margin:10px 0}
+                                                                    .side h3 span {
+                                                                      display:block;
+                                                                      margin-top:8px;
+                                                                      color:#edf2f9}
+                                                                      .twoSides {
+                                                                        display:grid;
+                                                                        grid-template-columns:1fr 1fr;
+                                                                        gap:16px}
+                                                                        .player {
+                                                                          background:#0a1320;
+                                                                          border:1px solid #24354c;
+                                                                          border-radius:12px;
+                                                                          padding:14px;
+                                                                          margin:14px 0}
+                                                                          .player>div:first-child {
+                                                                            display:flex;
+                                                                            justify-content:space-between;
+                                                                            align-items:center;
+                                                                            gap:8px}
+                                                                            .player small {
+                                                                              display:block;
+                                                                              color:#8da4c2;
+                                                                              line-height:1.7;
+                                                                              margin-top:10px}
+                                                                              .player label {
+                                                                                font-size:12px}
+                                                                                .themes {
+                                                                                  display:grid;
+                                                                                  grid-template-columns:1fr 1fr;
+                                                                                  gap:10px}
+                                                                                  .themes button {
+                                                                                    display:grid;
+                                                                                    text-align:left;
+                                                                                    line-height:1.4;
+                                                                                    font-size:12px;
+                                                                                    gap:8px}
+                                                                                    .themes i {
+                                                                                      display:block;
+                                                                                      height:65px;
+                                                                                      width:100%;
+                                                                                      border-radius:6px}
+                                                                                      .selection {
+                                                                                        display:grid;
+                                                                                        grid-template-columns:1fr 1fr;
+                                                                                        gap:6px 12px}
+                                                                                        .selection small {
+                                                                                          color:#dbb777;
+                                                                                          width:100%}
+                                                                                          .preview {
+                                                                                            position:sticky;
+                                                                                            top:18px;
+                                                                                            border:1px solid #314059;
+                                                                                            background:#0b1523;
+                                                                                            padding:20px;
+                                                                                            border-radius:18px}
+                                                                                            .previewHeader {
+                                                                                              display:flex;
+                                                                                              justify-content:space-between;
+                                                                                              align-items:center;
+                                                                                              margin-bottom:18px}
+                                                                                              .previewHeader h2 {
+                                                                                                font-size:16px;
+                                                                                                margin:0}
+                                                                                                .previewHeader span {
+                                                                                                  font-size:12px;
+                                                                                                  color:#a1b2c9}
+                                                                                                  .poster {
+                                                                                                    display:block;
+                                                                                                    width:100%;
+                                                                                                    height:auto;
+                                                                                                    border-radius:12px;
+                                                                                                    box-shadow:0 20px 40px #0005}
+                                                                                                    .preview .actions {
+                                                                                                      margin:20px 0 12px}
+                                                                                                      .preview small {
+                                                                                                        color:#92a6c2;
+                                                                                                        font-size:12px}
+                                                                                                        .error,.warning,.notice {
+                                                                                                          border-radius:9px;
+                                                                                                          padding:12px 14px;
+                                                                                                          font-size:13px;
+                                                                                                          line-height:1.5;
+                                                                                                          overflow-wrap:anywhere}
+                                                                                                          .error {
+                                                                                                            background:#561d294d;
+                                                                                                            border:1px solid #ac435a;
+                                                                                                            color:#ffbac8}
+                                                                                                            .warning {
+                                                                                                              color:#edc484;
+                                                                                                              background:#6a4b2529;
+                                                                                                              border:1px solid #7c613947}
+                                                                                                              .notice {
+                                                                                                                color:#8ee7bb;
+                                                                                                                background:#17513d44;
+                                                                                                                border:1px solid #337954}
+                                                                                                                .meta {
+                                                                                                                  border:1px solid #33435a;
+                                                                                                                  border-radius:12px;
+                                                                                                                  padding:18px;
+                                                                                                                  margin:24px 0}
+                                                                                                                  .meta h3 {
+                                                                                                                    margin-top:0}
+                                                                                                                    .meta p {
+                                                                                                                      font-size:13px;
+                                                                                                                      line-height:1.7}
+                                                                                                                      .bottom {
+                                                                                                                        display:flex;
+                                                                                                                        justify-content:space-between;
+                                                                                                                        margin-top:24px;
+                                                                                                                        border-top:1px solid #2c3b50;
+                                                                                                                        padding-top:18px}
+                                                                                                                        .history {
+                                                                                                                          background:#101a2a;
+                                                                                                                          border:1px solid #314059;
+                                                                                                                          border-radius:18px;
+                                                                                                                          padding:24px}
+                                                                                                                          .job {
+                                                                                                                            border:1px solid #314059;
+                                                                                                                            border-radius:12px;
+                                                                                                                            padding:18px;
+                                                                                                                            margin:16px 0}
+                                                                                                                            .job strong {
+                                                                                                                              color:#efc582}
+                                                                                                                              .job p {
+                                                                                                                                font-size:13px}
+                                                                                                                                .job small {
+                                                                                                                                  color:#94a7bf;
+                                                                                                                                  overflow-wrap:anywhere}
+                                                                                                                                  .job .actions {
+                                                                                                                                    margin-top:14px}
+                                                                                                                                    .history details {
+                                                                                                                                      margin-top:20px;
+                                                                                                                                      font-size:12px}
+                                                                                                                                      @media(max-width:1000px) {
+                                                                                                                                        .workspace {
+                                                                                                                                          grid-template-columns:1fr}
+                                                                                                                                          .preview {
+                                                                                                                                            position:static;
+                                                                                                                                            max-width:640px;
+                                                                                                                                            width:100%;
+                                                                                                                                            box-sizing:border-box;
+                                                                                                                                            margin:auto}
+                                                                                                                                            .settings {
+                                                                                                                                              order:0}
+                                                                                                                                              .steps {
+                                                                                                                                                gap:5px}
+                                                                                                                                                .steps button {
+                                                                                                                                                  min-width:120px;
+                                                                                                                                                  font-size:12px}
+                                                                                                                                                }
+                                                                                                                                                @media(max-width:600px) {
+                                                                                                                                                  .studio {
+                                                                                                                                                    padding:16px 12px 45px}
+                                                                                                                                                    .header {
+                                                                                                                                                      padding:22px}
+                                                                                                                                                      .header b {
+                                                                                                                                                        display:none}
+                                                                                                                                                        .studio .settings {
+                                                                                                                                                          padding:16px}
+                                                                                                                                                          .twoSides {
+                                                                                                                                                            grid-template-columns:1fr}
+                                                                                                                                                            .tabs button {
+                                                                                                                                                              flex:1;
+                                                                                                                                                              padding:10px;
+                                                                                                                                                              font-size:12px}
+                                                                                                                                                              .steps button {
+                                                                                                                                                                min-width:100px}
+                                                                                                                                                                .selection {
+                                                                                                                                                                  grid-template-columns:1fr}
+                                                                                                                                                                  .preview {
+                                                                                                                                                                    padding:12px}
+                                                                                                                                                                    .topbar>label {
+                                                                                                                                                                      min-width:140px}
+                                                                                                                                                                      .themes {
+                                                                                                                                                                        gap:8px}
+                                                                                                                                                                      }
+                                                                                                                                                                      .mobileToggle  {
+                                                                                                                                                                        display: none;
+                                                                                                                                                                      }
+                                                                                                                                                                      @media(max-width:1000px)  {
+                                                                                                                                                                        .mobileToggle  {
+                                                                                                                                                                          display: flex;
+                                                                                                                                                                          gap: 10px;
+                                                                                                                                                                          margin: 16px 0;
+                                                                                                                                                                        }
+                                                                                                                                                                        .workspace[data-mobile="settings"] .preview  {
+                                                                                                                                                                          display: none;
+                                                                                                                                                                        }
+                                                                                                                                                                        .workspace[data-mobile="preview"] .settings  {
+                                                                                                                                                                          display: none;
+                                                                                                                                                                        }
+                                                                                                                                                                      }

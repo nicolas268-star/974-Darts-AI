@@ -7,7 +7,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
 
   return (
     <>
-      <AdminNavigation />
+      <AdminNavigation matchDayEnabled={process.env.MATCH_DAY_ENABLED === "true"} />
       {children}
     </>
   );

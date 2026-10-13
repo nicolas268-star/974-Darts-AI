@@ -28,6 +28,16 @@ def resolve_team(name):
         name_key("3B Darts Club - A(mbrée)"): "3bdc-ambre",
         name_key("3B Darts Club - B(londe)"): "3bdc-blonde",
     }
+    # Exact calendar aliases, already displayed in the public calendar; no fuzzy matching.
+    for roster_id, names in {
+        "pdc-neige": ["PDC A", "PDC Neige"], "pdc-fournaise": ["PDC B", "PDC Fournaise"],
+        "tdc-zarboutan": ["TDC Zarboutan"], "tdc-zarlor": ["TDC Zarlor"],
+        "kaz-a": ["KAD A", "Kaz A Darts A"], "kaz-b": ["KAD B", "Kaz A Darts B"],
+        "3bdc-ambre": ["3BDC A", "3B DC A", "3B Darts Club A", "3B Darts Club Ambré"],
+        "3bdc-blonde": ["3BDC B", "3B DC B", "3B Darts Club B", "3B Darts Club Blonde", "3B Darts Club Brune"],
+    }.items():
+        for alias in names:
+            aliases[name_key(alias)] = roster_id
     found = [r for r in ROSTERS if name_key(r["name"]) == name_key(name) or r["id"] == aliases.get(name_key(name))]
     if len(found) != 1:
         raise SummaryUnavailable(f"Équipe non reconnue dans l’effectif officiel : {name}.")

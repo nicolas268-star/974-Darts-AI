@@ -15,6 +15,7 @@ const items = [
   { href: "/admin/classement-individuel", label: "Classement individuel", test: (p: string) => p.startsWith("/admin/classement-individuel") },
   { href: "/admin/tournament-watch", label: "Veille tournois", test: (p: string) => p.startsWith("/admin/tournament-watch") },
   { href: "/admin/audience", label: "Audience", test: (p: string) => p.startsWith("/admin/audience") },
+  { href: "/admin/communication/match-day", label: "Communication · Match Day", test: (p: string) => p.startsWith("/admin/communication/match-day") },
   { href: "/admin/visibility", label: "Visibilité", test: (p: string) => p.startsWith("/admin/visibility") },
   { href: "/admin/vision", label: "Vision · laboratoire", test: (p: string) => p.startsWith("/admin/vision") },
   { href: "/admin/captain-nico", label: "Captain Nico", test: (p: string) => p.startsWith("/admin/captain-nico") },
@@ -33,6 +34,7 @@ function pageLabel(pathname: string) {
   if (pathname.startsWith("/admin/classement-individuel")) return "Classement individuel";
   if (pathname.startsWith("/admin/tournament-watch")) return "Veille tournois";
   if (pathname.startsWith("/admin/audience")) return "Audience";
+  if (pathname.startsWith("/admin/communication/match-day")) return "Communication · Studio Match Day";
   if (pathname.startsWith("/admin/visibility")) return "Visibilité";
   if (pathname.startsWith("/admin/vision")) return "Laboratoire de vision";
   if (pathname.startsWith("/admin/captain-nico")) return "Captain Nico";
@@ -41,7 +43,7 @@ function pageLabel(pathname: string) {
   return "Administration";
 }
 
-export default function AdminNavigation() {
+export default function AdminNavigation({ matchDayEnabled = false }: { matchDayEnabled?: boolean }) {
   const pathname = usePathname();
 
   return (
@@ -54,7 +56,7 @@ export default function AdminNavigation() {
         </nav>
 
         <div className={styles.actions}>
-          {items.map((item) => {
+          {items.filter(item => matchDayEnabled || item.href !== "/admin/communication/match-day").map((item) => {
             const active = item.test(pathname);
             // Permissions-Policy is document-scoped, so a Next client transition is insufficient.
             if (item.href === "/admin/vision" || pathname === "/admin/vision") {
