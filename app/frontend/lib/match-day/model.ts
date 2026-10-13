@@ -4,6 +4,11 @@ import { CARD_METRICS, metricValue } from "../player-card/metrics";
 import type { CardData } from "../player-card/types";
 import type { MatchSnapshot, MatchSource, Side, SourceTeam, MatchEvent, MatchPlayer } from "./types";
 export const MATCH_METRICS = ["average", "winRate", "finish"] as const;
+export const PAPANGUE_CHANNEL_URL = "https://www.youtube.com/@PapangueDartsClub";
+const PAPANGUE_TEAMS = new Set(["87719ebb-183e-43ac-a96a-5bf4c657939b", "4a3849c5-3096-4443-87e0-9ce5fd248a46", "pdc-fournaise", "pdc-neige"]);
+export function papangueChannel(s: Pick<MatchSnapshot, "teamA" | "teamB">): string | null {
+  return [s.teamA, s.teamB].some(side => PAPANGUE_TEAMS.has(side.id)) ? PAPANGUE_CHANNEL_URL : null;
+}
 export function sideFromTeam(team: SourceTeam): Side {
   return { ...team, theme: matchThemeForTeam(team.id), composition_confirmed: false, players: team.players.filter((p): p is MatchPlayer => Boolean(p.id)) };
 }
@@ -77,6 +82,8 @@ export function publicationCaption(s: MatchSnapshot): string {
     if (partial) lines.push("", "Ces repères incluent des données partielles ou un faible échantillon : ils ne préjugent pas du résultat du match.");
     lines.push("", `Statistiques individuelles : ${s.stats_label} · référence ${frenchDate(s.reference_at)} · périmètre des profils championnat.`);
   }
+  const channel = papangueChannel(s);
+  if (channel) lines.push("", `📺 Suivre le match sur la chaîne du Papangue Darts Club : ${channel}`);
   lines.push("", `👇 Votre pronostic : ${s.teamA.name} ou ${s.teamB.name} ?`, "",
     "📲 Équipes, résultats et statistiques sur https://974darts.re",
     "Visuel créé avec le Studio Match Day 974Darts · NDX Performance Lab", "",
@@ -97,5 +104,7 @@ export function caption(s: MatchSnapshot, detailed = false) {
     }
     lines.push(`Statistiques : ${s.stats_label} · référence ${frenchDate(s.reference_at)}.`);
   }
+  const channel = papangueChannel(s);
+  if (channel) lines.push("", `📺 Suivre le match sur la chaîne du Papangue Darts Club : ${channel}`);
   return lines.filter((l, i) => l !== "" || i > 0).join("\n") + "\n\nRetrouvez les équipes sur https://974darts.re/teams\n\n#974Darts #Flechettes974 #DartsReunion #MatchDay #NDXPerformanceLab";
 }

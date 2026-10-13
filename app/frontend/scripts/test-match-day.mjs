@@ -74,6 +74,18 @@ test("publication never leaks masked historical figures or another season withou
   assert.match(empty, /Date à confirmer · Horaire à confirmer/);
   assert.match(empty, /période Championnat 2028–2029/); assert.doesNotMatch(empty, /43,14|104/);
 });
+test("Papangue channel follows team identity on either side, never a chosen theme", () => {
+  const s = m.createSnapshot(source, ...source.teams);
+  assert.equal(m.papangueChannel(s), m.PAPANGUE_CHANNEL_URL);
+  for (const text of [m.caption(s), m.caption(s, true), m.publicationCaption(s)]) assert.equal(text.split(m.PAPANGUE_CHANNEL_URL).length - 1, 1);
+  s.teamA.id = "ea7206d1-bf26-48d1-ae8d-7213ef94884c"; s.teamB.id = "9b85ca85-4c9a-4bb7-8d73-c92e19ae7de3";
+  s.teamA.theme = "fournaise"; s.teamB.theme = "neige";
+  assert.equal(m.papangueChannel(s), null); assert.doesNotMatch(m.publicationCaption(s), /youtube/); assert.doesNotMatch(m.caption(s), /youtube/);
+  for (const id of ["87719ebb-183e-43ac-a96a-5bf4c657939b", "4a3849c5-3096-4443-87e0-9ce5fd248a46"]) {
+    s.teamB.id = id; s.teamB.theme = "brune";
+    assert.equal(m.papangueChannel(s), m.PAPANGUE_CHANNEL_URL); assert.equal(m.papangueChannel(m.invert(s)), m.PAPANGUE_CHANNEL_URL);
+  }
+});
 console.log(`${count} Match Day test groups passed.`);
 
 const { NextRequest } = require("next/server"), proxy = load("app/api/admin/match-day/[...path]/route");
