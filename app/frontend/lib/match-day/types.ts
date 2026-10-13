@@ -1,0 +1,15 @@
+import type { PlayerDashboard } from "../player/dashboard-types";
+import type { CardFormat, CardMetricId } from "../player-card/types";
+import type { MatchThemeId } from "../player-card/themes";
+export type MatchPlayer = { id: string; name: string; dashboard: PlayerDashboard | null; nickname?: string | null; photo?: string | null; featured?: boolean; captain?: boolean; warning?: string | null };
+export type SourcePlayer = Omit<MatchPlayer, "id"> & { id: string | null };
+export type SourceTeam = { id: string; name: string; club: string | null; players: SourcePlayer[]; roster_complete: boolean };
+export type Side = Omit<SourceTeam, "players"> & { theme: MatchThemeId | null; composition_confirmed: boolean; players: MatchPlayer[] };
+export type MatchEvent = { calendar_signature?: string; id: string; title: string; start_date: string; start_time: string | null; location: string; status: string; championship_teams?: string[] | null; team_ids: string[]; source_url?: string | null; season: string; round: string; competition: string };
+export type MatchSource = { source_id: string; season: string; stats_season: string; stats_label: string; reference_at: string; teams: SourceTeam[]; events: MatchEvent[]; seasons: { value: string; label: string }[]; scope_note: string };
+export type MatchSnapshot = { source_id: string; season: string; stats_season: string; stats_label: string; reference_at: string; event: MatchEvent | null; match: { title: string; date: string | null; time: string | null; location: string; competition: string; round: string }; teamA: Side; teamB: Side; metrics: CardMetricId[]; format: CardFormat; mode: "duel" | "premium"; caption: string; render_version: "match-day-1"; generated_at: string };
+export type Draft = { id: string; revision: number; snapshot: MatchSnapshot; updated_at?: string };
+export type Version = { id: string; draft_id: string; revision: number; sha256: string; created_at: string };
+export type Job = { id: string; version_id: string; draft_id: string; state: string; page_id: string; slot: string; due_at: string; error: string | null; remote_url: string | null; calendar_warning?: string };
+export type History = { drafts: Draft[]; versions: Version[]; jobs: Job[]; audit: { id: number; action: string; actor: string; at: string; subject: string }[] };
+export type MetaStatus = { facebook_enabled: boolean; pages: { id: string; name: string; available: boolean; error?: string; permissions?: string }[]; note: string; graph_version: string };

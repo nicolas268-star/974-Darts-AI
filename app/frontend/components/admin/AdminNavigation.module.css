@@ -77,3 +77,6 @@
   }
   .actionLink { text-align: center; }
 }
+
+.breadcrumb { flex-wrap: wrap; min-width: 0; }
+.breadcrumb strong { overflow-wrap: anywhere; white-space: normal; }
