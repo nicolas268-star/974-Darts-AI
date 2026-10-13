@@ -8,7 +8,8 @@ from .season_registry_service import registry_status
 from .competition_hub_service import CompetitionHubService
 from .player_statistics_engine import PlayerStatisticsEngine
 from .interclub_publication_service import ROSTERS, CLUBS, name_key, resolve_team
-from .ranking_service import _all
+from .ranking_service import _all, build_ranking
+from .match_day_team_stats import team_statistics
 
 # Verified database UUIDs from the shared Player Card documentation; roster slugs stay separate.
 ROSTER_TEAM_IDS = dict(zip(
@@ -76,6 +77,41 @@ def load_source(db, season, stats_season):
             club = engine.club_by_id.get(str(team.get('club_id')), {})
             players = [member(pid, engine.player_by_id.get(pid, {}).get('display_name', 'Identité à vérifier')) for pid, teamid in sorted(pairs) if teamid == tid]
             teams.append({'id': tid, 'name': team['name'], 'club': club.get('name'), 'players': players, 'roster_complete': False})
+    # Reuse the public championship ranking and the existing statistics engine.
+    # Never fall back to the active season when an archive has no season ID.
+    ranking, overview, statistical_members = None, [], {}
+    if stats_card.get('id') and any(str(row.get('id')) == str(stats_card['id']) for row in engine.data.seasons):
+        overview = [row for row in engine.overview(str(stats_card['id']))
+                    if engine._canonical_player(row['player_id']).get('public_profile') is True]
+        try:
+            ranking = build_ranking(db, str(stats_card['id']))
+            if str((ranking.get('season') or {}).get('id')) != str(stats_card['id']): ranking = None
+        except Exception:
+            ranking = None  # Player figures remain usable if collective ranking is unavailable.
+        if stats_season == '2027':
+            statistical_licenses = licensed if season == '2027' else _all(db, 'committee_licensed_players', 'season_key,official_display_name,identity_id,license_status,club_code')
+            statistical_identities = identities if season == '2027' else {i['id']: i for i in _all(db, 'player_identities', 'id,canonical_player_id,status') if i['status'] == 'ACTIVE'}
+            for roster in ROSTERS:
+                members = set()
+                for player in roster['players']:
+                    matches = [l for l in statistical_licenses if l['season_key'] == '2026-2027' and l['license_status'] == 'ACTIVE'
+                               and l['club_code'] == CLUBS[roster['id'].split('-')[0]] and name_key(l['official_display_name']) == name_key(player['officialName'])]
+                    identity = statistical_identities.get(matches[0].get('identity_id')) if len(matches) == 1 else None
+                    if identity: members.add(str(identity['canonical_player_id']))
+                statistical_members[ROSTER_TEAM_IDS[roster['id']]] = members
+        else:
+            statistical_identities = {i['id']: i for i in _all(db, 'player_identities', 'id,canonical_player_id,status') if i['status'] == 'ACTIVE'}
+            memberships = _all(db, 'player_team_memberships', 'identity_id,team_id,season_id')
+            for member in memberships:
+                identity = statistical_identities.get(member.get('identity_id'))
+                if member.get('season_id') == stats_card['id'] and identity:
+                    statistical_members.setdefault(str(member['team_id']), set()).add(str(identity['canonical_player_id']))
+            for (pid, sid), affiliation in engine.played_team_by_season.items():
+                if sid == str(stats_card['id']): statistical_members.setdefault(str(affiliation[1]), set()).add(pid)
+    for team in teams:
+        members = statistical_members.get(team['id'], set())
+        applicable = team['id'] in statistical_members or any(str(row['team_id']) == team['id'] for row in (ranking or {}).get('standings', []))
+        team['team_stats'] = team_statistics(team['id'], ranking if applicable else None, [row for row in overview if row['player_id'] in members])
     events = []
     source_seasons = {str(e.get('url')): str(s['key']).split('-')[-1] for s in registry_status()['seasons'] for e in s.get('events', [])}
     by_name = {t['name']: t['id'] for t in teams}
@@ -130,6 +166,7 @@ def check_event(snapshot):
 
 
 def check_visibility(db, snapshot):
+    if snapshot.get('content_mode', 'players') == 'teams': return  # Only public collective figures are rendered.
     ids = [p['id'] for side in ('teamA','teamB') for p in snapshot[side]['players']]
     engine = PlayerStatisticsEngine.from_db(db)
     if any(not engine._canonical_player(pid) or engine._canonical_player(pid).get('public_profile') is not True for pid in ids):

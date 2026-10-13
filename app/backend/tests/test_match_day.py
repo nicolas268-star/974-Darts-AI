@@ -228,6 +228,8 @@ class Query:
     def select(self,*a):return self
     def eq(self,k,v):self.rows=[r for r in self.rows if r.get(k)==v];return self
     def range(self,a,b):self.rows=self.rows[a:b+1];return self
+    def order(self,k,desc=False):self.rows.sort(key=lambda row:str(row.get(k,'')),reverse=desc);return self
+    def limit(self,n):self.rows=self.rows[:n];return self
     def execute(self):return SimpleNamespace(data=self.rows)
 
 
@@ -261,10 +263,13 @@ def test_official_source_2026_2027_private_new_season_and_calendar(monkeypatch,t
     source.check_event({'event':new['events'][0]}) # derived IDs don't change the raw calendar fingerprint
     old=source.load_source(db,'2026','2026');assert len(old['teams'])==1 and old['teams'][0]['id']==a
     assert old['teams'][0]['players'][0]['dashboard']['kpis']['average_3_darts']==40
+    assert old['teams'][0]['team_stats']['average_3_darts']==40
+    assert next(t for t in new['teams'] if t['id']==b)['team_stats']['average_3_darts'] is None
     assert old['teams'][0]['roster_complete'] is False
     assert source.load_source(db,'2028','2028')['teams']==[]
     db.tables['players'][1]['public_profile']=False
     hidden=source.load_source(db,'2027','2027');assert not any(p['id']=='pierre' for t in hidden['teams'] for p in t['players'])
+    assert source.load_source(db,'2026','2026')['teams'][0]['team_stats']['average_3_darts'] is None
 
 
 def test_concurrent_first_initialization(tmp_path):
@@ -279,3 +284,45 @@ def test_no_remote_post_found_does_not_release_uncertain_identity(store):
     _,_,j=queue(store);store.claim();store.finish(j['id'],'VERIFY','Timeout')
     assert store.resolve(j['id'],'admin',None)['state']=='VERIFY'
     with pytest.raises(ValueError):store.cancel(j['id'],'admin')
+
+
+def test_team_statistics_same_ranking_and_full_roster_average():
+    from app.services.match_day_team_stats import team_statistics
+    ranking={'season':{'id':'s27'},'ranking_source':'CALENDRIER_SCORE','standings':[{'team_id':'a','rank':3,'points':5,'played':2,'wins':1,'draws':0,'losses':1,'sets_won':15,'sets_lost':17,'set_difference':-2,'legs_won':12,'legs_lost':9,'detail_complete':False}]}
+    players=[{'average_3_darts':40,'legs_played':10},{'average_3_darts':60,'legs_played':30},{'average_3_darts':None,'legs_played':5},{'average_3_darts':100,'legs_played':0}]
+    s=team_statistics('a',ranking,players)
+    assert s['average_3_darts']==50 and s['average_players']==2 # Same arithmetic mean as the public team page, not weighted 55.
+    assert s['rank']==3 and s['points']==5 and s['set_difference']==-2 and s['win_rate']==50
+    assert s['legs_won'] is None and s['legs_lost'] is None
+    empty=team_statistics('b',ranking,[]);assert empty['rank'] is None and empty['points']==0 and empty['played']==0 and empty['win_rate'] is None
+    assert team_statistics('a',None,[])['points'] is None
+    assert team_statistics('a',ranking,[{'average_3_darts':0,'legs_played':1}])['average_3_darts']==0
+
+
+def test_team_kpi_manifest_legacy_and_api_approval_without_players(store,monkeypatch):
+    from app.services.match_day_team_stats import team_statistics
+    monkeypatch.setenv('ADMIN_USER_ID','test-admin');monkeypatch.setattr(api,'Store',lambda:store);monkeypatch.setattr(api,'db',lambda:None)
+    s=snapshot();teams=[]
+    for side in ('teamA','teamB'):
+        t=deepcopy(s[side]);t.pop('theme');t.pop('composition_confirmed');teams.append(t)
+    manifest={**{k:s[k] for k in ('season','stats_season','stats_label','reference_at')},'teams':teams,'events':[]}
+    s['source_id']=store.source(manifest)['source_id']
+    api.validate_snapshot(store,api.Snapshot(**s).model_dump(mode='json')) # Old drafts/sources remain valid in player mode.
+    s['content_mode']='teams'
+    with pytest.raises(ValueError,match='Actualisez'):api.validate_snapshot(store,s)
+    stats=team_statistics('a',{'season':{'id':'s'},'standings':[]},[])
+    for t in teams:t['team_stats']=stats
+    s['source_id']=store.source(manifest)['source_id']
+    for side in ('teamA','teamB'):s[side]['team_stats']=stats;s[side]['players']=[]
+    s['team_metrics']=['rank','average','points'];api.validate_snapshot(store,s)
+    bad=deepcopy(s);bad['teamA']['team_stats']['rank']=1
+    with pytest.raises(ValueError,match='Statistiques d’équipe'):api.validate_snapshot(store,bad)
+    bad=deepcopy(s);bad['team_metrics']=['rank','rank']
+    with pytest.raises(ValueError,match='dupliqués'):api.validate_snapshot(store,bad)
+    app=FastAPI();app.include_router(api.router);client=TestClient(app);headers={'X-Internal-Token':api.settings.internal_api_token,'X-User-Id':'test-admin'}
+    response=client.post('/api/v1/match-day/save',json={'snapshot':s},headers=headers);assert response.status_code==200,response.text
+    d=response.json();approved=client.post('/api/v1/match-day/approve',json={'id':d['id'],'revision':1,'png':image_data()},headers=headers)
+    assert approved.status_code==200,approved.text
+    assert store.version(approved.json()['version_id'])['snapshot']['content_mode']=='teams'
+    bad=deepcopy(s);bad['team_metrics']=['rank','average','points','played','wins','draws','losses']
+    assert client.post('/api/v1/match-day/save',json={'snapshot':bad},headers=headers).status_code==422

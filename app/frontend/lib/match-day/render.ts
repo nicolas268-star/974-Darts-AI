@@ -6,6 +6,7 @@ import { fitText } from "../player-card/render";
 import { pngBlob } from "../player-card/export";
 import { frenchDate, historicalUnavailable, papangueChannel, playerCardData } from "./model";
 import type { MatchSnapshot } from "./types";
+import { TEAM_METRICS, teamMetricSelection, teamMetricValue } from "./team-metrics";
 
 // Procedural themes deliberately omit the legacy banners: those carry other teams' text/logos.
 export async function renderMatchDay(s: MatchSnapshot): Promise<{ blob: Blob; url: string; warnings: string[] }> {
@@ -13,11 +14,17 @@ export async function renderMatchDay(s: MatchSnapshot): Promise<{ blob: Blob; ur
   const { width: W, height: H } = CARD_SIZE[s.format];
   const canvas = document.createElement("canvas"); canvas.width = W; canvas.height = H;
   const c = canvas.getContext("2d"); if (!c) throw new Error("Canvas indisponible.");
-  if (s.teamA.players.length > 8 || s.teamB.players.length > 8) throw new Error("Maximum huit joueurs par côté. Réduisez la sélection.");
-  const photos = await Promise.all([s.teamA, s.teamB].flatMap(t => t.players).map(async p => p.photo ? decodeImage(p.photo) : null));
+  const teamOnly = s.content_mode === "teams";
+  if (!teamOnly && (s.teamA.players.length > 8 || s.teamB.players.length > 8)) throw new Error("Maximum huit joueurs par côté. Réduisez la sélection.");
+  const teamMetrics = teamMetricSelection(s);
+  if (teamOnly && (teamMetrics.length < 1 || teamMetrics.length > 6)) throw new Error("Choisissez entre un et six KPI d’équipe.");
+  const photos = teamOnly ? [] : await Promise.all([s.teamA, s.teamB].flatMap(t => t.players).map(async p => p.photo ? decodeImage(p.photo) : null));
   const warnings: string[] = [];
   if (historicalUnavailable(s)) warnings.push("Historique exact indisponible à cette date : les chiffres postérieurs sont masqués.");
-  if ([s.teamA, s.teamB].some(t => !t.roster_complete)) warnings.push("Effectif historique partiel : seuls les rattachements vérifiés sont proposés.");
+  if (!teamOnly && [s.teamA, s.teamB].some(t => !t.roster_complete)) warnings.push("Effectif historique partiel : seuls les rattachements vérifiés sont proposés.");
+  if (teamOnly && [s.teamA, s.teamB].some(t => !t.team_stats)) warnings.push("Actualisez les statistiques pour charger les KPI d’équipe de cet ancien brouillon.");
+  if (teamOnly && [s.teamA, s.teamB].some(t => t.team_stats?.ranking_source === "PVP_FALLBACK")) warnings.push("Classement reconstruit depuis les résultats disponibles, comme sur la page du championnat.");
+  if (teamOnly && teamMetrics.some(id => id === "legsWon" || id === "legsLost") && [s.teamA, s.teamB].some(t => t.team_stats?.detail_complete === false)) warnings.push("Détail des legs incomplet : ces KPI restent indisponibles pour les équipes concernées.");
   const text = (value: string, x: number, y: number, width: number, size: number, color = "#f4f4f1", align: CanvasTextAlign = "left", weight = "600") => {
     c.save(); c.fillStyle = color; c.textBaseline = "top"; c.textAlign = align;
     const fitted = fitText(c, value, width, size, size, "Arial, sans-serif", weight);
@@ -60,13 +67,31 @@ export async function renderMatchDay(s: MatchSnapshot): Promise<{ blob: Blob; ur
   const playersY = sideY + 155, footerY = s.format === "story" ? 1675 : 1190;
   const maximum = Math.max(s.teamA.players.length, s.teamB.players.length, 1);
   const rowHeight = Math.min(s.format === "story" ? 160 : 138, (footerY - 25 - playersY) / maximum);
-  if (rowHeight < 120) throw new Error("L’affiche est trop dense. Passez au format Story ou réduisez la sélection avant de valider.");
+  if (!teamOnly && rowHeight < 120) throw new Error("L’affiche est trop dense. Passez au format Story ou réduisez la sélection avant de valider.");
   let photoIndex = 0;
   for (const [i, side] of [s.teamA, s.teamB].entries()) {
     const x = 44 + i * 540, cx = x + 226, t = THEMES[side.theme || "neutral"];
     text(side.name, cx, sideY, 434, 32, "#f9f8f5", "center", "900");
     text(side.club || "", cx, sideY + 82, 434, 19, t.light, "center");
-    text(side.composition_confirmed ? "COMPOSITION CONFIRMÉE" : "EFFECTIF · PRÉSENCE NON CONFIRMÉE", cx, sideY + 130, 434, 17, "#aab6c8", "center");
+    text(teamOnly ? "STATISTIQUES D’ÉQUIPE" : side.composition_confirmed ? "COMPOSITION CONFIRMÉE" : "EFFECTIF · PRÉSENCE NON CONFIRMÉE", cx, sideY + 130, 434, 17, "#aab6c8", "center");
+    if (teamOnly) {
+      const columns = teamMetrics.length <= 3 ? 1 : 2, rows = Math.ceil(teamMetrics.length / columns), gap = 14;
+      const cellWidth = (452 - (columns - 1) * gap) / columns, startY = playersY + 22;
+      const cellHeight = Math.min(s.format === "story" ? 240 : 210, (footerY - 80 - startY - (rows - 1) * gap) / rows);
+      if (cellHeight < 120) throw new Error("Les KPI d’équipe sont trop denses. Réduisez leur nombre ou choisissez Story.");
+      for (const [index, id] of teamMetrics.entries()) {
+        const left = x + (index % columns) * (cellWidth + gap), y = startY + Math.floor(index / columns) * (cellHeight + gap);
+        c.save(); c.fillStyle = "#09111ce8"; c.strokeStyle = t.accent + "88"; c.lineWidth = 1.5;
+        c.beginPath(); c.roundRect(left, y, cellWidth, cellHeight, 16); c.fill(); c.stroke(); c.restore();
+        const definition = TEAM_METRICS.find(metric => metric.id === id)!;
+        const labelHeight = text(definition.cardLabel, left + 18, y + 18, cellWidth - 36, 16, "#b8c8dd", "left", "700");
+        const valueSize = columns === 1 ? 62 : 40, valueY = y + 18 + labelHeight + 16;
+        const valueHeight = text(teamMetricValue(side, id, historicalUnavailable(s)), left + 18, valueY, cellWidth - 36, valueSize, t.accent, "left", "900");
+        if (valueY + valueHeight > y + cellHeight - 12) throw new Error("Valeur KPI trop longue pour cette composition. Réduisez le nombre de KPI ou choisissez Story.");
+      }
+      if (!historicalUnavailable(s) && teamMetrics.includes("average") && side.team_stats?.average_players) text(`Moyenne : ${side.team_stats.average_players} joueurs avec données`, cx, footerY - 54, 434, 17, "#aab6c8", "center");
+      continue;
+    }
     for (const [j, p] of side.players.entries()) {
       const y = playersY + j * rowHeight, data = playerCardData(s, p), photo = photos[photoIndex++];
       c.save(); c.fillStyle = p.featured ? "#161f2dea" : "#09111cdd"; c.strokeStyle = t.accent + (p.featured ? "ff" : "55"); c.lineWidth = p.featured ? 2 : 1; c.beginPath(); c.roundRect(x, y, 452, rowHeight - 10, 14); c.fill(); c.stroke(); c.restore();

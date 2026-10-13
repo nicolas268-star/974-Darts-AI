@@ -5,9 +5,10 @@ import { MATCH_THEME_IDS, MATCH_THEME_LABELS, THEMES } from "@/lib/player-card/t
 import { CARD_METRICS, metricValue } from "@/lib/player-card/metrics";
 import { normalizePhoto, decodeImage } from "@/lib/player-card/photo";
 import { downloadFile } from "@/lib/player-card/export";
-import { caption, createSnapshot, frenchDate, invert, localToUtc, playerCardData, publicationCaption, resetThemes, schedulePreset, sideFromTeam } from "@/lib/match-day/model";
+import { caption, createSnapshot, frenchDate, historicalUnavailable, invert, localToUtc, playerCardData, publicationCaption, resetThemes, schedulePreset, sideFromTeam } from "@/lib/match-day/model";
 import { renderMatchDay } from "@/lib/match-day/render";
 import type { Draft, History, MatchPlayer, MatchSnapshot, MatchSource, MetaStatus, Side } from "@/lib/match-day/types";
+import { TEAM_METRICS, teamMetricSelection, teamMetricValue } from "@/lib/match-day/team-metrics";
 import styles from "./match-day.module.css";
 const API = "/api/admin/match-day/";
 const states: Record<string, string> = { SCHEDULED: "Programmé", SUSPENDED: "Suspendu", SENDING: "En cours d’envoi", PUBLISHED: "Publié", FAILED: "Échec", CANCELLED: "Annulé", VERIFY: "Publication à vérifier", REVIEW: "À valider" };
@@ -83,8 +84,8 @@ export default function MatchDayStudio() {
     const data = await request<MatchSource>(`source?season=${snapshot.season}&stats_season=${statsSeason}`);
     const sides = [snapshot.teamA, snapshot.teamB].map(side => {
       const original = data.teams.find(t => t.id === side.id); if (!original) throw new Error("Équipe absente de cette saison.");
-      const players = side.players.map(p => { const fresh = original.players.find(o => o.id === p.id); if (!fresh?.id) throw new Error("Visibilité ou affiliation d’un joueur modifiée."); return { ...p, name: fresh.name, dashboard: fresh.dashboard, warning: fresh.warning }; });
-      return { ...side, name: original.name, club: original.club, players };
+      const players = side.players.flatMap(p => { const fresh = original.players.find(o => o.id === p.id); if (!fresh?.id) { if (snapshot.content_mode === "teams") return []; throw new Error("Visibilité ou affiliation d’un joueur modifiée."); } return [{ ...p, name: fresh.name, dashboard: fresh.dashboard, warning: fresh.warning }]; });
+      return { ...side, name: original.name, club: original.club, players, team_stats: original.team_stats ?? null };
     });
     const event = snapshot.event ? data.events.find(e => e.id === snapshot.event!.id) ?? null : null;
     if (snapshot.event && !event) throw new Error("Rencontre supprimée ou non vérifiable.");
@@ -107,7 +108,7 @@ export default function MatchDayStudio() {
         players: prior.players.map(p => { const fresh = next[key].players.find(f => f.id === p.id); if (!fresh) throw new Error("Affiliation ou visibilité modifiée. Révisez la composition."); return { ...p, name: fresh.name, dashboard: fresh.dashboard, warning: fresh.warning }; }) };
     }
     if (snapshot.teamA.id === next.teamB.id) { const swapped = invert(next); next.teamA = swapped.teamA; next.teamB = swapped.teamB; }
-    setSource(data); edit({ ...next, mode: snapshot.mode, format: snapshot.format, metrics: snapshot.metrics, caption: snapshot.caption, match: { ...next.match, title: snapshot.match.title } });
+    setSource(data); edit({ ...next, mode: snapshot.mode, format: snapshot.format, metrics: snapshot.metrics, content_mode: snapshot.content_mode ?? "players", team_metrics: teamMetricSelection(snapshot), caption: snapshot.caption, match: { ...next.match, title: snapshot.match.title } });
     setNotice(`Calendrier actualisé : ${snapshot.match.date || "—"} ${snapshot.match.time || "horaire inconnu"} / ${snapshot.match.location} → ${event.start_date} ${event.start_time || "horaire inconnu"} / ${event.location}. Relisez la légende avant une nouvelle validation.`);
   }
   function chooseEvent(id: string) {
@@ -127,7 +128,8 @@ export default function MatchDayStudio() {
     canvas.getContext("2d")!.drawImage(image, 0, 0, canvas.width, canvas.height);
     changeSide(sideKey, { ...snapshot[sideKey], players: snapshot[sideKey].players.map(o => o.id === p.id ? { ...o, photo: canvas.toDataURL("image/png") } : o) });
   }
-  const stages = ["Rencontre", "Joueurs et statistiques", "Thèmes et design", "Texte", "Validation et diffusion"];
+  const teamOnly = snapshot?.content_mode === "teams";
+  const stages = ["Rencontre", teamOnly ? "Statistiques d’équipe" : "Joueurs et statistiques", "Thèmes et design", "Texte", "Validation et diffusion"];
   function sidePanel(key: "teamA" | "teamB") {
     if (!snapshot || !source) return null;
     const side = snapshot[key], original = source.teams.find(t => t.id === side.id), other = snapshot[key === "teamA" ? "teamB" : "teamA"];
@@ -142,7 +144,14 @@ export default function MatchDayStudio() {
           <i style={{ background: `repeating-linear-gradient(${THEMES[id].pattern === "rings" ? 30 : 130}deg, transparent 0 8px, ${THEMES[id].accent}66 9px 10px), linear-gradient(120deg,${THEMES[id].background},${THEMES[id].accent})` }} />{MATCH_THEME_LABELS[id]}</button>)}
         {!side.theme && <p>Choisir un thème avant la validation du mode Duel.</p>}
       </div>}
-      {stage === 1 && <>
+      {stage === 1 && teamOnly && <>
+        <p className={styles.muted}>KPI collectifs · {snapshot.stats_label}</p>
+        {teamMetricSelection(snapshot).map(id => <p key={id}>{TEAM_METRICS.find(metric => metric.id === id)!.label} : <strong>{teamMetricValue(side, id, historicalUnavailable(snapshot))}</strong></p>)}
+        <p className={styles.muted}>{side.team_stats?.average_method ?? "Actualisez les statistiques pour charger les données d’équipe."}</p>
+        {side.team_stats?.average_players ? <small>{side.team_stats.average_players} joueurs avec une moyenne disponible.</small> : <small>Moyenne indisponible pour cette période.</small>}
+        {side.team_stats?.detail_complete === false && <p className={styles.warning}>Le détail des legs est incomplet ; les KPI de legs restent indisponibles.</p>}
+      </>}
+      {stage === 1 && !teamOnly && <>
         <label className={styles.check}><input type="checkbox" checked={side.composition_confirmed} onChange={e => changeSide(key, { ...side, composition_confirmed: e.target.checked })} />Je confirme explicitement cette composition pour la rencontre</label>
         <p className={styles.muted}>{side.composition_confirmed ? "Composition confirmée" : "Effectif de l’équipe — la présence au match n’est pas confirmée."}</p>
         {!side.roster_complete && <p className={styles.warning}>Effectif historique partiel : affiliations vérifiées uniquement.</p>}
@@ -171,6 +180,7 @@ export default function MatchDayStudio() {
         <label>Période statistique<select aria-label="Période statistique" value={statsSeason} onChange={e => setStatsSeason(e.target.value)}>{(source?.seasons ?? [{ value: "2027", label: "Saison 2027" }]).map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select></label>
         <button disabled={busy} onClick={() => void run(() => load(season, statsSeason))}>Nouvelle affiche / charger la saison</button>
         <button disabled={busy || !snapshot || season !== snapshot.season} onClick={() => void run(refreshStats)}>Actualiser les statistiques</button>
+        {snapshot && <label>Contenu de l’affiche<select aria-label="Contenu de l’affiche" disabled={busy} value={snapshot.content_mode ?? "players"} onChange={e => edit({ ...snapshot, content_mode: e.target.value as "players" | "teams" })}><option value="players">Joueurs et statistiques individuelles</option><option value="teams">Équipes uniquement — sans joueurs</option></select></label>}
       </div>
       <nav className={styles.steps} aria-label="Étapes">{stages.map((label, i) => <button key={label} aria-current={stage === i ? "step" : undefined} onClick={() => { setStage(i); setMobilePanel("settings"); }}><span>{i + 1}</span>{label}</button>)}</nav>
       {!source && <p>Chargement des sources officielles…</p>}{source && !snapshot && <p>Aucun effectif vérifié disponible pour cette saison. Aucun rattachement à l’équipe actuelle n’est utilisé comme historique.</p>}
@@ -192,7 +202,15 @@ export default function MatchDayStudio() {
             <label>Compétition<input maxLength={100} value={snapshot.match.competition} onChange={e => edit({ ...snapshot, match: { ...snapshot.match, competition: e.target.value } })} /></label><label>Journée<input maxLength={20} value={snapshot.match.round} onChange={e => edit({ ...snapshot, match: { ...snapshot.match, round: e.target.value } })} /></label>
             <p className={styles.muted}>Ces champs modifient l’affiche uniquement. <a href="/admin/calendar">Ouvrir le calendrier officiel</a></p>
           </>}
-          {stage === 1 && <><p className={styles.muted}>{source.scope_note}</p><p>Référence : {frenchDate(snapshot.reference_at)} · {snapshot.stats_label}</p>
+          {stage === 1 && teamOnly && <>
+            <p>Référence : {frenchDate(snapshot.reference_at)} · {snapshot.stats_label}</p>
+            <fieldset><legend>KPI d’équipe (1 à 6)</legend><div className={styles.selection}>{TEAM_METRICS.map(metric => <label key={metric.id} className={styles.check}>
+              <input type="checkbox" checked={teamMetricSelection(snapshot).includes(metric.id)} disabled={!teamMetricSelection(snapshot).includes(metric.id) && teamMetricSelection(snapshot).length >= 6 || teamMetricSelection(snapshot).includes(metric.id) && teamMetricSelection(snapshot).length === 1} onChange={e => edit({ ...snapshot, team_metrics: e.target.checked ? [...teamMetricSelection(snapshot), metric.id] : teamMetricSelection(snapshot).filter(id => id !== metric.id) })} />{metric.label}
+            </label>)}</div></fieldset>
+            <p className={styles.muted}>Les statistiques portent sur l’équipe entière pour la période choisie. La moyenne reprend les joueurs publics avec données ; elle ne dépend pas des joueurs cochés dans le mode individuel.</p>
+            {sidePanel("teamA")}{sidePanel("teamB")}
+          </>}
+          {stage === 1 && !teamOnly && <><p className={styles.muted}>{source.scope_note}</p><p>Référence : {frenchDate(snapshot.reference_at)} · {snapshot.stats_label}</p>
             <fieldset><legend>KPI par joueur (1 à 3)</legend><div className={styles.selection}>{CARD_METRICS.filter(m => m.id !== "bestAverage").map(m => <label key={m.id} className={styles.check}><input type="checkbox" checked={snapshot.metrics.includes(m.id)} disabled={!snapshot.metrics.includes(m.id) && snapshot.metrics.length >= 3 || snapshot.metrics.includes(m.id) && snapshot.metrics.length === 1} onChange={e => edit({ ...snapshot, metrics: e.target.checked ? [...snapshot.metrics, m.id] : snapshot.metrics.filter(id => id !== m.id) })} />{m.label}</label>)}</div></fieldset>
             {sidePanel("teamA")}{sidePanel("teamB")}
           </>}
@@ -202,8 +220,8 @@ export default function MatchDayStudio() {
             <div className={styles.actions}><button onClick={() => edit(invert(snapshot))}>Inverser les côtés</button><button onClick={() => edit(resetThemes(snapshot))}>Réinitialiser les thèmes des équipes</button></div><p className={styles.muted}>Le thème habille chaque côté ; il conserve l’identité, le club et les statistiques de l’équipe.</p>
           </>}
           {stage === 3 && <>
-            <div className={styles.actions}><button onClick={() => edit({ ...snapshot, caption: publicationCaption(snapshot) })}>Générer une publication avec les stats</button><button onClick={() => edit({ ...snapshot, caption: caption(snapshot) })}>Courte et percutante</button><button onClick={() => edit({ ...snapshot, caption: caption(snapshot, true) })}>Détaillée avec joueurs mis en avant</button></div>
-            <p className={styles.muted}>La publication reprend le match et les KPI choisis, avec jusqu’à deux joueurs par équipe. Les joueurs marqués « Mise en avant » sont prioritaires. Le bouton remplace la légende actuelle ; vous pouvez ensuite la modifier.</p>
+            <div className={styles.actions}><button onClick={() => edit({ ...snapshot, caption: publicationCaption(snapshot) })}>Générer une publication avec les stats</button><button onClick={() => edit({ ...snapshot, caption: caption(snapshot) })}>Courte et percutante</button><button onClick={() => edit({ ...snapshot, caption: caption(snapshot, true) })}>{teamOnly ? "Texte détaillé avec KPI d’équipe" : "Détaillée avec joueurs mis en avant"}</button></div>
+            <p className={styles.muted}>{teamOnly ? "La publication reprend le match et les KPI collectifs choisis, sans noms de joueurs." : "La publication reprend le match et les KPI choisis, avec jusqu’à deux joueurs par équipe. Les joueurs marqués « Mise en avant » sont prioritaires."} Le bouton remplace la légende actuelle ; vous pouvez ensuite la modifier.</p>
             <label>Légende Facebook<textarea rows={16} maxLength={5000} value={snapshot.caption} onChange={e => edit({ ...snapshot, caption: e.target.value })} /></label><button onClick={() => void run(async () => { await navigator.clipboard.writeText(snapshot.caption); setNotice("Texte copié."); })}>Copier le texte</button><p className={styles.muted}>Relisez la légende après tout changement de rencontre ou de composition.</p>
           </>}
           {stage === 4 && <>
@@ -234,7 +252,7 @@ export default function MatchDayStudio() {
           {currentPreview ? <img className={styles.poster} src={currentPreview.url} alt={`Match Day : ${snapshot.teamA.name} contre ${snapshot.teamB.name}`} /> : !renderError && <p>Préparation du PNG…</p>}
           {currentPreview?.warnings.map(w => <p key={w} className={styles.warning}>{w}</p>)}
           <div className={styles.actions}><button disabled={busy || !currentPreview} onClick={() => { if (currentPreview) downloadFile(new File([currentPreview.blob], `974darts-match-day-${snapshot.match.date || "sans-date"}-${snapshot.format}.png`, { type: "image/png" })); }}>Télécharger l’affiche</button><button disabled={busy} onClick={() => void run(async () => { await save(); setNotice("Brouillon enregistré."); })}>Enregistrer un brouillon</button></div>
-          <small>{snapshot.teamA.players.length} + {snapshot.teamB.players.length} joueurs sélectionnés. Un seul visuel ; tout dépassement bloque la validation.</small>
+          <small>{teamOnly ? `Équipes uniquement · ${teamMetricSelection(snapshot).length} KPI collectifs · aucun joueur affiché.` : `${snapshot.teamA.players.length} + ${snapshot.teamB.players.length} joueurs sélectionnés. Un seul visuel ; tout dépassement bloque la validation.`}</small>
         </aside>
       </div></>}
     </>}

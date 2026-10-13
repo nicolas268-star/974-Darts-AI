@@ -1,6 +1,7 @@
 import { matchThemeForTeam } from "../player-card/themes";
 import { adaptDashboard, initials } from "../player-card/data";
 import { CARD_METRICS, metricValue } from "../player-card/metrics";
+import { DEFAULT_TEAM_METRICS, TEAM_METRICS, teamMetricSelection, teamMetricValue } from "./team-metrics";
 import type { CardData } from "../player-card/types";
 import type { MatchSnapshot, MatchSource, Side, SourceTeam, MatchEvent, MatchPlayer } from "./types";
 export const MATCH_METRICS = ["average", "winRate", "finish"] as const;
@@ -15,7 +16,7 @@ export function sideFromTeam(team: SourceTeam): Side {
 export function createSnapshot(source: MatchSource, a: SourceTeam, b: SourceTeam, event: MatchEvent | null = null): MatchSnapshot {
   return { source_id: source.source_id, season: source.season, stats_season: source.stats_season, stats_label: source.stats_label, reference_at: source.reference_at, event,
     match: { title: "MATCH DAY", date: event?.start_date ?? null, time: event?.start_time ?? null, location: event?.location ?? "", competition: event?.competition ?? `Championnat · Saison ${source.season}`, round: event?.round ?? "" },
-    teamA: sideFromTeam(a), teamB: sideFromTeam(b), metrics: [...MATCH_METRICS], format: "publication", mode: "duel", caption: "", render_version: "match-day-1", generated_at: new Date().toISOString() };
+    teamA: sideFromTeam(a), teamB: sideFromTeam(b), metrics: [...MATCH_METRICS], content_mode: "players", team_metrics: [...DEFAULT_TEAM_METRICS], format: "publication", mode: "duel", caption: "", render_version: "match-day-1", generated_at: new Date().toISOString() };
 }
 export function invert(snapshot: MatchSnapshot): MatchSnapshot { return { ...snapshot, teamA: snapshot.teamB, teamB: snapshot.teamA }; }
 export function resetThemes(s: MatchSnapshot): MatchSnapshot { return { ...s, teamA: { ...s.teamA, theme: matchThemeForTeam(s.teamA.id) }, teamB: { ...s.teamB, theme: matchThemeForTeam(s.teamB.id) } }; }
@@ -58,6 +59,14 @@ export function publicationCaption(s: MatchSnapshot): string {
   let partial = false;
   if (historicalUnavailable(s)) {
     lines.push("", "📊 Chiffres masqués : l’historique exact n’est pas disponible à la date de cette rencontre.");
+  } else if (s.content_mode === "teams") {
+    lines.push("", "📊 Les repères des équipes avant la rencontre :");
+    for (const side of [s.teamA, s.teamB]) {
+      lines.push("", side.name);
+      for (const id of teamMetricSelection(s)) lines.push(`• ${TEAM_METRICS.find(metric => metric.id === id)!.label} : ${teamMetricValue(side, id)}`);
+    }
+    if (teamMetricSelection(s).includes("average")) lines.push("", "Moyennes d’équipe : moyenne des moyennes individuelles disponibles sur cette période.");
+    lines.push("", `Statistiques d’équipe : ${s.stats_label} · référence ${frenchDate(s.reference_at)} · championnat.`);
   } else {
     lines.push("", "📊 Quelques repères individuels avant la rencontre :");
     for (const side of [s.teamA, s.teamB]) {
@@ -96,6 +105,10 @@ export function caption(s: MatchSnapshot, detailed = false) {
   const lines = [`🎯 ${m.title}`, `${s.teamA.name} ⚔️ ${s.teamB.name}`, "", [m.competition, m.round].filter(Boolean).join(" · "), `📅 ${date} · ${m.time ? m.time.replace(":", "h") : "Horaire à confirmer"}`, m.location ? `📍 ${m.location}` : ""];
   if (detailed) {
     for (const side of [s.teamA, s.teamB]) {
+      if (s.content_mode === "teams") {
+        lines.push("", side.name, ...teamMetricSelection(s).map(id => `${TEAM_METRICS.find(metric => metric.id === id)!.label} : ${teamMetricValue(side, id, historicalUnavailable(s))}`));
+        continue;
+      }
       lines.push("", side.name, side.composition_confirmed ? "Composition confirmée" : "Effectif de l’équipe — présence non confirmée");
       for (const p of side.players.filter(p => p.featured)) {
         const d = playerCardData(s, p); const avg = d.stats.average;
