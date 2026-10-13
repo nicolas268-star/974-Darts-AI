@@ -90,6 +90,14 @@ Après la revue et une autorisation distincte :
 
 Les étapes de production ci-dessus n’ont pas été exécutées pendant cette livraison. Une configuration Meta réelle et la vérification de permissions ne peuvent pas être certifiées sans les accès correspondants.
 
+## Script de mise en production
+
+`deploy/deploy-match-day.sh` s’exécute avec sudo depuis le checkout de production propre, après sa mise à jour vers le commit fusionné vérifié. Il reçoit ce commit et le commit précédent, sauvegarde les fichiers privés, sauvegarde SQLite avec son API dédiée, conserve les images frontend/backend précédentes, construit puis recrée uniquement frontend/backend et le nouveau worker. Il active le studio et force la diffusion Facebook à false ; il ne remplace aucun token.
+
+Les API Admin sont contrôlées avec les identifiants serveur sans les afficher, les effectifs 2027 sont vérifiés et un appel anonyme doit recevoir 401. En cas d’erreur après activation, le script restaure l’environnement et les deux anciennes images, arrête le nouveau worker et conserve les données. Le répertoire de sauvegarde contient `rollback.yaml`. Ce script a passé `bash -n` mais son exécution sur le VPS reste nécessaire pour confirmer le déploiement.
+
+Le timeout de la longue suite navigateur CI passe de 10 à 20 minutes : le premier run de la PR avait atteint la limite de 10 minutes après ses derniers tests réussis, sans assertion en échec. Aucun test n’est retiré.
+
 ## Retour arrière
 
 Désactiver MATCH_DAY_FACEBOOK_ENABLED côté backend/worker et arrêter le service match-day-worker avant toute restauration. Annuler/suspendre les tâches futures depuis l’Admin si nécessaire ; ne jamais effacer une tâche à vérifier pour la réessayer. Désactiver MATCH_DAY_ENABLED côté frontend/backend. Restaurer les images précédentes par le workflow de release existant en conservant le volume privé. Les cartes publiques, profils, calendrier et résultats restent utilisables. Il n’y a ni migration Supabase à annuler ni post distant à supprimer. Réactiver la file uniquement après revue des échéances et des versions approuvées.
