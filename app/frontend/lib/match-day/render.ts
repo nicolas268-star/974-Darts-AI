@@ -4,7 +4,7 @@ import { CARD_METRICS, metricValue } from "../player-card/metrics";
 import { decodeImage, drawPortrait } from "../player-card/photo";
 import { fitText } from "../player-card/render";
 import { pngBlob } from "../player-card/export";
-import { frenchDate, historicalUnavailable, playerCardData } from "./model";
+import { frenchDate, historicalUnavailable, papangueChannel, playerCardData } from "./model";
 import type { MatchSnapshot } from "./types";
 
 // Procedural themes deliberately omit the legacy banners: those carry other teams' text/logos.
@@ -92,8 +92,16 @@ export async function renderMatchDay(s: MatchSnapshot): Promise<{ blob: Blob; ur
   }
   text(`Affiliations : Saison ${s.season}  ·  Stats : ${s.stats_label}`, 540, footerY, 950, 20, "#c0cbd9", "center");
   text(historicalUnavailable(s) ? "Historique exact indisponible à cette date · chiffres masqués" : `Référence : ${frenchDate(s.reference_at)} · périmètre des profils championnat`, 540, footerY + 32, 950, 17, "#9caac0", "center");
-  text("974darts.re", 540, footerY + 74, 950, 26, "#e6b867", "center", "700");
-  text("Une création NDX Performance Lab", 540, footerY + 112, 950, 18, "#8e9caf", "center");
+  const channel = papangueChannel(s);
+  if (channel) {
+    text("SUIVRE LE MATCH SUR YOUTUBE · PAPANGUE DARTS CLUB", 540, footerY + 60, 950, 18, "#e6b867", "center", "700");
+    text(channel, 540, footerY + 85, 950, 22, "#f4f4f1", "center", "700");
+    text("974darts.re", 255, footerY + 118, 370, 26, "#e6b867", "center", "700");
+    text("Une création NDX Performance Lab", 770, footerY + 124, 490, 18, "#8e9caf", "center");
+  } else {
+    text("974darts.re", 540, footerY + 74, 950, 26, "#e6b867", "center", "700");
+    text("Une création NDX Performance Lab", 540, footerY + 112, 950, 18, "#8e9caf", "center");
+  }
   const blob = await pngBlob(canvas);
   return { blob, url: URL.createObjectURL(blob), warnings };
 }

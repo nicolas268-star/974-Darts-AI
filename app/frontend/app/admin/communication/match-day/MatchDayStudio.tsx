@@ -5,7 +5,7 @@ import { MATCH_THEME_IDS, MATCH_THEME_LABELS, THEMES } from "@/lib/player-card/t
 import { CARD_METRICS, metricValue } from "@/lib/player-card/metrics";
 import { normalizePhoto, decodeImage } from "@/lib/player-card/photo";
 import { downloadFile } from "@/lib/player-card/export";
-import { caption, createSnapshot, frenchDate, invert, localToUtc, playerCardData, resetThemes, schedulePreset, sideFromTeam } from "@/lib/match-day/model";
+import { caption, createSnapshot, frenchDate, invert, localToUtc, playerCardData, publicationCaption, resetThemes, schedulePreset, sideFromTeam } from "@/lib/match-day/model";
 import { renderMatchDay } from "@/lib/match-day/render";
 import type { Draft, History, MatchPlayer, MatchSnapshot, MatchSource, MetaStatus, Side } from "@/lib/match-day/types";
 import styles from "./match-day.module.css";
@@ -201,7 +201,11 @@ export default function MatchDayStudio() {
             {sidePanel("teamA")}{sidePanel("teamB")}
             <div className={styles.actions}><button onClick={() => edit(invert(snapshot))}>Inverser les côtés</button><button onClick={() => edit(resetThemes(snapshot))}>Réinitialiser les thèmes des équipes</button></div><p className={styles.muted}>Le thème habille chaque côté ; il conserve l’identité, le club et les statistiques de l’équipe.</p>
           </>}
-          {stage === 3 && <><div className={styles.actions}><button onClick={() => edit({ ...snapshot, caption: caption(snapshot) })}>Courte et percutante</button><button onClick={() => edit({ ...snapshot, caption: caption(snapshot, true) })}>Détaillée avec joueurs mis en avant</button></div><label>Légende Facebook<textarea rows={16} maxLength={5000} value={snapshot.caption} onChange={e => edit({ ...snapshot, caption: e.target.value })} /></label><button onClick={() => void run(async () => { await navigator.clipboard.writeText(snapshot.caption); setNotice("Texte copié."); })}>Copier le texte</button><p className={styles.muted}>Relisez la légende après tout changement de rencontre ou de composition.</p></>}
+          {stage === 3 && <>
+            <div className={styles.actions}><button onClick={() => edit({ ...snapshot, caption: publicationCaption(snapshot) })}>Générer une publication avec les stats</button><button onClick={() => edit({ ...snapshot, caption: caption(snapshot) })}>Courte et percutante</button><button onClick={() => edit({ ...snapshot, caption: caption(snapshot, true) })}>Détaillée avec joueurs mis en avant</button></div>
+            <p className={styles.muted}>La publication reprend le match et les KPI choisis, avec jusqu’à deux joueurs par équipe. Les joueurs marqués « Mise en avant » sont prioritaires. Le bouton remplace la légende actuelle ; vous pouvez ensuite la modifier.</p>
+            <label>Légende Facebook<textarea rows={16} maxLength={5000} value={snapshot.caption} onChange={e => edit({ ...snapshot, caption: e.target.value })} /></label><button onClick={() => void run(async () => { await navigator.clipboard.writeText(snapshot.caption); setNotice("Texte copié."); })}>Copier le texte</button><p className={styles.muted}>Relisez la légende après tout changement de rencontre ou de composition.</p>
+          </>}
           {stage === 4 && <>
             <p>{approved ? "Version validée" : dirty ? "Brouillon à enregistrer et à valider" : "Brouillon enregistré · à valider"}</p>
             <p>{snapshot.teamA.name} / {snapshot.teamB.name} · {snapshot.format === "story" ? "Story" : "Publication"}</p>

@@ -32,7 +32,7 @@ try{
  await page.goto(base+'/admin/communication/match-day');await ready();
  await test('manual creation with all players, zero KPI and desktop PNG',async()=>{
   await page.getByLabel('Date',{exact:true}).fill('2030-01-02');await page.getByLabel('Heure (Réunion)',{exact:true}).fill('20:00');await page.getByLabel('Lieu',{exact:true}).fill('Papangue Darts Club · Saint-Leu');await ready();
-  const t=await texts();assert.ok(t.includes('Nico')&&t.includes('Fabien')&&t.includes('Nico Neige')&&t.includes('Fabien Neige'));assert.ok(t.includes('0,0 %'));
+  const t=await texts();assert.ok(t.includes('Nico')&&t.includes('Fabien')&&t.includes('Nico Neige')&&t.includes('Fabien Neige'));assert.ok(t.includes('0,0 %'));assert.equal(t.filter(value=>value==='https://www.youtube.com/@PapangueDartsClub').length,1);
   await exported('duel-publication.png',1350);await page.screenshot({path:resolve(out,'studio-desktop.png'),fullPage:true});
  });
  await test('eight independent variants, same theme, inversion and Story',async()=>{
@@ -40,13 +40,18 @@ try{
   const images=new Set();for(const label of ['3 Brasseur Club Darts — Bière Ambrée','3 Brasseur Darts Club — Bière Brune','Kaz A Darts A','Kaz A Darts B','TDC Zarboutant','TDC Zarlord']){const old=await page.getByRole('img',{name:/Match Day/}).getAttribute('src');await a.getByRole('button',{name:label,exact:true}).click();await ready(old);images.add((await exported('variant-'+images.size+'.png',1350)).toString('base64'));assert.equal(await b.getByRole('button',{name:'Piton des Neiges',exact:true}).getAttribute('aria-pressed'),'true')};assert.equal(images.size,6);
   await a.getByRole('button',{name:'Piton des Neiges',exact:true}).click();await ready();await exported('same-theme.png',1350);
   await a.getByRole('button',{name:'Piton de la Fournaise',exact:true}).click();await page.getByRole('button',{name:'Inverser les côtés',exact:true}).click();await ready();assert.equal(await b.getByRole('button',{name:'Piton de la Fournaise',exact:true}).getAttribute('aria-pressed'),'true');
-  await page.getByLabel('Format',{exact:true}).selectOption('story');await ready();await exported('duel-story.png',1920);assert.equal(await b.getByRole('button',{name:'Piton de la Fournaise',exact:true}).getAttribute('aria-pressed'),'true');
+  await page.getByLabel('Format',{exact:true}).selectOption('story');await ready();await exported('duel-story.png',1920);assert.ok((await texts()).includes('https://www.youtube.com/@PapangueDartsClub'));assert.equal(await b.getByRole('button',{name:'Piton de la Fournaise',exact:true}).getAttribute('aria-pressed'),'true');
   await page.getByRole('button',{name:'Réinitialiser les thèmes des équipes',exact:true}).click();await page.getByLabel('Format',{exact:true}).selectOption('publication');await ready();
  });
  await test('real save reload approval and exact durable PNG',async()=>{
-  await step('Texte');await page.getByRole('button',{name:'Courte et percutante',exact:true}).click();await ready();await saved();
+  await step('Texte');await page.getByRole('button',{name:'Générer une publication avec les stats',exact:true}).click();await ready();
+  const legend=page.getByLabel('Légende Facebook'),generated=await legend.inputValue();
+  assert.match(generated,/Moyenne 3 fléchettes/);assert.match(generated,/47,14/);assert.match(generated,/présence non confirmée/);assert.match(generated,/2 janv\. 2030/);assert.match(generated,/20h00/);assert.equal(generated.split('https://www.youtube.com/@PapangueDartsClub').length-1,1);
+  const edited=generated+'\nNote ajoutée par l’Admin.';await legend.fill(edited);await ready();await saved();
   await page.reload();await ready();await page.getByRole('button',{name:'Historique',exact:true}).click();await page.getByRole('button',{name:'Réouvrir le brouillon',exact:true}).first().click();await ready();const png=await exported('approved.png',1350);
+  await step('Texte');assert.equal(await legend.inputValue(),edited);
   await step('Validation et diffusion');await page.getByRole('button',{name:'Valider ce PNG et ce texte',exact:true}).click();await page.getByRole('status').filter({hasText:'PNG exact'}).waitFor();assert.equal(await page.getByRole('button',{name:'Programmer la publication',exact:true}).isDisabled(),true);
+  await step('Texte');await page.getByRole('button',{name:'Générer une publication avec les stats',exact:true}).click();await ready();assert.equal(await legend.inputValue(),generated);await step('Validation et diffusion');assert.ok(await page.getByText('Brouillon à enregistrer et à valider',{exact:true}).count());
   await page.getByRole('button',{name:'Historique',exact:true}).click();const link=page.getByRole('link',{name:/PNG validé/}).first();const r=await page.request.get(base+await link.getAttribute('href'));assert.deepEqual(await r.body(),png);assert.match(r.headers()['cache-control'],/private.*no-store/);
   await page.getByRole('button',{name:'Réouvrir le brouillon',exact:true}).first().click();await ready();await step('Thèmes et design');await page.getByRole('group',{name:'Thème A',exact:true}).getByRole('button',{name:'Kaz A Darts A',exact:true}).click();await ready();await step('Validation et diffusion');assert.ok(await page.getByText('Brouillon à enregistrer et à valider',{exact:true}).count());
  });
@@ -74,6 +79,19 @@ try{
   await step('Thèmes et design');await page.getByLabel('Format',{exact:true}).selectOption('story');await ready();
   const t=await texts();assert.ok(t.includes('Joueur 0 6')&&t.includes('Joueur 1 6'));assert.ok(t.some(x=>x.includes('Jean François Alexandre')));
   await exported('dense-story.png',1920);await page.unroute('**/api/admin/match-day/source?season=*');
+ });
+ await test('Papangue channel is absent for other teams even with a Papangue theme',async()=>{
+  await page.route('**/api/admin/match-day/source?season=*',async route=>{
+    const response=await route.fetch(),d=await response.json();
+    d.teams[0]={...d.teams[0],id:'ea7206d1-bf26-48d1-ae8d-7213ef94884c',name:'3B Darts Club - A(mbrée)',club:'3B Darts Club'};
+    d.teams[1]={...d.teams[1],id:'9b85ca85-4c9a-4bb7-8d73-c92e19ae7de3',name:'3B Darts Club - B(rune)',club:'3B Darts Club'};
+    await route.fulfill({response,json:d});
+  });
+  await page.getByRole('button',{name:'Nouvelle affiche / charger la saison',exact:true}).click();await ready();
+  await step('Thèmes et design');await page.getByRole('group',{name:'Thème A',exact:true}).getByRole('button',{name:'Piton de la Fournaise',exact:true}).click();await ready();
+  assert.ok(!(await texts()).includes('https://www.youtube.com/@PapangueDartsClub'));
+  await step('Texte');await page.getByRole('button',{name:'Générer une publication avec les stats',exact:true}).click();await ready();assert.doesNotMatch(await page.getByLabel('Légende Facebook').inputValue(),/youtube/);
+  await page.unroute('**/api/admin/match-day/source?season=*');
  });
  assert.deepEqual(errors,[]);writeFileSync(resolve(out,'results.json'),JSON.stringify({results,errors},null,2));
 }catch(e){console.error(log.slice(-6000));throw e}finally{await browser.close();next.kill();api.kill()}
