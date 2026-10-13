@@ -47,6 +47,33 @@ test("Réunion midnight conversions and scheduling rules with unknown hours", ()
 test("deterministic editable captions avoid invented participants and relative dates", () => {
   const s = m.createSnapshot(source, ...source.teams); const c = m.caption(s, true); assert.match(c, /présence non confirmée/); assert.doesNotMatch(c, /Ce soir|Aujourd’hui|favori|rivalité/); assert.match(c, /#974Darts/);
 });
+test("publication uses selected KPI, featured players, exact zeros and honest missing data", () => {
+  const s = m.createSnapshot(source, ...source.teams, source.events[0]);
+  s.teamA.players[0].featured = true;
+  s.teamB.players = s.teamB.players.map(p => ({ ...p, dashboard: null }));
+  const before = JSON.stringify(s), c = m.publicationCaption(s);
+  assert.match(c, /Nico \(20 legs joués\).*Moyenne 3 fléchettes : 43,14.*Taux de legs gagnés : 0,0 %.*Meilleur finish : 104/);
+  assert.match(c, /KPI sélectionnés ne sont pas encore disponibles/);
+  assert.match(c, /présence non confirmée/); assert.match(c, /20h00/); assert.match(c, /Saint-Leu/); assert.match(c, /J2/);
+  assert.match(c, /référence/); assert.match(c, /#NDXPerformanceLab/);
+  assert.doesNotMatch(c, /premier match|report|favori|Ce soir|Aujourd’hui|First 9/);
+  assert.equal(JSON.stringify(s), before); assert.ok(c.length <= 5000);
+  s.teamA.composition_confirmed = true; s.metrics = ["scores180"];
+  const selected = m.publicationCaption(s);
+  assert.match(selected, /composition confirmée/); assert.match(selected, /Nico \(20 legs joués\) — Scores 180 : 0/);
+  assert.doesNotMatch(selected, /Moyenne 3 fléchettes|Meilleur finish|Taux de legs gagnés/);
+});
+test("publication never leaks masked historical figures or another season without data", () => {
+  const s = m.createSnapshot(source, ...source.teams); s.match.date = "2020-01-01";
+  const masked = m.publicationCaption(s);
+  assert.match(masked, /historique exact/); assert.doesNotMatch(masked, /43,14|104|Moyenne 3 fléchettes|🎯 Nico/);
+  s.match.date = null; s.match.time = null; s.stats_label = "Championnat 2028–2029";
+  s.teamA.players.forEach(p => { p.dashboard.meta.has_data = false; });
+  s.teamB.players = [];
+  const empty = m.publicationCaption(s);
+  assert.match(empty, /Date à confirmer · Horaire à confirmer/);
+  assert.match(empty, /période Championnat 2028–2029/); assert.doesNotMatch(empty, /43,14|104/);
+});
 console.log(`${count} Match Day test groups passed.`);
 
 const { NextRequest } = require("next/server"), proxy = load("app/api/admin/match-day/[...path]/route");

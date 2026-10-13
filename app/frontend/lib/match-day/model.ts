@@ -1,5 +1,6 @@
 import { matchThemeForTeam } from "../player-card/themes";
 import { adaptDashboard, initials } from "../player-card/data";
+import { CARD_METRICS, metricValue } from "../player-card/metrics";
 import type { CardData } from "../player-card/types";
 import type { MatchSnapshot, MatchSource, Side, SourceTeam, MatchEvent, MatchPlayer } from "./types";
 export const MATCH_METRICS = ["average", "winRate", "finish"] as const;
@@ -37,6 +38,50 @@ export function playerCardData(s: MatchSnapshot, p: MatchPlayer): CardData {
   const empty: CardData = { name: p.name, nickname: p.nickname ?? null, initials: initials(p.name), club: null, team: null, period: `Saison ${s.stats_season}`, competition: s.stats_label, hasData: false, demonstration: false, stats: { average: null, finish: null, won: null, played: null, first9: null, bestAverage: null, scores100: null, scores140: null, averageFinish: null, scores80: null, scores170: null, scores180: null, noScore: null } };
   if (!p.dashboard || historicalUnavailable(s)) return empty;
   return { ...adaptDashboard(p.dashboard, s.stats_label), name: p.name, nickname: p.nickname ?? null };
+}
+export function publicationCaption(s: MatchSnapshot): string {
+  const m = s.match;
+  const date = m.date ? frenchDate(m.date + "T12:00:00+04:00", false) : "Date à confirmer";
+  const lines = [
+    `🎯 ${m.title} — PLACE AU DUEL !`, "",
+    `${s.teamA.name} ⚔️ ${s.teamB.name}`,
+    `🏆 ${[m.competition, m.round].filter(Boolean).join(" · ") || "Compétition à confirmer"}`,
+    `📅 ${date} · ${m.time ? m.time.replace(":", "h") : "Horaire à confirmer"}`,
+    ...(m.location ? [`📍 ${m.location}`] : []), "",
+    "Deux équipes, une cible et des doubles décisifs : place au jeu ! 🔥",
+  ];
+  let partial = false;
+  if (historicalUnavailable(s)) {
+    lines.push("", "📊 Chiffres masqués : l’historique exact n’est pas disponible à la date de cette rencontre.");
+  } else {
+    lines.push("", "📊 Quelques repères individuels avant la rencontre :");
+    for (const side of [s.teamA, s.teamB]) {
+      const highlights = side.players.map((player, index) => {
+        const data = playerCardData(s, player);
+        const values = s.metrics.map(id => ({ label: CARD_METRICS.find(metric => metric.id === id)!.label, value: metricValue(id, data.stats) })).filter(metric => metric.value !== "—");
+        return { player, data, values, index };
+      }).filter(row => row.values.length > 0).sort((a, b) =>
+        Number(Boolean(b.player.featured)) - Number(Boolean(a.player.featured)) ||
+        b.values.length - a.values.length ||
+        (s.metrics.includes("average") ? (b.data.stats.average ?? -1) - (a.data.stats.average ?? -1) : 0) ||
+        a.index - b.index
+      ).slice(0, 2);
+      lines.push("", side.composition_confirmed ? `Dans la composition confirmée de ${side.name} :` : `Parmi l’effectif sélectionné de ${side.name} (présence non confirmée) :`);
+      if (!highlights.length) lines.push(`Les KPI sélectionnés ne sont pas encore disponibles pour ces joueurs sur la période ${s.stats_label}.`);
+      for (const { player, data, values } of highlights) {
+        const sample = data.stats.played !== null && !s.metrics.includes("played") ? ` (${data.stats.played} legs joués)` : "";
+        lines.push(`🎯 ${player.name}${sample} — ${values.map(metric => `${metric.label} : ${metric.value}`).join(" · ")}`);
+        if (player.warning || (data.stats.played !== null && data.stats.played < 12)) partial = true;
+      }
+    }
+    if (partial) lines.push("", "Ces repères incluent des données partielles ou un faible échantillon : ils ne préjugent pas du résultat du match.");
+    lines.push("", `Statistiques individuelles : ${s.stats_label} · référence ${frenchDate(s.reference_at)} · périmètre des profils championnat.`);
+  }
+  lines.push("", `👇 Votre pronostic : ${s.teamA.name} ou ${s.teamB.name} ?`, "",
+    "📲 Équipes, résultats et statistiques sur https://974darts.re",
+    "Visuel créé avec le Studio Match Day 974Darts · NDX Performance Lab", "",
+    "#974Darts #Flechettes974 #DartsReunion #MatchDay #NDXPerformanceLab");
+  return lines.join("\n");
 }
 export function caption(s: MatchSnapshot, detailed = false) {
   const m = s.match;

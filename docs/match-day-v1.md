@@ -24,6 +24,8 @@ Une signature du calendrier brut est conservée séparément des UUID dérivés.
 
 ## Période statistique
 
+À l’étape **4 — Texte**, **Générer une publication avec les stats** crée une légende éditable à partir du match et du même adaptateur/KPI que l’affiche. Elle reprend la date absolue, l’heure de Réunion, les équipes, le lieu, la période et la référence statistique. Jusqu’à deux joueurs disposant de KPI par équipe sont cités : les joueurs marqués « Mise en avant » sont prioritaires, puis ceux disposant du plus de KPI choisis et de la moyenne la plus élevée si ce KPI est sélectionné. Le texte conserve la distinction effectif/composition confirmée, les zéros et les données manquantes, ainsi que le masquage historique. Il ne déduit ni report, ni premier match, ni favori. Cette génération locale remplace la légende actuelle uniquement sur clic ; une modification invalide l’approbation comme toute autre édition. Aucun service IA externe ni publication automatique supplémentaire.
+
 Affiliation et statistiques ont deux sélecteurs. La V1 expose les saisons du catalogue, avec le périmètre des profils championnat, incluant les simples/doubles selon les sources existantes. Ni BDC ni autres tournois ne sont fusionnés. Les zéros et les absences restent distincts grâce à l’adaptateur partagé. La période et l’heure de référence sont présentes dans l’Admin et sur le visuel.
 
 Le moteur n’a pas d’API de reconstruction historique exacte à un instant passé. Si la référence est postérieure au début indiqué du match, le rendu masque tous les chiffres et explique cette limite. Pour une heure inconnue, le début conservateur est minuit local. Aucune reprise automatique de la saison précédente. Pas de moyenne d’équipe ou de probabilité de victoire ajoutée.

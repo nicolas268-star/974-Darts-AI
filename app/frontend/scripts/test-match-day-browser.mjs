@@ -44,9 +44,14 @@ try{
   await page.getByRole('button',{name:'Réinitialiser les thèmes des équipes',exact:true}).click();await page.getByLabel('Format',{exact:true}).selectOption('publication');await ready();
  });
  await test('real save reload approval and exact durable PNG',async()=>{
-  await step('Texte');await page.getByRole('button',{name:'Courte et percutante',exact:true}).click();await ready();await saved();
+  await step('Texte');await page.getByRole('button',{name:'Générer une publication avec les stats',exact:true}).click();await ready();
+  const legend=page.getByLabel('Légende Facebook'),generated=await legend.inputValue();
+  assert.match(generated,/Moyenne 3 fléchettes/);assert.match(generated,/47,14/);assert.match(generated,/présence non confirmée/);assert.match(generated,/2 janv\. 2030/);assert.match(generated,/20h00/);
+  const edited=generated+'\nNote ajoutée par l’Admin.';await legend.fill(edited);await ready();await saved();
   await page.reload();await ready();await page.getByRole('button',{name:'Historique',exact:true}).click();await page.getByRole('button',{name:'Réouvrir le brouillon',exact:true}).first().click();await ready();const png=await exported('approved.png',1350);
+  await step('Texte');assert.equal(await legend.inputValue(),edited);
   await step('Validation et diffusion');await page.getByRole('button',{name:'Valider ce PNG et ce texte',exact:true}).click();await page.getByRole('status').filter({hasText:'PNG exact'}).waitFor();assert.equal(await page.getByRole('button',{name:'Programmer la publication',exact:true}).isDisabled(),true);
+  await step('Texte');await page.getByRole('button',{name:'Générer une publication avec les stats',exact:true}).click();await ready();assert.equal(await legend.inputValue(),generated);await step('Validation et diffusion');assert.ok(await page.getByText('Brouillon à enregistrer et à valider',{exact:true}).count());
   await page.getByRole('button',{name:'Historique',exact:true}).click();const link=page.getByRole('link',{name:/PNG validé/}).first();const r=await page.request.get(base+await link.getAttribute('href'));assert.deepEqual(await r.body(),png);assert.match(r.headers()['cache-control'],/private.*no-store/);
   await page.getByRole('button',{name:'Réouvrir le brouillon',exact:true}).first().click();await ready();await step('Thèmes et design');await page.getByRole('group',{name:'Thème A',exact:true}).getByRole('button',{name:'Kaz A Darts A',exact:true}).click();await ready();await step('Validation et diffusion');assert.ok(await page.getByText('Brouillon à enregistrer et à valider',{exact:true}).count());
  });
