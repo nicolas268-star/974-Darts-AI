@@ -70,6 +70,7 @@ try{
   await step('Statistiques d’équipe');
   for(const label of ['Rencontres jouées','Victoires','Taux de victoires'])await page.getByRole('checkbox',{name:label,exact:true}).check();await ready();
   assert.equal(await page.getByRole('checkbox',{name:'Différence de sets',exact:true}).isDisabled(),true);
+  await page.waitForFunction(()=>window.__matchTexts.get(document.querySelector('img[alt^="Match Day"]').src)?.includes('100,0 %'));
   assert.ok((await texts()).includes('100,0 %'));
   await page.setViewportSize({width:390,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true);await page.screenshot({path:resolve(out,'teams-studio-mobile.png'),fullPage:true});await page.setViewportSize({width:1480,height:1080});
   await step('Texte');await page.getByRole('button',{name:'Générer une publication avec les stats',exact:true}).click();await ready();

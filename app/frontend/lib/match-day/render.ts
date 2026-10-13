@@ -85,7 +85,7 @@ export async function renderMatchDay(s: MatchSnapshot): Promise<{ blob: Blob; ur
         c.beginPath(); c.roundRect(left, y, cellWidth, cellHeight, 16); c.fill(); c.stroke(); c.restore();
         const definition = TEAM_METRICS.find(metric => metric.id === id)!;
         const labelHeight = text(definition.cardLabel, left + 18, y + 18, cellWidth - 36, 16, "#b8c8dd", "left", "700");
-        const valueSize = columns === 1 ? 62 : 44, valueY = y + 18 + labelHeight + 16;
+        const valueSize = columns === 1 ? 62 : 40, valueY = y + 18 + labelHeight + 16;
         const valueHeight = text(teamMetricValue(side, id, historicalUnavailable(s)), left + 18, valueY, cellWidth - 36, valueSize, t.accent, "left", "900");
         if (valueY + valueHeight > y + cellHeight - 12) throw new Error("Valeur KPI trop longue pour cette composition. Réduisez le nombre de KPI ou choisissez Story.");
       }
