@@ -16,6 +16,7 @@ function load(path) {
   return mod.exports;
 }
 const m = load("lib/match-day/model"), t = load("lib/player-card/themes"), metrics = load("lib/player-card/metrics"), source = fixture();
+const tm = load("lib/match-day/team-metrics");
 let count = 0;
 function test(label, fn) { fn(); count++; console.log("PASS Match Day: " + label); }
 test("manual and stable calendar occurrence, no confirmed presence inferred", () => {
@@ -85,6 +86,25 @@ test("Papangue channel follows team identity on either side, never a chosen them
     s.teamB.id = id; s.teamB.theme = "brune";
     assert.equal(m.papangueChannel(s), m.PAPANGUE_CHANNEL_URL); assert.equal(m.papangueChannel(m.invert(s)), m.PAPANGUE_CHANNEL_URL);
   }
+});
+test("team-only text uses collective source values, no player names, independent of selection", () => {
+  const s = structuredClone(m.createSnapshot(fixture(), ...fixture().teams)); s.content_mode = "teams";
+  s.team_metrics = ["rank", "average", "points", "played", "wins", "winRate"];
+  const c = m.publicationCaption(s);
+  assert.match(c, /Classement : #1/); assert.match(c, /45,14/); assert.match(c, /Points au classement : 4/); assert.match(c, /100,0 %/);
+  assert.doesNotMatch(c, /Nico|Christophe|Fabien|présence non confirmée/);
+  assert.match(c, /youtube/);
+  s.teamA.players=[];s.teamB.players=[];assert.equal(m.publicationCaption(s),c);
+  assert.match(m.caption(s,true),/Classement : #1/);assert.doesNotMatch(m.caption(s,true),/Nico|Christophe/);
+  s.match.date="2020-01-01";assert.doesNotMatch(m.publicationCaption(s),/45,14|#1|Points au classement : 4/);assert.match(m.caption(s,true),/Classement : —/);
+  delete s.content_mode; delete s.team_metrics; assert.deepEqual(tm.teamMetricSelection(s),["rank","average","points"]);
+});
+test("team KPI distinguish missing values, genuine zero, negative set difference and partial legs", () => {
+  const s=m.createSnapshot(fixture(),...fixture().teams),side=s.teamB;
+  assert.equal(tm.teamMetricValue(side,"setDifference"),"-4"); assert.equal(tm.teamMetricValue(side,"wins"),"0"); assert.equal(tm.teamMetricValue(side,"winRate"),"0,0 %");
+  side.team_stats={...side.team_stats,rank:null,average_3_darts:null,average_players:0,win_rate:null,detail_complete:false};
+  assert.equal(tm.teamMetricValue(side,"rank"),"—");assert.equal(tm.teamMetricValue(side,"average"),"—");assert.equal(tm.teamMetricValue(side,"winRate"),"—");assert.equal(tm.teamMetricValue(side,"legsWon"),"—");assert.equal(tm.teamMetricValue(side,"points",true),"—");
+  side.team_stats.average_3_darts=0;side.team_stats.average_players=1;assert.equal(tm.teamMetricValue(side,"average"),"0,00");
 });
 console.log(`${count} Match Day test groups passed.`);
 

@@ -56,6 +56,7 @@ class Side(Strict):
     composition_confirmed: bool=False
     roster_complete: bool=False
     players: list[Player]=Field(max_length=8)
+    team_stats: dict|None=None
 
 
 class Match(Strict):
@@ -78,6 +79,8 @@ class Snapshot(Strict):
     teamA: Side
     teamB: Side
     metrics: list[Literal['average','finish','winRate','won','played','first9','averageFinish','scores100','scores140','scores180','scores170','scores80','noScore']]=Field(min_length=1,max_length=3)
+    content_mode: Literal['players','teams']='players'
+    team_metrics: list[Literal['rank','average','points','played','wins','draws','losses','winRate','setsWon','setsLost','setDifference','legsWon','legsLost']]=Field(default_factory=lambda:['rank','average','points'],min_length=1,max_length=6)
     format: Literal['publication','story']='publication'
     mode: Literal['duel','premium']='duel'
     caption: str=Field(default='',max_length=5000)
@@ -126,6 +129,10 @@ def validate_snapshot(store,s):
         original=teams.get(selected['id'])
         if not original or any(selected[k]!=original[k] for k in ('name','club','roster_complete')):
             raise ValueError('Identité d’équipe incompatible avec la saison.')
+        if selected.get('team_stats') != original.get('team_stats'):
+            raise ValueError('Statistiques d’équipe non conformes à la source.')
+        if s.get('content_mode', 'players') == 'teams' and not original.get('team_stats'):
+            raise ValueError('Actualisez les statistiques pour charger les KPI d’équipe de cet ancien brouillon.')
         players={p['id']:p for p in original['players'] if p['id']}
         if sum(p['captain'] for p in selected['players'])>1: raise ValueError('Un seul capitaine par équipe.')
         for p in selected['players']:
@@ -135,6 +142,8 @@ def validate_snapshot(store,s):
             ids.append(p['id'])
     if len(ids)!=len(set(ids)): raise ValueError('Joueur sélectionné plusieurs fois.')
     if len(set(s['metrics']))!=len(s['metrics']): raise ValueError('KPI dupliqués.')
+    team_metrics=s.get('team_metrics',['rank','average','points'])
+    if len(set(team_metrics))!=len(team_metrics): raise ValueError('KPI d’équipe dupliqués.')
     if s.get('event'):
         event=next((e for e in source['events'] if e['id']==s['event'].get('id')),None)
         if event!=s['event']: raise ValueError('Rencontre incompatible avec la source.')
@@ -200,7 +209,7 @@ def approve(payload: Approval,actor=Depends(admin)):
         s=d['snapshot'];validate_snapshot(store,s)
         if s['mode']=='duel' and (not s['teamA']['theme'] or not s['teamB']['theme']):
             raise ValueError('Choisissez les deux thèmes.')
-        if not s['teamA']['players'] or not s['teamB']['players']: raise ValueError('Sélectionnez au moins un joueur de chaque côté.')
+        if s.get('content_mode','players') == 'players' and (not s['teamA']['players'] or not s['teamB']['players']): raise ValueError('Sélectionnez au moins un joueur de chaque côté.')
         check_event(s);check_visibility(db(),s)
         return store.approve(payload.id,payload.revision,s,payload.png,actor)
     return business(operation)

@@ -6,9 +6,14 @@ expected_commit=${1:?Usage: deploy-match-day.sh RELEASE_SHA PREVIOUS_SHA}
 previous_commit=${2:?Previous production checkout commit required}
 [[ "$expected_commit" =~ ^[0-9a-f]{40}$ && "$previous_commit" =~ ^[0-9a-f]{40}$ ]] || { echo 'Invalid commit identifiers.' >&2; exit 1; }
 [[ "$EUID" -eq 0 ]] || { echo 'Run this script with sudo.' >&2; exit 1; }
-git_repo() { git -c safe.directory="$PWD" "$@"; }
+git_repo() { git --no-optional-locks -c safe.directory="$PWD" "$@"; }
 [[ "$(git_repo rev-parse HEAD)" == "$expected_commit" ]] || { echo 'Checkout does not match the verified release.' >&2; exit 1; }
-[[ -z "$(git_repo status --porcelain)" ]] || { echo 'Checkout has local modifications; deployment stopped.' >&2; exit 1; }
+checkout_changes=$(git_repo status --porcelain -- . ':!deploy/Caddyfile' ':!deploy/Caddyfile.before-preview.e5lNZy')
+[[ -z "$checkout_changes" ]] || { echo 'Checkout has local modifications; deployment stopped.' >&2; exit 1; }
+git_repo diff --cached --quiet
+# The production Caddy override enables the existing private preview host.
+# Keep it only when this release leaves the tracked Caddyfile unchanged.
+git_repo diff --quiet "$previous_commit" "$expected_commit" -- deploy/Caddyfile
 git_repo merge-base --is-ancestor "$previous_commit" "$expected_commit"
 production_env=/etc/974darts/production.env
 production_data=/var/lib/974darts/backend-data
@@ -38,6 +43,8 @@ rollback_on_error() {
 trap rollback_on_error ERR
 install -d -m 700 "$backup_dir"
 cp -p "$production_env" "$backup_dir/production.env"
+cp -p deploy/Caddyfile "$backup_dir/Caddyfile.production"
+if [[ -f deploy/Caddyfile.before-preview.e5lNZy ]]; then cp -p deploy/Caddyfile.before-preview.e5lNZy "$backup_dir/"; fi
 printf '%s\n' "$previous_commit" > "$backup_dir/previous-commit.txt"
 printf '%s\n' "$expected_commit" > "$backup_dir/release-commit.txt"
 # Prevent any existing worker from dispatching while deploying. No new Meta authorization.
@@ -102,6 +109,7 @@ for path in ('source?season=2027&stats_season=2027','history','status'):
         data=json.load(response)
     if path.startswith('source'):
         assert len(data['teams'])>=2,'Verified season rosters unavailable'
+        assert all(isinstance(team.get('team_stats'),dict) for team in data['teams']),'Team KPI adapter not deployed'
         print('Match Day: verified teams',len(data['teams']),'calendar encounters',len(data['events']))
     if path=='status':assert data['facebook_enabled'] is False
 req=urllib.request.Request(base+'history')

@@ -62,6 +62,27 @@ try{
  await test('explicit photo persistence and KPI change',async()=>{
   await step('Joueurs et statistiques');await page.getByLabel('Photo pour cette affiche uniquement').first().setInputFiles(resolve(out,'duel-publication.png'));await ready();await page.getByRole('checkbox',{name:'Meilleur finish',exact:true}).uncheck();await page.getByRole('checkbox',{name:'First 9',exact:true}).check();await ready();assert.ok((await texts()).includes('FIRST 9'));await saved();const h=await(await page.request.get(base+'/api/admin/match-day/history')).json();assert.ok(h.drafts[0].snapshot.teamA.players[0].photo.startsWith('data:image/png'));
  });
+ await test('team-only KPI without players, six choices, durable approval and both formats',async()=>{
+  await page.getByLabel('Contenu de l’affiche',{exact:true}).selectOption('teams');await ready();
+  const initial=await texts();assert.ok(initial.includes('CLASSEMENT')&&initial.includes('45,14')&&initial.includes('#1'));
+  assert.ok(!initial.includes('Nico')&&!initial.includes('Nico Neige')&&!initial.includes('Fabien'));
+  await exported('teams-default.png',1350);
+  await step('Statistiques d’équipe');
+  for(const label of ['Rencontres jouées','Victoires','Taux de victoires'])await page.getByRole('checkbox',{name:label,exact:true}).check();await ready();
+  assert.equal(await page.getByRole('checkbox',{name:'Différence de sets',exact:true}).isDisabled(),true);
+  assert.ok((await texts()).includes('100,0 %'));
+  await page.setViewportSize({width:390,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true);await page.screenshot({path:resolve(out,'teams-studio-mobile.png'),fullPage:true});await page.setViewportSize({width:1480,height:1080});
+  await step('Texte');await page.getByRole('button',{name:'Générer une publication avec les stats',exact:true}).click();await ready();
+  const legend=await page.getByLabel('Légende Facebook').inputValue();assert.match(legend,/Classement : #1/);assert.match(legend,/Moyenne d’équipe/);assert.doesNotMatch(legend,/Nico|Christophe|Fabien/);await saved();
+  await page.reload();await ready();await page.getByRole('button',{name:'Historique',exact:true}).click();await page.getByRole('button',{name:'Réouvrir le brouillon',exact:true}).first().click();await ready();
+  assert.equal(await page.getByLabel('Contenu de l’affiche',{exact:true}).inputValue(),'teams');const png=await exported('teams-publication.png',1350);
+  await step('Validation et diffusion');await page.getByRole('button',{name:'Valider ce PNG et ce texte',exact:true}).click();await page.getByRole('status').filter({hasText:'PNG exact'}).waitFor();
+  const h=await(await page.request.get(base+'/api/admin/match-day/history')).json();assert.equal(h.drafts[0].snapshot.content_mode,'teams');assert.equal(h.drafts[0].snapshot.team_metrics.length,6);
+  const version=h.versions.find(v=>v.draft_id===h.drafts[0].id&&v.revision===h.drafts[0].revision);assert.deepEqual(await(await page.request.get(base+'/api/admin/match-day/versions/'+version.id+'/image')).body(),png);
+  await step('Thèmes et design');await page.getByLabel('Format',{exact:true}).selectOption('story');await ready();await exported('teams-story.png',1920);
+  await step('Rencontre');const originalDate=await page.getByLabel('Date',{exact:true}).inputValue();await page.getByLabel('Date',{exact:true}).fill('2020-01-01');await ready();assert.ok(!(await texts()).includes('45,14')&&!(await texts()).includes('#1'));await page.getByLabel('Date',{exact:true}).fill(originalDate);await ready();
+  await step('Thèmes et design');await page.getByLabel('Format',{exact:true}).selectOption('publication');await page.getByLabel('Contenu de l’affiche',{exact:true}).selectOption('players');await ready();assert.ok((await texts()).includes('FIRST 9')&&(await texts()).includes('Nico'));
+ });
  await test('mobile viewport, historical masking and truthful Meta block',async()=>{
   await page.setViewportSize({width:390,height:844});await step('Thèmes et design');await page.getByRole('button',{name:'Aperçu',exact:true}).click();await ready();await page.screenshot({path:resolve(out,'studio-mobile.png'),fullPage:true});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true);
   await step('Rencontre');await page.getByLabel('Date',{exact:true}).fill('2020-01-01');await page.getByRole('button',{name:'Aperçu',exact:true}).click();await ready();const t=await texts();assert.ok(t.includes('Historique exact indisponible à cette date · chiffres masqués'));assert.ok(!t.includes('43,14'));await exported('historical-masked.png',1350);
@@ -92,6 +113,11 @@ try{
   assert.ok(!(await texts()).includes('https://www.youtube.com/@PapangueDartsClub'));
   await step('Texte');await page.getByRole('button',{name:'Générer une publication avec les stats',exact:true}).click();await ready();assert.doesNotMatch(await page.getByLabel('Légende Facebook').inputValue(),/youtube/);
   await page.unroute('**/api/admin/match-day/source?season=*');
+ });
+ await test('team archive with no source data never borrows current ranking or average',async()=>{
+  await page.getByLabel('Période statistique',{exact:true}).selectOption('2028');await page.getByRole('button',{name:'Nouvelle affiche / charger la saison',exact:true}).click();await ready();
+  await page.getByLabel('Contenu de l’affiche',{exact:true}).selectOption('teams');await ready();const t=await texts();assert.ok(!t.includes('45,14')&&!t.includes('#1'));assert.equal(t.filter(value=>value==='—').length,6);
+  await exported('teams-no-data.png',1350);
  });
  assert.deepEqual(errors,[]);writeFileSync(resolve(out,'results.json'),JSON.stringify({results,errors},null,2));
 }catch(e){console.error(log.slice(-6000));throw e}finally{await browser.close();next.kill();api.kill()}
