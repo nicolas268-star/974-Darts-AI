@@ -7,6 +7,8 @@ import unicodedata
 
 from .ranking_service import _all
 from .visibility_service import SummaryUnavailable
+from .interclub_adjustments import (BENOIT, GUEST_IDENTITY, GUEST_NOTE, apply_result_correction,
+                                   corrected_facts, guest_roster)
 
 ROSTERS = json.loads(Path(__file__).with_name("interclub_rosters_2027.json").read_text())
 CLUBS = {"kaz": "KAD", "pdc": "PDC", "tdc": "TDC", "3bdc": "3BDC"}
@@ -63,6 +65,9 @@ def resolve_payload(details, licensed, identities, aliases):
     canonical = {}
     for player in payload["players"]:
         roster = rosters[player["team_id"]]
+        usual = guest_roster(payload, player, roster)
+        if usual:
+            roster = next(r for r in ROSTERS if r["id"] == usual)
         candidates = {}
         for member in roster["players"]:
             rows = official.get(name_key(member["officialName"]), [])
@@ -80,14 +85,18 @@ def resolve_payload(details, licensed, identities, aliases):
         if len(candidates) != 1:
             raise SummaryUnavailable(f"Identité ou équipe à vérifier pour {player['source_name']}.")
         player_id, identity = next(iter(candidates.items()))
+        if usual and (player_id != BENOIT or identity["id"] != GUEST_IDENTITY):
+            raise SummaryUnavailable("L’identité du renfort exceptionnel J2 a changé.")
         if player_id in canonical.values():
             raise SummaryUnavailable("Un joueur apparaît sous plusieurs identifiants Nakka.")
         canonical[player["source_id"]] = player_id
         # A source opid is an audit hint only (Yoann/Yvan share a wrong opid on J1).
         player.update(id=player_id, identity_id=identity["id"], name=identity["canonical_display_name"])
+        if usual:
+            player["participation_exception"] = {"usual_team": roster["name"], "note": GUEST_NOTE}
     for row in payload["stats"]:
         row["player_id"] = canonical[row["player_id"]]
-    return payload
+    return apply_result_correction(payload)
 
 
 def publish_collected(collected, *, db=None):
@@ -111,4 +120,6 @@ def publish_collected(collected, *, db=None):
         raise
     if not isinstance(result, dict) or result.get("status") not in ("PUBLISHED", "UNCHANGED"):
         raise SummaryUnavailable("La publication n’a pas été confirmée. Nouvelle tentative automatique.")
+    if payload.get("result_corrections"):
+        collected["facts"] = corrected_facts(payload, collected["facts"])
     return result

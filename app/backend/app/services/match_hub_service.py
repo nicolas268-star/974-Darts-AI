@@ -779,6 +779,16 @@ def build_match_hub(db: Client, result_id: str) -> dict | None:
     if result.get("quality_note"):
         payload["data_quality_notes"].append(result["quality_note"])
 
+    audit = _optional_all(db, "interclub_auto_publications", "payload", [("result_id", result_id)]) or []
+    for publication in audit:
+        details = publication.get("payload") or {}
+        for player in details.get("players", []):
+            exception = player.get("participation_exception")
+            if exception:
+                payload["data_quality_notes"].append(f"{player['name']} : {exception['note']}.")
+        for correction in details.get("result_corrections", []):
+            payload["data_quality_notes"].append(f"Simple 16 : Benoit BRUNET 0–2 Christophe FERNANDEZ. {correction['reason']}. Les données de lancer Nakka sont conservées sous leurs identités d’origine.")
+
     if result.get("detail_status") == "COLLECTIVE_ONLY":
         payload["data_quality_notes"].append(
             (

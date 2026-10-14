@@ -10,6 +10,7 @@ from supabase import Client
 
 from .control_catalog import canonical_team_name, normalize_team_name
 from .ranking_service import _all
+from .interclub_adjustments import usual_team_for_encounter
 
 NAKKA_DATA_NOTE = (
     "Les valeurs de finish sont des totaux de volée Nakka. "
@@ -359,7 +360,7 @@ class PlayerStatisticsDataset:
             clubs=_safe_all(db, "clubs", "id,name"),
             seasons=_safe_all(db, "seasons", "id,name,is_active"),
             rounds=_safe_all(db, "rounds", "id,season_id,code,played_on,published"),
-            encounters=_safe_all(db, "encounters", "id,round_id,name,home_team_id,away_team_id"),
+            encounters=_safe_all(db, "encounters", "id,round_id,natural_key,name,home_team_id,away_team_id"),
             matches=_safe_all(db, "matches", "id,encounter_id,match_number,nakka_match_number,mode,team_1_id,team_2_id,winner_team_id"),
             legs=_safe_all(db, "legs", "id,match_id,leg_number,winner_team_id,status"),
             stats=_safe_all(db, "player_leg_stats", "id,leg_id,player_id,team_id,score,darts_thrown,average_3_darts,first_9,finish,scores_180,scores_170,scores_140,scores_100,scores_80,no_score,leg_won"),
@@ -416,6 +417,14 @@ class PlayerStatisticsEngine:
                 continue
             match = self.match_by_id.get(str(leg.get("match_id")), {})
             encounter = self.encounter_by_id.get(str(match.get("encounter_id")), {})
+            usual = usual_team_for_encounter(encounter, self._canonical_id(str(row.get("player_id"))))
+            if usual:
+                team = next((t for t in dataset.teams if t.get("name") == usual), None)
+                if team is None:
+                    continue
+                # This changes only affiliation inference. Statistics still
+                # represent Ambrée for this encounter, under the real identity.
+                row = {**row, "team_id": team["id"]}
             affiliation_rows.append((row, encounter.get("round_id")))
         affiliation_rows.extend((row, row.get("round_id")) for row in dataset.daily_stats)
         for row, round_id in affiliation_rows:
