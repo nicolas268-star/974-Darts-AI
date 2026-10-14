@@ -235,6 +235,9 @@ def source_facts(event, season, result_id, data, sets, player_totals, team_total
         evening["source_reconciliation"] = reconciliation
     if with_details:
         return {"facts": evening, "publication": {
+            # Keep the complete upstream snapshot for this organiser correction.
+            **({"raw_nakka": {"data": data, "sets": sets, "players": player_totals, "teams": team_totals}}
+               if data["tdid"] == "t_uAfU_5679" else {}),
             **({"source_reconciliation": reconciliation} if reconciliation else {}),
             "version": 1, "event_id": data["tdid"], "source_url": event["source_url"],
             "season": season["key"], "league_id": data["lgid"], "round": code[1].upper(),
