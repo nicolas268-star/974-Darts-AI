@@ -1,3 +1,5 @@
+import type { Scoring120139 } from "@/lib/player/scoring-ranges";
+
 export type CompetitionSummary = {
   source_rows?: number;
   rounds?: number;
@@ -215,7 +217,7 @@ export type TournamentStage = {
   matches: TournamentMatch[];
 };
 
-export type TournamentParticipant = {
+export type TournamentParticipant = Scoring120139 & {
   name: string;
   canonical_player_id?: string | null;
   nakka_participant_id?: string | null;

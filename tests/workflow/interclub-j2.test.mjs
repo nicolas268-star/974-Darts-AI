@@ -7,7 +7,14 @@ import assert from 'node:assert/strict';
 
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'../..');
 const read=p=>readFileSync(resolve(root,p),'utf8');
-const load=(module,flag=module==='tests.test_interclub_j2_correction'?'--fixture-result-only':'--fixture')=>JSON.parse(execFileSync('python3',['-m',module,flag],{cwd:resolve(root,'app/backend'),encoding:'utf8'}));
+const load=(module,flag=module==='tests.test_interclub_j2_correction'?'--fixture-result-only':'--fixture')=>{
+ const fixture=JSON.parse(execFileSync('python3',['-m',module,flag],{cwd:resolve(root,'app/backend'),encoding:'utf8'}));
+ // This suite replays the historical publisher before the scoring-range
+ // migration. Its stored audit must retain the original payload shape.
+ for(const payload of [fixture.payload,fixture.payload.source_snapshot].filter(Boolean))
+  for(const row of payload.stats) delete row.scores_120_139;
+ return fixture;
+};
 const fixture=load('tests.test_interclub_j2_correction'), p=fixture.payload;
 const db=new PGlite();
 const q=async(sql,args=[])=>(await db.query(sql,args)).rows;

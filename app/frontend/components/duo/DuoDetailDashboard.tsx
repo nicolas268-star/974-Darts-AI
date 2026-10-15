@@ -1,5 +1,6 @@
 "use client";
 
+import { ScoringRangeNote } from "@/components/stats/ScoringRangeValue";
 import { StatsTable } from "@/components/stats/StatsTable";
 
 import Link from "next/link";
@@ -66,6 +67,7 @@ export function DuoDetailDashboard({ data }: { data: DuoDashboardResponse }) {
   const scoringData = [
     { label: "80+", value: duo.scores_80_plus },
     { label: "100+", value: duo.scores_100_plus },
+    { label: "120–139", value: duo.scores_120_139 ?? null },
     { label: "140+", value: duo.scores_140_plus },
     { label: "170+", value: duo.scores_170_plus },
     { label: "180", value: duo.scores_180 },
@@ -281,12 +283,13 @@ export function DuoDetailDashboard({ data }: { data: DuoDashboardResponse }) {
       </article>
 
       <article className="card duo-panel"><div className="section-heading"><div><span className="badge">Scoring</span><h3>Volumes collectifs</h3></div></div><div className="duo-chart-frame"><ResponsiveContainer width="100%" height="100%"><BarChart data={scoringData}><CartesianGrid strokeDasharray="3 3" opacity={0.15}/><XAxis dataKey="label"/><YAxis allowDecimals={false}/><Tooltip/><Bar dataKey="value" name="Occurrences" radius={[8,8,0,0]}/></BarChart></ResponsiveContainer></div>
+        <ScoringRangeNote data={duo} />
         <div className="duo-score-heatmap" aria-label="Intensité des volumes de scoring">
           {scoringData.map(item => {
-            const maximum = Math.max(1, ...scoringData.map(score => score.value));
-            const intensity = Math.max(0.16, item.value / maximum);
+            const maximum = Math.max(1, ...scoringData.map(score => score.value ?? 0));
+            const intensity = Math.max(0.16, (item.value ?? 0) / maximum);
             return <div key={item.label} style={{ ["--heat" as string]: intensity }}>
-              <span>{item.label}</span><strong>{item.value}</strong>
+              <span>{item.label}</span><strong>{item.value ?? "—"}</strong>
             </div>;
           })}
         </div>

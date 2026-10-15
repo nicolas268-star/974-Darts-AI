@@ -1,3 +1,5 @@
+import type { Scoring120139 } from "@/lib/player/scoring-ranges";
+
 export type Standing = {
   rank: number;
   team_id: string;
@@ -46,7 +48,7 @@ export type RankingPayload = {
   ranking_source: "CALENDRIER_SCORE" | "PVP_FALLBACK" | "NONE";
 };
 
-export type PlayerOverview = {
+export type PlayerOverview = Scoring120139 & {
   player_id: string;
   name: string;
   team: string;

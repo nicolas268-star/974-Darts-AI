@@ -1,3 +1,4 @@
+import { ScoringRangeValue } from "@/components/stats/ScoringRangeValue";
 import { StatsTable } from "@/components/stats/StatsTable";
 import Link from "next/link";
 import { Activity, BookOpen, ShieldCheck, Users } from "lucide-react";
@@ -73,7 +74,7 @@ export default async function PlayersPage({ searchParams }: { searchParams: Prom
         <section className="players-table-panel">
           <div className="players-table-heading">
             <div><span>SAISON OFFICIELLE</span><h2>Classement des performances — Saison {selectedSeason}</h2>{selectedTeam && <p className="players-selected-team">{selectedTeam}</p>}</div>
-            <p>Comparez les moyennes, les legs gagnés et les meilleures performances de chaque joueur.</p>
+            <p>Comparez les moyennes, les legs gagnés et les meilleures performances de chaque joueur. 120–139 est inclus dans 100+ ; « — » indique une couverture incomplète.</p>
           </div>
           <p className="table-scroll-hint">Faites glisser le tableau horizontalement pour consulter tous les indicateurs.</p><div className="players-table-scroll" tabIndex={0} role="region" aria-label="Statistiques des joueurs">
             <StatsTable className="players-table">
@@ -88,8 +89,9 @@ export default async function PlayersPage({ searchParams }: { searchParams: Prom
                 <col className="players-col-stat" />
                 <col className="players-col-stat" />
                 <col className="players-col-stat" />
+                <col className="players-col-stat" />
               </colgroup>
-              <thead><tr><th scope="col">Joueur</th><th scope="col">Équipe</th><th scope="col">Legs G/J</th><th scope="col">Moy. 3 fl.</th><th scope="col">First 9</th><th scope="col">Meilleur finish</th><th scope="col">180</th><th scope="col">140+</th><th scope="col">100+</th><th scope="col">ELO</th></tr></thead>
+              <thead><tr><th scope="col">Joueur</th><th scope="col">Équipe</th><th scope="col">Legs G/J</th><th scope="col">Moy. 3 fl.</th><th scope="col">First 9</th><th scope="col">Meilleur finish</th><th scope="col">100+</th><th scope="col">120–139</th><th scope="col">140+</th><th scope="col">180</th><th scope="col">ELO</th></tr></thead>
               <tbody>
                 {rankedPlayers.length ? rankedPlayers.map((player) => (
                   <tr key={player.player_id}>
@@ -99,10 +101,10 @@ export default async function PlayersPage({ searchParams }: { searchParams: Prom
                     <td>{number(player.average_3_darts)}</td>
                     <td>{number(player.first_9)}</td>
                     <td><strong className="players-finish">{player.best_finish ?? "—"}</strong></td>
-                    <td>{player.scores_180}</td><td>{player.scores_140}</td><td>{player.scores_100}</td><td>{player.elo ?? "—"}</td>
+                    <td>{player.scores_100}</td><td><ScoringRangeValue data={player} /></td><td>{player.scores_140}</td><td>{player.scores_180}</td><td>{player.elo ?? "—"}</td>
                   </tr>
                 )) : (
-                  <tr className="players-empty"><td colSpan={10}><strong>{selectedTeam ? `Aucune statistique publiée pour cette équipe en ${selectedSeason}` : `Aucune statistique publiée pour la saison ${selectedSeason}`}</strong><span>{selectedTeam && `${selectedTeam}. `}Les joueurs apparaîtront ici dès que les données officielles de la saison seront disponibles.</span></td></tr>
+                  <tr className="players-empty"><td colSpan={11}><strong>{selectedTeam ? `Aucune statistique publiée pour cette équipe en ${selectedSeason}` : `Aucune statistique publiée pour la saison ${selectedSeason}`}</strong><span>{selectedTeam && `${selectedTeam}. `}Les joueurs apparaîtront ici dès que les données officielles de la saison seront disponibles.</span></td></tr>
                 )}
               </tbody>
             </StatsTable>

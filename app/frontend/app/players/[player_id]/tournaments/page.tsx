@@ -1,3 +1,5 @@
+import { ScoringRangeValue } from "@/components/stats/ScoringRangeValue";
+import type { Scoring120139 } from "@/lib/player/scoring-ranges";
 import { StatsTable } from "@/components/stats/StatsTable";
 import Link from "next/link";
 import { ArrowLeft, Trophy } from "lucide-react";
@@ -8,7 +10,7 @@ import "../player-premium.css";
 type Participation = {
   code: string; name: string | null; event_name: string | null;
   date_label: string | null; season: string | null; href: string;
-  statistics: { name: string; team?: string; legs_played: number; legs_won: number; average_3_darts: number | null; best_finish: number | null; scores_180: number; scores_140: number; scores_100: number };
+  statistics: Scoring120139 & { name: string; team?: string; legs_played: number; legs_won: number; average_3_darts: number | null; best_finish: number | null; scores_180: number; scores_140: number; scores_100: number };
 };
 type Payload = { player: { player_id: string; name: string; team?: string }; participation_count: number; participations: Participation[] };
 
@@ -31,8 +33,8 @@ export default async function PlayerTournamentPage({ params }: { params: Promise
       <div className="competition-active-year"><Trophy size={22}/><strong>{data?.participation_count ?? 0}</strong><small>participation(s)</small></div>
     </header>
     {!data ? <div className="notice">Les performances en tournois sont momentanément indisponibles.</div> : data.participations.length === 0 ? <div className="notice">Aucune participation à un tournoi enregistrée pour ce joueur.</div> : <section className="hub-panel">
-      <div className="hub-table-scroll"><StatsTable className="hub-table" mobileTitleColumn={0}><thead><tr><th>Tournoi</th><th>Date</th><th>Équipe / duo</th><th>Legs G/J</th><th>Moy. 3 fl.</th><th>Finish</th><th>180</th><th>140+</th><th>100+</th></tr></thead><tbody>
-        {data.participations.map((item) => <tr key={item.code}><td><Link href={item.href}><strong>{item.event_name || item.name || item.code}</strong></Link></td><td>{item.date_label || "—"}</td><td>{item.statistics.team || "—"}</td><td>{item.statistics.legs_won}/{item.statistics.legs_played}</td><td>{decimal(item.statistics.average_3_darts)}</td><td>{item.statistics.best_finish ?? "—"}</td><td>{item.statistics.scores_180}</td><td>{item.statistics.scores_140}</td><td>{item.statistics.scores_100}</td></tr>)}
+      <div className="hub-table-scroll"><StatsTable className="hub-table" mobileTitleColumn={0}><thead><tr><th>Tournoi</th><th>Date</th><th>Équipe / duo</th><th>Legs G/J</th><th>Moy. 3 fl.</th><th>Finish</th><th>100+</th><th>120–139</th><th>140+</th><th>180</th></tr></thead><tbody>
+        {data.participations.map((item) => <tr key={item.code}><td><Link href={item.href}><strong>{item.event_name || item.name || item.code}</strong></Link></td><td>{item.date_label || "—"}</td><td>{item.statistics.team || "—"}</td><td>{item.statistics.legs_won}/{item.statistics.legs_played}</td><td>{decimal(item.statistics.average_3_darts)}</td><td>{item.statistics.best_finish ?? "—"}</td><td>{item.statistics.scores_100}</td><td><ScoringRangeValue data={item.statistics} /></td><td>{item.statistics.scores_140}</td><td>{item.statistics.scores_180}</td></tr>)}
       </tbody></StatsTable></div>
       <p className="nakka-rule">Ces données proviennent uniquement des tournois importés et validés. Elles restent séparées du championnat officiel et de l’ELO.</p>
     </section>}

@@ -1,3 +1,5 @@
+import type { Scoring120139 } from "@/lib/player/scoring-ranges";
+
 export type PlayerDashboard = {
   player: {
     id: string;
@@ -24,7 +26,7 @@ export type PlayerDashboard = {
     best_finish: number | null;
     average_finish: number | null;
   };
-  scoring: {
+  scoring: Scoring120139 & {
     scores_80_plus: number;
     scores_100_plus: number;
     scores_140_plus: number;
@@ -32,7 +34,7 @@ export type PlayerDashboard = {
     scores_180: number;
     no_score: number;
   };
-  trends: Array<{
+  trends: Array<Scoring120139 & {
     round_id: string;
     round: string;
     played_on: string | null;
@@ -47,7 +49,7 @@ export type PlayerDashboard = {
     scores_140_plus: number;
     scores_180: number;
   }>;
-  recent_matches: Array<{
+  recent_matches: Array<Scoring120139 & {
     match_id: string;
     round: string;
     played_on: string | null;

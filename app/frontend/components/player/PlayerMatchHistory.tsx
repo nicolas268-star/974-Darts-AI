@@ -1,5 +1,6 @@
 "use client";
 
+import { ScoringRangeValue } from "@/components/stats/ScoringRangeValue";
 import { StatsTable } from "@/components/stats/StatsTable";
 
 import { useMemo, useState } from "react";
@@ -32,16 +33,16 @@ export function PlayerMatchHistory({ matches }: { matches: Match[] }) {
       </div>
       <div className="table-scroll">
         <StatsTable className="table player-match-table">
-          <thead><tr><th>Journée</th><th>Adversaire</th><th>Mode</th><th>Legs</th><th>Résultat</th><th>Moyenne</th><th>Finish</th><th>100+</th><th>140+</th></tr></thead>
+          <thead><tr><th>Journée</th><th>Adversaire</th><th>Mode</th><th>Legs</th><th>Résultat</th><th>Moyenne</th><th>Finish</th><th>100+</th><th>120–139</th><th>140+</th></tr></thead>
           <tbody>
             {displayed.map((match) => (
               <tr key={match.match_id}>
                 <td><strong>{match.round}</strong></td><td>{match.opponent_names ?? match.opponent_team ?? match.encounter}</td><td><span className="match-mode">{match.mode ?? "—"}</span></td>
                 <td>{match.legs_won} / {match.legs_played}</td><td><span className={match.win_rate >= 50 ? "result-win" : "result-loss"}>{match.win_rate >= 50 ? "Victoire" : "Défaite"} · {number(match.win_rate, 1)}%</span></td>
-                <td>{number(match.average_3_darts)}</td><td>{match.best_finish ?? "—"}</td><td>{match.scores_100_plus}</td><td>{match.scores_140_plus}</td>
+                <td>{number(match.average_3_darts)}</td><td>{match.best_finish ?? "—"}</td><td>{match.scores_100_plus}</td><td><ScoringRangeValue data={match} /></td><td>{match.scores_140_plus}</td>
               </tr>
             ))}
-            {!displayed.length && <tr><td colSpan={9} className="empty-cell">Aucun match ne correspond aux filtres.</td></tr>}
+            {!displayed.length && <tr><td colSpan={10} className="empty-cell">Aucun match ne correspond aux filtres.</td></tr>}
           </tbody>
         </StatsTable>
       </div>

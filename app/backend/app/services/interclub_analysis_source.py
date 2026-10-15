@@ -8,6 +8,7 @@ from urllib.request import Request, urlopen
 
 from .nakka_direct_import import TOURNAMENT_API, TOURNAMENT_STATS_API, validate_direct_event_url
 from .visibility_service import SummaryUnavailable, build_facts
+from .scoring_ranges import is_120_139
 
 REUNION = timezone(timedelta(hours=4), "Indian/Reunion")
 ONLINE_API = "https://tk2-228-23746.vs.sakura.ne.jp/n01/tournament/n01_online_t.php"
@@ -171,6 +172,7 @@ def source_facts(event, season, result_id, data, sets, player_totals, team_total
                     row["score"] += score
                     row["darts"] += darts
                     row["scores_80"] += 80 <= score <= 99
+                    row["scores_120_139"] += is_120_139(score)
                     row["no_score"] += score == 0
                     if turn < 3:
                         row["f9Score"] += score
@@ -191,6 +193,7 @@ def source_facts(event, season, result_id, data, sets, player_totals, team_total
                                   "darts_thrown": row["darts"], "finish": row["highOut"], "scores_180": row["ton80"],
                                   "first_9_score": row["f9Score"], "first_9_darts": row["f9Darts"],
                                   "scores_170": row["ton70"], "scores_140": row["ton40"], "scores_100": row["ton00"],
+                                  "scores_120_139": row["scores_120_139"],
                                   "scores_80": row["scores_80"], "no_score": row["no_score"], "leg_won": side == winner})
         require(len(match["legData"]) in (2, 3) and max(winners.values()) == 2, "Score de match incomplet.")
         require(all(winners[i] == sides[i]["winLegs"] for i in (0, 1)), "Score et détail des legs divergents.")

@@ -14,6 +14,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { ScoringRangeNote } from "@/components/stats/ScoringRangeValue";
 import type { PlayerDashboard } from "@/lib/player/dashboard-types";
 import { seasonLabel } from "@/lib/season-label";
 
@@ -28,7 +29,7 @@ export function PlayerCharts({ data, championshipAverage }: { data: PlayerDashbo
   const best = validAverages.reduce<(typeof validAverages)[number] | null>((current, item) => !current || (item.moyenne ?? 0) > (current.moyenne ?? 0) ? item : current, null);
   const worst = validAverages.reduce<(typeof validAverages)[number] | null>((current, item) => !current || (item.moyenne ?? 0) < (current.moyenne ?? 0) ? item : current, null);
   const scoring = [
-    { label: "80+", value: data.scoring.scores_80_plus }, { label: "100+", value: data.scoring.scores_100_plus }, { label: "140+", value: data.scoring.scores_140_plus }, { label: "170+", value: data.scoring.scores_170_plus }, { label: "180", value: data.scoring.scores_180 },
+    { label: "80+", value: data.scoring.scores_80_plus }, { label: "100+", value: data.scoring.scores_100_plus }, { label: "120–139", value: data.scoring.scores_120_139 ?? null }, { label: "140+", value: data.scoring.scores_140_plus }, { label: "170+", value: data.scoring.scores_170_plus }, { label: "180", value: data.scoring.scores_180 },
   ];
 
   return <div className="player-chart-grid">
@@ -68,7 +69,7 @@ export function PlayerCharts({ data, championshipAverage }: { data: PlayerDashbo
     </section>
     <section className="card player-chart-card player-chart-wide">
       <div className="section-heading"><div><span className="eyebrow">Scoring</span><h3>Volumes de scores</h3></div><span className="chart-chip">{seasonLabel(data.season)}</span></div>
-      <div className="chart-frame chart-frame-short"><ResponsiveContainer width="100%" height="100%"><BarChart data={scoring} margin={{ top: 12, right: 12, left: -20, bottom: 0 }}><CartesianGrid stroke="rgba(255,255,255,.07)" vertical={false}/><XAxis dataKey="label" stroke="#9aa9bd" tickLine={false} axisLine={false}/><YAxis stroke="#9aa9bd" tickLine={false} axisLine={false} allowDecimals={false}/>
+      <div className="chart-frame chart-frame-short"><ResponsiveContainer width="100%" height="100%"><BarChart data={scoring} margin={{ top: 12, right: 12, left: -20, bottom: 0 }}><CartesianGrid stroke="rgba(255,255,255,.07)" vertical={false}/><XAxis dataKey="label" stroke="#9aa9bd" tickLine={false} axisLine={false} interval={0} tick={{ fontSize: 11 }}/><YAxis stroke="#9aa9bd" tickLine={false} axisLine={false} allowDecimals={false}/>
 <Tooltip
   contentStyle={{
     background: "#111c2e",
@@ -94,7 +95,7 @@ export function PlayerCharts({ data, championshipAverage }: { data: PlayerDashbo
   {scoring.map((entry, index) => (
     <Cell
       key={entry.label}
-      fill={["#8dc3ff", "#ff9a76", "#ffd073", "#c6a8ff", "#34d399"][index]}
+      fill={["#8dc3ff", "#ff9a76", "#38bdf8", "#ffd073", "#c6a8ff", "#34d399"][index]}
     />
   ))}
 
@@ -110,6 +111,7 @@ export function PlayerCharts({ data, championshipAverage }: { data: PlayerDashbo
 </BarChart>
 </ResponsiveContainer>
 </div>
+<ScoringRangeNote data={data.scoring} />
 </section>
 </div>;
 }

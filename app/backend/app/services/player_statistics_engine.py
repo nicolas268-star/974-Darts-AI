@@ -11,6 +11,7 @@ from supabase import Client
 from .control_catalog import canonical_team_name, normalize_team_name
 from .ranking_service import _all
 from .interclub_adjustments import usual_team_for_encounter
+from .scoring_ranges import load_scoring_rows, scoring_120_139
 
 NAKKA_DATA_NOTE = (
     "Les valeurs de finish sont des totaux de volée Nakka. "
@@ -363,7 +364,7 @@ class PlayerStatisticsDataset:
             encounters=_safe_all(db, "encounters", "id,round_id,natural_key,name,home_team_id,away_team_id"),
             matches=_safe_all(db, "matches", "id,encounter_id,match_number,nakka_match_number,mode,team_1_id,team_2_id,winner_team_id"),
             legs=_safe_all(db, "legs", "id,match_id,leg_number,winner_team_id,status"),
-            stats=_safe_all(db, "player_leg_stats", "id,leg_id,player_id,team_id,score,darts_thrown,average_3_darts,first_9,finish,scores_180,scores_170,scores_140,scores_100,scores_80,no_score,leg_won"),
+            stats=load_scoring_rows(db, "id,leg_id,player_id,team_id,score,darts_thrown,average_3_darts,first_9,finish,scores_180,scores_170,scores_140,scores_100,scores_80,no_score,leg_won"),
             daily_stats=_safe_all(db, "player_daily_stats", "id,player_id,round_id,team_id,legs_played,legs_won,average_3_darts,first_9,best_finish,elo_after"),
             profiles=_safe_all(db, "player_profiles", "id,player_id,season_id,legs_played,legs_won,average_3_darts,first_9,best_finish,elo"),
             identities=_safe_all(db, "player_identities", "id,canonical_player_id,status,merged_into_identity_id"),
@@ -676,8 +677,9 @@ class PlayerStatisticsEngine:
         }
 
     @staticmethod
-    def _scoring(rows: list[dict[str, Any]]) -> dict[str, int]:
+    def _scoring(rows: list[dict[str, Any]]) -> dict[str, Any]:
         return {
+            **scoring_120_139(rows),
             "scores_80_plus": sum(int(r.get("scores_80") or 0) for r in rows),
             "scores_100_plus": sum(int(r.get("scores_100") or 0) for r in rows),
             "scores_140_plus": sum(int(r.get("scores_140") or 0) for r in rows),
@@ -833,7 +835,7 @@ class PlayerStatisticsEngine:
                     "round": rr.get("code"),
                     "played_on": rr.get("played_on"),
                     **self._aggregate(group),
-                    **{k: v for k, v in self._scoring(group).items() if k in {"scores_100_plus", "scores_140_plus", "scores_180"}},
+                    **{k: v for k, v in self._scoring(group).items() if k in {"scores_100_plus", "scores_140_plus", "scores_180", "scores_120_139", "scores_120_139_observed", "scores_120_139_coverage"}},
                 })
         elif daily_rows:
             for row in daily_rows:
@@ -853,6 +855,7 @@ class PlayerStatisticsEngine:
                     "first_9": _numeric(row.get("first_9")),
                     "best_finish": row.get("best_finish"),
                     "average_finish": None,
+                    **scoring_120_139([]),
                     "scores_100_plus": None,
                     "scores_140_plus": None,
                     "scores_180": None,
@@ -917,7 +920,7 @@ class PlayerStatisticsEngine:
                     if opponent_player_names
                     else None,
                     **self._aggregate(group),
-                    **{k: v for k, v in self._scoring(group).items() if k in {"scores_100_plus", "scores_140_plus", "scores_180"}},
+                    **{k: v for k, v in self._scoring(group).items() if k in {"scores_100_plus", "scores_140_plus", "scores_180", "scores_120_139", "scores_120_139_observed", "scores_120_139_coverage"}},
                 })
             recent.sort(
                 key=lambda x: (x.get("played_on") or date.min.isoformat(), _round_number(x.get("round")), x.get("match_number") or 0),
@@ -1451,6 +1454,7 @@ class PlayerStatisticsEngine:
                 "scores_170": scoring["scores_170_plus"],
                 "scores_140": scoring["scores_140_plus"],
                 "scores_100": scoring["scores_100_plus"],
+                **scoring_120_139(rows),
                 "finishes": sum(1 for r in rows if r.get("finish") not in (None, 0)),
                 "nakka_note": NAKKA_DATA_NOTE,
                 "identity_members": len(member_ids),
