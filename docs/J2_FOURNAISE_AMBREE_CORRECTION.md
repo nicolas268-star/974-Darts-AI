@@ -1,5 +1,7 @@
 # J2 Fournaise–Ambrée : correction et procédure d’application
 
+**Complément du 15 octobre :** l’organisateur confirme que les séries terminées par 40 puis 6, chaque fois en une fléchette, appartiennent à Christophe. La nouvelle correction réattribue les quatre lignes statistiques du Simple 16 uniquement, avec recalcul des moyennes et du First 9. Voir [le compte rendu de cette seconde confirmation](J2_SIMPLE16_STATISTICS.md). Les sections ci-dessous décrivent la première intervention, qui concernait uniquement le résultat et conservait alors les statistiques sous leurs attributions Nakka.
+
 Le correctif produit **Fournaise 15–5 Ambrée** à partir des 20 parties. La modification est préparée sur une branche ; aucune migration ni correction de données n’a été exécutée en production, aucun déploiement ni envoi Facebook/WhatsApp n’a été effectué.
 
 ## Identification vérifiée

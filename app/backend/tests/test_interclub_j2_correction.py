@@ -10,7 +10,8 @@ from tests.test_interclub_publication import fixture_payload
 from app.services.interclub_analysis_source import source_facts
 from app.services.interclub_publication_service import resolve_payload, publish_collected
 from app.services.interclub_adjustments import (BENOIT, CHRISTOPHE, EVENT, MATCH, GUEST_IDENTITY,
-                                              apply_result_correction, corrected_facts)
+                                              apply_result_correction, apply_confirmed_corrections,
+                                              apply_statistics_correction, corrected_facts)
 from app.services.visibility_service import SummaryUnavailable
 from unittest.mock import patch, MagicMock
 from types import SimpleNamespace
@@ -38,7 +39,7 @@ class J2CorrectionTests(unittest.TestCase):
     def test_only_result_flags_change_and_the_20_matches_aggregate_to_15_5(self):
         collected, licensed, identities = fixture()
         raw = copy.deepcopy(collected)
-        p = resolve_payload(collected["publication"], licensed, identities, [])
+        p = apply_result_correction(resolve_payload(collected["publication"], licensed, identities, [])["source_snapshot"])
         self.assertEqual(collected, raw, "The validated source stays untouched")
         self.assertEqual(raw["publication"]["score"], [6, 14])
         self.assertEqual(p["score"], [5, 15])
@@ -88,7 +89,7 @@ class J2CorrectionTests(unittest.TestCase):
     def test_idempotence_reimport_source_edit_and_missing_match_guards(self):
         collected, licensed, identities = fixture()
         p = resolve_payload(collected["publication"], licensed, identities, [])
-        self.assertEqual(apply_result_correction(p), p)
+        self.assertEqual(apply_confirmed_corrections(p), p)
         self.assertEqual(resolve_payload(copy.deepcopy(collected["publication"]), licensed, identities, []), p)
         for change in ("missing_match", "different_total", "wrong_identity"):
             bad = copy.deepcopy(p["source_snapshot"])
@@ -97,7 +98,48 @@ class J2CorrectionTests(unittest.TestCase):
             else: next(m for m in bad["matches"] if m["winner_team_id"] == "uwbj" and m["id"] != MATCH)["winner_team_id"] = "z1ps"
             with self.assertRaises(SummaryUnavailable): apply_result_correction(bad)
         tampered = copy.deepcopy(p); tampered["stats"][0]["score"] += 1
-        with self.assertRaises(SummaryUnavailable): apply_result_correction(tampered)
+        with self.assertRaises(SummaryUnavailable): apply_confirmed_corrections(tampered)
+
+    def test_confirmed_streams_give_christophe_40_and_6_in_one_checkout_dart(self):
+        collected, licensed, identities = fixture()
+        p = resolve_payload(collected["publication"], licensed, identities, [])
+        previous = apply_result_correction(p["source_snapshot"])
+        selected = {l["id"]: l["leg_number"] for l in p["legs"] if l["match_id"] == MATCH}
+        for row, before in zip(p["stats"], previous["stats"]):
+            if row["leg_id"] not in selected:
+                self.assertEqual(row, before)
+                continue
+            for key in ("player_id", "team_id", "leg_id", "leg_won"):
+                self.assertEqual(row[key], before[key])
+            other = next(s for s in previous["stats"] if s["leg_id"] == row["leg_id"] and s["player_id"] != row["player_id"])
+            self.assertEqual({k: v for k, v in row.items() if k not in ("player_id", "team_id", "leg_won")},
+                             {k: v for k, v in other.items() if k not in ("player_id", "team_id", "leg_won")})
+            if row["player_id"] == CHRISTOPHE:
+                self.assertEqual([row["score"], row["darts_thrown"], row["finish"], row["leg_won"]],
+                                 [501, 40, 40 if selected[row["leg_id"]] == 1 else 6, True])
+            else:
+                self.assertEqual(row["finish"], 0)
+        self.assertEqual(p["score"], [5, 15])
+        self.assertEqual(p["matches"], previous["matches"])
+        self.assertEqual(p["legs"], previous["legs"])
+        self.assertEqual(p["raw_nakka"], previous["raw_nakka"])
+        self.assertEqual(p["source_snapshot"], previous["source_snapshot"])
+        self.assertEqual([x["checkout_darts"] for x in p["statistics_corrections"][0]["confirmed_finishes"]], [1, 1])
+        for pid, score, darts, f9 in ((BENOIT, 5075, 430, 1402), (CHRISTOPHE, 6035, 482, 1715)):
+            player = next(x for x in p["players"] if x["id"] == pid)
+            self.assertEqual([player["score"], player["darts"], player["f9Score"]], [score, darts, f9])
+        self.assertEqual(apply_statistics_correction(p), p)
+
+    def test_statistics_attribution_refuses_a_different_checkout_signature(self):
+        collected, licensed, identities = fixture()
+        p = resolve_payload(collected["publication"], licensed, identities, [])
+        old = apply_result_correction(p["source_snapshot"])
+        raw = next(m for m in old["raw_nakka"]["sets"] if m["mid"] == MATCH)
+        raw["legData"][0]["playerData"][0][-1]["score"] = -2
+        with self.assertRaises(SummaryUnavailable): apply_statistics_correction(old)
+        changed = copy.deepcopy(p)
+        changed["statistics_corrections"][0]["confirmed_finishes"][0]["finish"] = 60
+        with self.assertRaises(SummaryUnavailable): apply_statistics_correction(changed)
 
     def test_publisher_updates_worker_facts_without_sending_messages(self):
         collected, licensed, identities = fixture()
@@ -136,11 +178,14 @@ class J2CorrectionTests(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    if "--fixture" in sys.argv:
+    if "--fixture" in sys.argv or "--fixture-result-only" in sys.argv:
         collected, licensed, identities = fixture()
-        print(json.dumps({"payload": resolve_payload(collected["publication"], licensed, identities, []),
+        payload = resolve_payload(collected["publication"], licensed, identities, [])
+        if "--fixture-result-only" in sys.argv:
+            payload = apply_result_correction(payload["source_snapshot"])
+        print(json.dumps({"payload": payload,
                           "licensed": licensed, "identities": identities}))
-    elif "--read-paths" in sys.argv:
+    elif "--read-paths" in sys.argv or "--read-paths-statistics" in sys.argv:
         from tests.test_visibility_summary import DB, Query
         from app.services.ranking_service import build_ranking
         from app.services.player_statistics_engine import PlayerStatisticsEngine
@@ -167,6 +212,12 @@ if __name__ == "__main__":
         assert [hub["summary"]["home_matches_won"], hub["summary"]["away_matches_won"]] == [5, 15]
         assert any("Renfort exceptionnel pour Ambrée" in n for n in hub["data_quality_notes"])
         assert any("Benoit BRUNET 0–2 Christophe FERNANDEZ" in n for n in hub["data_quality_notes"])
+        if "--read-paths-statistics" in sys.argv:
+            target = next(m for m in hub["matches"] if m["match_number"] == 18)
+            assert [(l["finisher_id"], l["finish"], l["darts"]) for l in target["legs"]] == [(CHRISTOPHE, 40, 40), (CHRISTOPHE, 6, 40)]
+            assert any("40 et 6 en une fléchette" in n for n in hub["data_quality_notes"])
+            ch = next(p for p in overview if p["player_id"] == CHRISTOPHE)
+            assert ch["average_3_darts"] == 37.56 and ch["first_9"] == 47.64, ch
         evening = load_evening(db, result["id"])
         assert "5–15" in next(f["text"] for f in evening["facts"] if f["id"] == "score")
         print("PASS J2 public read paths: standings, leg differential, player statistics, match hub, guest/correction notes and editorial facts")

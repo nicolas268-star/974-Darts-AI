@@ -787,7 +787,9 @@ def build_match_hub(db: Client, result_id: str) -> dict | None:
             if exception:
                 payload["data_quality_notes"].append(f"{player['name']} : {exception['note']}.")
         for correction in details.get("result_corrections", []):
-            payload["data_quality_notes"].append(f"Simple 16 : Benoit BRUNET 0–2 Christophe FERNANDEZ. {correction['reason']}. Les données de lancer Nakka sont conservées sous leurs identités d’origine.")
+            payload["data_quality_notes"].append(f"Simple 16 C–F : Benoit BRUNET 0–2 Christophe FERNANDEZ. {correction['reason']}.")
+        for correction in details.get("statistics_corrections", []):
+            payload["data_quality_notes"].append(f"{correction['reason']}. Les séries de ce simple sont réattribuées localement ; la source Nakka est conservée pour audit.")
 
     if result.get("detail_status") == "COLLECTIVE_ONLY":
         payload["data_quality_notes"].append(

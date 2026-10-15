@@ -46,6 +46,7 @@ def main():
         "existing_result": existing, "initial_score_ambree_fournaise": payload["source_snapshot"]["score"],
         "effective_score_ambree_fournaise": payload["score"], "guest": "Benoit BRUNET (Brune → Ambrée, this encounter only)",
         "result_corrections": payload["result_corrections"],
+        "statistics_corrections": payload.get("statistics_corrections", []),
         "players": [{"id": p["id"], "name": p["name"], "legs_played": p["leg"], "legs_won": p["winLeg"]}
                     for p in payload["players"] if p["id"] in (BENOIT, CHRISTOPHE)],
         "mode": "APPLY" if args.apply else "DRY_RUN",
