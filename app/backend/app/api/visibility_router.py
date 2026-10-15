@@ -1,10 +1,11 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Header, HTTPException
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from ..config import settings
 from ..services.visibility_service import SummaryUnavailable, compose_summary, list_evenings, load_evening
+from ..services.visibility_context import CONTEXT_LIMIT
 
 router = APIRouter(prefix="/api/v1/visibility", tags=["Visibility"])
 
@@ -17,6 +18,7 @@ def require_internal(token):
 class SummaryRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     result_id: UUID
+    context: str | None = Field(default=None, max_length=CONTEXT_LIMIT, strict=True)
 
 
 @router.get("/evenings")
@@ -29,14 +31,14 @@ def evenings(x_internal_token: str | None = Header(default=None)):
     return extend_catalog(list_evenings(db), _all(db, "championship_results", "id,source_sheet"))
 
 
-def summary_payload(result_id, use_ai):
+def summary_payload(result_id, use_ai, context=None):
     from app.main import db_client
     from ..services.interclub_analysis_service import automatic_summary
     try:
-        prepared = automatic_summary(result_id, use_ai=use_ai)
+        prepared = automatic_summary(result_id, use_ai=use_ai, context=context)
         if prepared:
             return prepared
-        return compose_summary(load_evening(db_client(), str(result_id)), use_ai=use_ai)
+        return compose_summary(load_evening(db_client(), str(result_id)), use_ai=use_ai, context=context)
     except SummaryUnavailable as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
 
@@ -50,4 +52,4 @@ def preview(result_id: UUID, x_internal_token: str | None = Header(default=None)
 @router.post("/summary")
 def generate(request: SummaryRequest, x_internal_token: str | None = Header(default=None)):
     require_internal(x_internal_token)
-    return summary_payload(request.result_id, True)
+    return summary_payload(request.result_id, True, context=request.context)

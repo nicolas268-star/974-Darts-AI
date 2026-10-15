@@ -228,7 +228,7 @@ def source_facts(event, season, result_id, data, sets, player_totals, team_total
         require(wins[team] == team_totals[team]["winSet"] and team_totals[team]["set"] == 20
                 and sum(r["score"] for r in rows) == team_totals[team]["score"]
                 and sum(r["darts_thrown"] for r in rows) == team_totals[team]["darts"], "Les statistiques collectives divergent du détail.")
-    result = {"id": result_id, "home_team_id": home, "away_team_id": away, "home_score": wins[home], "away_score": wins[away]}
+    result = {"id": result_id, "home_team_id": home, "away_team_id": away, "home_score": wins[home], "away_score": wins[away], "source_sheet": event["source_url"]}
     evening = build_facts(result, {"code": code[1].upper(), "played_on": event["start_date"]},
                           {"name": season["key"]}, names, matches, legs, stats,
                           {oid: active[oid]["oname"] for oid in aggregate})

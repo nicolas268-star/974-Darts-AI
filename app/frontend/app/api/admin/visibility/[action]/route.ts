@@ -28,13 +28,14 @@ async function relay(request: NextRequest, context: { params: Promise<{ action: 
       const { done, value } = await reader.read();
       if (done) break;
       size += value.byteLength;
-      if (size > 1024) { await reader.cancel(); return fail(413, "Requête trop volumineuse."); }
+      if (size > 12_000) { await reader.cancel(); return fail(413, "Requête trop volumineuse."); }
       chunks.push(value);
     }
     try {
       const input = JSON.parse(Buffer.concat(chunks).toString("utf8"));
-      if (!input || typeof input.result_id !== "string" || !uuid.test(input.result_id) || Object.keys(input).some((key) => key !== "result_id")) return fail(400, "Rencontre invalide.");
-      body = JSON.stringify({ result_id: input.result_id });
+      if (!input || typeof input.result_id !== "string" || !uuid.test(input.result_id) || Object.keys(input).some((key) => !["result_id", "context"].includes(key))) return fail(400, "Rencontre invalide.");
+      if (input.context !== undefined && (typeof input.context !== "string" || input.context.length > 1600)) return fail(400, "Le contexte doit contenir au maximum 1 600 caractères.");
+      body = JSON.stringify({ result_id: input.result_id, ...(input.context !== undefined ? { context: input.context } : {}) });
     } catch { return fail(400, "Requête invalide."); }
   } else if (action === "summary") {
     const resultId = request.nextUrl.searchParams.get("result_id") ?? "";

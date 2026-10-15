@@ -34,6 +34,11 @@ class DB:
 
 class VisibilitySummaryTests(unittest.TestCase):
     def setUp(self):
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        env = patch.dict(os.environ, {"OPENAI_API_KEY": "", "VISIBILITY_CACHE_DIR": directory.name})
+        env.start()
+        self.addCleanup(env.stop)
         self.result = {"id": "result", "round_id": "r", "season_id": "s", "home_team_id": "a", "away_team_id": "b", "home_score": 1, "away_score": 0, "quality_status": "VERIFIED", "detail_status": "DETAILED"}
         self.round = {"id": "r", "season_id": "s", "code": "J1", "played_on": "2026-09-28", "published": True}
         self.season = {"id": "s", "name": "2026-2027", "is_active": True}
@@ -127,6 +132,61 @@ class VisibilitySummaryTests(unittest.TestCase):
         response["status"] = "incomplete"
         with patch("urllib.request.urlopen", return_value=io.BytesIO(json.dumps(response).encode())):
             with self.assertRaises(ValueError): _ai_selection(self.facts()["facts"], "gpt-5-mini", "key")
+
+    def test_both_teams_get_a_performance_paragraph_even_with_one_sided_ai(self):
+        evening = self.facts()
+        for selection in (None, {"whatsapp": ["finish"], "facebook": ["finish"]}):
+            with patch.dict(os.environ, {"OPENAI_API_KEY": "key" if selection else ""}), patch("app.services.visibility_service._ai_selection", return_value=selection):
+                summary = compose_summary(evening)
+            for channel in ("whatsapp", "facebook"):
+                self.assertIn("Du côté de Équipe A", summary[channel])
+                self.assertIn("Du côté de Équipe B", summary[channel])
+                self.assertIn("Joueur B signe la meilleure moyenne de l’équipe : 27,93 sur 2 legs", summary[channel])
+                self.assertNotIn("bonne ambiance", summary[channel])
+        with self.assertRaises(ValueError):
+            _validate_selection({"whatsapp": ["home_highlight"], "facebook": ["finish"]}, evening["facts"])
+
+    def test_context_persists_is_scoped_and_invalidates_cache(self):
+        evening = self.facts()
+        original = compose_summary(evening)
+        context = "Benoit est venu en renfort. Bonne ambiance malgré un léger retard Nakka."
+        updated = compose_summary(evening, context=context)
+        self.assertNotEqual(original["fingerprint"], updated["fingerprint"])
+        for channel in ("whatsapp", "facebook"):
+            self.assertIn(context, updated[channel])
+        self.assertEqual(compose_summary(evening, use_ai=False)["context"], context)
+        self.assertEqual(compose_summary({**evening, "result_id": "another-match"})["context"], "")
+        self.assertEqual(compose_summary(evening, context="")["context"], "")
+        with self.assertRaises(ValueError): compose_summary(evening, context="x" * 1601)
+
+    def test_confirmed_j2_context_never_leaks_to_another_match(self):
+        evening = {**self.facts(), "source_url": "https://n01darts.com/n01/league/season.php?id=t_uAfU_5679",
+                   "season": "2026-2027", "round": "J2", "date": "14/10/2026"}
+        summary = compose_summary(evening)
+        for channel in ("whatsapp", "facebook"):
+            self.assertIn("Benoit BRUNET", summary[channel])
+            self.assertIn("l’équipe B (Brune)", summary[channel])
+            self.assertIn("l’équipe A (Ambrée)", summary[channel])
+            self.assertIn("petit souci technique avec Nakka", summary[channel])
+        for field, value in (("source_url", "another-source"), ("date", "15/10/2026"), ("round", "J3"), ("season", "2027-2028")):
+            self.assertEqual(compose_summary({**evening, field: value})["context"], "")
+        self.assertEqual(compose_summary(evening, context="")["context"], "")
+
+    def test_preview_can_reuse_ai_cache_without_calling_provider(self):
+        with patch.dict(os.environ, {"OPENAI_API_KEY": "test-key"}), patch("app.services.visibility_service._ai_selection", return_value={"whatsapp": ["finish"], "facebook": ["finish"]}) as provider:
+            first = compose_summary(self.facts())
+            second = compose_summary(self.facts(), use_ai=False)
+            self.assertEqual(first["whatsapp"], second["whatsapp"])
+            self.assertEqual(second["mode"], "ai")
+            self.assertEqual(provider.call_count, 1)
+
+    def test_summary_request_rejects_non_text_or_oversized_context(self):
+        from app.api.visibility_router import SummaryRequest
+        from pydantic import ValidationError
+        result_id = "f678a113-699e-496e-ae0a-944d37d25893"
+        for value in (42, "x" * 1601, {"text": "invalide"}):
+            with self.assertRaises(ValidationError): SummaryRequest(result_id=result_id, context=value)
+        self.assertEqual(SummaryRequest(result_id=result_id, context="").context, "")
 
 
 if __name__ == "__main__": unittest.main()

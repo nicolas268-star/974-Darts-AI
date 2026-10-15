@@ -13,7 +13,8 @@ from .calendar_service import list_events
 from .interclub_analysis_source import REUNION, collect_publication
 from .interclub_publication_service import publish_collected
 from .season_registry_service import registry_status
-from .visibility_service import SummaryUnavailable, ai_configured, compose_summary
+from .visibility_service import SUMMARY_VERSION, SummaryUnavailable, ai_configured, compose_summary, load_evening
+from .visibility_context import load_context
 
 STATE_PATH = Path(os.getenv("INTERCLUB_ANALYSIS_STATE_PATH", "/app/data/interclub_analysis.json"))
 RETRY = timedelta(minutes=10)
@@ -162,11 +163,22 @@ def available_records():
             and (not r.get("summary") or r["summary"]["evening"]["season"] in active)]
 
 
-def automatic_summary(result_id, *, use_ai=False):
-    record = next((r for r in available_records() if r["id"] == str(result_id) and r.get("status") == "READY" and r.get("published_result_id")), None)
+def automatic_summary(result_id, *, use_ai=False, context=None):
+    record = next((r for r in available_records() if str(result_id) in (r["id"], r.get("published_result_id")) and r.get("status") == "READY" and r.get("published_result_id")), None)
     if not record:
         return None
-    value = compose_summary(record["summary"]["evening"], use_ai=True) if use_ai else dict(record["summary"])
+    prepared = record["summary"]
+    evening = {**prepared["evening"], "result_id": record["published_result_id"]}
+    # Older worker snapshots lack the per-team facts. Rebuild from published,
+    # corrected detail instead of returning their old winner-only wording.
+    stale = prepared.get("summary_version") != SUMMARY_VERSION
+    if stale:
+        from app.main import db_client
+        evening = load_evening(db_client(), record["published_result_id"])
+    if stale or use_ai or context is not None or load_context(evening) != prepared.get("context", ""):
+        value = compose_summary(evening, use_ai=use_ai, context=context)
+    else:
+        value = dict(prepared)
     value["ai_available"] = ai_configured()
     value["note"] += " Préparation automatique à partir du détail Nakka contrôlé."
     return value

@@ -22,6 +22,7 @@ export default function EveningSummary({ bdcOptions, onFacebookReady }: { bdcOpt
   const [selected, setSelected] = useState("");
   const [summary, setSummary] = useState<Summary | null>(null);
   const [draft, setDraft] = useState("");
+  const [matchContext, setMatchContext] = useState("");
   const [edited, setEdited] = useState(false);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(true);
@@ -30,9 +31,10 @@ export default function EveningSummary({ bdcOptions, onFacebookReady }: { bdcOpt
   const [reload, setReload] = useState(0);
   const mounted = useRef(true);
   const generation = useRef(0);
+  const contextChanged = matchContext !== (summary?.context ?? "");
 
   function resetPreview() {
-    setSummary(null); setDraft(""); setEdited(false); setStatus(""); setError(""); setBusy(true);
+    setSummary(null); setDraft(""); setMatchContext(""); setEdited(false); setStatus(""); setError(""); setBusy(true);
   }
 
   useEffect(() => {
@@ -58,24 +60,36 @@ export default function EveningSummary({ bdcOptions, onFacebookReady }: { bdcOpt
     const request = bdc ? Promise.resolve(bdc.summary) : fetch(`/api/admin/visibility/summary?result_id=${encodeURIComponent(selected)}`, { signal: controller.signal, cache: "no-store" }).then(responseJson<Summary>);
     request
       .then(signVisibilitySummary)
-      .then((data) => { if (!controller.signal.aborted && current === generation.current) { setSummary(data); setDraft(data.whatsapp); } })
+      .then((data) => { if (!controller.signal.aborted && current === generation.current) { setSummary(data); setDraft(data.whatsapp); setMatchContext(data.context ?? ""); } })
       .catch((reason) => { if (!controller.signal.aborted) setError(reason instanceof Error ? reason.message : "Résumé indisponible."); })
       .finally(() => { if (!controller.signal.aborted && current === generation.current) setBusy(false); });
     return () => controller.abort();
   }, [selected, reload, bdcOptions]);
 
-  async function generate(preserveDraft = false) {
+  async function generate(preserveDraft = false, context?: string) {
+    const current = generation.current;
     const data = signVisibilitySummary(await responseJson<Summary>(await fetch("/api/admin/visibility/summary", {
-      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ result_id: selected }),
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ result_id: selected, ...(context !== undefined ? { context } : {}) }),
     })));
-    if (!mounted.current) throw new Error("La page a été fermée.");
+    if (!mounted.current || current !== generation.current) throw new Error("La sélection a changé.");
     setSummary(data);
+    setMatchContext(data.context ?? "");
     if (!preserveDraft) { setDraft(data.whatsapp); setEdited(false); }
     return data;
   }
 
-  async function prepareFacebook() {
+  async function applyContext() {
     if (!summary || busy) return;
+    setBusy(true); setError(""); setStatus("");
+    try {
+      await generate(false, matchContext);
+      setStatus("Contexte enregistré pour cette rencontre. Les versions WhatsApp et Facebook ont été actualisées.");
+    } catch (reason) { setError(reason instanceof Error ? reason.message : "Actualisation impossible."); }
+    finally { if (mounted.current) setBusy(false); }
+  }
+
+  async function prepareFacebook() {
+    if (!summary || busy || contextChanged) return;
     setBusy(true); setError(""); setStatus("");
     try {
       const data = summary.mode === "ai" || !summary.ai_available ? summary : await generate(true);
@@ -87,7 +101,7 @@ export default function EveningSummary({ bdcOptions, onFacebookReady }: { bdcOpt
   }
 
   async function shareWhatsApp() {
-    if (!summary || busy || !draft.trim()) return;
+    if (!summary || busy || contextChanged || !draft.trim()) return;
     // Reserve the tab during the user gesture so asynchronous AI generation is not blocked.
     const popup = window.open("about:blank", "_blank");
     if (popup) { popup.opener = null; popup.document.title = "Préparation du résumé 974Darts…"; }
@@ -130,11 +144,19 @@ export default function EveningSummary({ bdcOptions, onFacebookReady }: { bdcOpt
     {error && <p className={styles.error} role="alert">{error}</p>}
     {!loading && !evenings.length && !bdcOptions.length && !error && <p className={styles.intro}>Les rencontres apparaissent ici dès que leurs données complètes ont été contrôlées.</p>}
     {summary && <>
+      {!bdcOptions.some(item => item.id === selected) && <div className={styles.matchContext}>
+        <label className={styles.draftLabel} htmlFor="match-context">Contexte de la rencontre</label>
+        <p id="match-context-help" className={styles.intro}>Ajoute les faits que tu confirmes : renfort exceptionnel, belle prestation, ambiance ou incident technique. Ce texte sera repris dans les deux versions et conservé pour cette rencontre.</p>
+        <textarea id="match-context" aria-describedby="match-context-help" className={styles.summaryDraft} value={matchContext} rows={4} maxLength={1600} disabled={busy} onChange={(event) => { setMatchContext(event.target.value); setStatus(""); }}/>
+        <div className={styles.summaryActions}><button className={styles.secondaryButton} onClick={applyContext} disabled={busy}><RefreshCw size={17}/> Enregistrer le contexte et actualiser</button><small>{matchContext.length}/1 600 caractères</small></div>
+        {contextChanged && <p className={styles.intro}>Enregistre le contexte pour l’inclure dans les textes avant de partager.</p>}
+        {edited && <p className={styles.intro}>Actualiser remplacera tes modifications du résumé WhatsApp.</p>}
+      </div>}
       <label className={styles.draftLabel} htmlFor="whatsapp-draft">Texte pour le groupe <small>Tu peux le modifier avant de partager.</small></label>
       <textarea id="whatsapp-draft" className={styles.summaryDraft} value={draft} rows={15} maxLength={6000} disabled={busy} onChange={(event) => { setDraft(event.target.value); setEdited(true); setStatus(""); }}/>
-      <div className={styles.summaryActions}><button className={styles.whatsappButton} onClick={shareWhatsApp} disabled={busy || !draft.trim()}><MessageCircle size={19}/> {summary.ai_available && summary.mode !== "ai" && !edited ? "Analyser et ouvrir WhatsApp" : "Ouvrir dans WhatsApp"}</button>
+      <div className={styles.summaryActions}><button className={styles.whatsappButton} onClick={shareWhatsApp} disabled={busy || contextChanged || !draft.trim()}><MessageCircle size={19}/> {summary.ai_available && summary.mode !== "ai" && !edited ? "Analyser et ouvrir WhatsApp" : "Ouvrir dans WhatsApp"}</button>
         <button className={styles.secondaryButton} onClick={copy} disabled={busy || !draft.trim()}><Clipboard size={17}/> Copier</button>
-        <button className={styles.secondaryButton} onClick={prepareFacebook} disabled={busy}><Sparkles size={17}/> Préparer la version Facebook</button></div>
+        <button className={styles.secondaryButton} onClick={prepareFacebook} disabled={busy || contextChanged}><Sparkles size={17}/> Préparer la version Facebook</button></div>
       <p className={styles.intro}>{summary.note}{edited ? " Tes modifications seront conservées pour WhatsApp." : ""}</p>
       <p className={styles.shareHelp}>Le bouton ouvre le résumé dans WhatsApp. Sélectionne ton groupe, puis confirme l’envoi dans WhatsApp.</p>
     </>}

@@ -174,7 +174,7 @@ class ScheduleTests(unittest.TestCase):
         self.addCleanup(self.directory.cleanup)
         self.addCleanup(patch.stopall)
         patch.object(service, "STATE_PATH", Path(self.directory.name) / "state.json").start()
-        patch.dict(os.environ, {"OPENAI_API_KEY": ""}).start()
+        patch.dict(os.environ, {"OPENAI_API_KEY": "", "VISIBILITY_CACHE_DIR": self.directory.name}).start()
         patch.object(service, "_events", return_value=[EVENT]).start()
         patch.object(service, "registry_status", return_value={"seasons": [SEASON]}).start()
         p = json.loads(FIXTURE.read_text())
@@ -197,6 +197,28 @@ class ScheduleTests(unittest.TestCase):
         self.assertEqual(self.collect.call_count, 1)
         prepared = service.automatic_summary(service.event_key(EVENT))
         self.assertEqual(prepared["evening"]["matches"], 20)
+
+    def test_old_worker_summary_rebuilds_from_corrected_published_detail(self):
+        self.run_at(self.due)
+        state = service._load()
+        record = state["records"][service.event_key(EVENT)]
+        record["summary"].pop("summary_version")
+        record["summary"]["whatsapp"] = "Old winner-only summary"
+        service._write(state)
+        with patch.dict(sys.modules, {"app.main": types.SimpleNamespace(db_client=lambda: "db")}), patch.object(service, "load_evening", return_value=self.facts) as loader:
+            prepared = service.automatic_summary(service.event_key(EVENT))
+        loader.assert_called_once_with("db", "published-id")
+        self.assertNotIn("Old winner-only", prepared["whatsapp"])
+        self.assertIn("Les deux équipes", prepared["whatsapp"])
+
+    def test_context_is_saved_under_published_id_for_worker_alias(self):
+        self.run_at(self.due)
+        context = "Un petit souci technique Nakka a retardé la rencontre."
+        prepared = service.automatic_summary(service.event_key(EVENT), context=context)
+        self.assertEqual(prepared["context"], context)
+        reread = service.automatic_summary("published-id")
+        self.assertEqual(reread["context"], context)
+        self.assertIn(context, reread["facebook"])
 
     def test_incomplete_match_retries_at_next_slot_and_survives_restart(self):
         self.collect.side_effect = [SummaryUnavailable("Match en cours"), self.collected]
