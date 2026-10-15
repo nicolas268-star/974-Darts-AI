@@ -94,7 +94,9 @@ end $$;
 do $publisher$
 declare
   definition text:=pg_get_functiondef('public.publish_interclub_match(jsonb)'::regprocedure);
-  marker text:=$marker$  select payload_hash into old_hash from public.interclub_auto_publications where source_event_id=p->>'event_id';$marker$;
+  -- This assignment is shared by the initial publisher and the installed
+  -- Brune-name compatibility publisher (which reads both hash and old payload).
+  marker text:=$marker$  event_key := (p->>'season') || '|' || (p->>'round') || '|nakka:' || (p->>'event_id');$marker$;
 begin
   if strpos(definition,'p := public.interclub_j2_statistics_payload(p);')=0 then
     if strpos(definition,marker)=0 then raise exception 'INTERCLUB_HASH_PATCH_POINT_NOT_FOUND'; end if;

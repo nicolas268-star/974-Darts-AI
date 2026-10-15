@@ -34,6 +34,8 @@ Les séries adverses de 465/39 et 494/42 sont réattribuées à Benoit sur les m
 
 Validation locale : **130 tests unitaires backend**, **30 tests Match Day**, compilation Python, suite transactionnelle `tests/workflow/npm test` et `git diff --check` réussis. Les tests exécutent les vrais chemins de lecture de la feuille, du classement, des profils et la vraie formule MVP. Ils vérifient aussi les permissions privées, le rejeu de migration, les imports avec les deux versions du worker, une panne tardive annulant lignes et profils, l’absence de doublons, les autres rencontres/saisons inchangées, et le retour arrière suivi d’une réapplication.
 
+La migration est testée sur les deux définitions du publisher : la version initiale et la variante de compatibilité Brune installée par `MIGRATION_SUPABASE_V21_0_25_TEAM_BRUNE.sql`. Le point d’intégration précède le calcul de la clé naturelle et la comparaison d’audit, communs à ces deux variantes.
+
 Après installation de la migration sur le projet de production `vkvdyrsrvbyugbjlmknb`, exécuter :
 
 ```sql
