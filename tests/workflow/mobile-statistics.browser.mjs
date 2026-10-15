@@ -37,7 +37,8 @@ export async function testMobileStatistics(page, screenshot) {
         expect(await mobile.locator('li').count(), route+' populated rows').toBeGreaterThan(0);
         // No data is lost by moving secondary metrics into disclosures.
         await mobile.locator('details').evaluateAll(nodes => nodes.forEach(node => { node.open = true; }));
-        const firstTable = page.locator('main table').first();
+        // Compare cards with their own StatsTable, not a preceding dashboard table.
+        const firstTable = page.locator('main table:has(+ [data-stats-cards])').first();
         const desktopValues = await firstTable.locator('tbody tr').first().locator('th,td').allTextContents();
         const mobileValues = await mobile.first().locator('li').first().textContent();
         for (const value of desktopValues) if(value.trim()) expect(mobileValues.replace(/\s+/g,' '),route+' preserves cells').toContain(value.replace(/\s+/g,' ').trim());
@@ -85,7 +86,7 @@ export async function testMobileStatistics(page, screenshot) {
       }
       // Same route resized to desktop must retain its semantic table.
       await page.setViewportSize({width:1440,height:1000});
-      if(hasCards) { await expect(page.locator('main table').first()).toBeVisible(); await expect(mobile.first()).toHaveCount(0); }
+      if(hasCards) { await expect(page.locator('main table:has(+ [data-stats-cards])').first()).toBeVisible(); await expect(mobile.first()).toHaveCount(0); }
       if(index===1 || index===2) await screenshot(page,`desktop-stats-${index}.png`,{fullPage:false});
       console.log('PASS responsive stats:',route);
     } catch(error) {

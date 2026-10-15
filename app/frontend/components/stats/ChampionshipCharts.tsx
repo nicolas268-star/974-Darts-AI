@@ -1,150 +1,115 @@
 "use client";
 
-import { useId, useMemo, useState } from "react";
-import {
-  CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
-} from "recharts";
-import type { ChampionshipRound, Standing } from "@/lib/types/sprint14";
+import { startTransition, useEffect, useId, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { CalendarDays, Flag, Target, Trophy } from "lucide-react";
+import type { ChampionshipHub, ChampionshipRound, Standing } from "@/lib/types/sprint14";
+import { ChampionshipProgression } from "./ChampionshipProgression";
 import styles from "./ChampionshipCharts.module.css";
 
-const colors = ["#ffad46", "#59c8ff", "#71e0af", "#c5a0ff", "#ff819c", "#f3e375", "#8adbdc", "#e8bfa1"];
-const outcomes = [
-  { key: "wins", label: "Victoires", color: "#71e0af" },
-  { key: "draws", label: "Nuls", color: "#f3c969" },
-  { key: "losses", label: "Défaites", color: "#ff819c" },
-] as const;
+const colors = ["#ff9b38", "#50c7ff", "#60dcab", "#b89aff", "#ff7399", "#ffe16a", "#6ee0df", "#eeaf83"];
+export type DashboardTeam = Standing & { color: string; series: string };
+const signed = (value: number) => `${value > 0 ? "+" : ""}${value}`;
+const percentage = (wins: number, played: number) => played ? `${Math.round(wins / played * 100)} %` : "—";
 
-export function ChampionshipCharts({ standings, rounds, winPoints }: {
-  standings: Standing[];
-  rounds: ChampionshipRound[];
-  winPoints: number;
-}) {
+function ChampionshipStandings({ teams, id }: { teams: DashboardTeam[]; id: string }) {
+  const maximum = Math.max(1, ...teams.map(team => team.points));
+  return <article className={styles.card} aria-labelledby={`${id}-ranking`}>
+    <header className={styles.heading}>
+      <span className={styles.eyebrow}>LE CLASSEMENT</span>
+      <h2 id={`${id}-ranking`}>Classement des équipes</h2>
+      <p>Points et départage officiels · {teams.length} équipes</p>
+    </header>
+    {teams.length ? <>
+      <div className={styles.tableScroll} tabIndex={0} role="region" aria-label="Classement des équipes, tableau défilant">
+        <table className={styles.table} data-team-standings>
+          <thead><tr><th scope="col">#</th><th scope="col">Équipe</th><th scope="col">Pts</th><th scope="col">MJ</th><th scope="col">V</th><th scope="col">N</th><th scope="col">D</th><th scope="col">Sets +/−</th><th scope="col">Legs +/−</th></tr></thead>
+          <tbody>{teams.map(team => <tr key={team.team_id}>
+            <td><span className={styles.rank} data-podium={team.rank <= 3 ? team.rank : undefined}>{team.rank}</span></td>
+            <th scope="row" className={styles.teamCell}>
+              <Link href={`/teams/${team.team_id}`}><i className={styles.dot} style={{ background: team.color }} aria-hidden="true" />{team.name}</Link>
+              <span className={styles.pointsTrack} aria-hidden="true"><span style={{ width: `${Math.max(0, team.points) / maximum * 100}%`, background: team.color }} /></span>
+            </th>
+            <td className={styles.points}>{team.points}</td><td>{team.played}</td><td>{team.wins}</td><td>{team.draws}</td><td>{team.losses}</td>
+            <td>{signed(team.set_difference)}</td>
+            <td title={!team.detail_complete ? "Détail des legs incomplet : écart non affiché" : undefined}>{team.detail_complete ? signed(team.leg_difference) : "—"}</td>
+          </tr>)}</tbody>
+        </table>
+      </div>
+      <p className={styles.note}>MJ : rencontres jouées. Sets : parties individuelles ou doubles. Legs : manches détaillées ; « — » si le détail est incomplet. Sélectionnez une équipe pour sa fiche.</p>
+    </> : <p className={styles.empty}>Le classement apparaîtra après la publication des premiers résultats officiels.</p>}
+  </article>;
+}
+
+function MatchOutcomes({ teams, teamId, rounds, id }: { teams: DashboardTeam[]; teamId: string; rounds: ChampionshipRound[]; id: string }) {
+  const selected = teams.find(team => team.team_id === teamId);
+  // Season totals count encounters once. V/N/D and win rate are team records.
+  const played = teams.reduce((sum, team) => sum + team.played, 0) / 2;
+  return <article className={`${styles.card} ${styles.resultsCard}`} aria-labelledby={`${id}-results`}>
+    <header className={styles.heading}><span className={styles.eyebrow}>LES RÉSULTATS</span><h2 id={`${id}-results`}>Bilan des rencontres</h2><p>{selected?.name ?? "Résultats officiels de la saison"}</p></header>
+    <div className={styles.resultSummary}>
+      <div><strong>{selected ? selected.played : played}</strong><span>Rencontres jouées</span></div>
+      <div><strong>{selected ? percentage(selected.wins, selected.played) : rounds.length}</strong><span>{selected ? "Victoires" : "Journées avec résultats"}</span></div>
+    </div>
+    {teams.length ? <>
+      <div className={styles.outcomeLegend} aria-hidden="true"><span>Victoires</span><span>Nuls</span><span>Défaites</span></div>
+      <div className={styles.tableScroll} tabIndex={0} role="region" aria-label="Bilan des équipes, tableau défilant">
+        <table className={`${styles.table} ${styles.outcomeTable}`} data-match-outcomes>
+          <thead><tr><th scope="col">Équipe</th><th scope="col">MJ</th><th scope="col">V</th><th scope="col">N</th><th scope="col">D</th><th scope="col">% V</th><th scope="col">V / N / D</th></tr></thead>
+          <tbody>{teams.map(team => <tr key={team.team_id} data-selected={teamId === team.team_id || undefined}>
+            <th scope="row"><i className={styles.dot} style={{ background: team.color }} aria-hidden="true" />{team.name}</th>
+            <td>{team.played}</td><td className={styles.wins}>{team.wins}</td><td className={styles.draws}>{team.draws}</td><td className={styles.losses}>{team.losses}</td><td>{percentage(team.wins, team.played)}</td>
+            <td><span className={styles.stacked} aria-hidden="true"><i style={{ flex: team.wins, background: "#60dcab" }} /><i style={{ flex: team.draws, background: "#ffe16a" }} /><i style={{ flex: team.losses, background: "#ff7399" }} /></span></td>
+          </tr>)}</tbody>
+        </table>
+      </div>
+      <p className={styles.note}>V / N / D et taux de victoire par équipe. Les défaites incluent les forfaits. Les rencontres reportées ou en attente ne sont pas comptées.</p>
+    </> : <p className={styles.empty}>Le bilan apparaîtra après la publication des premiers résultats.</p>}
+  </article>;
+}
+
+export function ChampionshipCharts({ data, today }: { data: ChampionshipHub; today: string }) {
+  const { standings, round_history: rounds = [], championship, leaders, schedule } = data;
   const id = useId();
-  const [roundId, setRoundId] = useState("");
+  const router = useRouter();
   const [teamId, setTeamId] = useState("");
-  const selectedRound = rounds.find(round => round.round_id === roundId) ?? rounds.at(-1);
   const teams = useMemo(() => {
     const alphabetical = [...standings].sort((a, b) => a.name.localeCompare(b.name, "fr"));
-    return standings.map(team => ({
-      ...team,
-      // The same team keeps its color across all three cards and round changes.
-      color: colors[alphabetical.findIndex(item => item.team_id === team.team_id) % colors.length],
-      series: `team${alphabetical.findIndex(item => item.team_id === team.team_id)}`,
-    }));
+    return standings.map(team => {
+      const index = alphabetical.findIndex(item => item.team_id === team.team_id);
+      return { ...team, color: colors[index % colors.length], series: `team${index}` };
+    });
   }, [standings]);
-  const visibleTeams = teamId ? teams.filter(team => team.team_id === teamId) : teams;
-  const progression = rounds.map(round => ({
-    round: round.round,
-    ...Object.fromEntries(teams.map(team => [
-      team.series, round.teams.find(item => item.team_id === team.team_id)?.cumulative_points ?? 0,
-    ])),
-  }));
-  const maximum = Math.max(winPoints, 1, ...rounds.flatMap(round => round.teams.map(team => team.points ?? 0)));
-  const historyEmpty = !rounds.length;
-  const emptyText = standings.length
-    ? "Le détail par journée n’est pas encore disponible."
-    : "Ces graphiques apparaîtront après la publication des premiers résultats.";
+  const selectedTeam = teams.some(team => team.team_id === teamId) ? teamId : "";
+  const leader = standings.find(team => team.rank === 1 && team.played > 0);
+  const best = leaders.filter(player => player.legs_played > 0 && player.average_3_darts != null && Number.isFinite(player.average_3_darts))
+    .sort((a, b) => b.average_3_darts! - a.average_3_darts!)[0];
+  const next = schedule?.filter(fixture => fixture.played_on >= today).sort((a, b) => a.played_on.localeCompare(b.played_on))[0];
 
-  return (
-    <section className={styles.grid} aria-label="Graphiques du championnat" data-championship-charts>
-      <article className={styles.card} aria-labelledby={`${id}-daily`}>
-        <header>
-          <span className={styles.eyebrow}>LA JOURNÉE</span>
-          <h2 id={`${id}-daily`}>Points par équipe</h2>
-          <p>Les points de classement gagnés à chaque journée.</p>
-        </header>
-        {historyEmpty ? <p className={styles.empty}>{emptyText}</p> : <>
-          <div className={styles.field}>
-            <label htmlFor={`${id}-round`}>Journée</label>
-            <select id={`${id}-round`} value={selectedRound?.round_id} onChange={event => setRoundId(event.target.value)}>
-              {rounds.map(round => <option key={round.round_id} value={round.round_id}>{round.round}</option>)}
-            </select>
-          </div>
-          <div className={styles.scale} aria-hidden="true"><span>0 pt</span><span>{maximum} pts</span></div>
-          <ul className={styles.bars} data-daily-points>
-            {teams.map(team => {
-              const score = selectedRound?.teams.find(item => item.team_id === team.team_id);
-              const points = score?.points;
-              return <li key={team.team_id}>
-                <div className={styles.rowHeading}>
-                  <span>{team.name}</span>
-                  <strong>{points == null ? "—" : `${points} pts`}</strong>
-                </div>
-                {points == null
-                  ? <span className={styles.pending}>Aucun résultat publié</span>
-                  : <div className={styles.track} aria-hidden="true"><span style={{ width: `${points / maximum * 100}%`, background: team.color }} /></div>}
-              </li>;
-            })}
-          </ul>
-          <p className={styles.note}>{selectedRound?.round} · Résultats publiés uniquement. Les autres rencontres seront ajoutées à leur publication.</p>
-        </>}
-      </article>
+  useEffect(() => {
+    if (!championship.is_active) return;
+    const refresh = () => {
+      if (document.visibilityState === "visible") startTransition(() => router.refresh());
+    };
+    const timer = window.setInterval(refresh, 60_000);
+    document.addEventListener("visibilitychange", refresh);
+    return () => { window.clearInterval(timer); document.removeEventListener("visibilitychange", refresh); };
+  }, [championship.is_active, router]);
 
-      <article className={styles.card} aria-labelledby={`${id}-progress`}>
-        <header>
-          <span className={styles.eyebrow}>LA PROGRESSION</span>
-          <h2 id={`${id}-progress`}>Course aux points</h2>
-          <p>Le total cumulé au fil des journées du championnat.</p>
-        </header>
-        {historyEmpty ? <p className={styles.empty}>{emptyText}</p> : <>
-          <div className={styles.field}>
-            <label htmlFor={`${id}-team`}>Équipe à suivre</label>
-            <select id={`${id}-team`} value={teamId} onChange={event => setTeamId(event.target.value)}>
-              <option value="">Toutes les équipes</option>
-              {teams.map(team => <option key={team.team_id} value={team.team_id}>{team.name}</option>)}
-            </select>
-          </div>
-          <span className={styles.unit}>Points cumulés</span>
-          <div className={styles.chart} aria-label="Évolution des points cumulés ; valeurs détaillées ci-dessous">
-            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-              <LineChart data={progression} margin={{ top: 12, right: 20, bottom: 8, left: 0 }} accessibilityLayer>
-                <CartesianGrid stroke="#29445f" strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="round" tick={{ fill: "#bfd3e5", fontSize: 14 }} tickLine={false} axisLine={false} minTickGap={18} padding={{ left: 12, right: 12 }} />
-                <YAxis width={34} allowDecimals={false} domain={[0, "auto"]} tick={{ fill: "#bfd3e5", fontSize: 14 }} tickLine={false} axisLine={false} />
-                <Tooltip contentStyle={{ background: "#0a1a2d", border: "1px solid #365674", borderRadius: 10, color: "#fff", fontSize: 14 }} labelFormatter={label => `Après ${label}`} formatter={(value, name) => [`${value} pts`, name]} />
-                {visibleTeams.map((team, index) => <Line key={team.team_id} dataKey={team.series} name={team.name} stroke={team.color} strokeWidth={3} strokeDasharray={index % 2 ? "6 3" : undefined} dot={{ r: 4, strokeWidth: 2, fill: "#0c2035" }} activeDot={{ r: 6 }} isAnimationActive={false} />)}
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-          <ul className={styles.legend} aria-label="Équipes représentées">
-            {visibleTeams.map(team => <li key={team.team_id}><i style={{ background: team.color }} aria-hidden="true" />{team.name}</li>)}
-          </ul>
-          {rounds.length === 1 && <p className={styles.note}>Première journée publiée : les courbes se prolongeront avec les prochains résultats.</p>}
-          <details className={styles.details}>
-            <summary>Voir les points par journée</summary>
-            {rounds.map(round => <div key={round.round_id} className={styles.historyRound}>
-              <h3>{round.round}</h3>
-              <dl>{visibleTeams.map(team => <div key={team.team_id}>
-                <dt>{team.name}</dt>
-                <dd>{round.teams.find(item => item.team_id === team.team_id)?.cumulative_points ?? 0} pts</dd>
-              </div>)}</dl>
-            </div>)}
-          </details>
-        </>}
-      </article>
-
-      <article className={styles.card} aria-labelledby={`${id}-results`}>
-        <header>
-          <span className={styles.eyebrow}>LES RÉSULTATS</span>
-          <h2 id={`${id}-results`}>Bilan des rencontres</h2>
-          <p>La répartition des victoires, nuls et défaites par équipe.</p>
-        </header>
-        {!standings.length ? <p className={styles.empty}>{emptyText}</p> : <>
-          <ul className={`${styles.legend} ${styles.outcomes}`}>
-            {outcomes.map(outcome => <li key={outcome.key}><i style={{ background: outcome.color }} aria-hidden="true" />{outcome.label}</li>)}
-          </ul>
-          <ul className={styles.bars} data-match-outcomes>
-            {teams.map(team => <li key={team.team_id}>
-              <div className={styles.rowHeading}><span>{team.name}</span><strong>{team.played} MJ</strong></div>
-              <div className={styles.stacked} role="img" aria-label={`${team.name} : ${team.wins} victoires, ${team.draws} nuls, ${team.losses} défaites`}>
-                {outcomes.filter(outcome => team[outcome.key] > 0).map(outcome => <span key={outcome.key} style={{ flex: team[outcome.key], background: outcome.color }} aria-hidden="true">{team[outcome.key]}</span>)}
-              </div>
-              <span className={styles.pending}>{team.wins} V · {team.draws} N · {team.losses} D</span>
-            </li>)}
-          </ul>
-          <p className={styles.note}>MJ : matchs joués. Chaque barre représente le bilan de l’équipe sur la saison. Les défaites incluent les forfaits.</p>
-        </>}
-      </article>
-    </section>
-  );
+  return <section className={styles.dashboard} aria-label="Dashboard du championnat" data-championship-charts>
+    <div className={styles.kpis} aria-label="Résumé du championnat">
+      <article className={styles.kpi}><Trophy aria-hidden="true" /><div><span>Leader actuel</span><strong className={styles.leader}>{leader?.name ?? "En attente"}</strong><small>Classement officiel · saison {championship.year}</small></div></article>
+      <article className={styles.kpi}><Flag aria-hidden="true" /><div><span>Points du leader</span><strong>{leader?.points ?? "—"}<small> pts</small></strong><small>{standings.length} équipes classées</small></div></article>
+      <article className={styles.kpi}><CalendarDays aria-hidden="true" /><div><span>Journées publiées</span><strong>{championship.published_rounds}<small> / {championship.rounds}</small></strong><small>{rounds.at(-1)?.round ?? "Aucun résultat publié"}{rounds.length ? " · dernière journée avec résultats" : ""}</small></div></article>
+      <article className={styles.kpi}><Target aria-hidden="true" /><div><span>Meilleure moy. joueur</span><strong>{best?.average_3_darts?.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) ?? "—"}</strong><small>{best ? `${best.name} · moyenne 3 fléchettes` : "Statistique indisponible"}</small></div></article>
+      {next && <article className={styles.kpi}><CalendarDays aria-hidden="true" /><div><span>Prochaine journée</span><strong>{next.round}</strong><small>{new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long", timeZone: "Indian/Reunion" }).format(new Date(`${next.played_on}T12:00:00+04:00`))}</small></div></article>}
+    </div>
+    <div className={styles.grid}>
+      <ChampionshipStandings teams={teams} id={id} />
+      <ChampionshipProgression teams={teams} rounds={rounds} teamId={selectedTeam} onTeamChange={setTeamId} id={id} />
+      <MatchOutcomes teams={teams} teamId={selectedTeam} rounds={rounds} id={id} />
+    </div>
+    <p className={styles.sourceNote}>Résultats publiés uniquement · Barème et départage officiels conservés{championship.is_active ? " · Actualisation automatique toutes les minutes" : ""}</p>
+  </section>;
 }
