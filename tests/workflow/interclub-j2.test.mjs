@@ -30,7 +30,7 @@ try {
  for(const l of fixture.licensed) await q(`insert into committee_licensed_players(season_key,identity_id,license_status,club_code,official_display_name,official_source_name)
   values($1,$2,$3,$4,$5,$6)`,[l.season_key,l.identity_id,l.license_status,l.club_code,l.official_display_name,l.official_source_name]);
  const benoit=p.players.find(x=>x.name==='Benoit BRUNET'), christophe=p.players.find(x=>x.name==='Christophe FERNANDEZ');
- const brune=(await q("insert into teams(name,official_club_code) values('3B Darts Club - B(rune)','3BDC') returning id"))[0].id;
+ const brune=(await q("insert into teams(id,name,official_club_code) values('9b85ca85-4c9a-4bb7-8d73-c92e19ae7de3','3B Darts Club - B(rune)','3BDC') returning id"))[0].id;
  await q("insert into player_team_memberships(identity_id,team_id,season_id,source,is_current) values($1,$2,$3,'NAKKA_IMPORT',false)",[benoit.identity_id,brune,season]);
  const beforeMembership=await q('select * from player_team_memberships where identity_id=$1',[benoit.identity_id]);
  const historical=(await q("insert into seasons(name,is_active) values('2026',false) returning id"))[0].id;
@@ -128,6 +128,17 @@ try {
  // A second, later organiser confirmation identifies the actual throwing streams.
  const statsMigration='supabase/migrations/20261015052702_interclub_j2_statistics_attribution.sql';
  const latest=load('tests.test_interclub_j2_correction','--fixture').payload;
+ // Validate both the original publisher and the Brune compatibility variant
+ // actually installed in production; their audit SELECTs are different.
+ const originalDb=new PGlite();
+ try {
+  await originalDb.exec(read('tests/workflow/interclub-bootstrap.sql'));
+  await originalDb.exec(read('supabase/release_migrations/MIGRATION_SUPABASE_V21_0_24_INTERCLUB_AUTOMATIC.sql'));
+  await originalDb.exec(read(migration));
+  await originalDb.exec(read(statsMigration));
+  assert.deepEqual((await originalDb.query('select interclub_j2_statistics_payload($1::jsonb) p',[JSON.stringify(p)])).rows[0].p,latest);
+ } finally {await originalDb.close();}
+ await db.exec(read('supabase/release_migrations/MIGRATION_SUPABASE_V21_0_25_TEAM_BRUNE.sql'));
  await db.exec(read(statsMigration)); await db.exec(read(statsMigration));
  const untouched=await count();
  const beforeStats=await q('select to_jsonb(st) data from player_leg_stats st order by st.id');
