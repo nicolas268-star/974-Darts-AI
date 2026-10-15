@@ -7,7 +7,7 @@ import unicodedata
 
 from .ranking_service import _all
 from .visibility_service import SummaryUnavailable
-from .interclub_adjustments import (BENOIT, GUEST_IDENTITY, GUEST_NOTE, apply_result_correction,
+from .interclub_adjustments import (BENOIT, GUEST_IDENTITY, GUEST_NOTE, apply_confirmed_corrections,
                                    corrected_facts, guest_roster)
 
 ROSTERS = json.loads(Path(__file__).with_name("interclub_rosters_2027.json").read_text())
@@ -96,7 +96,7 @@ def resolve_payload(details, licensed, identities, aliases):
             player["participation_exception"] = {"usual_team": roster["name"], "note": GUEST_NOTE}
     for row in payload["stats"]:
         row["player_id"] = canonical[row["player_id"]]
-    return apply_result_correction(payload)
+    return apply_confirmed_corrections(payload)
 
 
 def publish_collected(collected, *, db=None):

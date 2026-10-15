@@ -1,7 +1,9 @@
-"""Organiser-confirmed exceptions, scoped to one immutable Nakka encounter.
+"""Confirmed corrections scoped to one encounter and one Nakka simple.
 
-The raw source is validated first. Only result flags are corrected afterwards;
-scoring, visits and canonical identities are never exchanged.
+The first confirmation concerned results only. A subsequent confirmation of
+40/1 dart and 6/1 dart identifies Christophe's two complete source streams.
+Raw visits and canonical profiles stay intact; only their local attribution
+on this simple changes.
 """
 from collections import Counter
 from copy import deepcopy
@@ -16,6 +18,8 @@ GUEST_IDENTITY = "45f23d50-2f77-4ef4-983c-2cca7f5a425f"
 REASON = "Inversion de score confirmée par l’organisateur"
 GUEST_NOTE = "Renfort exceptionnel pour Ambrée — équipe habituelle : Brune"
 USUAL_TEAM = "3B Darts Club - B(rune)"
+STATISTICS_REASON = "Attribution des deux séries à Christophe confirmée par l’organisateur : finishes 40 et 6 en une fléchette"
+STATISTICS_KEY = "J2_SIMPLE_16_CONFIRMED_STATISTICS_ATTRIBUTION"
 
 
 def usual_team_for_encounter(encounter, player_id):
@@ -92,6 +96,65 @@ def apply_result_correction(payload):
         "reason": REASON,
     }]
     return corrected
+
+
+def _rebuild_player_totals(payload):
+    fields = {"score": "score", "darts": "darts_thrown", "f9Score": "first_9_score", "f9Darts": "first_9_darts",
+              "ton00": "scores_100", "ton40": "scores_140", "ton70": "scores_170", "ton80": "scores_180"}
+    for player in payload["players"]:
+        if player["id"] not in (BENOIT, CHRISTOPHE):
+            continue
+        rows = [s for s in payload["stats"] if s["player_id"] == player["id"]]
+        player.update({key: sum(s[field] for s in rows) for key, field in fields.items()})
+        player.update(leg=len(rows), winLeg=sum(s["leg_won"] for s in rows), highOut=max(s["finish"] for s in rows))
+
+
+def apply_statistics_correction(payload):
+    if not is_target(payload):
+        return payload
+    if "statistics_corrections" in payload:
+        expected = apply_statistics_correction(apply_result_correction(deepcopy(payload["source_snapshot"])))
+        if expected != payload:
+            raise SummaryUnavailable("L’attribution des statistiques J2 diffère de la source confirmée.")
+        return expected
+    # The previous result-only correction is independently validated and kept.
+    apply_result_correction(payload)
+    raw = [m for m in payload.get("raw_nakka", {}).get("sets", []) if m.get("mid") == MATCH]
+    if len(raw) != 1 or len(raw[0].get("legData", [])) != 2:
+        raise SummaryUnavailable("Le détail brut du simple 16 est requis pour attribuer ses statistiques.")
+    for leg, finish in zip(raw[0]["legData"], (40, 6)):
+        visits = leg["playerData"][0]
+        if (leg["winner"] != 0 or visits[-2]["left"] != finish
+                or visits[-1]["left"] != 0 or visits[-1]["score"] != -1):
+            raise SummaryUnavailable("Les finishes bruts du simple 16 ne correspondent plus aux 40/1 et 6/1 confirmés.")
+    corrected = deepcopy(payload)
+    legs = {l["id"]: l["leg_number"] for l in payload["legs"] if l["match_id"] == MATCH}
+    rows = {(s["leg_id"], s["player_id"]): s for s in payload["stats"] if s["leg_id"] in legs}
+    for leg_id, number in legs.items():
+        winner, opponent = rows[(leg_id, BENOIT)], rows[(leg_id, CHRISTOPHE)]
+        if (winner["finish"] != (40 if number == 1 else 6) or winner["score"] != 501
+                or winner["darts_thrown"] != 40 or opponent["finish"] != 0 or opponent["score"] >= 501):
+            raise SummaryUnavailable("Les séries du simple 16 ont changé : nouvelle vérification requise.")
+    for row in corrected["stats"]:
+        if row["leg_id"] not in legs:
+            continue
+        source = rows[(row["leg_id"], CHRISTOPHE if row["player_id"] == BENOIT else BENOIT)]
+        # Keep player/team/leg identity and the already-correct result flags.
+        row.update({k: v for k, v in source.items() if k not in ("leg_id", "player_id", "team_id", "leg_won")})
+    _rebuild_player_totals(corrected)
+    corrected["statistics_corrections"] = [{
+        "key": STATISTICS_KEY, "event_id": EVENT, "match_id": MATCH,
+        "player_ids": [BENOIT, CHRISTOPHE], "reason": STATISTICS_REASON,
+        "confirmed_finishes": [{"leg_number": n, "player_id": CHRISTOPHE, "finish": finish, "checkout_darts": 1}
+                               for n, finish in ((1, 40), (2, 6))],
+    }]
+    return corrected
+
+
+def apply_confirmed_corrections(payload):
+    if "statistics_corrections" in payload:
+        return apply_statistics_correction(payload)
+    return apply_statistics_correction(apply_result_correction(payload))
 
 
 def corrected_facts(payload, previous):
