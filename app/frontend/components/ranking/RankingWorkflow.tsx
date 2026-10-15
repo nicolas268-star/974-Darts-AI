@@ -235,7 +235,7 @@ export default function RankingWorkflow({
         action === "PUBLISH"
           ? "Cette version est publiée. Le classement a été mis à jour."
           : action === "SAVE"
-            ? "Nouvelle version enregistrée. Une nouvelle validation sportive est nécessaire."
+            ? "Nouvelle version enregistrée. La relecture DS précédente reste dans l’historique ; cette version peut être relue à nouveau."
             : action === "IMPORT"
               ? "Analyse ajoutée à la file de traitement."
               : "Action enregistrée.",
@@ -292,12 +292,18 @@ export default function RankingWorkflow({
   const status = revision?.status;
   const total =
     snapshot?.results.reduce((sum, r) => sum + (r.points ?? 0), 0) ?? 0;
+  const needsOptionalReview = (event: Event) =>
+    !event.historical &&
+    event.ds_review.status === "NOT_REVIEWED" &&
+    ["ANALYZED", "PENDING_DS", "READY_TO_PUBLISH", "PUBLISHED"].includes(event.status);
   const filtered = events.filter(
     (e) =>
       filter === "ALL" ||
       (filter === "VALIDATED"
-        ? ["DS_VALIDATED", "READY_TO_PUBLISH", "PUBLISHED"].includes(e.status)
-        : e.status === filter),
+        ? e.ds_review.status === "VALIDATED"
+        : filter === "NOT_REVIEWED"
+          ? needsOptionalReview(e)
+          : e.status === filter),
   );
 
   function metadataForm(isNew: boolean) {
@@ -379,14 +385,14 @@ export default function RankingWorkflow({
           />
         </label>
         <label>
-          Directeur sportif assigné
+          Directeur sportif assigné (facultatif)
           <select
             value={editing.director_id ?? ""}
             onChange={(e) =>
               setEditing({ ...editing, director_id: e.target.value || null })
             }
           >
-            <option value="">À désigner</option>
+            <option value="">Sans affectation DS</option>
             {options.directors.map((d) => (
               <option key={d.user_id} value={d.user_id}>
                 {d.display_name || "Directeur sportif"}
@@ -401,9 +407,9 @@ export default function RankingWorkflow({
             : "Les points sont calculés à partir du barème de l’épreuve."}
         </p>
         {!options.directors.length && (
-          <p className={styles.warning}>
-            Aucun compte Directeur sportif actif. Le brouillon peut être préparé
-            ; l’envoi attendra la désignation du DS.
+          <p className={styles.hint}>
+            Aucun compte Directeur sportif actif. Les résultats peuvent suivre
+            les contrôles Admin et être publiés sans relecture DS.
           </p>
         )}
       </div>
@@ -422,8 +428,8 @@ export default function RankingWorkflow({
           </h1>
           <p>
             {admin
-              ? "Préparer les résultats, recueillir l’avis sportif, puis publier."
-              : "Contrôlez les résultats et les points des compétitions qui vous sont confiées."}
+              ? "Préparer les résultats, effectuer le contrôle Admin et publier. La relecture DS est facultative."
+              : "La validation du directeur sportif est facultative. Les résultats suivent leur workflow habituel après les contrôles requis. Vous pouvez les relire et les valider lorsque vous êtes disponible."}
           </p>
         </div>
         <div className={styles.seal}>
@@ -457,8 +463,8 @@ export default function RankingWorkflow({
         <section className={styles.panel}>
           <h2>Activation en préparation</h2>
           <p>
-            Le nouvel espace de validation sera disponible après la préparation
-            de la base et du compte Directeur sportif.
+            Le nouvel espace sera disponible après la préparation de la base
+            et l’activation du workflow.
           </p>
           <Link href="/competitions/classement-individuel">
             Consulter le classement publié →
@@ -489,8 +495,8 @@ export default function RankingWorkflow({
           <section className={styles.metrics}>
             {[
               {
-                label: "À valider par le DS",
-                value: events.filter((e) => e.status === "PENDING_DS").length,
+                label: "Relectures DS possibles",
+                value: events.filter(needsOptionalReview).length,
                 icon: Clock3,
               },
               {
@@ -500,12 +506,9 @@ export default function RankingWorkflow({
                 icon: TriangleAlert,
               },
               {
-                label: "Validées récemment",
-                value: events.filter((e) =>
-                  ["DS_VALIDATED", "READY_TO_PUBLISH", "PUBLISHED"].includes(
-                    e.status,
-                  ),
-                ).length,
+                label: "Validées par le DS",
+                value: events.filter((e) => e.ds_review.status === "VALIDATED")
+                  .length,
                 icon: FileCheck2,
               },
             ].map(({ label, value, icon: Icon }) => (
@@ -540,9 +543,9 @@ export default function RankingWorkflow({
             <div className={styles.filters}>
               {[
                 ["ALL", "Toutes"],
-                ["PENDING_DS", "À valider"],
+                ["NOT_REVIEWED", "Non relues"],
                 ["CORRECTION_REQUESTED", "Corrections"],
-                ["VALIDATED", "Validées"],
+                ["VALIDATED", "Validées par le DS"],
               ].map(([key, label]) => (
                 <button
                   key={key}
@@ -585,6 +588,13 @@ export default function RankingWorkflow({
                           <span className={styles.badge} data-state={e.status}>
                             {labels[e.status]}
                           </span>
+                          <small>
+                            {e.ds_review.status === "VALIDATED"
+                              ? "Validé par le DS"
+                              : e.ds_review.status === "CORRECTION_REQUESTED"
+                                ? "Correction demandée"
+                                : "Non revu par le DS"}
+                          </small>
                           {!!e.blockers && (
                             <small>{e.blockers} points à vérifier</small>
                           )}
@@ -622,7 +632,7 @@ export default function RankingWorkflow({
                 <p>
                   {admin
                     ? "Créez une compétition pour préparer son analyse."
-                    : "Les dossiers apparaîtront ici après leur envoi par l’administrateur."}
+                    : "Les versions analysées qui vous sont affectées apparaîtront ici, avant ou après leur publication."}
                 </p>
               </div>
             )}
@@ -706,7 +716,7 @@ export default function RankingWorkflow({
               <p className={styles.hint}>
                 {snapshot.historical_attestation?.label}. Les points existants
                 sont conservés. Une correction nécessite une nouvelle analyse et
-                le circuit de validation complet.
+                les contrôles Admin requis ; la relecture DS reste facultative.
               </p>
             )}
             {historical && (
@@ -721,27 +731,23 @@ export default function RankingWorkflow({
               </p>
             )}
           </section>
+          <p className={styles.hint} data-testid="ds-review">
+            {revision.ds_review.status === "VALIDATED"
+              ? `Validé par le DS · ${revision.ds_review.actor_name} · ${date(revision.ds_review.at ?? "")}`
+              : revision.ds_review.status === "CORRECTION_REQUESTED"
+                ? "Correction demandée par le DS"
+                : "Non revu par le DS · Relecture DS facultative"}
+          </p>
           <ol className={styles.steps}>
-            {[
-              "Analyse",
-              "Contrôle admin",
-              "Validation DS",
-              "Contrôle final",
-              "Publication",
-            ].map((text, index) => {
-              const progress = [
-                "DRAFT",
-                "ANALYZED",
-                "PENDING_DS",
-                "DS_VALIDATED",
-                "READY_TO_PUBLISH",
-                "PUBLISHED",
-              ].indexOf(status ?? "");
+            {["Analyse", "Contrôle final Admin", "Publication"].map((text, index) => {
+              const progress = status === "PUBLISHED"
+                ? 3
+                : status === "READY_TO_PUBLISH"
+                  ? 2
+                  : status && !["DRAFT", "ARCHIVED"].includes(status) ? 1 : 0;
               return (
                 <li key={text} data-done={progress > index}>
-                  <span>
-                    {progress > index ? <Check size={16} /> : index + 1}
-                  </span>
+                  <span>{progress > index ? <Check size={16} /> : index + 1}</span>
                   {text}
                 </li>
               );
@@ -780,8 +786,9 @@ export default function RankingWorkflow({
                 </p>
               ))}
               <p className={styles.hint}>
-                Chaque analyse ou correction crée une nouvelle version et exige
-                une nouvelle validation du DS.
+                Chaque analyse ou correction crée une nouvelle version. Une ancienne
+                relecture DS ne s’applique pas aux nouvelles données ; une nouvelle
+                relecture reste facultative.
               </p>
             </section>
           )}
@@ -1304,10 +1311,12 @@ export default function RankingWorkflow({
               )}
               {active &&
                 (admin
-                  ? ["ANALYZED", "DS_VALIDATED", "READY_TO_PUBLISH"].includes(
+                  ? ["ANALYZED", "PENDING_DS", "DS_VALIDATED", "READY_TO_PUBLISH"].includes(
                       status ?? "",
                     )
-                  : status === "PENDING_DS") && (
+                  : ["ANALYZED", "PENDING_DS", "DS_VALIDATED", "READY_TO_PUBLISH", "PUBLISHED"].includes(
+                      status ?? "",
+                    )) && (
                   <section className={`${styles.panel} ${styles.approval}`}>
                     <span className={styles.eyebrow}>
                       {admin ? "DÉCISION ADMINISTRATEUR" : "DÉCISION SPORTIVE"}
@@ -1315,18 +1324,18 @@ export default function RankingWorkflow({
                     <h2>
                       {!admin
                         ? "Confirmer les résultats de cette version"
-                        : status === "ANALYZED"
-                          ? "Transmettre au Directeur sportif"
-                          : status === "DS_VALIDATED"
-                            ? "Effectuer le contrôle final"
-                            : "Publier les résultats"}
+                        : status === "READY_TO_PUBLISH"
+                          ? "Publier les résultats"
+                          : "Effectuer le contrôle final"}
                     </h2>
                     <p>
                       Version {revision.number} · {snapshot.results.length}{" "}
                       joueurs · {total} points.{" "}
-                      {status === "READY_TO_PUBLISH"
-                        ? "Cette action mettra à jour le classement public."
-                        : "Les points publics restent inchangés à cette étape."}
+                      {!admin
+                        ? "La relecture enregistre votre avis sans republier les résultats. Une demande de correction bloque les prochaines étapes ; une version déjà publiée reste visible jusqu’à son remplacement."
+                        : status === "READY_TO_PUBLISH"
+                          ? "Cette action mettra à jour le classement public."
+                          : "Les points publics restent inchangés à cette étape. La relecture DS est facultative."}
                     </p>
                     <label className={styles.reason}>
                       Commentaire{" "}
@@ -1350,6 +1359,15 @@ export default function RankingWorkflow({
                         : "Je confirme avoir contrôlé les résultats et le classement de cette compétition."}
                     </label>
                     <div className={styles.actions}>
+                      {admin && status === "ANALYZED" && revision.director_id && (
+                        <button
+                          className={styles.secondary}
+                          disabled={!canAct || !confirmed || !!snapshot.blockers.length}
+                          onClick={() => void act("SUBMIT")}
+                        >
+                          Proposer une relecture DS (facultatif)
+                        </button>
+                      )}
                       {!admin ? (
                         <>
                           <button
@@ -1359,17 +1377,15 @@ export default function RankingWorkflow({
                           >
                             Demander une correction
                           </button>
-                          <button
-                            className={styles.primary}
-                            disabled={
-                              !canAct ||
-                              !confirmed ||
-                              !!snapshot.blockers.length
-                            }
-                            onClick={() => void act("APPROVE_DS")}
-                          >
-                            Valider les résultats · v{revision.number}
-                          </button>
+                          {revision.ds_review.status !== "VALIDATED" && (
+                            <button
+                              className={styles.primary}
+                              disabled={!canAct || !confirmed || !!snapshot.blockers.length}
+                              onClick={() => void act("APPROVE_DS")}
+                            >
+                              Valider les résultats · v{revision.number}
+                            </button>
+                          )}
                         </>
                       ) : (
                         <button
@@ -1377,24 +1393,19 @@ export default function RankingWorkflow({
                           disabled={
                             !canAct ||
                             !confirmed ||
-                            !!snapshot.blockers.length ||
-                            !revision.director_id
+                            !!snapshot.blockers.length
                           }
                           onClick={() =>
                             void act(
-                              status === "ANALYZED"
-                                ? "SUBMIT"
-                                : status === "DS_VALIDATED"
-                                  ? "APPROVE_ADMIN"
-                                  : "PUBLISH",
+                              status === "READY_TO_PUBLISH"
+                                ? "PUBLISH"
+                                : "APPROVE_ADMIN",
                             )
                           }
                         >
-                          {status === "ANALYZED"
-                            ? "Envoyer au Directeur sportif"
-                            : status === "DS_VALIDATED"
-                              ? "Valider le contrôle final"
-                              : "Publier et mettre à jour le classement"}
+                          {status === "READY_TO_PUBLISH"
+                            ? "Publier et mettre à jour le classement"
+                            : "Valider le contrôle final"}
                         </button>
                       )}
                     </div>
@@ -1483,8 +1494,7 @@ export default function RankingWorkflow({
       <footer className={styles.footer}>
         <ShieldCheck size={16} />
         <span>
-          Machine → Administrateur → Directeur sportif → Administrateur →
-          Publication
+          Analyse → Contrôle Admin → Publication · Relecture DS facultative
         </span>
         <Link href="/competitions/classement-individuel">
           Voir le classement public ↗

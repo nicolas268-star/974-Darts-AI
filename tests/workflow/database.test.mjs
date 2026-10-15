@@ -55,7 +55,7 @@ for(const file of readdirSync(resolve(root,'supabase/migrations')).sort().filter
  check((await rev(id)).director_id===null && (await rev(id)).status==='ANALYZED','Prepared results can be saved without an assigned director');
  await expectError(()=>command('event-test',id,'SUBMIT',{confirmed:true}),/INVALID_DIRECTOR/);
  check((await rev(id)).status==='ANALYZED' && (await query('select count(*) as n from ranking_notification_outbox'))[0].n===0,'Missing director leaves the prepared version intact and queues no email');
- check((await pub()).events.length===1,'Prepared results remain private until reviewed');
+ check((await pub()).events.length===1,'Prepared results remain private until explicit Admin publication');
  await db.exec('reset role');
  await query("update profiles set role='SPORTS_DIRECTOR' where user_id in ($1,$2)",[ds,otherDS]);
  await db.exec('set role service_role');
@@ -98,9 +98,10 @@ for(const file of readdirSync(resolve(root,'supabase/migrations')).sort().filter
  await command('event-test',v4.revision_id,'APPROVE_DS',{confirmed:true},ds);
  await command('event-test',v4.revision_id,'APPROVE_ADMIN',{confirmed:true});
  await db.exec('reset role');await query("update profiles set role='PLAYER' where user_id=$1",[ds]);await db.exec('set role service_role');
- await expectError(()=>command('event-test',v4.revision_id,'PUBLISH',{confirmed:true}),/INVALID_DIRECTOR/);
- await db.exec('reset role');await query("update profiles set role='SPORTS_DIRECTOR' where user_id=$1",[ds]);await db.exec('set role service_role');
+ // A revoked optional reviewer cannot hold back an already approved Admin publication.
  await command('event-test',v4.revision_id,'PUBLISH',{confirmed:true});
+ check((await rev(v4.revision_id)).status==='PUBLISHED','Revoked DS does not block Admin publication');
+ await db.exec('reset role');await query("update profiles set role='SPORTS_DIRECTOR' where user_id=$1",[ds]);await db.exec('set role service_role');
  const final=await pub();
  check(final.events.length===2 && final.events.find(e=>e.id==='event-test').results[0].points===24,'Replacement never adds duplicate points');
  check(JSON.stringify(final.events[0])===JSON.stringify(initial.events[0]),'Historical snapshot unchanged');

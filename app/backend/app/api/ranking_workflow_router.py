@@ -15,6 +15,7 @@ from app.services.ranking_workflow import (
     registry,
     rows,
     aggregate_public,
+    director_review,
 )
 from app.services.nakka_direct_import import validate_direct_event_url
 
@@ -24,6 +25,7 @@ router = APIRouter(
     dependencies=[Depends(verify_internal_token)],
 )
 VISIBLE_DS = {
+    "ANALYZED",
     "PENDING_DS",
     "CORRECTION_REQUESTED",
     "DS_VALIDATED",
@@ -154,7 +156,7 @@ def list_events(offset: int = Query(0, ge=0, le=10000), ctx=Depends(actor_contex
     db, actor = ctx
     query = (
         db.table("ranking_workflow_revisions")
-        .select("id,event_id,number,status,director_id,snapshot,created_at,historical")
+        .select("id,event_id,number,status,director_id,snapshot,fingerprint,created_at,historical")
         .order("created_at", desc=True)
     )
     if actor["role"] == "SPORTS_DIRECTOR":
@@ -162,6 +164,17 @@ def list_events(offset: int = Query(0, ge=0, le=10000), ctx=Depends(actor_contex
             "status", list(VISIBLE_DS)
         )
     candidates = rows(query.range(offset, offset + 99).execute())
+    decisions = (
+        rows(
+            db.table("ranking_workflow_decisions")
+            .select("revision_id,fingerprint,actor_id,actor_role,actor_name,action,created_at")
+            .in_("revision_id", [r["id"] for r in candidates])
+            .in_("action", ["APPROVE_DS", "REQUEST_CORRECTION"])
+            .order("created_at")
+            .execute()
+        )
+        if candidates else []
+    )
     event_ids = list(dict.fromkeys(r["event_id"] for r in candidates))
     events = (
         {
@@ -193,6 +206,7 @@ def list_events(offset: int = Query(0, ge=0, le=10000), ctx=Depends(actor_contex
                 "metadata": revision["snapshot"]["metadata"],
                 "blockers": len(revision["snapshot"].get("blockers", [])),
                 "historical": revision["historical"],
+                "ds_review": director_review(revision, decisions),
             }
         )
     return {
@@ -233,7 +247,7 @@ def detail(event_id: str, ctx=Depends(actor_context)):
     )
     response = {
         "event": event,
-        "revision": revision,
+        "revision": {**revision, "ds_review": director_review(revision, decisions)},
         "history": [
             {
                 k: r[k]
@@ -329,7 +343,15 @@ def historical_revision(event_id: str, revision_id: UUID, ctx=Depends(actor_cont
         )
     ):
         raise HTTPException(404, "Version introuvable.")
-    return {"revision": revision}
+    decisions = rows(
+        db.table("ranking_workflow_decisions")
+        .select("revision_id,fingerprint,actor_id,actor_role,actor_name,action,created_at")
+        .eq("revision_id", str(revision_id))
+        .in_("action", ["APPROVE_DS", "REQUEST_CORRECTION"])
+        .order("created_at")
+        .execute()
+    )
+    return {"revision": {**revision, "ds_review": director_review(revision, decisions)}}
 
 
 class CreateRequest(StrictModel):
