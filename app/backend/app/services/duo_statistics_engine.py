@@ -7,6 +7,7 @@ from typing import Any
 
 from supabase import Client
 
+from .scoring_ranges import scoring_120_139
 from .player_statistics_engine import (
     NAKKA_DATA_NOTE,
     PlayerStatisticsDataset,
@@ -207,6 +208,7 @@ class DuoStatisticsEngine:
             "first_9": _combined_metric(player_rows, "first_9"),
             "finishes": len(finishes),
             "best_finish": max(finishes, default=None),
+            **scoring_120_139(player_rows),
             "scores_80_plus": _sum_int(player_rows, "scores_80"),
             "scores_100_plus": _sum_int(player_rows, "scores_100"),
             "scores_140_plus": _sum_int(player_rows, "scores_140"),
@@ -239,6 +241,7 @@ class DuoStatisticsEngine:
             "score": duo_score,
             "finishes": len(finishes),
             "best_finish": max(finishes, default=None),
+            **scoring_120_139(rows),
             "scores_80_plus": _sum_int(rows, "scores_80"),
             "scores_100_plus": _sum_int(rows, "scores_100"),
             "scores_140_plus": _sum_int(rows, "scores_140"),

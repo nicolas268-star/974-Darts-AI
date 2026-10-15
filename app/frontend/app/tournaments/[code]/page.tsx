@@ -1,3 +1,4 @@
+import { ScoringRangeValue } from "@/components/stats/ScoringRangeValue";
 import { StatsTable } from "@/components/stats/StatsTable";
 import Link from "next/link";
 import { Sidebar } from "@/components/Sidebar";
@@ -150,9 +151,10 @@ function ParticipantTable({
             <th>Moy. 3 fl.</th>
             <th>First 9</th>
             <th>Finish</th>
-            <th>180</th>
-            <th>140+</th>
             <th>100+</th>
+            <th>120–139</th>
+            <th>140+</th>
+            <th>180</th>
           </tr>
         </thead>
         <tbody>
@@ -178,9 +180,10 @@ function ParticipantTable({
               <td>{decimal(participant.average_3_darts)}</td>
               <td>{decimal(participant.first_9)}</td>
               <td>{participant.best_finish ?? "—"}</td>
-              <td>{participant.scores_180}</td>
-              <td>{participant.scores_140}</td>
               <td>{participant.scores_100}</td>
+              <td><ScoringRangeValue data={participant} /></td>
+              <td>{participant.scores_140}</td>
+              <td>{participant.scores_180}</td>
             </tr>
           ))}
         </tbody>

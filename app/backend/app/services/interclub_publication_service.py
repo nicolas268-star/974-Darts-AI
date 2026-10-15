@@ -109,7 +109,7 @@ def publish_collected(collected, *, db=None):
                               _all(db, "player_identities", "id,canonical_player_id,canonical_display_name,status"),
                               _all(db, "player_aliases", "identity_id,alias_name,confirmed"))
     try:
-        result = db.rpc("publish_interclub_match", {"p": payload}).execute().data
+        result = db.rpc("publish_interclub_scoring", {"p": payload}).execute().data
     except Exception as exc:
         # Surface known business errors only, never raw database/credential details.
         code = str(exc)

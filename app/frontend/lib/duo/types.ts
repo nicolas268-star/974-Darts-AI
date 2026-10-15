@@ -1,3 +1,5 @@
+import type { Scoring120139 } from "@/lib/player/scoring-ranges";
+
 export type DuoPlayer = {
   id: string;
   name: string;
@@ -5,7 +7,7 @@ export type DuoPlayer = {
   team: string | null;
 };
 
-export type DuoContribution = {
+export type DuoContribution = Scoring120139 & {
   player: DuoPlayer;
   score: number;
   scoring_share: number;
@@ -20,7 +22,7 @@ export type DuoContribution = {
   scores_180: number;
 };
 
-export type DuoOverview = {
+export type DuoOverview = Scoring120139 & {
   duo_id: string;
   player_1: DuoPlayer;
   player_2: DuoPlayer;

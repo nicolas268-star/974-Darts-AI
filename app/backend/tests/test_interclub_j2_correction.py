@@ -150,7 +150,7 @@ class J2CorrectionTests(unittest.TestCase):
         db = DB()
         with patch("app.services.interclub_publication_service._all", side_effect=[licensed, identities, []]):
             result = publish_collected(collected, db=db)
-        self.assertEqual(db.name, "publish_interclub_match")
+        self.assertEqual(db.name, "publish_interclub_scoring")
         self.assertEqual(result["result_id"], "db-j2")
         self.assertEqual([collected["facts"]["home_score"], collected["facts"]["away_score"]], [5, 15])
 
