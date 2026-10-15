@@ -3,6 +3,7 @@
 set -Eeuo pipefail
 umask 077
 [[ "$EUID" -eq 0 ]] || { echo 'Exécuter avec sudo.' >&2; exit 1; }
+resume_backup=${1:-}
 cd /opt/974darts/current
 repo_path=$(pwd -P)
 g() { git --no-optional-locks -c safe.directory="$repo_path" "$@"; }
@@ -44,6 +45,25 @@ feature_state() {
   docker inspect --format '{{json .Config.Env}}' "$(dc --profile ranking-workflow ps -q "$1")" |
     python3 -c 'import json,sys; e=dict(x.split("=",1) for x in json.load(sys.stdin)); print(json.dumps({k:e.get(k) for k in ["RANKING_WORKFLOW_ENABLED","RANKING_EMAIL_ENABLED","MATCH_DAY_ENABLED","MATCH_DAY_FACEBOOK_ENABLED","PLAYER_CARD_ENABLED"]},sort_keys=True))'
 }
+verify_flags() {
+  python3 - "$1" "$2" "$3" <<'PY'
+import json,sys
+service,before_path,after_path=sys.argv[1:]
+keys={
+    'ranking-worker': ['RANKING_WORKFLOW_ENABLED','RANKING_EMAIL_ENABLED'],
+    'backend': ['RANKING_WORKFLOW_ENABLED','RANKING_EMAIL_ENABLED','MATCH_DAY_ENABLED','MATCH_DAY_FACEBOOK_ENABLED'],
+    'frontend': ['RANKING_WORKFLOW_ENABLED','RANKING_EMAIL_ENABLED','MATCH_DAY_ENABLED','MATCH_DAY_FACEBOOK_ENABLED','PLAYER_CARD_ENABLED'],
+}[service]
+with open(before_path) as stream: before=json.load(stream)
+with open(after_path) as stream: after=json.load(stream)
+changed=[key for key in keys if before.get(key)!=after.get(key)]
+for key in changed:
+    print(f'{service}: {key}: {before.get(key)!r} -> {after.get(key)!r}',file=sys.stderr)
+if changed:
+    raise SystemExit('Options actives différentes : arrêt du déploiement.')
+print(f'{service} : options actives conservées.')
+PY
+}
 public_state() {
   dc exec -T backend python -c 'import json; from supabase import create_client; from app.config import settings; d=create_client(settings.supabase_url,settings.supabase_service_role_key).rpc("ranking_published_snapshot",{"p_season":"2026-2027"}).execute().data; print(json.dumps(d,sort_keys=True))'
 }
@@ -56,6 +76,10 @@ for service in "${services[@]}"; do
   docker tag "$image" "$tag"
   printf '  %s:\n    image: %s\n' "$service" "$tag" >> "$backup/rollback.yaml"
   feature_state "$service" > "$backup/$service-flags.json"
+  if [[ -n "$resume_backup" ]]; then
+    # Compare against the original configuration, including after a previous rollback.
+    verify_flags "$service" "$resume_backup/$service-flags.json" "$backup/$service-flags.json"
+  fi
 done
 public_state > "$backup/public-before.json"
 activation_started=0
@@ -86,7 +110,7 @@ if [[ -n "$worker_id" ]]; then dc --profile ranking-workflow up -d --no-deps --n
 dc exec -T backend python -c 'from app.services.ranking_workflow import director_review; from app.api.ranking_workflow_router import VISIBLE_DS; assert "ANALYZED" in VISIBLE_DS; assert director_review({"id":"test","fingerprint":"test","director_id":None},[])=={"status":"NOT_REVIEWED"}; print("Backend : relecture facultative installée.")'
 for service in "${services[@]}"; do
   feature_state "$service" > "$backup/$service-flags-after.json"
-  cmp "$backup/$service-flags.json" "$backup/$service-flags-after.json"
+  verify_flags "$service" "$backup/$service-flags.json" "$backup/$service-flags-after.json"
 done
 public_state > "$backup/public-after.json"
 cmp "$backup/public-before.json" "$backup/public-after.json"
