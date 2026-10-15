@@ -2,8 +2,9 @@ import { StatsTable } from "@/components/stats/StatsTable";
 import { ChampionshipCharts } from "@/components/stats/ChampionshipCharts";
 import Link from "next/link";
 import { Sidebar } from "@/components/Sidebar";
-import type { ChampionshipHub } from "@/lib/types/sprint14";
+import type { ChampionshipHub, CompetitionCatalog } from "@/lib/types/sprint14";
 import "../../competitions/competition-hub.css";
+import "./dashboard.css";
 
 async function loadChampionship(
   season: string,
@@ -21,6 +22,14 @@ async function loadChampionship(
   } catch {
     return null;
   }
+}
+
+async function loadSeasons(): Promise<CompetitionCatalog | null> {
+  try {
+    const base = process.env.PYTHON_API_URL ?? "http://127.0.0.1:8000";
+    const response = await fetch(`${base}/api/v1/competitions`, { cache: "no-store", signal: AbortSignal.timeout(5000) });
+    return response.ok ? response.json() : null;
+  } catch { return null; }
 }
 
 const formatNumber = (value: number | null | undefined) =>
@@ -48,12 +57,13 @@ export default async function ChampionshipPage({
   params: Promise<{ season: string }>;
 }) {
   const { season } = await params;
-  const data = await loadChampionship(season);
+  const [data, catalog] = await Promise.all([loadChampionship(season), loadSeasons()]);
+  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Indian/Reunion", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
 
   return (
     <div className="dashboard">
       <Sidebar />
-      <main className="stats-responsive main competition-page championship-theme">
+      <main className="stats-responsive main competition-page championship-theme interclub-dashboard">
         <Link href="/competitions" className="hub-back">
           ← Retour aux compétitions
         </Link>
@@ -72,10 +82,9 @@ export default async function ChampionshipPage({
                 </span>
                 <div className="hub-title">
                   <div>
-                    <h1>Saison {data.championship.year}</h1>
+                    <h1>Championnat Interclubs <span>{data.championship.year}</span></h1>
                     <p>
-                      Classement collectif et leaders individuels de la
-                      saison sélectionnée.
+                      La Réunion · Classement officiel et progression des équipes
                     </p>
                   </div>
                 </div>
@@ -88,6 +97,8 @@ export default async function ChampionshipPage({
                     : "Saison archivée"}
               </span>
             </header>
+
+            {!!catalog?.championships.length && <nav className="interclub-seasons" aria-label="Sélectionner la saison du championnat">{catalog.championships.map(item => <Link key={item.slug} href={item.href} aria-current={item.year === data.championship.year ? "page" : undefined}>{item.year}</Link>)}</nav>}
 
             {data.status_message && (
               <div className="competition-notice">
@@ -105,28 +116,9 @@ export default async function ChampionshipPage({
               </div>
             )}
 
-            <section className="hub-kpis">
-              <article>
-                <span>Journées</span>
-                <strong>{formatNumber(data.summary.rounds)}</strong>
-              </article>
-              <article>
-                <span>Équipes</span>
-                <strong>{formatNumber(data.summary.teams)}</strong>
-              </article>
-              <article>
-                <span>Rencontres</span>
-                <strong>{formatNumber(data.summary.encounters)}</strong>
-              </article>
-              <article>
-                <span>Legs valides</span>
-                <strong>{formatNumber(data.summary.valid_legs)}</strong>
-              </article>
-              <article>
-                <span>Joueurs classés</span>
-                <strong>{formatNumber(data.summary.players)}</strong>
-              </article>
-            </section>
+            <ChampionshipCharts key={data.championship.slug} data={data} today={today} />
+
+            <div className="interclub-season-link"><Link href="/competitions">Changer de saison →</Link><span>{formatNumber(data.summary.valid_legs)} legs valides · {formatNumber(data.summary.players)} joueurs classés</span></div>
 
             {!!data.schedule?.length && (
               <section className="hub-panel championship-schedule">
@@ -166,64 +158,6 @@ export default async function ChampionshipPage({
                 )}
               </section>
             )}
-
-            <ChampionshipCharts
-              standings={data.standings}
-              rounds={data.round_history ?? []}
-              winPoints={data.rules?.win_points ?? 4}
-            />
-
-            <section className="hub-panel">
-              <h2>Classement des équipes</h2>
-              {data.standings.length ? (
-                <div className="hub-table-scroll">
-                  <StatsTable className="hub-table">
-                    <thead>
-                      <tr>
-                        <th>#</th>
-                        <th>Équipe</th>
-                        <th>MJ</th>
-                        <th>V</th>
-                        <th>N</th>
-                        <th>D</th>
-                        <th>Sets +</th>
-                        <th>Sets −</th>
-                        <th>Diff.</th>
-                        <th>Pts</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {data.standings.map((team) => (
-                        <tr key={team.team_id}>
-                          <td>{team.rank}</td>
-                          <td>
-                            <Link href={`/teams/${team.team_id}`}>
-                              {team.name}
-                            </Link>
-                          </td>
-                          <td>{team.played}</td>
-                          <td>{team.wins}</td>
-                          <td>{team.draws}</td>
-                          <td>{team.losses}</td>
-                          <td>{team.sets_won}</td>
-                          <td>{team.sets_lost}</td>
-                          <td>
-                            {team.set_difference > 0 ? "+" : ""}
-                            {team.set_difference}
-                          </td>
-                          <td><strong>{team.points}</strong></td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </StatsTable>
-                </div>
-              ) : (
-                <p className="hub-empty">
-                  Le classement apparaîtra après la publication des premiers
-                  résultats officiels de cette saison.
-                </p>
-              )}
-            </section>
 
             <section className="hub-panel">
               <h2>Leaders individuels</h2>

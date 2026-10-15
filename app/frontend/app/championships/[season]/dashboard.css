@@ -1,0 +1,22 @@
+/* Scoped to the championship route; other competition pages keep their theme. */
+.interclub-dashboard { background: radial-gradient(ellipse at 85% 0, #ff8b2710, transparent 45%), #111113; }
+.interclub-dashboard .competition-hero { min-height: 120px; padding: 24px 28px; border-radius: 12px; border-color: #774727; margin-bottom: 14px; background: linear-gradient(110deg, #292019, #19191c 65%); }
+.interclub-dashboard .competition-hero h1 { font-size: clamp(25px, 3vw, 46px); line-height: 1.1; margin: 9px 0; }
+.interclub-dashboard .competition-hero h1 span { color: #ffac42; }
+.interclub-dashboard .competition-hero p { color: #c5c5cb; margin: 0; font-size: 14px; }
+.interclub-dashboard .competition-notice { background: #1d1b18; border-color: #68472d; color: #c9c5bf; padding: 11px 16px; border-radius: 8px; margin: 12px 0; font-size: 13px; }
+.interclub-dashboard .hub-panel { background: #19191c; border: 1px solid #ed842f; border-radius: 12px; padding: 18px; }
+.interclub-dashboard .hub-panel h2 { color: #ffc04f; font-size: 22px; }
+.interclub-dashboard .hub-table th { color: #ffbc53; background: #111113; }
+.interclub-dashboard .hub-table td { border-color: #343436; }
+.interclub-dashboard .hub-table a { color: #f5f5f7; }
+.interclub-dashboard .hub-status { color: #ffc04f; border-color: #785037; background: #1c1915; white-space: nowrap; }
+.interclub-season-link { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; margin: 14px 0 20px; font-size: 13px; color: #b9b9c2; }
+.interclub-season-link a { color: #ffbc53; }
+@media (min-width: 1100px) { .interclub-dashboard.main { padding: 24px; } }
+@media (max-width: 600px) { .interclub-dashboard .competition-hero { padding: 18px; }.interclub-dashboard .hub-status { align-self: flex-start; } }
+
+.interclub-seasons { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0; }
+.interclub-seasons a { display: inline-grid; place-items: center; min-height: 44px; padding: 8px 16px; background: #19191c; border: 1px solid #574232; border-radius: 7px; text-decoration: none; color: #c5c5cb; font-size: 14px; }
+.interclub-seasons a[aria-current="page"] { border-color: #ff9b38; background: #ff9b3818; color: #ffc04f; font-weight: 800; }
+.interclub-seasons a:focus-visible { outline: 2px solid #ffc04f; outline-offset: 3px; }
