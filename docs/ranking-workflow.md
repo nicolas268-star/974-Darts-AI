@@ -1,12 +1,12 @@
 # Validation sportive du classement individuel
 
-Cette branche intègre le circuit **Nakka → contrôle administrateur → Directeur sportif nominatif → contrôle final administrateur → publication**. Aucun déploiement ni migration de production n’a été exécuté. Le barème du double est **10 / 8 / 6 / 4 / 2 par joueur**, conformément à la clarification du 23 septembre 2026.
+Le circuit actuel est **Nakka → préparation → contrôle final administrateur → publication**, avec **relecture DS facultative**. Voir [le diagnostic, la migration et les consignes du 15 octobre 2026](optional-ds-review.md). Aucun déploiement ni migration de production n’a été exécuté. Le barème du double est **10 / 8 / 6 / 4 / 2 par joueur**, conformément à la clarification du 23 septembre 2026.
 
 ## Comportement
 
 - `/admin/classement-individuel` gère les épreuves Club simple/double, Open Comité et Coupe Comité de 2026–2027. Catégories et points proviennent du serveur ; aucun champ de points n’est accepté du navigateur.
-- `/directeur-sportif` est réservé à `SPORTS_DIRECTOR`. Le DS voit uniquement les versions qui lui ont été soumises. Il peut approuver ou demander une correction motivée ; il ne peut pas publier.
-- Chaque analyse et correction crée un instantané immuable. Les confirmations portent sur son identifiant et son empreinte. Une version modifiée repasse par le DS.
+- `/directeur-sportif` est réservé à `SPORTS_DIRECTOR`. Le DS voit les versions analysées qui lui sont affectées, avant ou après publication. Il peut approuver ou demander une correction motivée ; il ne peut pas publier.
+- Chaque analyse et correction crée un instantané immuable. Les confirmations portent sur son identifiant et son empreinte. Une version modifiée ne reprend aucune signature antérieure ; sa relecture DS reste facultative.
 - Une seule révision publiée contribue au classement par compétition. L’ancienne reste visible pendant les corrections ; la bascule, la décision et l’audit sont transactionnels.
 - Les appels anciens `/committee-ranking/validate` et `/publish` répondent **410**. Ils ne constituent plus un moyen de contourner le nouveau circuit.
 - La lecture publique `/api/v1/committee-ranking?season=2026-2027` filtre la saison et expose uniquement les résultats publiés. Les colonnes de la page publique sont dynamiques.
@@ -28,7 +28,7 @@ Le collecteur privé réutilise les parseurs existants sans écrire `lastPreview
 
 ## Notifications
 
-Les transitions créent leur email dans la même transaction que la décision. Le worker traite ensuite la file : lease, reprise, délais croissants, cinq essais maximum et erreur expurgée. Les adresses viennent des comptes Auth, jamais du navigateur. Les liens passent par la connexion et n’exécutent aucune décision par GET.
+Les invitations explicites à la relecture, les demandes de correction et les validations DS avant contrôle final créent leur email dans la même transaction que la décision. Une validation DS tardive (prêt à publier ou publié) et les répétitions de validation ne créent aucun email. Le worker traite ensuite la file : lease, reprise, délais croissants, cinq essais maximum et erreur expurgée. Les adresses viennent des comptes Auth, jamais du navigateur. Les liens passent par la connexion et n’exécutent aucune décision par GET.
 
 `SMTP_ACCEPTED` signifie que le serveur SMTP a accepté le message, pas qu’il a été remis ou lu. Une panne entre acceptation SMTP et enregistrement peut causer un doublon malgré le Message-ID stable. Les emails sont désactivés par défaut (`RANKING_EMAIL_ENABLED=false`). Aucun email réel n’a été envoyé pendant les tests.
 
@@ -44,7 +44,7 @@ Le scénario navigateur utilise le vrai frontend, les vrais endpoints FastAPI et
 
 Le 23 septembre 2026, une recette supplémentaire sur le VPS et le projet Supabase isolé a confirmé les connexions Auth administrateur/DS de test, la collecte Nakka réelle du T5 et la publication de sa version 5 après validation sportive et contrôle final. Sa projection publique comporte 35 lignes et 50 points, identiques par identité aux points historiques. Voir le [compte rendu connecté](ranking-workflow-connected-preview.md). La connexion personnelle de Corentin, la délivrabilité SMTP et un nouveau tournoi distinct restent à vérifier. PGlite ne remplace pas un test de charge multi-connexions sur le projet cible.
 
-Vérifications locales réalisées : **86 tests backend**, **51 contrôles SQL**, parcours navigateur complet sur écran large et mobile (390 px), lint/typecheck et build Next.js. Le lint ne comporte aucune erreur ; les avertissements existants du dépôt restent hors de ce chantier. Docker Compose a été vérifié syntaxiquement ; Docker n’est pas disponible dans cet environnement.
+Recette historique du 23 septembre (pour la recette du 15 octobre, voir [relecture DS facultative](optional-ds-review.md)) : **86 tests backend**, **51 contrôles SQL**, parcours navigateur complet sur écran large et mobile (390 px), lint/typecheck et build Next.js. Le lint ne comporte aucune erreur ; les avertissements existants du dépôt restent hors de ce chantier. Docker Compose a été vérifié syntaxiquement ; Docker n’est pas disponible dans cet environnement.
 
 ## Rejouer les vérifications
 
@@ -79,13 +79,13 @@ Le scénario navigateur démarre et arrête ses propres services de test : ports
 
 ## Compte DS et activation future
 
-Le Directeur sportif désigné par Nicolas est **Corentin Bouazin** ; son adresse email reste à recevoir. Cette attente ne bloque pas la préparation technique ni celle des compétitions : laisser le champ Directeur sportif sur **À désigner** pour créer, analyser et enregistrer les résultats. L’envoi au DS attend l’affectation d’un compte actif ; les nouvelles publications exigent toujours ses validations et le contrôle final de l’administrateur. Aucun compte provisoire ni adresse fictive ne sont nécessaires.
+Le Directeur sportif désigné par Nicolas est **Corentin Bouazin** ; son adresse email reste à recevoir. Cette attente ne bloque pas la préparation technique ni celle des compétitions : laisser le champ Directeur sportif sur **Sans affectation DS** pour créer, analyser et enregistrer les résultats. L’envoi au DS attend l’affectation d’un compte actif ; les nouvelles publications exigent le contrôle final puis la publication explicite de l’administrateur, sans exiger une validation DS. Aucun compte provisoire ni adresse fictive ne sont nécessaires.
 
 Quand Nicolas transmettra l’adresse : vérifier le compte correspondant, utiliser Supabase Auth pour l’accès personnel, puis attribuer explicitement `SPORTS_DIRECTOR` au profil vérifié. Affecter ensuite Corentin aux compétitions préparées et enregistrer une nouvelle version avant l’envoi. Les résultats préparés sont conservés ; il n’est pas nécessaire de recréer les compétitions. Ne pas déduire le rôle de son email ou de métadonnées modifiables par l’utilisateur. Les mises à jour personnelles de `profiles` sont limitées à `display_name` ; les associations sportives et rôles restent administrés côté serveur.
 
-Le test SQL couvre la création et l’enregistrement sans DS, le refus d’envoi sans compte affecté, l’absence d’email et de publication à ce stade, puis l’affectation ultérieure sans perte des résultats et le parcours complet de validation.
+Les tests SQL couvrent le parcours avec et sans DS, les contrôles techniques et Admin, la validation tardive, la conservation de l’historique et l’absence de reprise automatique. Une invitation à la relecture exige toujours un compte DS affecté ; elle est facultative.
 
-Après recette et autorisation de mise en production : appliquer les deux migrations, configurer le même administrateur dans les deux services, activer `RANKING_WORKFLOW_ENABLED=true` dans frontend/backend/worker, puis lancer le service Compose optionnel `ranking-worker` avec le profil `ranking-workflow`. Le frontend doit être reconstruit avec les bonnes valeurs publiques Supabase. L’activation des emails nécessite séparément `RANKING_EMAIL_ENABLED=true`, `RANKING_SITE_ORIGIN` HTTPS et SMTP TLS valide.
+Après recette et autorisation de mise en production : appliquer les migrations du workflow ainsi que `20261015172851_optional_ds_review.sql`, configurer le même administrateur dans les deux services, activer `RANKING_WORKFLOW_ENABLED=true` dans frontend/backend/worker, puis lancer le service Compose optionnel `ranking-worker` avec le profil `ranking-workflow`. Le frontend doit être reconstruit avec les bonnes valeurs publiques Supabase. L’activation des emails nécessite séparément `RANKING_EMAIL_ENABLED=true`, `RANKING_SITE_ORIGIN` HTTPS et SMTP TLS valide.
 
 Le barème n’est activé que pour 2026–2027. Une saison ultérieure nécessite son barème approuvé ; le serveur refuse d’appliquer silencieusement celui de 2026–2027.
 

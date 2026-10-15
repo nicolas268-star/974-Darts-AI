@@ -3,6 +3,7 @@ import {createRequire} from 'node:module';
 import {mkdir} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import {resolve,dirname} from 'node:path';
+import {testOptionalDsReview} from './optional-ds-review.browser.mjs';
 import {testVisibility} from './visibility.browser.mjs';
 import {testMobileStatistics} from './mobile-statistics.browser.mjs';
 import {testChampionshipCharts} from './championship-charts.browser.mjs';
@@ -34,6 +35,7 @@ async function login(page,role){
 }
 try{
  await login(admin,'admin');
+ if (!process.env.RANKING_BROWSER_ONLY) {
  await testVisionCalibration(admin,screenshot);
  await testPlayUniverse(admin,screenshot);
  await testPlayPersistence(admin,screenshot);
@@ -43,15 +45,16 @@ try{
  await testConquestUltra(browser,admin,screenshot);
  await testDartChess(browser,admin,screenshot);
  await testDartChessV2(browser,admin,screenshot);
+ }
  await admin.goto('http://127.0.0.1:3008/admin/classement-individuel');
  await expect(admin.getByText('Open Club Double · Démonstration',{exact:true})).toBeVisible({timeout:30000});
  await screenshot(admin,'01-administration.png');
  await admin.getByRole('button',{name:'Ouvrir →'}).click();
  await expect(admin.getByRole('heading',{name:'Open Club Double · Démonstration'})).toBeVisible();
- await expect(admin.getByRole('button',{name:'Envoyer au Directeur sportif'})).toBeDisabled();
+ await expect(admin.getByRole('button',{name:'Proposer une relecture DS (facultatif)'})).toBeDisabled();
  await admin.getByLabel('Je confirme avoir contrôlé cette version et son impact sur le classement.').check();
- await admin.getByRole('button',{name:'Envoyer au Directeur sportif'}).click();
- await expect(admin.getByText('À valider par le DS · v2',{exact:true})).toBeVisible();
+ await admin.getByRole('button',{name:'Proposer une relecture DS (facultatif)'}).click();
+ await expect(admin.getByText('Relecture DS proposée · v2',{exact:true})).toBeVisible();
  await login(ds,'director');
  await ds.getByRole('button',{name:'Ouvrir →'}).click();
  await expect(ds.getByRole('button',{name:'Demander une correction'})).toBeDisabled();
@@ -66,12 +69,13 @@ try{
  await admin.getByRole('button',{name:'Enregistrer une nouvelle version'}).click();
  await expect(admin.getByText('À contrôler · v3',{exact:true})).toBeVisible();
  await admin.getByLabel('Je confirme avoir contrôlé cette version et son impact sur le classement.').check();
- await admin.getByRole('button',{name:'Envoyer au Directeur sportif'}).click();
- await expect(admin.getByText('À valider par le DS · v3',{exact:true})).toBeVisible();
+ await admin.getByRole('button',{name:'Proposer une relecture DS (facultatif)'}).click();
+ await expect(admin.getByText('Relecture DS proposée · v3',{exact:true})).toBeVisible();
  await ds.getByRole('button',{name:'Actualiser',exact:true}).click();
  await ds.getByLabel('Je confirme avoir contrôlé les résultats et le classement de cette compétition.').check();
  await ds.getByRole('button',{name:'Valider les résultats · v3'}).click();
- await expect(ds.getByText('Validé par le DS · v3',{exact:true})).toBeVisible();
+ await expect(ds.getByText('Contrôle Admin possible · v3',{exact:true})).toBeVisible();
+ await expect(ds.getByTestId('ds-review')).toContainText('Validé par le DS');
  await admin.getByRole('button',{name:'Actualiser',exact:true}).click();
  await admin.getByLabel('Je confirme avoir contrôlé cette version et son impact sur le classement.').check();
  await admin.getByRole('button',{name:'Valider le contrôle final'}).click();
@@ -80,6 +84,7 @@ try{
  await admin.getByLabel('Je confirme avoir contrôlé cette version et son impact sur le classement.').check();
  await admin.getByRole('button',{name:'Publier et mettre à jour le classement'}).click();
  await expect(admin.getByText('Publié · v3',{exact:true})).toBeVisible();
+ await testOptionalDsReview(admin,ds,screenshot);
  const publicData=await (await admin.request.get('http://127.0.0.1:8008/api/v1/committee-ranking')).json();
  expect(publicData.rankings.mixed.map(r=>r.total).sort((a,b)=>b-a)).toEqual([10,10,8,8]);
  await admin.goto('http://127.0.0.1:3008/competitions/classement-individuel');
@@ -100,7 +105,9 @@ try{
  await ds.getByRole('button',{name:'Open Club Double · Démonstration',exact:true}).click();
  await expect(ds.getByRole('heading',{name:'Open Club Double · Démonstration'})).toBeVisible();
  console.log('PASS: browser admin → correction DS → v3 → approval DS → final admin → publication; direct permissions, CSRF, public double points and mobile layout.');
+ if (!process.env.RANKING_BROWSER_ONLY) {
  await testVisibility(admin,ds,screenshot);
  await testMobileStatistics(ds,screenshot);
  await testChampionshipCharts(ds,screenshot);
+ }
 }catch(e){console.error(e.stack||e.message);console.error('Admin URL:',admin.url(),'DS URL:',ds.url());await screenshot(admin,'failure.png');process.exitCode=1;}finally{await browser.close()}

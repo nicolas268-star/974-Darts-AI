@@ -87,6 +87,31 @@ def rows(response):
     return list(response.data or [])
 
 
+def director_review(revision, decisions):
+    """Review belongs to one immutable revision, never to publication status."""
+    matching = [
+        d
+        for d in decisions
+        if d["revision_id"] == revision["id"]
+        and d["fingerprint"] == revision["fingerprint"]
+        and d["actor_id"] == revision["director_id"]
+        and d["actor_role"] == "SPORTS_DIRECTOR"
+        and d["action"] in {"APPROVE_DS", "REQUEST_CORRECTION"}
+    ]
+    if not matching:
+        return {"status": "NOT_REVIEWED"}
+    decision = sorted(matching, key=lambda d: d["created_at"])[-1]
+    return {
+        "status": (
+            "VALIDATED"
+            if decision["action"] == "APPROVE_DS"
+            else "CORRECTION_REQUESTED"
+        ),
+        "actor_name": decision["actor_name"],
+        "at": decision["created_at"],
+    }
+
+
 def normalize(value):
     return "".join(
         c for c in unicodedata.normalize("NFKD", value).casefold() if c.isalnum()

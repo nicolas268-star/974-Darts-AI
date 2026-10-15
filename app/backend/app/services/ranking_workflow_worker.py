@@ -119,7 +119,7 @@ def send_notification(db, item):
     destination = path + "?competition=" + quote(item["event_id"], safe="")
     link = origin + "/auth/landing?next=" + quote(destination, safe="")
     titles = {
-        "SUBMIT": "Résultats à valider",
+        "SUBMIT": "Relecture DS facultative disponible",
         "APPROVE_DS": "Résultats validés",
         "REQUEST_CORRECTION": "Correction demandée",
     }
@@ -130,7 +130,7 @@ def send_notification(db, item):
     message["To"] = user.email
     message["Message-ID"] = f"<ranking-{item['id']}@{url.hostname}>"
     message.set_content(
-        f"{payload['title']}\nDate : {payload['date']}\nOrganisateur : {payload['organizer']}\nType : {payload['kind']}\nVersion : {payload['version']}\nAction enregistrée par : {payload['actor']}\nDate de l’action : {payload['at']}\n\nConsulter après connexion : {link}\n\nLe lien ne valide ni ne publie aucun résultat."
+        f"{payload['title']}\nDate : {payload['date']}\nOrganisateur : {payload['organizer']}\nType : {payload['kind']}\nVersion : {payload['version']}\nAction enregistrée par : {payload['actor']}\nDate de l’action : {payload['at']}\n\nConsulter après connexion : {link}\n\nLa relecture DS est facultative. Les contrôles techniques et l’approbation Admin restent requis.\nLe lien ne valide ni ne publie aucun résultat."
     )
     host, port = os.environ["SMTP_HOST"], int(os.getenv("SMTP_PORT", "465"))
     context = ssl.create_default_context()

@@ -61,6 +61,11 @@ export type Snapshot = {
   };
   historical_attestation?: { label: string };
 };
+export type DirectorReview = {
+  status: "NOT_REVIEWED" | "VALIDATED" | "CORRECTION_REQUESTED";
+  actor_name?: string;
+  at?: string;
+};
 export type Revision = {
   id: string;
   number: number;
@@ -70,6 +75,7 @@ export type Revision = {
   created_at: string;
   historical: boolean;
   snapshot: Snapshot;
+  ds_review: DirectorReview;
 };
 export type Event = {
   id: string;
@@ -81,11 +87,12 @@ export type Event = {
   metadata: Metadata;
   blockers: number;
   historical: boolean;
+  ds_review: DirectorReview;
 };
 export type Detail = {
   event: Event;
   revision: Revision;
-  history: Omit<Revision, "snapshot" | "director_id">[];
+  history: Omit<Revision, "snapshot" | "director_id" | "ds_review">[];
   decisions: {
     id: string;
     revision_id: string;
@@ -136,9 +143,9 @@ export type EditData = {
 export const labels: Record<string, string> = {
   DRAFT: "Brouillon",
   ANALYZED: "À contrôler",
-  PENDING_DS: "À valider par le DS",
+  PENDING_DS: "Relecture DS proposée",
   CORRECTION_REQUESTED: "Correction demandée",
-  DS_VALIDATED: "Validé par le DS",
+  DS_VALIDATED: "Contrôle Admin possible",
   READY_TO_PUBLISH: "Prêt à publier",
   PUBLISHED: "Publié",
   ARCHIVED: "Archivé",
@@ -146,7 +153,7 @@ export const labels: Record<string, string> = {
   SAVE: "Nouvelle version",
   IMPORT: "Analyse demandée",
   ANALYZE: "Analyse terminée",
-  SUBMIT: "Envoi au DS",
+  SUBMIT: "Invitation à la relecture DS",
   APPROVE_DS: "Validation DS",
   REQUEST_CORRECTION: "Correction demandée",
   APPROVE_ADMIN: "Contrôle final",
