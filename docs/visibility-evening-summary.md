@@ -50,6 +50,18 @@ Aucun ajout de clé IA n’est requis pour cette automatisation. Pour la sélect
 
 ## Données et IA
 
+### Commentaire des deux équipes et contexte terrain
+
+Chaque résumé interclubs, WhatsApp comme Facebook, contient désormais un paragraphe obligatoire par équipe : moyenne collective pondérée, meilleure moyenne au sein de cette équipe avec son volume de legs, et leaders en simples lorsqu’il y a des victoires. Ces passages restent présents même si tous les faits choisis par l’IA concernent le vainqueur. Ils ne désignent pas de MVP à partir de la seule moyenne. Les renforts sont analysés dans l’équipe représentée sur cette rencontre ; leur affiliation habituelle reste inchangée.
+
+Le champ « Contexte de la rencontre » permet d’ajouter jusqu’à 1 600 caractères confirmés par l’organisateur : participation exceptionnelle, prestation remarquée, ambiance, incident technique. « Enregistrer le contexte et actualiser » conserve ce texte pour cette rencontre et régénère les deux versions ; le résumé WhatsApp modifié manuellement est alors remplacé, comme indiqué près du bouton. Le bouton Facebook charge ensuite la nouvelle version dans le bloc de publication. Aucun partage n’est déclenché par l’enregistrement. Tant que le contexte est modifié mais non enregistré, les boutons de partage et de préparation Facebook sont désactivés.
+
+Ce témoignage est reproduit tel quel, séparément des faits calculés, sans être transmis comme instruction à l’IA. Il est conservé par identifiant de résultat publié dans le sous-dossier `context` de `VISIBILITY_CACHE_DIR` (par défaut `/app/data/visibility`, sur le volume existant). Une saisie vide supprime le contexte de cette rencontre. Le cache éditorial inclut le contexte et la version du générateur. Les anciens résumés du worker sont reconstruits à la lecture depuis les résultats publiés et corrigés ; une consultation ne déclenche pas d’appel au fournisseur IA.
+
+Pour la seule J2 du 14/10/2026 associée à `t_uAfU_5679`, le témoignage confirmé de Nicolas est prérempli : belle prestation de Benoit BRUNET, renfort exceptionnel de Brune (équipe B) vers Ambrée (équipe A), bonne ambiance et léger retard dû à un souci technique Nakka. Les faits calculés continuent à utiliser le résultat officiel corrigé Ambrée 5–15 Fournaise et l’attribution corrigée du simple 16. Ce contexte peut être modifié ou effacé et ne s’applique à aucune autre rencontre.
+
+Déploiement de cette évolution : reconstruire `backend frontend interclub-analysis`. Aucune migration de données ni nouvelle variable obligatoire. Conserver le volume backend existant.
+
 Les données proviennent exclusivement de résultats interclubs publiés, vérifiés et détaillés. Les matchs doivent concorder avec le score collectif ; chaque leg doit être valide et avoir tous ses participants. Les moyennes sont calculées avec la somme des scores et des fléchettes, sans moyenne de moyennes. Les joueurs sans participation ne sont pas inclus.
 
 L’analyse produit des faits vérifiés : répartition simples/doubles, origine principale de l’écart, moyennes collectives, meilleure moyenne avec volume de legs, victoires en simples, finish, 180 et points. L’IA choisit les faits pertinents et leur ordre pour WhatsApp et Facebook. Son résultat est limité à des identifiants de faits autorisés : noms, chiffres et phrases sont rendus par le service. Elle ne peut ajouter de record, émotion, récit ou précision aux doubles absents des données.

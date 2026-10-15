@@ -161,7 +161,7 @@ def corrected_facts(payload, previous):
     """Rebuild the worker's editorial facts from the same effective results."""
     home, away = [t["source_id"] for t in payload["teams"]]
     facts = build_facts({"id": previous["result_id"], "home_team_id": home, "away_team_id": away,
-                         "home_score": payload["score"][0], "away_score": payload["score"][1]},
+                         "home_score": payload["score"][0], "away_score": payload["score"][1], "source_sheet": payload["source_url"]},
                         {"code": payload["round"], "played_on": payload["date"]}, {"name": payload["season"]},
                         {t["source_id"]: t["name"] for t in payload["teams"]}, payload["matches"], payload["legs"], payload["stats"],
                         {p["id"]: p["name"] for p in payload["players"]})

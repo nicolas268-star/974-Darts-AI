@@ -4,6 +4,7 @@ export type VisibilitySummary = {
   mode: "ai" | "statistics";
   note: string;
   ai_available: boolean;
+  context?: string;
   evening: { url: string; matches: number; legs: number; players: number; legsLabel?: string };
   fingerprint: string;
 };

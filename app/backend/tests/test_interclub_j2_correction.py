@@ -12,7 +12,7 @@ from app.services.interclub_publication_service import resolve_payload, publish_
 from app.services.interclub_adjustments import (BENOIT, CHRISTOPHE, EVENT, MATCH, GUEST_IDENTITY,
                                               apply_result_correction, apply_confirmed_corrections,
                                               apply_statistics_correction, corrected_facts)
-from app.services.visibility_service import SummaryUnavailable
+from app.services.visibility_service import SummaryUnavailable, compose_summary
 from unittest.mock import patch, MagicMock
 from types import SimpleNamespace
 
@@ -36,6 +36,25 @@ def fixture():
 
 
 class J2CorrectionTests(unittest.TestCase):
+    def test_visibility_uses_corrected_results_and_honours_both_teams(self):
+        import tempfile
+        import os
+        collected, licensed, identities = fixture()
+        payload = resolve_payload(collected["publication"], licensed, identities, [])
+        evening = corrected_facts(payload, collected["facts"])
+        with tempfile.TemporaryDirectory() as directory, patch.dict(os.environ, {"OPENAI_API_KEY": "", "VISIBILITY_CACHE_DIR": directory}):
+            summary = compose_summary(evening)
+        for channel in ("whatsapp", "facebook"):
+            self.assertIn("5–15", summary[channel])
+            self.assertIn("Du côté de 3B Darts Club - A(mbré)", summary[channel])
+            self.assertIn("Du côté de Papangue Darts Club - Fournaise", summary[channel])
+            self.assertIn("Benoit BRUNET", summary[channel])
+            self.assertIn("Jacky VERDIER", summary[channel])
+            self.assertIn("38,12", summary[channel])
+            self.assertIn("40,08", summary[channel])
+            self.assertIn("bonne ambiance", summary[channel])
+            self.assertIn("léger retard", summary[channel])
+
     def test_only_result_flags_change_and_the_20_matches_aggregate_to_15_5(self):
         collected, licensed, identities = fixture()
         raw = copy.deepcopy(collected)

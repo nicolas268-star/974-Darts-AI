@@ -19,15 +19,21 @@ export async function testVisibility(admin, director, screenshot) {
   let noEvenings=false;
   let unavailableEvenings=false;
   let summaryRequests=0;
+  let context='';
+  const currentSummary=()=>({...summary,context,whatsapp:summary.whatsapp+(context?'\n\n'+context:''),facebook:summary.facebook+(context?'\n\n'+context:'')});
   await admin.route('**/api/admin/visibility/**',async route=>{
     const url=new URL(route.request().url());
     if(url.pathname.endsWith('/evenings'))return unavailableEvenings ? route.fulfill({status:503,json:{error:'Service interclubs indisponible.'}}) : route.fulfill({json:{evenings:noEvenings?[]:[evening],ai_available:true,automation:{running:true,publication_enabled:true,next_at:'2026-09-30T22:00:00+04:00',recent:[{title:'J1 · rencontre tardive',status:'WAITING',message:'Le match est encore en cours.',retry_expired:false}]}}});
     summaryRequests++;
     if(route.request().method()==='POST'){
-      expect(route.request().postDataJSON()).toEqual({result_id:id});generated++;
-      return route.fulfill({json:{...summary,mode:'ai',note:'Analyse éditoriale IA : faits vérifiés.'}});
+      const input=route.request().postDataJSON();
+      expect(input.result_id).toBe(id);
+      expect(Object.keys(input).every(key=>['result_id','context'].includes(key))).toBe(true);
+      if(input.context!==undefined) context=input.context;
+      generated++;
+      return route.fulfill({json:{...currentSummary(),mode:'ai',note:'Analyse éditoriale IA : faits vérifiés.'}});
     }
-    return route.fulfill({json:automaticReady?{...summary,mode:'ai',note:'Analyse préparée automatiquement.'}:summary});
+    return route.fulfill({json:automaticReady?{...currentSummary(),mode:'ai',note:'Analyse préparée automatiquement.'}:currentSummary()});
   });
   await admin.goto(origin+'/admin/visibility');
   await expect(admin.getByLabel('Texte pour le groupe',{exact:false})).toHaveValue(signedWhatsApp,{timeout:30000});
@@ -116,6 +122,10 @@ export async function testVisibility(admin, director, screenshot) {
   expect(denied.status()).toBe(403);
   const csrf=await admin.request.post(origin+'/api/admin/visibility/summary',{headers:{Origin:'https://evil.invalid'},data:{result_id:id}});
   expect(csrf.status()).toBe(403);
+  for(const invalidContext of [42,'x'.repeat(1601)]) {
+    const invalid=await admin.request.post(origin+'/api/admin/visibility/summary',{headers:{Origin:origin},data:{result_id:id,context:invalidContext}});
+    expect(invalid.status()).toBe(400);
+  }
   const malformed=await admin.request.get(origin+'/api/admin/visibility/summary?result_id=invalid');
   expect(malformed.status()).toBe(400);
   const anonymous=await admin.context().browser().newContext();
@@ -127,10 +137,28 @@ export async function testVisibility(admin, director, screenshot) {
   await expect(admin.getByText('Synthèse IA',{exact:true})).toBeVisible();
   await expect(admin.getByRole('button',{name:'Ouvrir dans WhatsApp',exact:true})).toBeEnabled();
   expect(generated).toBe(1); // Reading a prepared nightly analysis never triggers another AI request.
+  const matchContext='Belle prestation de Benoit en renfort de Brune vers Ambrée. Bonne ambiance et léger retard Nakka.';
+  await admin.getByLabel('Contexte de la rencontre',{exact:true}).fill(matchContext);
+  await expect(admin.getByRole('button',{name:'Ouvrir dans WhatsApp',exact:true})).toBeDisabled();
+  await expect(admin.getByRole('button',{name:'Préparer la version Facebook'})).toBeDisabled();
+  await admin.getByRole('button',{name:'Enregistrer le contexte et actualiser'}).click();
+  await expect(admin.getByText('Contexte enregistré pour cette rencontre. Les versions WhatsApp et Facebook ont été actualisées.')).toBeVisible();
+  await expect(admin.locator('#whatsapp-draft')).toHaveValue(new RegExp(matchContext));
+  const shareCount=await admin.evaluate(()=>window.__visibilityShares?.length??0);
+  expect(shareCount).toBe(0); // Saving context does not open a sharing window.
+  await admin.getByRole('button',{name:'Préparer la version Facebook'}).click();
+  await expect(admin.locator('#facebook-draft')).toHaveValue(new RegExp(matchContext));
+  await admin.reload();
+  await expect(admin.getByLabel('Contexte de la rencontre',{exact:true})).toHaveValue(matchContext);
+  await expect(admin.locator('#whatsapp-draft')).toHaveValue(new RegExp(matchContext));
+  expect(generated).toBe(2);
+  await screenshot(admin,'09-visibilite-contexte-mobile.png');
   noEvenings=true;
   await admin.reload();
   await expect(admin.locator('#visibility-evening')).toHaveValue('bdc-manche-2');
   await expect(admin.locator('#whatsapp-draft')).toHaveValue(/Blind Draw Championship · Manche 2/);
+  await expect(admin.locator('#match-context')).toHaveCount(0);
+  expect(await admin.locator('#whatsapp-draft').inputValue()).not.toContain(matchContext);
   unavailableEvenings=true;
   await admin.reload();
   await expect(admin.locator('main').getByRole('alert')).toContainText('Les manches BDC restent disponibles.');
