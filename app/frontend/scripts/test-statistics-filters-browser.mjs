@@ -7,7 +7,7 @@ import {pathToFileURL} from 'node:url';
 const root=resolve(dirname(new URL(import.meta.url).pathname),'..'),out=process.env.STATISTICS_QA_OUTPUT||'/tmp/statistics-filters-qa';
 await mkdir(out,{recursive:true});
 const playwright=await import(process.env.PLAYWRIGHT_MODULE_PATH?pathToFileURL(process.env.PLAYWRIGHT_MODULE_PATH+'/index.mjs').href:'playwright');
-const player=(player_id,name,team,overrides={})=>({player_id,name,team,season_id:'new',legs_played:25,legs_won:12,average_3_darts:45,first_9:55,best_finish:60,scores_180:0,scores_140:3,scores_100:5,finishes:12,elo:null,...overrides});
+const player=(player_id,name,team,overrides={})=>({player_id,name,team,season_id:'new',legs_played:25,legs_won:12,average_3_darts:45,first_9:55,best_finish:60,scores_180:0,scores_170:0,scores_140:3,scores_100:5,finishes:12,elo:null,...overrides});
 const current=[player('alpha','Joueur Alpha','Équipe Alpha',{scores_180:2,best_finish:140}),player('beta','Joueur Bêta','Équipe Bêta',{scores_180:1,best_finish:80}),player('nico','Nicolas DUPONT','PDC Fournaise'),player('pierre','Pierre BERLET','PDC Fournaise',{scores_180:1,best_finish:130}),player('esteban','Esteban THOMAS','3BDC',{scores_180:1,best_finish:90})];
 const historic=current.map(p=>({...p,season_id:'old',average_3_darts:36,scores_180:p.player_id==='alpha'?7:p.player_id==='pierre'?1:0,best_finish:p.player_id==='alpha'?120:p.player_id==='pierre'?110:50}));
 const catalog={active_championship:{id:'new',year:2027},championships:[{id:'old',year:2026,has_data:true},{id:'new',year:2027,has_data:true},{id:null,year:2028,has_data:false}]};

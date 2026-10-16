@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ChevronDown } from "lucide-react";
-import { MINIMUM_LEGS, MVP_REFERENCES, MVP_SCORING_WEIGHTS, MVP_WEIGHTS, type MvpPlayer, type MvpSeason } from "@/lib/records/mvp";
+import { MINIMUM_LEGS, MVP_HIGH_SCORE_WEIGHTS, MVP_REFERENCES, MVP_SCORING_WEIGHTS, MVP_WEIGHTS, type MvpPlayer, type MvpSeason } from "@/lib/records/mvp";
 
 const number = (value: number, digits = 2) => value.toLocaleString("fr-FR", { minimumFractionDigits: digits, maximumFractionDigits: digits });
 const percent = (value: number) => `${number(value * 100, 0)} %`;
@@ -27,7 +27,7 @@ export function MvpCalculation({ player, season, showGuideLink = true }: { playe
       <div><dt>Meilleur finish</dt><dd>{player.best_finish ?? "Non renseigné"}</dd></div>
       <div><dt>100–139</dt><dd>{player.scores_100}</dd></div>
       <div><dt>140–169</dt><dd>{player.scores_140}</dd></div>
-      <div><dt>170–179 · hors formule</dt><dd>{player.scores_170 ?? "Non renseigné"}</dd></div>
+      <div><dt>170–179 · ×{MVP_HIGH_SCORE_WEIGHTS.scores_170}</dt><dd>{player.scores_170}</dd></div>
       <div><dt>180</dt><dd>{player.scores_180}</dd></div>
     </dl>
 
@@ -38,7 +38,7 @@ export function MvpCalculation({ player, season, showGuideLink = true }: { playe
         <p>{player.first_9 == null
           ? <>First 9 absent : reprise de l’indice moyenne, soit <b>{number(c.first9Index)}</b>.</>
           : <>Indice First 9 = min(100 ; {number(player.first_9)} / {MVP_REFERENCES.first9} × 100) ≈ <b>{number(c.first9Index)}</b></>}</p>
-        <p>Poids gros scores = {player.scores_100} + 2 × {player.scores_140} + 4 × {player.scores_180} = <b>{c.highScoreWeight}</b></p>
+        <p>Poids gros scores = {player.scores_100} + {MVP_HIGH_SCORE_WEIGHTS.scores_140} × {player.scores_140} + {MVP_HIGH_SCORE_WEIGHTS.scores_170} × {player.scores_170} + {MVP_HIGH_SCORE_WEIGHTS.scores_180} × {player.scores_180} = <b>{c.highScoreWeight}</b></p>
         <p>Taux joueur = {c.highScoreWeight} / {n} × 100 ≈ <b>{number(c.highScoreRate)}</b></p>
         <p>Repère du classement = <b>{number(c.bestHighScoreRate)}</b> (meilleur taux du groupe affiché, avec un minimum de 1).</p>
         <p>Indice gros scores = min(100 ; {number(c.highScoreRate)} / {number(c.bestHighScoreRate)} × 100) ≈ <b>{number(c.highScoreIndex)}</b></p>
@@ -71,7 +71,7 @@ export function MvpCalculation({ player, season, showGuideLink = true }: { playe
       <p className="mvp-total-result">{indices.map(index => number(index.contribution, 4)).join(" + ")} ≈ <span data-mvp-total>{number(c.total, 4)}</span> → <strong>{player.score} / 100</strong></p>
       <p>Les étapes ci-dessus sont affichées avec des décimales arrondies. Le calcul conserve toute sa précision jusqu’à l’arrondi final à l’entier ; les KPI du tableau sont arrondis séparément.</p>
     </section>
-    <p className="mvp-calculation-note">Les 170–179 n’entrent pas dans la formule actuelle. Les 120–139 sont déjà compris dans les 100–139 et ne sont pas ajoutés une seconde fois. Le repère des gros scores peut évoluer avec les joueurs du classement.</p>
+    <p className="mvp-calculation-note">Barème gros scores : 100–139 ×{MVP_HIGH_SCORE_WEIGHTS.scores_100}, 140–169 ×{MVP_HIGH_SCORE_WEIGHTS.scores_140}, 170–179 ×{MVP_HIGH_SCORE_WEIGHTS.scores_170}, 180 ×{MVP_HIGH_SCORE_WEIGHTS.scores_180}. Les 120–139 sont déjà compris dans les 100–139 et ne sont pas ajoutés une seconde fois. Le repère des gros scores peut évoluer avec les joueurs du classement.</p>
     {showGuideLink && season === "2027" && <Link className="mvp-guide-link" href="/records/mvp/2027/explications">Voir toutes les règles du trophée MVP 2027 →</Link>}
   </div>;
 }

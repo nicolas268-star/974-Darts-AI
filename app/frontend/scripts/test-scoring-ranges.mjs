@@ -35,7 +35,7 @@ const html = render(PlayerMatchHistory, { matches: [{ match_id: 'm', round: 'J1'
 assert.match(html, /<th>100\+<\/th><th>120–139<\/th><th>140\+<\/th>/);
 assert.match(html, /<dt>120–139<\/dt><dd><span[^>]*>2<\/span><\/dd>/, 'Mobile cards contain the same metric');
 const player = { player_id: 'p', name: 'P', team: 'T', legs_played: 100, legs_won: 70,
-  average_3_darts: 56, first_9: 64, best_finish: 102, scores_100: 20, scores_140: 10, scores_180: 0 };
+  average_3_darts: 56, first_9: 64, best_finish: 102, scores_100: 20, scores_140: 10, scores_170: 0, scores_180: 0 };
 const metrics = p => { const result = buildMvpPlayers([p])[0]; return [result.score, result.scoringIndex, result.resultsIndex, result.impactIndex, result.finishIndex]; };
 for (const count of [null, 0, 10, 20]) assert.deepEqual(metrics({ ...player, scores_120_139: count }), metrics(player));
 console.log('PASS scoring UI: unknown versus zero, partial coverage, subset explanation, ascending columns, mobile cards and unchanged MVP formula.');

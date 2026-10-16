@@ -3,6 +3,7 @@ import type { PlayerOverview } from "../types/sprint4";
 export const MINIMUM_LEGS = 20;
 export const MVP_WEIGHTS = { scoring: 0.4, results: 0.35, impact: 0.15, finish: 0.1 } as const;
 export const MVP_SCORING_WEIGHTS = { average: 0.65, first9: 0.2, highScores: 0.15 } as const;
+export const MVP_HIGH_SCORE_WEIGHTS = { scores_100: 1, scores_140: 2, scores_170: 3, scores_180: 4 } as const;
 export const MVP_REFERENCES = { average: 70, first9: 80, legs: 100, finish: 170, wilsonZ: 1.96 } as const;
 export type MvpSeason = "2026" | "2027" | "2028";
 export type SeasonPlayer = PlayerOverview & { season_id: string | null };
@@ -20,12 +21,18 @@ function validPerformance(player: PlayerOverview): boolean {
   return legs != null && Number.isInteger(legs) && legs > 0
     && won != null && Number.isInteger(won) && won >= 0 && won <= legs
     && player.average_3_darts != null && Number.isFinite(player.average_3_darts) && player.average_3_darts >= 0
-    && [player.scores_100, player.scores_140, player.scores_180].every(value => Number.isInteger(value) && value >= 0)
+    && [player.scores_100, player.scores_140, player.scores_170, player.scores_180].every(value => Number.isInteger(value) && value >= 0)
     && (player.first_9 == null || Number.isFinite(player.first_9) && player.first_9 >= 0)
     && (player.best_finish == null || Number.isFinite(player.best_finish) && player.best_finish >= 0);
 }
 
 const clamp = (value: number) => Math.min(100, Math.max(0, value));
+function weightedHighScores(player: PlayerOverview): number {
+  return player.scores_100 * MVP_HIGH_SCORE_WEIGHTS.scores_100
+    + player.scores_140 * MVP_HIGH_SCORE_WEIGHTS.scores_140
+    + player.scores_170 * MVP_HIGH_SCORE_WEIGHTS.scores_170
+    + player.scores_180 * MVP_HIGH_SCORE_WEIGHTS.scores_180;
+}
 function wilsonLowerBound(wins: number, played: number) {
   if (!played) return 0;
   const z = MVP_REFERENCES.wilsonZ;
@@ -47,11 +54,7 @@ export function buildMvpPlayers(players: PlayerOverview[], minimumLegs = MINIMUM
   );
   const highScoreRates = eligible.map((player) => {
     const legs = player.legs_played || 1;
-    return (
-      ((player.scores_100 + player.scores_140 * 2 + player.scores_180 * 4) /
-        legs) *
-      100
-    );
+    return (weightedHighScores(player) / legs) * 100;
   });
   const bestHighScoreRate = Math.max(1, ...highScoreRates);
 
@@ -59,7 +62,7 @@ export function buildMvpPlayers(players: PlayerOverview[], minimumLegs = MINIMUM
     .map((player) => {
       const legs = player.legs_played || 1;
       const won = player.legs_won || 0;
-      const highScoreWeight = player.scores_100 + player.scores_140 * 2 + player.scores_180 * 4;
+      const highScoreWeight = weightedHighScores(player);
       const highScoreRate = (highScoreWeight / legs) * 100;
       const highScoreIndex = clamp((highScoreRate / bestHighScoreRate) * 100);
       const averageIndex = clamp(((player.average_3_darts ?? 0) / MVP_REFERENCES.average) * 100);

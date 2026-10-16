@@ -186,6 +186,7 @@ export async function MvpSeasonPage({ season }: { season: MvpSeason }) {
                 Le classement principal requiert au moins {MINIMUM_LEGS} legs et une moyenne disponible.
                 Avant qu’un joueur n’atteigne ce seuil, un classement provisoire présente les joueurs ayant au moins un leg et une moyenne, avec les mêmes pondérations.
                 Le repère des gros scores est calculé parmi les joueurs du classement affiché.
+                Les volées 100–139, 140–169, 170–179 et 180 sont pondérées respectivement ×1, ×2, ×3 et ×4.
                 En cas d’égalité : résultats fiables, moyenne 3 fléchettes puis ordre alphabétique.
               </p>
             </section>
