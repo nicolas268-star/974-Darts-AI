@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import styles from "./Mvp2027Hero.module.css";
 
 /** Presentation only: the ranking continues to own the live status. */
@@ -45,6 +46,7 @@ export function Mvp2027Hero({ provisional }: { provisional: boolean }) {
           {provisional ? "Classement provisoire" : "Calcul transparent"}
         </span>
       </section>
+      <p className="mvp-guide-entry"><Link className="mvp-guide-link" href="/records/mvp/2027/explications">Comprendre le trophée MVP 2027 et ses calculs →</Link></p>
       <p className={styles.introduction}>
         Un classement global fondé sur le scoring, les résultats, le
         volume observé et les finishs des joueurs.

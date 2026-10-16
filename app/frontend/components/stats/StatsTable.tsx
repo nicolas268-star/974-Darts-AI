@@ -1,4 +1,4 @@
-import { Children, Fragment, isValidElement, type ReactElement, type ReactNode, type TableHTMLAttributes } from "react";
+import { Children, Fragment, cloneElement, isValidElement, type ReactElement, type ReactNode, type TableHTMLAttributes } from "react";
 import styles from "./StatsTable.module.css";
 
 type NodeProps = { children?: ReactNode; label?: string; title?: string; colSpan?: number };
@@ -24,6 +24,8 @@ type Props = TableHTMLAttributes<HTMLTableElement> & {
   /** Zero-based columns. Keep the same values and ordering as the desktop table. */
   mobileTitleColumn?: number;
   mobileSummaryColumns?: number[];
+  /** Optional detail for each body row, shared by the desktop table and its phone card. */
+  rowDetails?: readonly ReactNode[];
 };
 
 const readableLabels: Record<string, string> = {
@@ -33,7 +35,7 @@ const readableLabels: Record<string, string> = {
 };
 
 /** Semantic desktop table and compact phone cards share the exact same cells. */
-export function StatsTable({ children, className, mobileTitleColumn, mobileSummaryColumns, ...props }: Props) {
+export function StatsTable({ children, className, mobileTitleColumn, mobileSummaryColumns, rowDetails, ...props }: Props) {
   const parts = elements(children);
   const head = parts.find(part => part.type === "thead");
   const headers = elements(elements(head?.props.children)[0]?.props.children);
@@ -47,9 +49,19 @@ export function StatsTable({ children, className, mobileTitleColumn, mobileSumma
   const summary = (mobileSummaryColumns ?? [...new Set([...preferred, ...otherColumns])].slice(0, 4)).filter(index => otherColumns.includes(index));
   const secondary = otherColumns.filter(index => !summary.includes(index));
   const caption = parts.find(part => part.type === "caption");
+  let rowIndex = 0;
+  const desktopChildren = rowDetails ? parts.map(part => part.type !== "tbody" ? part : cloneElement(part, {
+    children: elements(part.props.children).map(row => {
+      const index = rowIndex++, detail = rowDetails[index];
+      return <Fragment key={row.key ?? index}>
+        {row}
+        {detail != null && <tr className={styles.expansionRow}><td className={styles.expansionCell} colSpan={headers.length}>{detail}</td></tr>}
+      </Fragment>;
+    }),
+  })) : children;
 
   return <>
-    <table {...props} className={`${className ?? ""} ${styles.desktop}`}>{children}</table>
+    <table {...props} className={`${className ?? ""} ${styles.desktop}`}>{desktopChildren}</table>
     <div className={styles.mobile} data-stats-cards aria-label={props["aria-label"]}>
       {caption && <p className={styles.caption}>{caption.props.children}</p>}
       <ul className={styles.list}>
@@ -71,6 +83,7 @@ export function StatsTable({ children, className, mobileTitleColumn, mobileSumma
               <summary>Autres statistiques <span>({secondary.length})</span></summary>
               {metrics(secondary)}
             </details>}
+            {rowDetails?.[rowIndex]}
           </li>;
         })}
       </ul>

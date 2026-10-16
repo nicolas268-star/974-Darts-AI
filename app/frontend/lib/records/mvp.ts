@@ -1,9 +1,19 @@
 import type { PlayerOverview } from "../types/sprint4";
 
 export const MINIMUM_LEGS = 20;
+export const MVP_WEIGHTS = { scoring: 0.4, results: 0.35, impact: 0.15, finish: 0.1 } as const;
+export const MVP_SCORING_WEIGHTS = { average: 0.65, first9: 0.2, highScores: 0.15 } as const;
+export const MVP_REFERENCES = { average: 70, first9: 80, legs: 100, finish: 170, wilsonZ: 1.96 } as const;
 export type MvpSeason = "2026" | "2027" | "2028";
 export type SeasonPlayer = PlayerOverview & { season_id: string | null };
-export type MvpPlayer = PlayerOverview & { score: number; scoringIndex: number; resultsIndex: number; impactIndex: number; finishIndex: number };
+export type MvpCalculation = {
+  averageIndex: number; first9Index: number; highScoreWeight: number;
+  highScoreRate: number; bestHighScoreRate: number; highScoreIndex: number;
+  scoringIndex: number; resultsIndex: number; impactIndex: number; finishIndex: number;
+  contributions: Record<keyof typeof MVP_WEIGHTS, number>;
+  total: number;
+};
+export type MvpPlayer = PlayerOverview & { score: number; scoringIndex: number; resultsIndex: number; impactIndex: number; finishIndex: number; calculation: MvpCalculation };
 
 function validPerformance(player: PlayerOverview): boolean {
   const legs = player.legs_played, won = player.legs_won;
@@ -18,7 +28,7 @@ function validPerformance(player: PlayerOverview): boolean {
 const clamp = (value: number) => Math.min(100, Math.max(0, value));
 function wilsonLowerBound(wins: number, played: number) {
   if (!played) return 0;
-  const z = 1.96;
+  const z = MVP_REFERENCES.wilsonZ;
   const proportion = wins / played;
   const denominator = 1 + (z * z) / played;
   const centre = proportion + (z * z) / (2 * played);
@@ -49,29 +59,30 @@ export function buildMvpPlayers(players: PlayerOverview[], minimumLegs = MINIMUM
     .map((player) => {
       const legs = player.legs_played || 1;
       const won = player.legs_won || 0;
-      const highScoreRate =
-        ((player.scores_100 + player.scores_140 * 2 + player.scores_180 * 4) /
-          legs) *
-        100;
-      const averageIndex = clamp(((player.average_3_darts ?? 0) / 70) * 100);
+      const highScoreWeight = player.scores_100 + player.scores_140 * 2 + player.scores_180 * 4;
+      const highScoreRate = (highScoreWeight / legs) * 100;
+      const highScoreIndex = clamp((highScoreRate / bestHighScoreRate) * 100);
+      const averageIndex = clamp(((player.average_3_darts ?? 0) / MVP_REFERENCES.average) * 100);
       const first9Index =
         player.first_9 == null
           ? averageIndex
-          : clamp((player.first_9 / 80) * 100);
+          : clamp((player.first_9 / MVP_REFERENCES.first9) * 100);
       const scoringIndex = clamp(
-        averageIndex * 0.65 +
-          first9Index * 0.2 +
-          clamp((highScoreRate / bestHighScoreRate) * 100) * 0.15,
+        averageIndex * MVP_SCORING_WEIGHTS.average +
+          first9Index * MVP_SCORING_WEIGHTS.first9 +
+          highScoreIndex * MVP_SCORING_WEIGHTS.highScores,
       );
       const resultsIndex = clamp(wilsonLowerBound(won, legs));
-      const impactIndex = clamp((legs / 100) * 100);
-      const finishIndex = clamp(((player.best_finish ?? 0) / 170) * 100);
-      const score = Math.round(
-        scoringIndex * 0.4 +
-          resultsIndex * 0.35 +
-          impactIndex * 0.15 +
-          finishIndex * 0.1,
-      );
+      const impactIndex = clamp((legs / MVP_REFERENCES.legs) * 100);
+      const finishIndex = clamp(((player.best_finish ?? 0) / MVP_REFERENCES.finish) * 100);
+      const contributions = {
+        scoring: scoringIndex * MVP_WEIGHTS.scoring,
+        results: resultsIndex * MVP_WEIGHTS.results,
+        impact: impactIndex * MVP_WEIGHTS.impact,
+        finish: finishIndex * MVP_WEIGHTS.finish,
+      };
+      const total = contributions.scoring + contributions.results + contributions.impact + contributions.finish;
+      const score = Math.round(total);
       return {
         ...player,
         score,
@@ -79,6 +90,10 @@ export function buildMvpPlayers(players: PlayerOverview[], minimumLegs = MINIMUM
         resultsIndex: Math.round(resultsIndex),
         impactIndex: Math.round(impactIndex),
         finishIndex: Math.round(finishIndex),
+        calculation: {
+          averageIndex, first9Index, highScoreWeight, highScoreRate, bestHighScoreRate, highScoreIndex,
+          scoringIndex, resultsIndex, impactIndex, finishIndex, contributions, total,
+        },
       };
     })
     .sort(

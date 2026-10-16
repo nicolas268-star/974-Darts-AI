@@ -17,3 +17,13 @@ Le repère des gros scores est calculé dans le groupe du classement affiché, c
 `npm run test:mvp` couvre les pondérations existantes, le classement provisoire, le seuil exact de 20 legs, les valeurs invalides, le départage, l’isolation des saisons et les états de chargement. Il fait partie de `npm test`.
 
 Les groupes navigateur « MVP » de `scripts/test-player-card-browser.mjs` couvrent les pages 2026–2028, l’ancienne adresse 2026, le hub, les premières statistiques, le passage au seuil, les données absentes / d’une autre saison / indisponibles, les liens et l’affichage mobile avec une source de validation.
+
+## Détail du calcul et trophée 2027
+
+Chaque joueur du classement possède un volet natif `details` sous sa ligne, intégré à sa carte sur téléphone. Il affiche les données de la saison, les étapes du Scoring et de Wilson, l’Impact, les Finishs, les contributions pondérées et l’arrondi final. `StatsTable.rowDetails` associe ces volets aux mêmes lignes sur ordinateur et mobile ; les autres tableaux conservent leur comportement.
+
+`buildMvpPlayers` retourne désormais `calculation`, contenant les valeurs non arrondies effectivement utilisées pour le score. Les pondérations, plafonds, référence du groupe et départages restent identiques. Le détail n’effectue pas un second calcul à partir des indices arrondis. Les taux de référence ont toujours un plancher de 1. Le compteur 120–139 est déjà inclus dans 100–139 ; 170–179 ne contribue pas à la formule actuelle.
+
+Le lien immédiatement sous la bannière 2027 ouvre `/records/mvp/2027/explications`, page publique autonome disponible même si les statistiques ne chargent pas. Elle expose la proposition de trophée et de dotation de 200 € financée par NDX Performance Lab, la validation du Comité, les données, les règles et le cas hors concours du financeur décrits dans le document de présentation au Comité du 16 octobre 2026. Un profil explicitement fictif illustre les calculs à partir de la même fonction que le classement, sans reprendre les KPI arrondis d’un joueur réel.
+
+Les tests numériques vérifient les contributions exactes, le cas d’arrondi 48 contre 49, les plafonds, les valeurs absentes et la référence commune du groupe. Le groupe navigateur MVP vérifie l’ouverture et la fermeture au clavier, l’indépendance des joueurs, l’association des cartes mobiles, la position du lien sous la bannière et la navigation aller-retour vers le guide.
