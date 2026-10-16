@@ -5,6 +5,7 @@ import { Sidebar } from "@/components/Sidebar";
 import { MINIMUM_LEGS, mvpStanding, type MvpSeason } from "@/lib/records/mvp";
 import { loadMvpSeason } from "@/lib/records/mvp-server";
 import { Mvp2027Hero } from "./Mvp2027Hero";
+import { MvpCalculationDisclosure } from "./MvpCalculation";
 import "../record-pages.css";
 import "./mvp-seasons.css";
 
@@ -124,7 +125,8 @@ export async function MvpSeasonPage({ season }: { season: MvpSeason }) {
                 <span className="record-count">{mvpPlayers.length} joueurs {standing.provisional ? "à confirmer" : "éligibles"}</span>
               </div>
               <div className="table-scroll">
-                <StatsTable className="table record-table mvp-table">
+                <StatsTable className="table record-table mvp-table" aria-label={`Classement MVP ${season}`}
+                  rowDetails={mvpPlayers.map(player => <MvpCalculationDisclosure key={player.player_id} player={player} season={season} />)}>
                   <thead>
                     <tr>
                       <th>Rang</th>

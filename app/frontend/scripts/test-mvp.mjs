@@ -23,6 +23,40 @@ await test("confirmed scoring keeps the existing weights, Wilson adjustment and 
   assert.equal(buildMvpPlayers([player({ first_9: null })])[0].score, 75);
   assert.equal(buildMvpPlayers([player({ best_finish: null })])[0].finishIndex, 0);
 });
+await test("the explanation retains exact contributions and the single final rounding", () => {
+  const result = buildMvpPlayers([player({})])[0], c = result.calculation;
+  assert.equal(c.averageIndex, 80);
+  assert.equal(c.first9Index, 80);
+  assert.equal(c.highScoreWeight, 40);
+  assert.equal(c.highScoreRate, 40);
+  assert.equal(c.bestHighScoreRate, 40);
+  assert.equal(c.highScoreIndex, 100);
+  assert.equal(c.scoringIndex, 83);
+  assert.ok(Math.abs(c.resultsIndex - 60.41496156718804) < 1e-10);
+  assert.equal(c.total, c.contributions.scoring + c.contributions.results + c.contributions.impact + c.contributions.finish);
+  assert.equal(Math.round(c.total), result.score);
+  // Rounding each KPI first would change this player's MVP from 48 to 49.
+  const edge = buildMvpPlayers([player({ legs_played: 20, legs_won: 9, best_finish: 55 })])[0];
+  assert.equal(edge.score, 48);
+  assert.equal(edge.score, Math.round(edge.calculation.total));
+  const roundedFirst = Math.round(edge.scoringIndex * .4 + edge.resultsIndex * .35 + edge.impactIndex * .15 + edge.finishIndex * .1);
+  assert.notEqual(edge.score, roundedFirst);
+});
+await test("explanations use the same ranking cohort, missing-value rules and caps", () => {
+  const players = [player({ player_id: "a" }), player({ player_id: "b", scores_100: 80 })];
+  const ranked = buildMvpPlayers(players);
+  assert.ok(ranked.every(p => p.calculation.bestHighScoreRate === 100));
+  assert.equal(ranked.find(p => p.player_id === "a").calculation.highScoreIndex, 40);
+  const missing = buildMvpPlayers([player({ first_9: null, best_finish: null, scores_100: 0, scores_140: 0, scores_180: 0 })])[0];
+  assert.equal(missing.calculation.first9Index, missing.calculation.averageIndex);
+  assert.equal(missing.calculation.finishIndex, 0);
+  assert.equal(missing.calculation.bestHighScoreRate, 1);
+  assert.equal(missing.calculation.highScoreIndex, 0);
+  const capped = buildMvpPlayers([player({ legs_played: 150, average_3_darts: 90, first_9: 100, best_finish: 180 })])[0];
+  assert.deepEqual([capped.calculation.averageIndex, capped.calculation.first9Index, capped.calculation.impactIndex, capped.calculation.finishIndex], [100, 100, 100, 100]);
+  const extra = buildMvpPlayers([player({ scores_170: 20, scores_120_139: 15 })])[0];
+  assert.equal(extra.score, buildMvpPlayers([player({})])[0].score);
+});
 await test("early-season results below 20 legs produce an explicitly provisional ranking", () => {
   const players = [player({ player_id: "a", name: "Esteban", legs_played: 13, legs_won: 11, average_3_darts: 53.87, first_9: 64.06, best_finish: 61, scores_100: 8, scores_140: 2 }), player({ player_id: "b", name: "Jacky", legs_played: 14, legs_won: 12, average_3_darts: 44.55, first_9: 50.35, best_finish: 59, scores_100: 8, scores_140: 0 })];
   const standing = mvpStanding(players);

@@ -101,12 +101,64 @@ try {
   await test("MVP 2027 uses early published results with a provisional podium and season-preserving links", async()=>{
     await page.goto(base+"/records/mvp/2027");assert.equal(await page.getByRole("heading",{name:"MVP 2027",exact:true}).count(),1);
     assert.match(await page.locator(".mvp-provisional-note").textContent(),/provisoire.*20 legs/);
-    assert.equal(await page.locator(".mvp-table tbody tr").count(),4);assert.equal(await page.locator(".record-podium-card").count(),3);
+    assert.equal(await page.locator(".mvp-table tbody > tr:has(.record-rank)").count(),4);assert.equal(await page.locator(".record-podium-card").count(),3);
     assert.equal(await page.locator(".mvp-winner h2").textContent(),"Esteban THOMAS");assert.equal(await page.locator(".mvp-winner-score strong").textContent(),"55");
     assert.equal(await page.locator(".record-kpis article").filter({hasText:"Profils confirmés"}).locator("strong").textContent(),"0");
-    for(const link of await page.locator(".mvp-winner a,.record-podium-card,.mvp-table a").all()) assert.match(await link.getAttribute("href"),/\?season=2027$/);
+    for(const link of await page.locator(".mvp-winner a,.record-podium-card,.mvp-table .record-player-link").all()) assert.match(await link.getAttribute("href"),/\?season=2027$/);
     assert.doesNotMatch(await page.locator("main").textContent(),/Saison à venir|Aucune donnée 2027 publiée|Ancien MVP 2026/);
     await page.screenshot({path:resolve(out,"mvp-2027-desktop.png"),fullPage:true});
+  });
+  await test("MVP per-player calculations expand independently on desktop and phone and link to the trophy guide", async()=>{
+    await page.goto(base+"/records/mvp/2027");
+    const rows = page.locator(".mvp-table .mvp-calculation-disclosure");
+    assert.equal(await rows.count(), 4);
+    assert.equal(await page.locator(".mvp-table .mvp-calculation-disclosure[open]").count(), 0);
+    const first = rows.first();
+    await first.locator("summary").focus(); await page.keyboard.press("Enter");
+    assert.equal(await first.getAttribute("open"), "");
+    assert.equal(await rows.nth(1).getAttribute("open"), null);
+    assert.match(await first.textContent(), /Calcul de Esteban THOMAS/);
+    assert.match(await first.textContent(), /Poids gros scores = 8 \+ 2 × 2 \+ 4 × 0 = 12/);
+    assert.match(await first.textContent(), /170–179 n’entrent pas/);
+    assert.match(await first.locator(".mvp-total-result strong").textContent(), /55 \/ 100/);
+    await page.screenshot({path:resolve(out,"mvp-calculation-desktop.png"),fullPage:true});
+    await first.locator("summary").click();assert.equal(await first.getAttribute("open"),null);
+    const guideLink = page.locator(".mvp-guide-entry a");
+    assert.equal(await guideLink.getAttribute("href"),"/records/mvp/2027/explications");
+    assert.ok(await guideLink.evaluate(el=>el.getBoundingClientRect().top>=document.getElementById("mvp-2027-title").closest("section").getBoundingClientRect().bottom));
+    await guideLink.click();
+    await page.waitForURL("**/records/mvp/2027/explications");
+    await page.getByRole("heading",{name:"Comprendre le trophée MVP 2027",exact:true}).waitFor();
+    assert.match(await page.locator("h1").textContent(),/Comprendre le trophée MVP 2027/);
+    for(const id of ["trophee","formules","statistiques","eligibilite","exemple"]) assert.equal(await page.locator("#"+id).count(),1);
+    assert.match(await page.locator("#trophee").textContent(),/200 €.*NDX Performance Lab/);
+    assert.match(await page.locator("#eligibilite").textContent(),/Nicolas Dupont.*hors concours/);
+    assert.match(await page.locator("#exemple .mvp-total-result strong").textContent(),/75 \/ 100/);
+    await page.screenshot({path:resolve(out,"mvp-guide-desktop.png"),fullPage:true});
+    await page.setViewportSize({width:390,height:844});
+    for(const width of [320,390,430]) {
+      await page.setViewportSize({width,height:844});
+      assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),true,`MVP guide at ${width}px`);
+    }
+    await page.setViewportSize({width:390,height:844});
+    await page.screenshot({path:resolve(out,"mvp-guide-mobile.png"),fullPage:true});
+    await page.getByRole("link",{name:"← Retour au classement MVP 2027",exact:true}).click();
+    await page.waitForURL("**/records/mvp/2027");
+    await page.locator(".mvp-winner").waitFor();
+    const cards=page.locator(".record-ranking [data-stats-cards] > ul > li");
+    assert.equal(await cards.count(),4);
+    const mobileDetail=cards.first().locator(".mvp-calculation-disclosure");
+    await mobileDetail.locator("summary").click();
+    assert.equal(await mobileDetail.getAttribute("open"),"");
+    assert.match(await mobileDetail.locator("h3").textContent(),/Esteban THOMAS/);
+    assert.equal(await cards.nth(1).locator(".mvp-calculation-disclosure").getAttribute("open"),null);
+    for(const width of [320,390,430]) {
+      await page.setViewportSize({width,height:844});
+      assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),true,`MVP calculation at ${width}px`);
+    }
+    await page.setViewportSize({width:390,height:844});
+    await page.screenshot({path:resolve(out,"mvp-calculation-mobile.png"),fullPage:true});
+    await page.setViewportSize({width:1440,height:1080});
   });
   await test("MVP seasons and legacy 2026 URL stay isolated; the hub and a future season activate from published data", async()=>{
     for(const path of ["/records/mvp/2026","/records/mvp-2026"]){await page.goto(base+path);assert.equal(await page.locator(".mvp-winner h2").textContent(),"Ancien MVP 2026");assert.equal(await page.locator(".mvp-winner-score strong").textContent(),"75");assert.equal(await page.locator(".mvp-provisional-note").count(),0);assert.doesNotMatch(await page.locator("main").textContent(),/Esteban THOMAS|Saison 2027/);assert.match(await page.locator(".mvp-winner a").getAttribute("href"),/season=2026$/);}
@@ -115,11 +167,11 @@ try {
     await page.goto(base+"/records/mvp");assert.match(await page.locator('.mvp-season-card[href="/records/mvp/2027"]').textContent(),/Saison en cours/);assert.match(await page.locator('.mvp-season-card[href="/records/mvp/2026"]').textContent(),/Saison analysée/);
   });
   await test("MVP handles confirmation, missing individual stats, foreign-season data, outages and mobile rendering", async()=>{
-    mvpState="confirmed";await page.goto(base+"/records/mvp/2027");assert.equal(await page.locator(".mvp-provisional-note").count(),0);assert.equal(await page.locator(".mvp-table tbody tr").count(),1);assert.equal(await page.locator(".mvp-winner h2").textContent(),"Joueur confirmé 2027");
+    mvpState="confirmed";await page.goto(base+"/records/mvp/2027");assert.equal(await page.locator(".mvp-provisional-note").count(),0);assert.equal(await page.locator(".mvp-table tbody > tr:has(.record-rank)").count(),1);assert.equal(await page.locator(".mvp-winner h2").textContent(),"Joueur confirmé 2027");
     mvpState="empty";await page.reload();assert.equal(await page.getByRole("heading",{name:"En attente des statistiques individuelles 2027",exact:true}).count(),1);assert.match(await page.locator(".record-empty").textContent(),/Des journées sont publiées/);
     mvpState="incomplete";await page.reload();assert.equal(await page.getByRole("heading",{name:"Statistiques individuelles incomplètes",exact:true}).count(),1);assert.equal(await page.locator(".mvp-winner").count(),0);
     for(const state of ["wrong-season","outage"]){mvpState=state;await page.reload();assert.equal(await page.getByRole("heading",{name:"Statistiques temporairement indisponibles",exact:true}).count(),1);assert.doesNotMatch(await page.locator("main").textContent(),/Ancien MVP 2026/);assert.equal(await page.locator(".record-kpis article").filter({hasText:"Joueurs classés"}).locator("strong").textContent(),"—");}
-    mvpState="early";await page.getByRole("link",{name:"Réessayer",exact:true}).click();await page.locator(".mvp-winner").waitFor();assert.equal(await page.locator(".mvp-table tbody tr").count(),4);
+    mvpState="early";await page.getByRole("link",{name:"Réessayer",exact:true}).click();await page.locator(".mvp-winner").waitFor();assert.equal(await page.locator(".mvp-table tbody > tr:has(.record-rank)").count(),4);
     await page.setViewportSize({width:390,height:844});await page.evaluate(()=>window.scrollTo(0,0));assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),true);await page.screenshot({path:resolve(out,"mvp-2027-mobile.png"),fullPage:true});await page.setViewportSize({width:1440,height:1080});
   });
   await test("KPI guide covers visible metrics, formulas and real-source example calculations", async()=>{
