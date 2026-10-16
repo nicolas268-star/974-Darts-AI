@@ -13,7 +13,7 @@ function load(path) {
 }
 const { buildMvpPlayers, mvpStanding, playersForMvpSeason } = load(resolve(root, "lib/records/mvp.ts"));
 const { loadMvpSeason } = load(resolve(root, "lib/records/mvp-server.ts"));
-const player = overrides => ({ player_id: "one", name: "Joueur", team: "Équipe", season_id: "season-2027", legs_played: 100, legs_won: 70, average_3_darts: 56, first_9: 64, best_finish: 102, scores_100: 20, scores_140: 10, scores_180: 0, ...overrides });
+const player = overrides => ({ player_id: "one", name: "Joueur", team: "Équipe", season_id: "season-2027", legs_played: 100, legs_won: 70, average_3_darts: 56, first_9: 64, best_finish: 102, scores_100: 20, scores_140: 10, scores_170: 0, scores_180: 0, ...overrides });
 let checks = 0;
 async function test(label, run) { await run(); checks++; console.log("PASS MVP: " + label); }
 
@@ -54,8 +54,35 @@ await test("explanations use the same ranking cohort, missing-value rules and ca
   assert.equal(missing.calculation.highScoreIndex, 0);
   const capped = buildMvpPlayers([player({ legs_played: 150, average_3_darts: 90, first_9: 100, best_finish: 180 })])[0];
   assert.deepEqual([capped.calculation.averageIndex, capped.calculation.first9Index, capped.calculation.impactIndex, capped.calculation.finishIndex], [100, 100, 100, 100]);
-  const extra = buildMvpPlayers([player({ scores_170: 20, scores_120_139: 15 })])[0];
+  const extra = buildMvpPlayers([player({ scores_120_139: 15 })])[0];
   assert.equal(extra.score, buildMvpPlayers([player({})])[0].score);
+});
+await test("all four high-score bands contribute once with weights 1, 2, 3 and 4", () => {
+  const bands = ["scores_100", "scores_140", "scores_170", "scores_180"];
+  const ranked = buildMvpPlayers(bands.map(band => player({ player_id: band, scores_100: 0, scores_140: 0, scores_170: 0, scores_180: 0, [band]: 1 })));
+  assert.deepEqual(ranked.map(p => p.player_id), [...bands].reverse());
+  assert.deepEqual(ranked.map(p => p.calculation.highScoreWeight), [4, 3, 2, 1]);
+  assert.deepEqual(ranked.map(p => p.calculation.highScoreIndex), [100, 75, 50, 25]);
+  assert.deepEqual(ranked.map(p => p.score), [75, 74, 72, 71]);
+});
+await test("170–179 updates the shared reference and every player's MVP, including zero-170 players", () => {
+  const ranked = buildMvpPlayers([player({ player_id: "base" }), player({ player_id: "with-170", scores_170: 20 })]);
+  assert.deepEqual(ranked.map(p => [p.player_id, p.score]), [["with-170", 75], ["base", 72]]);
+  assert.ok(ranked.every(p => p.calculation.bestHighScoreRate === 100));
+  assert.equal(ranked[0].calculation.highScoreWeight, 100);
+  assert.equal(ranked[1].calculation.highScoreWeight, 40);
+  assert.equal(ranked[1].calculation.scoringIndex, 74);
+  const early = mvpStanding([player({ legs_played: 10, legs_won: 7, scores_100: 0, scores_140: 0, scores_170: 2 })]);
+  assert.equal(early.provisional, true);
+  assert.equal(early.displayed[0].calculation.highScoreWeight, 6);
+  assert.equal(early.displayed[0].calculation.highScoreRate, 60);
+});
+await test("missing and invalid 170–179 counters cannot enter a ranking or its shared reference", () => {
+  for (const scores_170 of [undefined, null, -1, 1.5, NaN, Infinity, "3"]) {
+    const result = buildMvpPlayers([player({ player_id: "valid" }), player({ player_id: "invalid", scores_170 })]);
+    assert.deepEqual(result.map(p => p.player_id), ["valid"]);
+    assert.equal(result[0].calculation.bestHighScoreRate, 40);
+  }
 });
 await test("early-season results below 20 legs produce an explicitly provisional ranking", () => {
   const players = [player({ player_id: "a", name: "Esteban", legs_played: 13, legs_won: 11, average_3_darts: 53.87, first_9: 64.06, best_finish: 61, scores_100: 8, scores_140: 2 }), player({ player_id: "b", name: "Jacky", legs_played: 14, legs_won: 12, average_3_darts: 44.55, first_9: 50.35, best_finish: 59, scores_100: 8, scores_140: 0 })];

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Crown, ShieldCheck, Trophy } from "lucide-react";
 import { Sidebar } from "@/components/Sidebar";
-import { buildMvpPlayers, MINIMUM_LEGS, MVP_REFERENCES, MVP_SCORING_WEIGHTS, MVP_WEIGHTS } from "@/lib/records/mvp";
+import { buildMvpPlayers, MINIMUM_LEGS, MVP_HIGH_SCORE_WEIGHTS, MVP_REFERENCES, MVP_SCORING_WEIGHTS, MVP_WEIGHTS } from "@/lib/records/mvp";
 import { MvpCalculation } from "../../MvpCalculation";
 import "../../../record-pages.css";
 import "../../mvp-seasons.css";
@@ -17,7 +17,7 @@ const decimal = (value: number) => String(value).replace(".", ",");
 const example = buildMvpPlayers([{
   player_id: "example", name: "Joueur d’exemple", team: "Exemple fictif",
   legs_played: 100, legs_won: 70, average_3_darts: 56, first_9: 64, best_finish: 102,
-  scores_100: 20, scores_140: 10, scores_170: 0, scores_180: 0,
+  scores_100: 20, scores_140: 10, scores_170: 1, scores_180: 0,
   win_rate: 70, elo: null, finishes: 0, nakka_note: "Exemple pédagogique fictif",
 }])[0];
 
@@ -54,12 +54,12 @@ export default function Mvp2027ExplanationPage() {
             <p className="mvp-formula">A = min(100 ; moyenne 3 fléchettes / {MVP_REFERENCES.average} × 100)</p>
             <p className="mvp-formula">F = min(100 ; First 9 / {MVP_REFERENCES.first9} × 100)</p>
             <p>Si le First 9 est absent, F reprend A. Les références {MVP_REFERENCES.average} et {MVP_REFERENCES.first9} sont des repères fixes ; les indices sont plafonnés à 100.</p>
-            <p className="mvp-formula">Poids = nombre de 100–139 + 2 × nombre de 140–169 + 4 × nombre de 180</p>
+            <p className="mvp-formula">Poids = nombre de 100–139 + {MVP_HIGH_SCORE_WEIGHTS.scores_140} × nombre de 140–169 + {MVP_HIGH_SCORE_WEIGHTS.scores_170} × nombre de 170–179 + {MVP_HIGH_SCORE_WEIGHTS.scores_180} × nombre de 180</p>
             <p className="mvp-formula">Taux = poids / legs joués × 100</p>
             <p className="mvp-formula">Référence = max(1 ; meilleur taux des joueurs du classement affiché)</p>
             <p className="mvp-formula">G = min(100 ; taux joueur / référence × 100)</p>
             <p className="mvp-step-result">Scoring = {decimal(MVP_SCORING_WEIGHTS.average)} × A + {decimal(MVP_SCORING_WEIGHTS.first9)} × F + {decimal(MVP_SCORING_WEIGHTS.highScores)} × G</p>
-            <p>Les 120–139 font déjà partie des 100–139 : ils ne sont pas comptés une seconde fois. Les 170–179 sont suivis séparément et ne contribuent pas au MVP actuel.</p>
+            <p>Les quatre tranches 100–139, 140–169, 170–179 et 180 sont comptées séparément, avec les coefficients ×1, ×2, ×3 et ×4. Les 120–139 font déjà partie des 100–139 et ne sont pas comptés une seconde fois.</p>
             <p>Le repère des gros scores évolue avec les performances et la population du classement affiché. La même référence s’applique à tous les joueurs de ce groupe.</p>
           </article>
           <article className="mvp-calculation-step">
@@ -92,7 +92,7 @@ export default function Mvp2027ExplanationPage() {
           <li><strong>Calcul :</strong> seuls les agrégats de la saison 2027 alimentent cette course au MVP. Une rencontre sans détail individuel exploitable n’ajoute aucune performance individuelle.</li>
           <li><strong>Corrections :</strong> les corrections sportives validées peuvent mettre à jour les données retenues. Une décision de l’organisateur reste prioritaire sur une donnée importée.</li>
         </ol>
-        <p>Les entrées du calcul sont les legs gagnés et joués, la moyenne 3 fléchettes, le First 9, les volumes 100–139, 140–169 et 180, ainsi que le meilleur finish. Leur détail est consultable sous chaque joueur dans le classement.</p>
+        <p>Les entrées du calcul sont les legs gagnés et joués, la moyenne 3 fléchettes, le First 9, les volumes 100–139, 140–169, 170–179 et 180, ainsi que le meilleur finish. Leur détail est consultable sous chaque joueur dans le classement. Un compteur de gros scores absent ou invalide rend le profil incomplet pour le calcul MVP.</p>
         <aside className="record-integrity mvp-integrity"><ShieldCheck size={18} /><span>Un finish Nakka correspond au total de la volée de sortie. Il ne permet pas de déduire la route de checkout, le double utilisé ou un pourcentage de réussite aux doubles.</span></aside>
       </section>
 
@@ -106,12 +106,12 @@ export default function Mvp2027ExplanationPage() {
           <li><strong>Attribution :</strong> le leader statistique n’est pas automatiquement le lauréat. Le Comité valide les règles, les éventuels cas particuliers et l’attribution finale.</li>
         </ul>
         <p><strong>Neutralité du financeur :</strong> conformément à la proposition présentée au Comité, Nicolas Dupont, porteur de NDX Performance Lab, est hors concours pour le trophée et les 200 € de matériel. Ses statistiques restent calculées et visibles.</p>
-        <p>L’intégration éventuelle des 170–179 à la formule relève d’une décision du Comité. Toute évolution de méthode doit être documentée et appliquée uniformément à tous les joueurs.</p>
+        <p>Barème des gros scores mis à jour le 16 octobre 2026 : 100–139 ×1, 140–169 ×2, 170–179 ×3 et 180 ×4. Les classements sont recalculés pour tous les joueurs avec ce même barème, y compris les résultats déjà enregistrés de chaque saison. Le Comité conserve la validation du règlement et de l’attribution du trophée.</p>
       </section>
 
       <section className="card mvp-guide-section" id="exemple">
         <span className="eyebrow">05 · Exemple pédagogique</span><h2>Reconstituer un indice MVP de 75 / 100</h2>
-        <p>Ce profil est fictif. Le taux de référence des gros scores vaut ici 40, calculé sur ce seul joueur d’exemple. Le classement réel utilise le groupe de joueurs affiché et peut donc avoir une autre référence.</p>
+        <p>Ce profil est fictif et comprend une volée de 170–179, pondérée ×{MVP_HIGH_SCORE_WEIGHTS.scores_170}. Le taux de référence des gros scores vaut ici {decimal(example.calculation.bestHighScoreRate)}, calculé sur ce seul joueur d’exemple. Le classement réel utilise le groupe de joueurs affiché et peut donc avoir une autre référence.</p>
         <MvpCalculation player={example} season="2027" showGuideLink={false} />
       </section>
       <Link className="btn btn-secondary" href="/records/mvp/2027">Revenir au classement et ouvrir le calcul d’un joueur →</Link>

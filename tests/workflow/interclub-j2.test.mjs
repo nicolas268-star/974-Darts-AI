@@ -103,7 +103,7 @@ try {
  // result inputs; no copy of the Wilson/weighting formula is introduced here.
  const mvpPlayer=x=>({player_id:x.id,name:x.name,legs_played:x.leg,legs_won:x.winLeg,
   average_3_darts:3*x.score/x.darts,first_9:3*x.f9Score/x.f9Darts,best_finish:x.highOut,
-  scores_100:x.ton00,scores_140:x.ton40,scores_180:x.ton80});
+  scores_100:x.ton00,scores_140:x.ton40,scores_170:x.ton70,scores_180:x.ton80});
  const formulaUrl=pathToFileURL(resolve(root,'app/frontend/lib/records/mvp.ts')).href;
  const mvpScript=`import assert from 'node:assert/strict'; import { readFileSync } from 'node:fs';
   import {buildMvpPlayers} from ${JSON.stringify(formulaUrl)};

@@ -33,7 +33,7 @@ const dashboard = (season, id) => ({
 let failSource = false;
 let guideState = "data";
 let mvpState = "early", mvp2028Published = false;
-const mvpPlayer = (player_id, name, overrides = {}) => ({ player_id, name, team: "Équipe de validation", legs_played: 13, legs_won: 11, average_3_darts: 53.87, first_9: 64.06, best_finish: 61, scores_100: 8, scores_140: 2, scores_180: 0, ...overrides });
+const mvpPlayer = (player_id, name, overrides = {}) => ({ player_id, name, team: "Équipe de validation", legs_played: 13, legs_won: 11, average_3_darts: 53.87, first_9: 64.06, best_finish: 61, scores_100: 8, scores_140: 2, scores_170: 0, scores_180: 0, ...overrides });
 const mvpEarly = [
   mvpPlayer("mvp-esteban", "Esteban THOMAS"),
   mvpPlayer("mvp-jacky", "Jacky VERDIER", { legs_played:14, legs_won:12, average_3_darts:44.55, first_9:50.35, best_finish:59, scores_100:8, scores_140:0 }),
@@ -61,6 +61,7 @@ const backend = createServer((req,res) => {
     let players = seasonId === "season-2026" ? [mvpHistorical] : seasonId === "season-2028" ? [mvpPlayer("mvp-future", "Premier joueur 2028", { legs_played:3, legs_won:1 })] : mvpEarly;
     players = players.map(p=>({...p,season_id:seasonId}));
     if (mvpState === "confirmed") players.push(mvpPlayer("mvp-qualified", "Joueur confirmé 2027", {season_id:seasonId,legs_played:20,legs_won:10}));
+    if (mvpState === "170") players = [0,20].map(count=>mvpPlayer(`mvp-170-${count}`, `Joueur avec ${count} volées 170`, {season_id:seasonId,legs_played:100,legs_won:70,average_3_darts:56,first_9:64,best_finish:102,scores_100:20,scores_140:10,scores_170:count}));
     if (mvpState === "empty") players=[];
     if (mvpState === "incomplete") players=players.map(p=>({...p,average_3_darts:null}));
     if (mvpState === "wrong-season") players=[mvpHistorical];
@@ -118,8 +119,8 @@ try {
     assert.equal(await first.getAttribute("open"), "");
     assert.equal(await rows.nth(1).getAttribute("open"), null);
     assert.match(await first.textContent(), /Calcul de Esteban THOMAS/);
-    assert.match(await first.textContent(), /Poids gros scores = 8 \+ 2 × 2 \+ 4 × 0 = 12/);
-    assert.match(await first.textContent(), /170–179 n’entrent pas/);
+    assert.match(await first.textContent(), /Poids gros scores = 8 \+ 2 × 2 \+ 3 × 0 \+ 4 × 0 = 12/);
+    assert.match(await first.textContent(), /170–179 ×3/);
     assert.match(await first.locator(".mvp-total-result strong").textContent(), /55 \/ 100/);
     await page.screenshot({path:resolve(out,"mvp-calculation-desktop.png"),fullPage:true});
     await first.locator("summary").click();assert.equal(await first.getAttribute("open"),null);
@@ -159,6 +160,42 @@ try {
     await page.setViewportSize({width:390,height:844});
     await page.screenshot({path:resolve(out,"mvp-calculation-mobile.png"),fullPage:true});
     await page.setViewportSize({width:1440,height:1080});
+  });
+  await test("MVP 170–179 coefficient updates the ranking, both players and the guide example", async()=>{
+    mvpState="170";
+    await page.goto(base+"/records/mvp/2027");
+    assert.equal(await page.locator(".mvp-winner h2").textContent(),"Joueur avec 20 volées 170");
+    const ranking=page.locator(".mvp-table tbody > tr:has(.record-rank)");
+    assert.deepEqual(await ranking.locator(".mvp-score").allTextContents(),["75","72"]);
+    const details=page.locator(".mvp-table .mvp-calculation-disclosure");
+    for(const detail of await details.all()) {
+      assert.match(await detail.textContent(),/Repère du classement = 100,00/);
+      assert.doesNotMatch(await detail.textContent(),/hors formule|n’entrent pas|ne contribuent pas/);
+    }
+    await details.first().locator("summary").click();
+    assert.match(await details.first().textContent(),/Poids gros scores = 20 \+ 2 × 10 \+ 3 × 20 \+ 4 × 0 = 100/);
+    await page.screenshot({path:resolve(out,"mvp-170-desktop.png"),fullPage:true});
+    await page.locator(".mvp-guide-entry a").click();
+    await page.waitForURL("**/records/mvp/2027/explications");
+    await page.getByRole("heading",{name:"Comprendre le trophée MVP 2027",exact:true}).waitFor();
+    assert.match(await page.locator("#formules").textContent(),/3 × nombre de 170–179/);
+    assert.match(await page.locator("#exemple").textContent(),/Poids gros scores = 20 \+ 2 × 10 \+ 3 × 1 \+ 4 × 0 = 43/);
+    assert.match(await page.locator("#exemple .mvp-total-result strong").textContent(),/75 \/ 100/);
+    assert.doesNotMatch(await page.locator("main").textContent(),/hors formule|n’entrent pas|ne contribuent pas|intégration éventuelle/);
+    await page.setViewportSize({width:390,height:844});
+    await page.goto(base+"/records/mvp/2027");
+    const card=page.locator(".record-ranking [data-stats-cards] > ul > li").first();
+    await card.locator(".mvp-calculation-disclosure summary").click();
+    assert.match(await card.locator(".mvp-inputs").textContent(),/170–179 · ×320/);
+    assert.match(await card.locator(".mvp-total-result strong").textContent(),/75 \/ 100/);
+    for(const width of [320,390,430]) {
+      await page.setViewportSize({width,height:844});
+      assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,`MVP 170 at ${width}px`);
+    }
+    await page.setViewportSize({width:390,height:844});
+    await page.screenshot({path:resolve(out,"mvp-170-mobile.png"),fullPage:true});
+    await page.setViewportSize({width:1440,height:1080});
+    mvpState="early";
   });
   await test("MVP seasons and legacy 2026 URL stay isolated; the hub and a future season activate from published data", async()=>{
     for(const path of ["/records/mvp/2026","/records/mvp-2026"]){await page.goto(base+path);assert.equal(await page.locator(".mvp-winner h2").textContent(),"Ancien MVP 2026");assert.equal(await page.locator(".mvp-winner-score strong").textContent(),"75");assert.equal(await page.locator(".mvp-provisional-note").count(),0);assert.doesNotMatch(await page.locator("main").textContent(),/Esteban THOMAS|Saison 2027/);assert.match(await page.locator(".mvp-winner a").getAttribute("href"),/season=2026$/);}
