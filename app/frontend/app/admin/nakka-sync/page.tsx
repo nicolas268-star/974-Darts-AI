@@ -1,4 +1,5 @@
 "use client";
+import { TournamentRefreshPanel } from "@/components/tournaments/TournamentRefreshPanel";
 
 import { Fragment, useEffect, useMemo, useState } from "react";
 import {
@@ -964,12 +965,7 @@ export default function NakkaSyncPage() {
             )}
 
             {directPreview.imported && directPreview.importedTournamentCode && (
-              <a
-                className="nakka-direct-open"
-                href={`/tournaments/${directPreview.importedTournamentCode.toLowerCase()}`}
-              >
-                Ouvrir le tournoi {directPreview.importedTournamentCode} →
-              </a>
+              <TournamentRefreshPanel key={directPreview.importedTournamentCode} code={directPreview.importedTournamentCode} href={`/tournaments/${directPreview.importedTournamentCode.toLowerCase()}`} disabled={directImporting || directAnalyzing} />
             )}
 
             <div className="nakka-radar-safety">

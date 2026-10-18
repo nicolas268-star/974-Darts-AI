@@ -7,6 +7,10 @@ npm-debug.log*
 __pycache__/
 *.pyc
 *.tsbuildinfo
+.venv/
+.test-deps/
+test-results/
+artifacts/ui-tests/
 
 # Supabase CLI local metadata
 supabase/.temp/

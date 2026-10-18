@@ -35,6 +35,54 @@ def _first_integer(matches: list[dict[str, Any]], key: str) -> int:
     return 0
 
 
+def _first_setting(matches: list[dict[str, Any]], key: str, default: int = 0) -> int:
+    for match in matches:
+        if match.get(key) is not None:
+            return _integer(match[key])
+    return default
+
+
+def _complete(match: dict[str, Any]) -> bool:
+    if "result_complete" in match:
+        return bool(match["result_complete"])
+    return match.get("home_score") is not None and match.get("away_score") is not None
+
+
+def _nakka_ranks(standings, settings, matches, complete):
+    """N01 comp v140 setRrResult/setRrPoint/fixRank, for leg-based pools.
+
+    Nakka applies direct confrontation only to a two-way tie; a three-way
+    tie stays shared. It never uses the whole-event scoring average.
+    """
+    if not complete or settings.get("ranking_strategy") != "NAKKA_V2":
+        return {}
+    if _integer(settings.get("limit")) != 1 or settings.get("unsupported_ranking_data"):
+        return {}
+    def key(row):
+        win_loss = row["wins"] - row["losses"]
+        difference = row["leg_difference"]
+        if _integer(settings.get("point")) != 1:
+            return (win_loss, difference)
+        values = [win_loss, row["points"]] if settings.get("priority_win") else [row["points"]]
+        if not settings.get("priority_win") and not settings.get("norank_wl"):
+            values.append(win_loss)
+        if not settings.get("norank_diff"):
+            values.append(difference)
+        return tuple(values)
+    ranks = {row["name"]: 1 + sum(key(other) > key(row) for other in standings) for row in standings}
+    for rank in set(ranks.values()):
+        tied = [name for name, value in ranks.items() if value == rank]
+        if len(tied) != 2:
+            continue
+        match = matches.get(tuple(sorted(tied, key=str.casefold)))
+        if match and _complete(match):
+            home_score, away_score = _integer(match.get("home_score")), _integer(match.get("away_score"))
+            if home_score != away_score:
+                loser = match["away"] if home_score > away_score else match["home"]
+                ranks[loser] += 1
+    return ranks
+
+
 def _participant_names(matches: list[dict[str, Any]]) -> list[str]:
     names: list[str] = []
     seen: set[str] = set()
@@ -60,12 +108,16 @@ def build_tournament_round_robins(
             continue
         stage_code = str(match.get("stage_code") or "rr_1")
         grouped[stage_code].append(match)
+    for code in tournament.get("pool_participants") or {}:
+        grouped.setdefault(code, [])
 
     overall_averages = _player_averages(tournament)
     tables: list[dict[str, Any]] = []
-    for stage_code, matches in sorted(grouped.items()):
+    for stage_code, matches in sorted(grouped.items(), key=lambda item: (_integer(item[0].rsplit("_", 1)[-1]), item[0])):
         names = _participant_names(matches)
-        if len(names) < 2:
+        declared_names = (tournament.get("pool_participants") or {}).get(stage_code) or []
+        names = list(dict.fromkeys([*declared_names, *names]))
+        if not names:
             continue
 
         detected_first_to = max(
@@ -85,10 +137,13 @@ def build_tournament_round_robins(
             1,
             first_to * 2 - 1,
         )
-        win_points = _first_integer(matches, "round_robin_win_points") or 2
-        draw_points = _first_integer(matches, "round_robin_draw_points")
-        loss_points = _first_integer(matches, "round_robin_loss_points")
-        include_leg_points = any(
+        settings = tournament.get("pool_settings") or {}
+        source_round = _integer(matches[0].get("stage_index")) - 1 if matches else _integer(stage_code.rsplit("_", 1)[-1]) - 1
+        settings = {**settings, **next((row for row in settings.get("game_setting") or [] if isinstance(row, dict) and row.get("round") == source_round), {})}
+        win_points = _integer(settings["point_w"]) if "point_w" in settings else _first_setting(matches, "round_robin_win_points", 2)
+        draw_points = _integer(settings["point_d"]) if "point_d" in settings else _first_setting(matches, "round_robin_draw_points")
+        loss_points = _integer(settings["point_l"]) if "point_l" in settings else _first_setting(matches, "round_robin_loss_points")
+        include_leg_points = bool(settings.get("include_set")) if settings.get("ranking_strategy") == "NAKKA_V2" and _integer(settings.get("point")) == 1 else any(
             bool(match.get("round_robin_include_leg_points"))
             for match in matches
         )
@@ -119,6 +174,8 @@ def build_tournament_round_robins(
         }
 
         for match in match_by_pair.values():
+            if not _complete(match):
+                continue
             home = str(match.get("home") or "")
             away = str(match.get("away") or "")
             if home not in standing_by_name or away not in standing_by_name:
@@ -177,10 +234,6 @@ def build_tournament_round_robins(
                     )
                     return -1 if winner == left["name"] else 1
 
-            left_average = float(left.get("average_3_darts") or 0)
-            right_average = float(right.get("average_3_darts") or 0)
-            if left_average != right_average:
-                return -1 if left_average > right_average else 1
             return (
                 -1
                 if str(left["name"]).casefold() < str(right["name"]).casefold()
@@ -190,8 +243,36 @@ def build_tournament_round_robins(
             )
 
         standings.sort(key=cmp_to_key(compare_standings))
+        completed_count = sum(_complete(match) for match in match_by_pair.values())
+        complete = completed_count == expected_matches
+        source_rows = (tournament.get("source_pool_standings") or {}).get(stage_code) or []
+        source_ranks = {
+            str(row.get("name")): _integer(row.get("rank"))
+            for row in source_rows if isinstance(row, dict) and _integer(row.get("rank")) > 0
+        }
+        source_reliable = set(source_ranks) == set(names)
+        calculated_ranks = _nakka_ranks(standings, settings, match_by_pair, complete)
+        strict = tournament.get("source_type") == "NAKKA_DIRECT"
+        # Historical workbook rules are retained. New direct imports rely on
+        # Nakka ranks or documented tiebreaks, never a tournament-wide average.
         for rank, row in enumerate(standings, start=1):
-            row["rank"] = rank
+            row["rank"] = (
+                source_ranks[row["name"]] if source_reliable
+                else calculated_ranks[row["name"]] if calculated_ranks
+                else rank if complete and not strict
+                else None
+            )
+            row["rank_source"] = "NAKKA" if source_reliable else "CALCULATED" if row["rank"] is not None else "UNCONFIRMED"
+            qualified = (tournament.get("pool_qualifiers") or {}).get(stage_code)
+            row["qualified"] = row["name"] in qualified if qualified is not None else None
+        if source_reliable or calculated_ranks:
+            standings.sort(key=lambda row: (row["rank"], names.index(row["name"])))
+        for row in standings:
+            row["rank_tied"] = row["rank"] is not None and sum(other["rank"] == row["rank"] for other in standings) > 1
+        points_available = settings.get("ranking_strategy") != "NAKKA_V2" or (_integer(settings.get("point")) == 1 and not settings.get("unsupported_ranking_data"))
+        if not points_available:
+            for row in standings:
+                row["points"] = None
         rank_by_name = {row["name"]: row["rank"] for row in standings}
 
         matrix_rows: list[dict[str, Any]] = []
@@ -204,12 +285,12 @@ def build_tournament_round_robins(
                 match = match_by_pair.get(
                     tuple(sorted((name, opponent), key=str.casefold))
                 )
-                if not match:
+                if not match or not _complete(match):
                     cells.append({
                         "opponent": opponent,
                         "played": False,
-                        "score_for": 0,
-                        "score_against": 0,
+                        "score_for": None,
+                        "score_against": None,
                         "average_3_darts": None,
                         "won": False,
                         "source_url": None,
@@ -246,19 +327,22 @@ def build_tournament_round_robins(
         first_match = matches[0] if matches else {}
         tables.append({
             "code": stage_code,
-            "name": first_match.get("stage_label") or "Poule",
+            "name": first_match.get("stage_label") or f"Poule {stage_code.rsplit('_', 1)[-1]}",
             "format": "ROUND_ROBIN",
             "format_label": f"Round Robin · premier à {first_to} legs",
             "best_of": best_of,
             "first_to": first_to,
-            "win_points": win_points,
-            "draw_points": draw_points,
-            "loss_points": loss_points,
+            "win_points": win_points if points_available else None,
+            "draw_points": draw_points if points_available else None,
+            "loss_points": loss_points if points_available else None,
+            "points_available": points_available,
             "include_leg_points": include_leg_points,
             "participant_count": len(names),
-            "match_count": len(match_by_pair),
+            "match_count": completed_count,
             "expected_match_count": expected_matches,
-            "complete": len(match_by_pair) == expected_matches,
+            "complete": complete,
+            "ranking_confirmed": source_reliable or all(row["rank"] is not None and not row["rank_tied"] for row in standings),
+            "ranking_source": "NAKKA" if source_reliable else "NAKKA_RULES" if calculated_ranks else "CALCULATED" if all(row["rank"] is not None for row in standings) else "UNCONFIRMED",
             "participants": names,
             "matrix": matrix_rows,
             "standings": standings,

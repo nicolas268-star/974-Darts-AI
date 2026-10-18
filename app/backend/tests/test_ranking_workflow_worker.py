@@ -45,7 +45,8 @@ class WorkflowWorkerTests(unittest.TestCase):
             "app.services.ranking_workflow_worker.send_notification"
         ) as send:
             run_once(db)
-        db.rpc.assert_called_once_with("ranking_claim_work", {"p_queue": "analysis"})
+        self.assertEqual(db.rpc.call_args_list[0].args, ("ranking_claim_work", {"p_queue": "analysis"}))
+        self.assertEqual(db.rpc.call_args_list[1].args, ("tournament_page_claim", {}))
         send.assert_not_called()
 
     def test_private_analysis_does_not_write_existing_public_or_last_preview_cache(

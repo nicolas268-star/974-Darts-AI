@@ -14,6 +14,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from app.api.ranking_workflow_router import router
 from app.api.committee_ranking_router import router as legacy_router
+from app.api.tournament_page_router import router as tournament_router
 
 ADMIN, DS, PLAYER = (str(uuid4()) for _ in range(3))
 
@@ -28,6 +29,7 @@ class WorkflowApiSecurityTests(unittest.TestCase):
         app = FastAPI()
         app.include_router(router)
         app.include_router(legacy_router)
+        app.include_router(tournament_router)
         self.client = TestClient(app)
         self.db = MagicMock()
         self.patch = patch(
@@ -79,6 +81,27 @@ class WorkflowApiSecurityTests(unittest.TestCase):
             ).status_code,
             401,
         )
+
+    def test_tournament_projection_needs_verified_admin_and_internal_token(self):
+        endpoint = "/api/v1/competitions/tournaments/oc1-2026-10-18/refresh/preview"
+        self.assertEqual(self.client.post(endpoint).status_code, 401)
+        self.assertEqual(self.client.post(endpoint, headers=self.headers).status_code, 403)
+        self.db.rpc.assert_not_called()
+        self.role("ADMIN", ADMIN)
+        with patch("app.api.tournament_page_router.preview_refresh", return_value={"can_apply": False}) as preview:
+            response = self.client.post(endpoint, headers=self.headers)
+        self.assertEqual(response.status_code, 200)
+        preview.assert_called_once_with(self.db, "oc1-2026-10-18", ADMIN)
+
+    def test_tournament_apply_rejects_points_and_crosses_no_workflow_command(self):
+        self.role("ADMIN", ADMIN)
+        response = self.client.post(
+            "/api/v1/competitions/tournaments/oc1-2026-10-18/refresh/apply",
+            headers=self.headers,
+            json={"preview_id": str(uuid4()), "confirmed": True, "points": 999},
+        )
+        self.assertEqual(response.status_code, 422)
+        self.db.rpc.assert_not_called()
 
     def test_revoked_session_is_rejected(self):
         self.db.auth.get_user.side_effect = ValueError("deleted or expired")

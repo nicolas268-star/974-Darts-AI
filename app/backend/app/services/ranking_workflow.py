@@ -42,6 +42,7 @@ class Metadata(StrictModel):
     season_key: str = Field(default="2026-2027", pattern=r"^20\d{2}-20\d{2}$")
     kind: Literal["COMMITTEE_OPEN", "COMMITTEE_CUP", "CLUB_SINGLE", "CLUB_DOUBLE"]
     organizer: str = Field(min_length=2, max_length=120)
+    location: str | None = Field(default=None, max_length=160)
     source_url: str = Field(min_length=20, max_length=500)
 
 
@@ -166,7 +167,7 @@ def suggested_results(source: dict, by_id: dict, aliases: dict, double: bool):
         source.get("format") in {"SINGLE_ELIMINATION", "POOLS_AND_KNOCKOUT"}
         and ko
         and all(m.get("result_complete") for m in ko)
-        and not any(m.get("stage_code", "").startswith("loser_") for m in matches)
+        and not any(m.get("stage_code", "").startswith(("loser_", "secondary_")) for m in matches)
     ):
         finals = [m for m in ko if m.get("stage_label") == "Finale"]
         names = [p["name"] for p in source.get("participants", [])]

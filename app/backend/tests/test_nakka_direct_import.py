@@ -199,7 +199,7 @@ class NakkaDirectImportTests(unittest.TestCase):
             ],
         )
 
-    def test_secondary_knockout_is_imported_as_loser_bracket(self) -> None:
+    def test_secondary_knockout_is_consolation_not_double_elimination(self) -> None:
         payload = deepcopy(EVENT)
         payload["s2_setting"] = {"match_type": "01"}
         payload["s2_result"] = [{
@@ -218,9 +218,11 @@ class NakkaDirectImportTests(unittest.TestCase):
         self.assertEqual(preview["summary"]["knockoutMatches"], 2)
         self.assertEqual(
             [match["stage_label"] for match in preview["matches"][:2]],
-            ["Finale", "Loser Bracket · Finale"],
+            ["Finale", "Consolante · Finale"],
         )
-        self.assertEqual(preview["matches"][1]["stage_code"], "loser_1")
+        self.assertEqual(preview["matches"][1]["stage_code"], "secondary_1")
+        self.assertEqual(preview["matches"][1]["bracket_kind"], "SECONDARY")
+        self.assertFalse(preview["hasDoubleElimination"])
 
     def test_import_requires_explicit_confirmation(self) -> None:
         preview = self._analyse()["lastPreview"]
@@ -252,6 +254,38 @@ class NakkaDirectImportTests(unittest.TestCase):
         self.assertEqual(len(registry["tournaments"]), 2)
         refreshed = registry["tournaments"][-1]
         self.assertEqual(refreshed["summary"]["knockout_matches"], 1)
+
+    def test_publication_rejection_keeps_local_cache_and_state_unchanged(self) -> None:
+        preview = self._analyse()["lastPreview"]
+        registry_before = self.registry_path.read_bytes()
+        state_before = self.state_path.read_bytes()
+        def reject(source, tournament):
+            self.assertEqual(source["sourceId"], "t_direct_123")
+            self.assertEqual(tournament["code"], "T2")
+            raise ValueError("Source réservée à une compétition officielle.")
+        with self.assertRaisesRegex(ValueError, "réservée"):
+            direct.import_direct_event(preview["snapshotHash"], True, "admin", publish=reject)
+        self.assertEqual(self.registry_path.read_bytes(), registry_before)
+        self.assertEqual(self.state_path.read_bytes(), state_before)
+
+    def test_same_source_in_singles_and_doublettes_keeps_two_discipline_entries(self) -> None:
+        single = self._analyse()["lastPreview"]
+        direct.import_direct_event(single["snapshotHash"], True, "admin")
+        raw = deepcopy(EVENT)
+        raw["num_part"] = 4
+        with patch.object(direct, "_request_json", side_effect=[raw, STATS]):
+            double = direct.analyze_direct_event(
+                "https://n01darts.com/n01/tournament/comp.php?id=t_direct_123", 2026,
+            )["lastPreview"]
+        self.assertEqual(double["discipline"], "DOUBLE")
+        state = direct.import_direct_event(double["snapshotHash"], True, "admin")
+        self.assertEqual(state["lastPreview"]["importedTournamentCode"], "T3")
+        registry = json.loads(self.registry_path.read_text(encoding="utf-8"))
+        same_source = [row for row in registry["tournaments"] if row.get("source_tournament_id") == single["sourceId"]]
+        self.assertEqual([(row["code"], row["discipline"]) for row in same_source], [("T2", "SINGLE"), ("T3", "DOUBLE")])
+        self.assertTrue(same_source[0]["players"])
+        self.assertFalse(same_source[1]["players"])
+        self.assertTrue(same_source[1]["duos"])
 
 
 if __name__ == "__main__":

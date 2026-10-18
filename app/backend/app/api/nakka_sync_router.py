@@ -386,10 +386,19 @@ def import_nakka_direct_event(
 ):
     verify_internal_token(x_internal_token)
     try:
+        from app.services.tournament_page_service import sync_friendly
+        from supabase import create_client
+        db = create_client(settings.supabase_url, settings.supabase_service_role_key)
         return import_direct_event(
             snapshot_hash=payload.snapshot_hash,
             confirmed=payload.confirmed,
             accepted_by=x_user_id,
+            publish=lambda preview, tournament: sync_friendly(db, preview, tournament["code"], x_user_id),
         )
     except ValueError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="L’import n’a pas été confirmé. Le stockage des fiches est indisponible ; réessayez après vérification du service.",
+        ) from exc

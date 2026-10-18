@@ -44,7 +44,7 @@ export type TournamentCard = {
   status: "AVAILABLE" | "WAITING_DATA";
   summary: CompetitionSummary;
   href: string;
-  classification: "COMMITTEE_RECOGNIZED" | "FRIENDLY";
+  classification: "OFFICIAL" | "COMMITTEE_OFFICIAL" | "COMMITTEE_RECOGNIZED" | "FRIENDLY";
   classification_label: string;
   affects_committee_ranking: boolean;
   committee_event_key: string | null;
@@ -57,6 +57,7 @@ export type CompetitionCatalog = {
   active_championship: ChampionshipCard | null;
   championships: ChampionshipCard[];
   tournaments: TournamentCard[];
+  official_tournaments?: TournamentCard[];
   principles: {
     official_separation: boolean;
     friendly_tournaments_affect_official_ranking: boolean;
@@ -156,6 +157,7 @@ export type TournamentMatch = {
   stage_code: string | null;
   stage_index: number | null;
   stage_label: string;
+  bracket_kind?: TournamentBracketKind;
   home_average_3_darts?: number | null;
   away_average_3_darts?: number | null;
 };
@@ -171,7 +173,8 @@ export type TournamentRoundRobinCell = {
 };
 
 export type TournamentRoundRobinStanding = {
-  rank: number;
+  rank: number | null;
+  qualified?: boolean | null;
   name: string;
   played: number;
   wins: number;
@@ -180,7 +183,7 @@ export type TournamentRoundRobinStanding = {
   legs_for: number;
   legs_against: number;
   leg_difference: number;
-  points: number;
+  points: number | null;
   average_3_darts: number | null;
 };
 
@@ -191,9 +194,10 @@ export type TournamentRoundRobinGroup = {
   format_label: string;
   best_of: number;
   first_to: number;
-  win_points: number;
-  draw_points: number;
-  loss_points: number;
+  win_points: number | null;
+  draw_points: number | null;
+  loss_points: number | null;
+  points_available?: boolean;
   include_leg_points?: boolean;
   participant_count: number;
   match_count: number;
@@ -204,7 +208,7 @@ export type TournamentRoundRobinGroup = {
     number: number;
     name: string;
     average_3_darts: number | null;
-    rank: number;
+    rank: number | null;
     cells: Array<TournamentRoundRobinCell | null>;
   }>;
   standings: TournamentRoundRobinStanding[];
@@ -215,12 +219,25 @@ export type TournamentStage = {
   name: string;
   order: number;
   matches: TournamentMatch[];
+  bracket_kind?: TournamentBracketKind;
+};
+
+export type TournamentBracketKind = "PRIMARY" | "WINNER" | "LOSER" | "SECONDARY" | "GRAND_FINAL" | "THIRD_PLACE";
+
+export type TournamentFinalStanding = {
+  name: string;
+  rank: number | null;
+  placement?: string | null;
+  canonical_player_id?: string | null;
+  points?: number | null;
+  source_ref?: string;
 };
 
 export type TournamentParticipant = Scoring120139 & {
   name: string;
   canonical_player_id?: string | null;
   nakka_participant_id?: string | null;
+  identity_status?: string | null;
   team?: string;
   teams?: string[];
   players?: string[];
@@ -229,10 +246,13 @@ export type TournamentParticipant = Scoring120139 & {
   average_3_darts: number | null;
   first_9?: number | null;
   best_finish: number | null;
-  scores_180: number;
-  scores_140: number;
-  scores_100: number;
-  no_score: number;
+  best_leg?: number | null;
+  scores_180: number | null;
+  scores_170?: number | null;
+  scores_140: number | null;
+  scores_120?: number | null;
+  scores_100: number | null;
+  no_score: number | null;
   matches_played?: number;
   matches_won?: number;
   win_rate?: number | null;
@@ -241,7 +261,7 @@ export type TournamentParticipant = Scoring120139 & {
 export type TournamentHub = {
   contract_version: string;
   official_separation: boolean;
-  classification: "COMMITTEE_RECOGNIZED" | "FRIENDLY";
+  classification: "OFFICIAL" | "COMMITTEE_OFFICIAL" | "COMMITTEE_RECOGNIZED" | "FRIENDLY";
   classification_label: string;
   affects_committee_ranking: boolean;
   committee_event_key: string | null;
@@ -253,6 +273,15 @@ export type TournamentHub = {
   event_name: string;
   format?: string | null;
   format_label?: string | null;
+  has_double_elimination?: boolean;
+  location?: string | null;
+  lieu?: string | null;
+  organizer?: string | null;
+  competition_type?: string | null;
+  source_url?: string | null;
+  official_publication?: { event_id?: string; version_id?: string; revision_id?: string; number?: number; status?: string; published_at?: string | null } | null;
+  official_results?: TournamentFinalStanding[];
+  final_standings?: TournamentFinalStanding[];
   winner?: string | null;
   runner_up?: string | null;
   editorial_summary?: string | null;

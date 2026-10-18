@@ -53,6 +53,7 @@ export default async function Club180Page({ searchParams }: PageProps) {
       source_type: "championship" as const,
     })),
     ...tournamentRecords.flatMap((record) => {
+      if (record.scores_180 == null) return [];
       const player = findPlayer(record);
       return player ? [{
         ...player,

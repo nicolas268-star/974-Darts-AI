@@ -1,0 +1,1427 @@
+{
+  "tdid": "t_aKyY_3246",
+  "createTime": 1788609303,
+  "updateTime": 1791387161737,
+  "status": 30,
+  "kind": "darts",
+  "title": "Kaz a darts 974 open 13 sept",
+  "t_date": 1789275600,
+  "s_date": 1789275600,
+  "lang": "fr",
+  "show_avg": 1,
+  "auto_complete": 1,
+  "dynamic_avg": 0,
+  "game_type": 5,
+  "team_games": 0,
+  "name_sep": "",
+  "win_lose": 0,
+  "rr_setting": {
+    "round_robin": 1,
+    "robin_count": 8,
+    "robin_player_count": 5,
+    "show_order": 0,
+    "include_leg": 1,
+    "limit": 1,
+    "low_win": 0,
+    "limit_leg_count": 2,
+    "drawMode": 0,
+    "limit_set_count": 2,
+    "limit_set_leg_count": 2,
+    "startScore": 501,
+    "match_type": "01",
+    "limit_rounds": 0,
+    "overkill": 0,
+    "rounds": 15,
+    "changeFirst": 0,
+    "exitResult": 0,
+    "autoNext": 1,
+    "setOrder": 0,
+    "schedule": [],
+    "point": 1,
+    "point_w": 2,
+    "point_d": 1,
+    "point_l": 0,
+    "include_set": 1,
+    "include_set_leg": 1,
+    "priority_win": 1,
+    "exclude_from_stats": 0,
+    "game_setting": []
+  },
+  "rr_table": [
+    [
+      "zjCg",
+      "Kggc",
+      "vDdU",
+      "IqBO",
+      "JTJx"
+    ],
+    [
+      "l3Ep",
+      "YEOJ",
+      "EwXZ",
+      "ApKK",
+      "ISGx"
+    ],
+    [
+      "Mwa8",
+      "LKHH",
+      "xAbN",
+      "UTMc",
+      "iHSX"
+    ],
+    [
+      "qViW",
+      "uGvY",
+      "2nvP",
+      "IQn4",
+      ""
+    ],
+    [
+      "cY3Z",
+      "HI8Y",
+      "LRKS",
+      "hUVA",
+      ""
+    ],
+    [
+      "OPdv",
+      "U11W",
+      "Eipm",
+      "oG7T",
+      ""
+    ],
+    [
+      "jLcl",
+      "cETn",
+      "xZmp",
+      "ADal",
+      ""
+    ],
+    [
+      "SXBS",
+      "OIAr",
+      "cW7l",
+      "X34q",
+      ""
+    ]
+  ],
+  "rr_result": [
+    {
+      "UTMc": {},
+      "X34q": {},
+      "gTB7": {},
+      "OPdv": {},
+      "Kggc": {
+        "zjCg": {
+          "r": 0,
+          "a": 39.74
+        },
+        "IqBO": {
+          "r": 0,
+          "a": 30.53
+        },
+        "vDdU": {
+          "r": 0,
+          "a": 39.89
+        },
+        "JTJx": {
+          "r": 2,
+          "a": 41.14
+        }
+      },
+      "zjCg": {
+        "Kggc": {
+          "r": 2,
+          "a": 50.95
+        },
+        "IqBO": {
+          "r": 2,
+          "a": 44.87
+        },
+        "JTJx": {
+          "r": 2,
+          "a": 58.94
+        },
+        "vDdU": {
+          "r": 2,
+          "a": 43.57
+        }
+      },
+      "IqBO": {
+        "zjCg": {
+          "r": 0,
+          "a": 33.95
+        },
+        "vDdU": {
+          "r": 0,
+          "a": 36.5
+        },
+        "Kggc": {
+          "r": 2,
+          "a": 30.99
+        },
+        "JTJx": {
+          "r": 1,
+          "a": 34.38
+        }
+      },
+      "vDdU": {
+        "IqBO": {
+          "r": 2,
+          "a": 40.62
+        },
+        "JTJx": {
+          "r": 2,
+          "a": 50.1
+        },
+        "Kggc": {
+          "r": 2,
+          "a": 51.83
+        },
+        "zjCg": {
+          "r": 0,
+          "a": 42.7
+        }
+      },
+      "JTJx": {
+        "zjCg": {
+          "r": 0,
+          "a": 37.76
+        },
+        "vDdU": {
+          "r": 0,
+          "a": 44.3
+        },
+        "Kggc": {
+          "r": 1,
+          "a": 43.6
+        },
+        "IqBO": {
+          "r": 2,
+          "a": 36.88
+        }
+      }
+    },
+    {
+      "2nvP": {},
+      "U11W": {},
+      "cW7l": {},
+      "YEOJ": {
+        "l3Ep": {
+          "r": 0,
+          "a": 39.05
+        },
+        "EwXZ": {
+          "r": 2,
+          "a": 30.27
+        },
+        "ApKK": {
+          "r": 1,
+          "a": 37.59
+        },
+        "ISGx": {
+          "r": 0,
+          "a": 37.15
+        }
+      },
+      "l3Ep": {
+        "YEOJ": {
+          "r": 2,
+          "a": 45.55
+        },
+        "ISGx": {
+          "r": 2,
+          "a": 49.28
+        },
+        "EwXZ": {
+          "r": 2,
+          "a": 56.72
+        },
+        "ApKK": {
+          "r": 2,
+          "a": 62.63
+        }
+      },
+      "ApKK": {
+        "EwXZ": {
+          "r": 2,
+          "a": 40.08
+        },
+        "l3Ep": {
+          "r": 0,
+          "a": 47.25
+        },
+        "YEOJ": {
+          "r": 2,
+          "a": 37.56
+        },
+        "ISGx": {
+          "r": 2,
+          "a": 60.12
+        }
+      },
+      "EwXZ": {
+        "ApKK": {
+          "r": 0,
+          "a": 37.6
+        },
+        "YEOJ": {
+          "r": 1,
+          "a": 30.39
+        },
+        "l3Ep": {
+          "r": 0,
+          "a": 34.44
+        },
+        "ISGx": {
+          "r": 2,
+          "a": 34.44
+        }
+      },
+      "ISGx": {
+        "l3Ep": {
+          "r": 0,
+          "a": 39.2
+        },
+        "EwXZ": {
+          "r": 1,
+          "a": 33.02
+        },
+        "YEOJ": {
+          "r": 2,
+          "a": 37.58
+        },
+        "ApKK": {
+          "r": 0,
+          "a": 41.5
+        }
+      }
+    },
+    {
+      "cETn": {},
+      "zjCg": {},
+      "hUVA": {},
+      "l3Ep": {},
+      "Mwa8": {
+        "xAbN": {
+          "r": 2,
+          "a": 28.9
+        },
+        "iHSX": {
+          "r": 2,
+          "a": 40.08
+        },
+        "UTMc": {
+          "r": 1,
+          "a": 43.01
+        },
+        "LKHH": {
+          "r": 1,
+          "a": 34.83
+        }
+      },
+      "xAbN": {
+        "Mwa8": {
+          "r": 0,
+          "a": 27.65
+        },
+        "LKHH": {
+          "r": 1,
+          "a": 29.88
+        },
+        "UTMc": {
+          "r": 1,
+          "a": 31.2
+        },
+        "iHSX": {
+          "r": 1,
+          "a": 35.14
+        }
+      },
+      "iHSX": {
+        "UTMc": {
+          "r": 2,
+          "a": 42.34
+        },
+        "Mwa8": {
+          "r": 0,
+          "a": 36.16
+        },
+        "xAbN": {
+          "r": 2,
+          "a": 39.72
+        },
+        "LKHH": {
+          "r": 2,
+          "a": 33.18
+        }
+      },
+      "UTMc": {
+        "iHSX": {
+          "r": 0,
+          "a": 38.79
+        },
+        "xAbN": {
+          "r": 2,
+          "a": 31.81
+        },
+        "LKHH": {
+          "r": 2,
+          "a": 44.87
+        },
+        "Mwa8": {
+          "r": 2,
+          "a": 51.14
+        }
+      },
+      "LKHH": {
+        "xAbN": {
+          "r": 2,
+          "a": 29.63
+        },
+        "UTMc": {
+          "r": 0,
+          "a": 31.68
+        },
+        "Mwa8": {
+          "r": 2,
+          "a": 33.15
+        },
+        "iHSX": {
+          "r": 1,
+          "a": 32.57
+        }
+      }
+    },
+    {
+      "IqBO": {},
+      "LKHH": {},
+      "Kggc": {},
+      "jLcl": {},
+      "2nvP": {
+        "qViW": {
+          "r": 0,
+          "a": 39.05
+        },
+        "IQn4": {
+          "r": 2,
+          "a": 26.14
+        },
+        "uGvY": {
+          "r": 2,
+          "a": 34.95
+        }
+      },
+      "qViW": {
+        "2nvP": {
+          "r": 2,
+          "a": 47.71
+        },
+        "uGvY": {
+          "r": 2,
+          "a": 40.08
+        },
+        "IQn4": {
+          "r": 2,
+          "a": 39.04
+        }
+      },
+      "IQn4": {
+        "uGvY": {
+          "r": 0,
+          "a": 33.43
+        },
+        "2nvP": {
+          "r": 0,
+          "a": 26.21
+        },
+        "qViW": {
+          "r": 0,
+          "a": 31.28
+        }
+      },
+      "uGvY": {
+        "IQn4": {
+          "r": 2,
+          "a": 35.36
+        },
+        "qViW": {
+          "r": 0,
+          "a": 41.46
+        },
+        "2nvP": {
+          "r": 0,
+          "a": 34.38
+        }
+      }
+    },
+    {
+      "IQn4": {},
+      "JTJx": {},
+      "qViW": {},
+      "SXBS": {},
+      "HI8Y": {
+        "LRKS": {
+          "r": 2,
+          "a": 38.71
+        },
+        "hUVA": {
+          "r": 0,
+          "a": 50.37
+        },
+        "cY3Z": {
+          "r": 1,
+          "a": 48.16
+        }
+      },
+      "LRKS": {
+        "HI8Y": {
+          "r": 1,
+          "a": 38.68
+        },
+        "cY3Z": {
+          "r": 0,
+          "a": 32.47
+        },
+        "hUVA": {
+          "r": 0
+        }
+      },
+      "cY3Z": {
+        "hUVA": {
+          "r": 2
+        },
+        "LRKS": {
+          "r": 2,
+          "a": 51.83
+        },
+        "HI8Y": {
+          "r": 2,
+          "a": 61
+        }
+      },
+      "hUVA": {
+        "cY3Z": {
+          "r": 0
+        },
+        "HI8Y": {
+          "r": 2,
+          "a": 52.74
+        },
+        "LRKS": {
+          "r": 2
+        }
+      }
+    },
+    {
+      "ApKK": {},
+      "YEOJ": {},
+      "iHSX": {},
+      "ISGx": {},
+      "OPdv": {
+        "U11W": {
+          "r": 0,
+          "a": 39.58
+        },
+        "oG7T": {
+          "r": 2,
+          "a": 44.21
+        },
+        "Eipm": {
+          "r": 2,
+          "a": 44.79
+        }
+      },
+      "U11W": {
+        "OPdv": {
+          "r": 2,
+          "a": 41.18
+        },
+        "Eipm": {
+          "r": 0,
+          "a": 42.67
+        },
+        "oG7T": {
+          "r": 2,
+          "a": 45.55
+        }
+      },
+      "Eipm": {
+        "oG7T": {
+          "r": 2,
+          "a": 45.55
+        },
+        "U11W": {
+          "r": 2,
+          "a": 46.97
+        },
+        "OPdv": {
+          "r": 1,
+          "a": 40.04
+        }
+      },
+      "oG7T": {
+        "Eipm": {
+          "r": 0,
+          "a": 37.77
+        },
+        "U11W": {
+          "r": 0,
+          "a": 33.23
+        },
+        "OPdv": {
+          "r": 0,
+          "a": 35.09
+        }
+      }
+    },
+    {
+      "cY3Z": {},
+      "xAbN": {},
+      "oG7T": {},
+      "cETn": {
+        "jLcl": {
+          "r": 0,
+          "a": 40.27
+        },
+        "ADal": {
+          "r": 1,
+          "a": 32.84
+        },
+        "xZmp": {
+          "r": 1,
+          "a": 31.35
+        }
+      },
+      "jLcl": {
+        "cETn": {
+          "r": 2,
+          "a": 63.96
+        },
+        "ADal": {
+          "r": 2,
+          "a": 41.18
+        },
+        "xZmp": {
+          "r": 2,
+          "a": 40.62
+        }
+      },
+      "ADal": {
+        "jLcl": {
+          "r": 0,
+          "a": 40.08
+        },
+        "xZmp": {
+          "r": 2,
+          "a": 49.55
+        },
+        "cETn": {
+          "r": 2,
+          "a": 34.91
+        }
+      },
+      "xZmp": {
+        "ADal": {
+          "r": 1,
+          "a": 45.84
+        },
+        "jLcl": {
+          "r": 0,
+          "a": 37.72
+        },
+        "cETn": {
+          "r": 2,
+          "a": 32.35
+        }
+      }
+    },
+    {
+      "LRKS": {},
+      "Mwa8": {},
+      "Eipm": {},
+      "uGvY": {},
+      "SXBS": {
+        "cW7l": {
+          "r": 2,
+          "a": 35.79
+        },
+        "X34q": {
+          "r": 1,
+          "a": 38.71
+        },
+        "OIAr": {
+          "r": 2,
+          "a": 31.31
+        }
+      },
+      "cW7l": {
+        "SXBS": {
+          "r": 0,
+          "a": 33.68
+        },
+        "OIAr": {
+          "r": 0,
+          "a": 28.91
+        },
+        "X34q": {
+          "r": 2,
+          "a": 47.05
+        }
+      },
+      "OIAr": {
+        "cW7l": {
+          "r": 2,
+          "a": 30.06
+        },
+        "SXBS": {
+          "r": 0,
+          "a": 28.84
+        },
+        "X34q": {
+          "r": 0,
+          "a": 30.91
+        }
+      },
+      "X34q": {
+        "SXBS": {
+          "r": 2,
+          "a": 38.21
+        },
+        "OIAr": {
+          "r": 2,
+          "a": 30.99
+        },
+        "cW7l": {
+          "r": 1,
+          "a": 42.89
+        }
+      }
+    }
+  ],
+  "rr_rank": [],
+  "t_setting": {
+    "tournament": 1,
+    "t_player_count": 16,
+    "t3": 0,
+    "auto_continue": 1,
+    "disp_no": 1,
+    "sequential": 0,
+    "show_no_all": 0,
+    "show_badge": 1,
+    "limit": 1,
+    "low_win": 0,
+    "limit_leg_count": 2,
+    "limit_set_count": 2,
+    "limit_set_leg_count": 2,
+    "game_setting": [
+      {
+        "round": 2,
+        "limit": 1,
+        "match_type": "01",
+        "roundLimit": 0,
+        "maxRound": 15,
+        "overkill": 0,
+        "limit_leg_count": 3
+      },
+      {
+        "round": -2,
+        "limit": 1,
+        "match_type": "01",
+        "roundLimit": 0,
+        "maxRound": 15,
+        "overkill": 0,
+        "limit_leg_count": 3
+      },
+      {
+        "round": -1,
+        "limit": 1,
+        "match_type": "01",
+        "roundLimit": 0,
+        "maxRound": 15,
+        "overkill": 0,
+        "limit_leg_count": 4
+      }
+    ],
+    "changeFirst": 0,
+    "exitResult": 1,
+    "autoNext": 1,
+    "setOrder": 0,
+    "schedule": [],
+    "startScore": 501,
+    "match_type": "01",
+    "limit_rounds": 0,
+    "overkill": 0,
+    "rounds": 15,
+    "exclude_from_stats": 0
+  },
+  "t_table": [
+    [
+      "zjCg",
+      "ADal",
+      "SXBS",
+      "ApKK",
+      "qViW",
+      "U11W",
+      "cY3Z",
+      "UTMc",
+      "l3Ep",
+      "X34q",
+      "jLcl",
+      "vDdU",
+      "iHSX",
+      "hUVA",
+      "Eipm",
+      "2nvP"
+    ],
+    [
+      "ADal",
+      "SXBS",
+      "U11W",
+      "UTMc",
+      "l3Ep",
+      "vDdU",
+      "iHSX",
+      "Eipm"
+    ],
+    [
+      "ADal",
+      "U11W",
+      "vDdU",
+      "Eipm"
+    ],
+    [
+      "U11W",
+      "vDdU"
+    ],
+    [
+      "U11W"
+    ]
+  ],
+  "t_result": [
+    {
+      "ADal": {
+        "zjCg": {
+          "r": 2,
+          "a": 40.62
+        }
+      },
+      "zjCg": {
+        "ADal": {
+          "r": 0,
+          "a": 40.92
+        }
+      },
+      "U11W": {
+        "qViW": {
+          "r": 2,
+          "a": 54.65
+        }
+      },
+      "qViW": {
+        "U11W": {
+          "r": 0,
+          "a": 51
+        }
+      },
+      "ApKK": {
+        "SXBS": {
+          "r": 1,
+          "a": 43.64
+        }
+      },
+      "SXBS": {
+        "ApKK": {
+          "r": 2,
+          "a": 44.79
+        }
+      },
+      "X34q": {
+        "l3Ep": {
+          "r": 0,
+          "a": 39.56
+        }
+      },
+      "l3Ep": {
+        "X34q": {
+          "r": 2,
+          "a": 60.12
+        }
+      },
+      "jLcl": {
+        "vDdU": {
+          "r": 0,
+          "a": 40.65
+        }
+      },
+      "vDdU": {
+        "jLcl": {
+          "r": 2,
+          "a": 43.57
+        }
+      },
+      "hUVA": {
+        "iHSX": {
+          "r": 0,
+          "a": 33.66
+        }
+      },
+      "iHSX": {
+        "hUVA": {
+          "r": 2,
+          "a": 34.95
+        }
+      },
+      "UTMc": {
+        "cY3Z": {
+          "r": 2,
+          "a": 41.67
+        }
+      },
+      "cY3Z": {
+        "UTMc": {
+          "r": 1,
+          "a": 48.49
+        }
+      },
+      "2nvP": {
+        "Eipm": {
+          "r": 1,
+          "a": 25.92
+        }
+      },
+      "Eipm": {
+        "2nvP": {
+          "r": 2,
+          "a": 26.49
+        }
+      }
+    },
+    {
+      "ADal": {
+        "SXBS": {
+          "r": 3,
+          "a": 47.32
+        }
+      },
+      "SXBS": {
+        "ADal": {
+          "r": 2,
+          "a": 45.23
+        }
+      },
+      "l3Ep": {
+        "vDdU": {
+          "r": 2,
+          "a": 47.22
+        }
+      },
+      "vDdU": {
+        "l3Ep": {
+          "r": 3,
+          "a": 46.85
+        }
+      },
+      "Eipm": {
+        "iHSX": {
+          "r": 3,
+          "a": 42.02
+        }
+      },
+      "iHSX": {
+        "Eipm": {
+          "r": 1,
+          "a": 39.2
+        }
+      },
+      "U11W": {
+        "UTMc": {
+          "r": 3,
+          "a": 52.74
+        }
+      },
+      "UTMc": {
+        "U11W": {
+          "r": 2,
+          "a": 48.73
+        }
+      }
+    },
+    {
+      "Eipm": {
+        "vDdU": {
+          "r": 0,
+          "a": 46.34
+        }
+      },
+      "vDdU": {
+        "Eipm": {
+          "r": 3,
+          "a": 49.01
+        }
+      },
+      "ADal": {
+        "U11W": {
+          "r": 1,
+          "a": 46.49
+        }
+      },
+      "U11W": {
+        "ADal": {
+          "r": 3,
+          "a": 42.24
+        }
+      }
+    },
+    {
+      "U11W": {
+        "vDdU": {
+          "r": 4,
+          "a": 44.34
+        }
+      },
+      "vDdU": {
+        "U11W": {
+          "r": 3,
+          "a": 43.43
+        }
+      }
+    }
+  ],
+  "s2_setting": {
+    "tournament": 1,
+    "t_player_count": 16,
+    "t3": 0,
+    "auto_continue": 1,
+    "limit": 1,
+    "low_win": 0,
+    "limit_leg_count": 2,
+    "limit_set_count": 2,
+    "limit_set_leg_count": 2,
+    "game_setting": [
+      {
+        "round": -1,
+        "limit": 1,
+        "match_type": "01",
+        "roundLimit": 0,
+        "maxRound": 15,
+        "overkill": 0,
+        "limit_leg_count": 3
+      }
+    ],
+    "changeFirst": 0,
+    "exitResult": 1,
+    "autoNext": 1,
+    "setOrder": 0,
+    "schedule": [],
+    "startScore": 501,
+    "match_type": "01",
+    "limit_rounds": 0,
+    "overkill": 0,
+    "rounds": 15,
+    "exclude_from_stats": 0
+  },
+  "s2_table": [
+    [
+      "IqBO",
+      "cETn",
+      "OIAr",
+      "YEOJ",
+      "uGvY",
+      "oG7T",
+      "HI8Y",
+      "LKHH",
+      "ISGx",
+      "cW7l",
+      "xZmp",
+      "JTJx",
+      "Mwa8",
+      "Kggc",
+      "OPdv",
+      "IQn4"
+    ],
+    [
+      "IqBO",
+      "OIAr",
+      "uGvY",
+      "HI8Y",
+      "cW7l",
+      "xZmp",
+      "Kggc",
+      "OPdv"
+    ],
+    [
+      "OIAr",
+      "HI8Y",
+      "xZmp",
+      "OPdv"
+    ],
+    [
+      "HI8Y",
+      "xZmp"
+    ],
+    [
+      "HI8Y"
+    ]
+  ],
+  "s2_result": [
+    {
+      "HI8Y": {
+        "LKHH": {
+          "r": 2,
+          "a": 38.95
+        }
+      },
+      "LKHH": {
+        "HI8Y": {
+          "r": 1,
+          "a": 35.44
+        }
+      },
+      "IQn4": {
+        "OPdv": {
+          "r": 0,
+          "a": 30.41
+        }
+      },
+      "OPdv": {
+        "IQn4": {
+          "r": 2,
+          "a": 36.22
+        }
+      },
+      "OIAr": {
+        "YEOJ": {
+          "r": 2,
+          "a": 38.19
+        }
+      },
+      "YEOJ": {
+        "OIAr": {
+          "r": 1,
+          "a": 35.5
+        }
+      },
+      "IqBO": {
+        "cETn": {
+          "r": 2,
+          "a": 30.99
+        }
+      },
+      "cETn": {
+        "IqBO": {
+          "r": 0,
+          "a": 29.78
+        }
+      },
+      "oG7T": {
+        "uGvY": {
+          "a": 21.3,
+          "r": 1
+        }
+      },
+      "uGvY": {
+        "oG7T": {
+          "a": 21.43,
+          "r": 2
+        }
+      },
+      "ISGx": {
+        "cW7l": {
+          "r": 1,
+          "a": 30.43
+        }
+      },
+      "cW7l": {
+        "ISGx": {
+          "r": 2,
+          "a": 29.81
+        }
+      },
+      "JTJx": {
+        "xZmp": {
+          "r": 0,
+          "a": 39.25
+        }
+      },
+      "xZmp": {
+        "JTJx": {
+          "r": 2,
+          "a": 41.75
+        }
+      },
+      "Kggc": {
+        "Mwa8": {
+          "r": 2,
+          "a": 35.46
+        }
+      },
+      "Mwa8": {
+        "Kggc": {
+          "r": 1,
+          "a": 34.56
+        }
+      }
+    },
+    {
+      "cW7l": {
+        "xZmp": {
+          "r": 1,
+          "a": 25.77
+        }
+      },
+      "xZmp": {
+        "cW7l": {
+          "r": 2,
+          "a": 25.63
+        }
+      },
+      "IqBO": {
+        "OIAr": {
+          "r": 0,
+          "a": 31.46
+        }
+      },
+      "OIAr": {
+        "IqBO": {
+          "r": 2,
+          "a": 39.04
+        }
+      },
+      "HI8Y": {
+        "uGvY": {
+          "r": 2,
+          "a": 40.41
+        }
+      },
+      "uGvY": {
+        "HI8Y": {
+          "r": 1,
+          "a": 29.01
+        }
+      },
+      "Kggc": {
+        "OPdv": {
+          "r": 1,
+          "a": 43.91
+        }
+      },
+      "OPdv": {
+        "Kggc": {
+          "r": 2,
+          "a": 43.31
+        }
+      }
+    },
+    {
+      "HI8Y": {
+        "OIAr": {
+          "r": 2,
+          "a": 39.55
+        }
+      },
+      "OIAr": {
+        "HI8Y": {
+          "r": 0,
+          "a": 38.08
+        }
+      },
+      "OPdv": {
+        "xZmp": {
+          "r": 1,
+          "a": 44.31
+        }
+      },
+      "xZmp": {
+        "OPdv": {
+          "r": 2,
+          "a": 40.78
+        }
+      }
+    },
+    {
+      "HI8Y": {
+        "xZmp": {
+          "r": 3,
+          "a": 43.02
+        }
+      },
+      "xZmp": {
+        "HI8Y": {
+          "r": 1,
+          "a": 42.98
+        }
+      }
+    }
+  ],
+  "t_title": [
+    "",
+    "consolante"
+  ],
+  "t3_table": [
+    [
+      "ADal",
+      "Eipm"
+    ],
+    [
+      ""
+    ]
+  ],
+  "t3_result": {
+    "0": {
+      "ADal": {
+        "Eipm": {
+          "r": null
+        }
+      },
+      "Eipm": {
+        "ADal": {
+          "r": null
+        }
+      }
+    }
+  },
+  "entry_list": [
+    {
+      "tpid": "zjCg",
+      "name": "Pierre (PDC)"
+    },
+    {
+      "tpid": "2nvP",
+      "name": "Tom (NL)"
+    },
+    {
+      "tpid": "EwXZ",
+      "name": "Raphaël (NL)"
+    },
+    {
+      "tpid": "l3Ep",
+      "name": "Esteban (3BDC)"
+    },
+    {
+      "tpid": "cETn",
+      "name": "Victor (NL)"
+    },
+    {
+      "tpid": "uGvY",
+      "name": "Paul (NL)"
+    },
+    {
+      "tpid": "ApKK",
+      "name": "Yvan (KAD)"
+    },
+    {
+      "tpid": "hUVA",
+      "name": "Hugo (KAD)"
+    },
+    {
+      "tpid": "Mwa8",
+      "name": "Guillaume (TDC)"
+    },
+    {
+      "tpid": "YEOJ",
+      "name": "Alexandre P. (NL)"
+    },
+    {
+      "tpid": "IqBO",
+      "name": "Emmanuel L. (NL)"
+    },
+    {
+      "tpid": "ISGx",
+      "name": "Alexandre G. (NL)"
+    },
+    {
+      "tpid": "LKHH",
+      "name": "Simon ( NL)"
+    },
+    {
+      "tpid": "IQn4",
+      "name": "Arthur (NL)"
+    },
+    {
+      "tpid": "qViW",
+      "name": "Vincent (TDC)"
+    },
+    {
+      "tpid": "JTJx",
+      "name": "Élodie (TDC)"
+    },
+    {
+      "tpid": "U11W",
+      "name": "Manu (KAD)"
+    },
+    {
+      "tpid": "cW7l",
+      "name": "Willou (KAD)"
+    },
+    {
+      "tpid": "X34q",
+      "name": "Ju (KAD)"
+    },
+    {
+      "tpid": "xZmp",
+      "name": "Ambroise (KAD)"
+    },
+    {
+      "tpid": "vDdU",
+      "name": "Dudul (KAD)"
+    },
+    {
+      "tpid": "LRKS",
+      "name": "Docker (TDC)"
+    },
+    {
+      "tpid": "jLcl",
+      "name": "Alex (PDC)"
+    },
+    {
+      "tpid": "cY3Z",
+      "name": "Yoann (KAD)"
+    },
+    {
+      "tpid": "OPdv",
+      "name": "Jacky (3BDC)"
+    },
+    {
+      "tpid": "SXBS",
+      "name": "Domi (KAD)"
+    },
+    {
+      "tpid": "Eipm",
+      "name": "jeremy (NL)"
+    },
+    {
+      "tpid": "oG7T",
+      "name": "Sébastien (NL)"
+    },
+    {
+      "tpid": "iHSX",
+      "name": "Joffray (NL)"
+    },
+    {
+      "tpid": "Kggc",
+      "name": "Cabanes (KAD)"
+    },
+    {
+      "tpid": "UTMc",
+      "name": "Fabien ( PDC)"
+    },
+    {
+      "tpid": "xAbN",
+      "name": "Maxence (NL)"
+    },
+    {
+      "tpid": "HI8Y",
+      "name": "Antoine (KAD)"
+    },
+    {
+      "tpid": "OIAr",
+      "name": "tristan (PDC)"
+    },
+    {
+      "tpid": "ADal",
+      "name": "Nico (PDC)"
+    }
+  ],
+  "cricketOnly": 0
+}
