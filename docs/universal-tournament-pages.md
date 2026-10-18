@@ -65,6 +65,22 @@ L’actualisation Admin utilise un aperçu puis une confirmation. Une correction
 1. Sauvegarder la base et capturer l’inventaire officiel avant modification, notamment `published_revision_id`, nombre de résultats, total de points et SHA256 des résultats d’OC1.
 2. Exécuter la migration additive avec le processus Supabase habituel, sur l’environnement de prévisualisation d’abord. Elle ajoute des tables/fonctions/triggers ; elle ne modifie pas les résultats sportifs existants et ne publie aucun dossier en attente.
 3. Déployer les images backend/frontend et redémarrer le worker de classement. Le service Compose existant `ranking-worker` utilise le profil `ranking-workflow` ; vérifier `RANKING_WORKFLOW_ENABLED=true`, les secrets serveur habituels et le fonctionnement de la file. Aucun secret ne doit être exposé au frontend.
+
+Le worker doit monter `/var/lib/974darts/backend-data:/app/data:ro`, soit le même répertoire persistant que le backend. Il lit `sprint14_tournaments.json` pour conserver les URL historiques, dont `/tournaments/t5`. Un worker utilisant uniquement le cache embarqué dans l'image pourrait attribuer un nouveau slug au premier traitement. Les projections sont écrites dans Supabase ; le worker n'a pas besoin d'écrire dans ce volume. La CI vérifie les montages normalisés par Compose avec `deploy/check-tournament-data-volume.py`.
+
+Construire et recréer uniquement les trois services de cette livraison, en conservant le Caddyfile local et les autres workers :
+
+Le script `deploy/deploy-tournament-pages.sh RELEASE_SHA PREVIOUS_SHA` automatise cette séquence depuis `/opt/974darts/current`, avec sudo et le checkout déjà positionné sur le SHA validé. Il exige la migration déjà appliquée, sauvegarde les images, l'environnement, le cache et SQLite, puis conserve tous les snapshots `PUBLISHED` et les lignes historiques de points dans un fichier privé `official-published-backup.json` en mode 0600. Les empreintes des snapshots complets et de leurs résultats sont comparées après déploiement. Un worker auparavant arrêté avec un stock d'analyses ou notifications, ou une dérive des flags effectifs, fait échouer le précontrôle. Une modification concurrente de l'environnement bloque le rollback automatique plutôt que d'écraser ce changement. Le script ne modifie aucun flag et n'applique aucune migration SQL.
+
+```sh
+docker compose --env-file /etc/974darts/production.env --profile ranking-workflow -f deploy/compose.yaml build backend frontend ranking-worker
+docker compose --env-file /etc/974darts/production.env --profile ranking-workflow -f deploy/compose.yaml up -d --no-deps --wait --wait-timeout 180 backend frontend
+docker compose --env-file /etc/974darts/production.env --profile ranking-workflow -f deploy/compose.yaml up -d --no-deps ranking-worker
+```
+
+Avant la migration et le redémarrage, enregistrer le SHA du checkout, les identifiants des images de ces trois services et l'état initial du worker ; arrêter temporairement `ranking-worker` s'il tourne. Sauvegarder la base Supabase et le volume persistant, avec l'API de sauvegarde SQLite pour les fichiers SQLite actifs. Conserver les sauvegardes et l'environnement serveur dans un répertoire réservé à root. Les identifiants et secrets ne doivent pas apparaître dans les sorties de commande.
+
+Inventorier également `ranking_workflow_jobs` et `ranking_notification_outbox` par état sans afficher leurs payloads. Le même worker traite les analyses déjà demandées et les emails lorsque `RANKING_EMAIL_ENABLED` était activé : préserver les réglages existants et examiner ce stock avant de le relancer. La migration met tous les dossiers déjà publiés dans la file des fiches, ce qui peut enrichir plusieurs anciennes fiches. Elle ne publie aucun nouveau résultat officiel. Avant installation du schéma, n'exécuter que la première requête de `inventory_tournament_pages.sql` ; les suivantes nécessitent les nouvelles tables.
 4. Contrôler les travaux et la fiche OC1. Pour une reprise ciblée et le lieu exact, exécuter depuis `app/backend`, dans l’environnement backend configuré :
 
 ```sh
@@ -85,6 +101,8 @@ La commande affiche le checksum des résultats avant/après et ne les écrit jam
 7. Publier un événement de test en prévisualisation, puis valider un import amical : vérifier la génération automatique, répéter les opérations et confirmer une seule fiche/révision de contenu sans effets sur les points.
 
 En cas de problème, revenir aux images précédentes ; conserver les nouvelles tables et l’historique. Ne pas supprimer les données officielles ni appliquer de rollback destructif. Une file échouée peut être reprise par la commande ciblée ou l’outil Admin après résolution de l’erreur source.
+
+Le rollback applicatif restaure les images backend, frontend **et ranking-worker**, puis son état initial (le laisser arrêté s'il était arrêté avant la livraison). Les tables, fonctions et le trigger additifs peuvent rester installés : l'ancien worker ignore la nouvelle file, et les points publiés restent inchangés. Ne pas réutiliser `deploy/deploy-match-day.sh` pour cette release : ce script active Match Day et ne sauvegarde pas l'image du worker de classement.
 
 ## Validation et limites
 
