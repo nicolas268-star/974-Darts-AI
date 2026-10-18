@@ -10,7 +10,7 @@
     "typecheck": "tsc --noEmit",
     "test:control": "node scripts/control-check.mjs",
     "check:release": "node scripts/check-release-version.mjs",
-    "test": "npm run lint && npm run typecheck && npm run test:tournaments && npm run test:control && npm run check:release && npm run test:play && npm run test:vision && npm run test:player-card && npm run test:player-affiliations && npm run test:kpi-guide && npm run test:scoring-ranges && npm run test:mvp && npm run test:statistics-filters && npm run test:bdc && npm run test:match-day",
+    "test": "npm run lint && npm run typecheck && npm run test:tournaments && npm run test:visibility && npm run test:control && npm run check:release && npm run test:play && npm run test:vision && npm run test:player-card && npm run test:player-affiliations && npm run test:kpi-guide && npm run test:scoring-ranges && npm run test:mvp && npm run test:statistics-filters && npm run test:bdc && npm run test:match-day",
     "test:statistics-filters": "node scripts/test-statistics-filters.mjs",
     "test:tournaments": "node scripts/test-tournament-pages.mjs && node scripts/test-tournament-refresh.mjs",
     "test:tournaments:browser": "node scripts/test-tournament-browser.mjs",
@@ -23,7 +23,9 @@
     "test:vision": "node scripts/test-vision.mjs && node scripts/test-vision-calibration.mjs && node scripts/test-vision-auto.mjs && node scripts/test-vision-stabilization.mjs && node scripts/test-vision-camera-resume.mjs && node scripts/test-vision-journal.mjs",
     "test:bdc": "node scripts/test-bdc.mjs && node scripts/test-bdc-round-two.mjs && node scripts/test-bdc-partners.mjs",
     "test:bdc:browser": "node scripts/test-bdc-partners-browser.mjs",
-    "test:match-day": "node scripts/test-match-day.mjs"
+    "test:match-day": "node scripts/test-match-day.mjs",
+    "test:visibility": "node scripts/test-visibility.mjs",
+    "test:visibility:browser": "node scripts/test-visibility-browser.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.7.0",

@@ -1,8 +1,7 @@
 import {expect} from '@playwright/test';
 
 // Runs within the isolated workflow auth fixture. All outgoing sharing is intercepted.
-export async function testVisibility(admin, director, screenshot) {
-  const origin='http://127.0.0.1:3008';
+export async function testVisibility(admin, director, screenshot, {origin='http://127.0.0.1:3008',checkApiGuards=true}={}) {
   const id='f678a113-699e-496e-ae0a-944d37d25893';
   const evening={id,round:'J1',date:'2026-09-28',home:'Kaz A Darts - A',away:'Kaz A Darts - B',home_score:17,away_score:3};
   const summary={whatsapp:'🎯 Kaz A Darts - A 17–3 Kaz A Darts - B\n45 legs · 10 joueurs\nPlus haut finish : Emmanuel GRASSET, 88.',facebook:'🎯 J1 · Kaz A Darts - A 17–3 Kaz A Darts - B\nBravo aux deux équipes !',mode:'statistics',note:'Résumé statistique prêt.',ai_available:true,fingerprint:'fixture',evening:{url:`https://974darts.re/matches/${id}`,matches:20,legs:45,players:10}};
@@ -20,10 +19,30 @@ export async function testVisibility(admin, director, screenshot) {
   let unavailableEvenings=false;
   let summaryRequests=0;
   let context='';
+  let tournamentContext='';
+  let noTournaments=false;
+  let unavailableTournaments=false;
+  let tournamentPosts=0;
+  let waitForTournament=null;
+  const tournamentCode='oc1-2026-10-18';
+  const tournament={id:`tournament:${tournamentCode}`,code:tournamentCode,label:'Open de Comité #1 · 18/10/2026',title:'Open de Comité #1',date:'2026-10-18',discipline:'SIMPLE'};
+  const tournamentSummary=()=>({...summary,kind:'tournament',ai_available:false,context:tournamentContext,whatsapp:'Open de Comité #1 · 29 joueurs · 83 matchs'+(tournamentContext?'\n'+tournamentContext:''),facebook:'Open de Comité #1 · Bravo aux participants !'+(tournamentContext?'\n'+tournamentContext:''),evening:{url:`https://974darts.re/tournaments/${tournamentCode}`,matches:83,legs:215,players:29,playersLabel:'joueurs'}});
   const currentSummary=()=>({...summary,context,whatsapp:summary.whatsapp+(context?'\n\n'+context:''),facebook:summary.facebook+(context?'\n\n'+context:'')});
   await admin.route('**/api/admin/visibility/**',async route=>{
     const url=new URL(route.request().url());
     if(url.pathname.endsWith('/evenings'))return unavailableEvenings ? route.fulfill({status:503,json:{error:'Service interclubs indisponible.'}}) : route.fulfill({json:{evenings:noEvenings?[]:[evening],ai_available:true,automation:{running:true,publication_enabled:true,next_at:'2026-09-30T22:00:00+04:00',recent:[{title:'J1 · rencontre tardive',status:'WAITING',message:'Le match est encore en cours.',retry_expired:false}]}}});
+    if(url.pathname.endsWith('/tournaments'))return unavailableTournaments ? route.fulfill({status:503,json:{error:'Catalogue Comité indisponible.'}}) : route.fulfill({json:{tournaments:noTournaments?[]:[tournament],ai_available:false}});
+    if(url.pathname.endsWith('/tournament-summary')){
+      if(route.request().method()==='POST'){
+        const input=route.request().postDataJSON();
+        expect(input).toEqual({code:tournamentCode,context:expect.any(String)});
+        tournamentContext=input.context; tournamentPosts++;
+      } else {
+        expect(url.searchParams.get('code')).toBe(tournamentCode);
+        if(waitForTournament) await waitForTournament;
+      }
+      return route.fulfill({json:tournamentSummary()});
+    }
     summaryRequests++;
     if(route.request().method()==='POST'){
       const input=route.request().postDataJSON();
@@ -80,9 +99,38 @@ export async function testVisibility(admin, director, screenshot) {
   expect(overflow.scrollWidth,JSON.stringify(overflow)).toBeLessThanOrEqual(overflow.width);
   // BDC uses the published round data, without sending tournament IDs to the interclub API.
   const previousRequests=summaryRequests;
-  const choice=admin.getByLabel('Rencontre ou manche BDC');
+  const choice=admin.locator('#visibility-evening');
+  await expect(choice.locator('optgroup[label="Tournois Comité"] option')).toHaveCount(1);
+  await choice.selectOption(tournament.id);
+  await expect(admin.getByRole('heading',{name:'Résumé de tournoi WhatsApp'})).toBeVisible();
+  await expect(admin.locator('#whatsapp-draft')).toHaveValue(/Open de Comité #1 · 29 joueurs · 83 matchs/);
+  await expect(admin.getByRole('link',{name:'Voir les statistiques'})).toHaveAttribute('href',`https://974darts.re/tournaments/${tournamentCode}`);
+  await admin.getByLabel('Contexte du tournoi',{exact:true}).fill('Merci aux bénévoles de Saint-Leu.');
+  await expect(admin.getByRole('button',{name:'Préparer la version Facebook'})).toBeDisabled();
+  const sharesBeforeContext=await admin.evaluate(()=>window.__visibilityShares.length);
+  await admin.getByRole('button',{name:'Enregistrer le contexte et actualiser'}).click();
+  await expect(admin.getByText('Contexte enregistré pour ce tournoi. Les versions WhatsApp et Facebook ont été actualisées.')).toBeVisible();
+  expect(tournamentPosts).toBe(1); expect(generated).toBe(1);
+  expect(await admin.evaluate(()=>window.__visibilityShares.length)).toBe(sharesBeforeContext);
+  await admin.locator('#whatsapp-draft').fill('Mon texte Comité adapté');
+  await admin.getByRole('button',{name:'Préparer la version Facebook'}).click();
+  await expect(admin.locator('#facebook-draft')).toHaveValue(/Merci aux bénévoles de Saint-Leu\./);
+  await expect(admin.locator('#whatsapp-draft')).toHaveValue('Mon texte Comité adapté');
+  expect(tournamentPosts).toBe(1); // Preparing Facebook never invokes a provider or context mutation.
+  await admin.getByRole('button',{name:'Actualiser les événements'}).click();
+  await expect(choice).toHaveValue(tournament.id);
+  await expect(admin.getByLabel('Contexte du tournoi',{exact:true})).toHaveValue(tournamentContext);
+  await screenshot(admin,'10-visibilite-tournoi-mobile.png');
+  expect(await admin.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   await expect(choice.locator('optgroup[label="Blind Draw Championship"] option')).toHaveCount(2);
+  let releaseTournament;
+  waitForTournament=new Promise(resolve=>{releaseTournament=resolve});
   await choice.selectOption('bdc-manche-2');
+  await expect(admin.locator('#whatsapp-draft')).toHaveValue(/Blind Draw Championship · Manche 2/);
+  const delayed=admin.waitForRequest(request=>request.url().includes('/tournament-summary?'));
+  await choice.selectOption(tournament.id); await delayed;
+  await choice.selectOption('bdc-manche-2');
+  releaseTournament(); waitForTournament=null;
   await expect(admin.locator('#whatsapp-draft')).toHaveValue(/Blind Draw Championship · Manche 2/);
   const bdcDraft=await admin.locator('#whatsapp-draft').inputValue();
   expectHashtags(bdcDraft);
@@ -118,6 +166,7 @@ export async function testVisibility(admin, director, screenshot) {
   await choice.selectOption(id);
   await expect(admin.locator('#whatsapp-draft')).toHaveValue(signedWhatsApp);
   // APIRequestContext bypasses the browser route mocks, exercising the real proxy guards.
+  if(checkApiGuards){
   const denied=await director.request.get(origin+'/api/admin/visibility/evenings');
   expect(denied.status()).toBe(403);
   const csrf=await admin.request.post(origin+'/api/admin/visibility/summary',{headers:{Origin:'https://evil.invalid'},data:{result_id:id}});
@@ -128,9 +177,14 @@ export async function testVisibility(admin, director, screenshot) {
   }
   const malformed=await admin.request.get(origin+'/api/admin/visibility/summary?result_id=invalid');
   expect(malformed.status()).toBe(400);
+  expect((await director.request.get(origin+'/api/admin/visibility/tournaments')).status()).toBe(403);
+  expect((await admin.request.get(origin+'/api/admin/visibility/tournament-summary?code=../ranking')).status()).toBe(400);
+  expect((await admin.request.post(origin+'/api/admin/visibility/tournament-summary',{headers:{Origin:'https://evil.invalid'},data:{code:tournamentCode,context:'test'}})).status()).toBe(403);
+  expect((await admin.request.post(origin+'/api/admin/visibility/tournament-summary',{headers:{Origin:origin},data:{code:tournamentCode,context:'x'.repeat(1601)}})).status()).toBe(400);
   const anonymous=await admin.context().browser().newContext();
   expect((await anonymous.request.get(origin+'/api/admin/visibility/evenings')).status()).toBe(401);
   await anonymous.close();
+  }
   automaticReady=true;
   await admin.reload();
   await expect(admin.getByLabel('Texte pour le groupe',{exact:false})).toHaveValue(signedWhatsApp);
@@ -154,6 +208,7 @@ export async function testVisibility(admin, director, screenshot) {
   expect(generated).toBe(2);
   await screenshot(admin,'09-visibilite-contexte-mobile.png');
   noEvenings=true;
+  noTournaments=true;
   await admin.reload();
   await expect(admin.locator('#visibility-evening')).toHaveValue('bdc-manche-2');
   await expect(admin.locator('#whatsapp-draft')).toHaveValue(/Blind Draw Championship · Manche 2/);
@@ -164,6 +219,12 @@ export async function testVisibility(admin, director, screenshot) {
   await expect(admin.locator('main').getByRole('alert')).toContainText('Les manches BDC restent disponibles.');
   await expect(admin.locator('#whatsapp-draft')).toHaveValue(/Blind Draw Championship · Manche 2/);
   await expect(admin.getByRole('button',{name:'Ouvrir dans WhatsApp',exact:true})).toBeEnabled();
+  unavailableEvenings=false; noEvenings=false; unavailableTournaments=true;
+  await admin.reload();
+  await expect(admin.locator('main').getByRole('alert')).toContainText('Les tournois Comité n’ont pas pu être chargés.');
+  await expect(choice).toHaveValue(id);
+  await expect(choice.locator('optgroup[label="Blind Draw Championship"] option')).toHaveCount(2);
+  await expect(admin.locator('#whatsapp-draft')).toHaveValue(new RegExp(matchContext));
   await admin.unroute('**/api/admin/visibility/**');
-  console.log('PASS: visibility interclub/BDC selection, provisional points, M1 limits, WhatsApp text preservation, Facebook copy, offline BDC, API authorization, CSRF and mobile. No message sent.');
+  console.log('PASS: visibility interclub/BDC/Committee selection, isolated tournament context, Facebook without generation, refresh, unavailable catalogs, provisional points, M1 limits, WhatsApp preservation, authorization, CSRF and mobile. No message sent.');
 }

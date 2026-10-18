@@ -1,11 +1,12 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Header, HTTPException
+from fastapi import APIRouter, Header, HTTPException, Query
 from pydantic import BaseModel, ConfigDict, Field
 
 from ..config import settings
 from ..services.visibility_service import SummaryUnavailable, compose_summary, list_evenings, load_evening
 from ..services.visibility_context import CONTEXT_LIMIT
+from ..services.tournament_visibility import list_tournaments, tournament_summary
 
 router = APIRouter(prefix="/api/v1/visibility", tags=["Visibility"])
 
@@ -18,6 +19,12 @@ def require_internal(token):
 class SummaryRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     result_id: UUID
+    context: str | None = Field(default=None, max_length=CONTEXT_LIMIT, strict=True)
+
+
+class TournamentSummaryRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    code: str = Field(min_length=1, max_length=120, pattern=r"^[A-Za-z0-9_-]+$", strict=True)
     context: str | None = Field(default=None, max_length=CONTEXT_LIMIT, strict=True)
 
 
@@ -53,3 +60,38 @@ def preview(result_id: UUID, x_internal_token: str | None = Header(default=None)
 def generate(request: SummaryRequest, x_internal_token: str | None = Header(default=None)):
     require_internal(x_internal_token)
     return summary_payload(request.result_id, True, context=request.context)
+
+
+@router.get("/tournaments")
+def tournaments(x_internal_token: str | None = Header(default=None)):
+    require_internal(x_internal_token)
+    from app.main import db_client
+    try:
+        return list_tournaments(db_client())
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail="Le catalogue des tournois publiés est momentanément indisponible.") from exc
+
+
+def tournament_summary_payload(code, context=None):
+    from app.main import db_client
+    try:
+        return tournament_summary(db_client(), code, context=context)
+    except SummaryUnavailable as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail="Le résumé du tournoi est momentanément indisponible.") from exc
+
+
+@router.get("/tournament-summary")
+def tournament_preview(
+    code: str = Query(min_length=1, max_length=120, pattern=r"^[A-Za-z0-9_-]+$"),
+    x_internal_token: str | None = Header(default=None),
+):
+    require_internal(x_internal_token)
+    return tournament_summary_payload(code)
+
+
+@router.post("/tournament-summary")
+def tournament_generate(request: TournamentSummaryRequest, x_internal_token: str | None = Header(default=None)):
+    require_internal(x_internal_token)
+    return tournament_summary_payload(request.code, context=request.context)

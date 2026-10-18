@@ -5,13 +5,15 @@ import { getSiteOrigin } from "@/lib/site-url";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const tournamentCode = /^[a-zA-Z0-9_-]{1,120}$/;
 const fail = (status: number, error: string) => NextResponse.json({ error }, { status, headers: { "Cache-Control": "private, no-store" } });
 
 async function relay(request: NextRequest, context: { params: Promise<{ action: string }> }) {
   const authorization = await authorizeAdminApi();
   if (!authorization.ok) return authorization.response;
   const { action } = await context.params;
-  if (!["evenings", "summary"].includes(action) || (request.method === "POST" && action !== "summary")) return fail(404, "Action inconnue.");
+  if (!["evenings", "summary", "tournaments", "tournament-summary"].includes(action) || (request.method === "POST" && !["summary", "tournament-summary"].includes(action))) return fail(404, "Action inconnue.");
+  const tournament = action === "tournament-summary";
   const base = process.env.BACKEND_API_URL ?? process.env.PYTHON_API_URL;
   const token = process.env.INTERNAL_API_TOKEN;
   if (!base || !token) return fail(503, "Le service de résumé est indisponible.");
@@ -21,7 +23,7 @@ async function relay(request: NextRequest, context: { params: Promise<{ action: 
     if (request.headers.get("origin") !== getSiteOrigin(request)) return fail(403, "Origine refusée.");
     if (request.headers.get("content-type")?.split(";")[0] !== "application/json") return fail(415, "Format JSON requis.");
     const reader = request.body?.getReader();
-    if (!reader) return fail(400, "Sélectionnez une rencontre.");
+    if (!reader) return fail(400, tournament ? "Sélectionnez un tournoi." : "Sélectionnez une rencontre.");
     const chunks: Uint8Array[] = [];
     let size = 0;
     while (true) {
@@ -33,14 +35,16 @@ async function relay(request: NextRequest, context: { params: Promise<{ action: 
     }
     try {
       const input = JSON.parse(Buffer.concat(chunks).toString("utf8"));
-      if (!input || typeof input.result_id !== "string" || !uuid.test(input.result_id) || Object.keys(input).some((key) => !["result_id", "context"].includes(key))) return fail(400, "Rencontre invalide.");
-      if (input.context !== undefined && (typeof input.context !== "string" || input.context.length > 1600)) return fail(400, "Le contexte doit contenir au maximum 1 600 caractères.");
-      body = JSON.stringify({ result_id: input.result_id, ...(input.context !== undefined ? { context: input.context } : {}) });
+      const key = tournament ? "code" : "result_id";
+      if (!input || typeof input[key] !== "string" || !(tournament ? tournamentCode : uuid).test(input[key]) || Object.keys(input).some((field) => ![key, "context"].includes(field))) return fail(400, tournament ? "Tournoi invalide." : "Rencontre invalide.");
+      if (input.context !== undefined && !(tournament && input.context === null) && (typeof input.context !== "string" || input.context.length > 1600)) return fail(400, "Le contexte doit contenir au maximum 1 600 caractères.");
+      body = JSON.stringify({ [key]: input[key], ...(input.context !== undefined ? { context: input.context } : {}) });
     } catch { return fail(400, "Requête invalide."); }
-  } else if (action === "summary") {
-    const resultId = request.nextUrl.searchParams.get("result_id") ?? "";
-    if (!uuid.test(resultId)) return fail(400, "Sélectionnez une rencontre.");
-    target.searchParams.set("result_id", resultId);
+  } else if (action === "summary" || tournament) {
+    const key = tournament ? "code" : "result_id";
+    const selected = request.nextUrl.searchParams.get(key) ?? "";
+    if (!(tournament ? tournamentCode : uuid).test(selected)) return fail(400, tournament ? "Sélectionnez un tournoi." : "Sélectionnez une rencontre.");
+    target.searchParams.set(key, selected);
   }
   try {
     const response = await fetch(target, { method: request.method, body, cache: "no-store", redirect: "error",
