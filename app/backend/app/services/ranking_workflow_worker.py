@@ -175,6 +175,13 @@ def run_once(db):
     job = db.rpc("ranking_claim_work", {"p_queue": "analysis"}).execute().data
     if job:
         process_analysis(db, job)
+    # Projection jobs are enqueued atomically when the published pointer changes.
+    # A projection outage must never undo a successful sporting publication.
+    from app.services.tournament_page_service import process_page_job
+    try:
+        process_page_job(db)
+    except Exception:
+        log.warning("Tournament page queue unavailable; retrying on next cycle")
     if os.getenv("RANKING_EMAIL_ENABLED", "false").lower() == "true":
         email = db.rpc("ranking_claim_work", {"p_queue": "email"}).execute().data
         if email:

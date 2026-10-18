@@ -1,0 +1,22 @@
+{
+  "source_url": "https://n01darts.com/n01/tournament/comp.php?id=t_ssSW_4561",
+  "retrieved_on": "2026-10-18",
+  "source_update_time": 1792329970167,
+  "redaction": "Public sporting data only. Media, description, chat, theme, board assignments and operational settings omitted. Entry fields limited to tpid, name, num_part. Sports result and aggregate statistics values unchanged.",
+  "public_references": {
+    "participants": 29,
+    "round_robin_matches": 56,
+    "main_bracket_matches": 15,
+    "secondary_bracket_matches": 12,
+    "main_winner": "Abrousse Stephane",
+    "main_final_score": [
+      0,
+      4
+    ],
+    "secondary_winner": "Guinobert Fabien",
+    "secondary_final_score": [
+      3,
+      1
+    ]
+  }
+}

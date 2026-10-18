@@ -1,0 +1,23 @@
+{
+  "source_url": "https://n01darts.com/n01/tournament/comp.php?id=t_aKyY_3246",
+  "retrieved_on": "2026-10-18",
+  "source_update_time": 1791387161737,
+  "source_status": 30,
+  "redaction": "Same public sporting field allowlist as OC1. Media, description, chat, theme, board assignments and operational settings omitted. Sports result and aggregate statistics values unchanged.",
+  "public_references": {
+    "participants": 35,
+    "round_robin_matches": 60,
+    "main_bracket_matches": 15,
+    "secondary_bracket_matches": 15,
+    "main_winner": "Manu (KAD)",
+    "main_final_score": [
+      4,
+      3
+    ],
+    "secondary_winner": "Antoine (KAD)",
+    "secondary_final_score": [
+      3,
+      1
+    ]
+  }
+}

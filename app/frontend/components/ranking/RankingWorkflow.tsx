@@ -33,6 +33,7 @@ import {
   places,
 } from "./types";
 import styles from "./RankingWorkflow.module.css";
+import { TournamentRefreshPanel } from "@/components/tournaments/TournamentRefreshPanel";
 
 const API = "/api/ranking-workflow";
 const formatLabels: Record<string, string> = {
@@ -40,6 +41,7 @@ const formatLabels: Record<string, string> = {
   DOUBLE_ELIMINATION: "Double élimination",
   POOLS: "Poules",
   POOLS_AND_KNOCKOUT: "Poules et tableau final",
+  POOLS_AND_DOUBLE_ELIMINATION: "Poules et double élimination",
 };
 const date = (value: string) =>
   new Intl.DateTimeFormat("fr-FR", {
@@ -58,6 +60,7 @@ const cleanMeta = (meta: Metadata): Metadata => ({
   event_date: meta.event_date,
   kind: meta.kind,
   organizer: meta.organizer,
+  ...(meta.location ? { location: meta.location } : {}),
   source_url: meta.source_url,
   season_key: meta.season_key,
 });
@@ -67,6 +70,7 @@ const blank = (): EditData => ({
     event_date: "",
     kind: "CLUB_SINGLE",
     organizer: "",
+    location: "",
     source_url: "",
     season_key: "2026-2027",
   },
@@ -372,6 +376,10 @@ export default function RankingWorkflow({
               <option key={club} value={club} />
             ))}
           </datalist>
+        </label>
+        <label>
+          Lieu (facultatif)
+          <input maxLength={160} value={editing.metadata.location ?? ""} onChange={(e) => change("location", e.target.value)} placeholder="Ville, salle ou club" />
         </label>
         <label className={styles.wide}>
           Lien Nakka
@@ -688,6 +696,7 @@ export default function RankingWorkflow({
                   {date(snapshot.metadata.event_date)} ·{" "}
                   {kinds[snapshot.metadata.kind]} ·{" "}
                   {snapshot.metadata.organizer}
+                  {snapshot.metadata.location ? ` · ${snapshot.metadata.location}` : ""}
                 </p>
               </div>
               <div className={styles.score}>
@@ -731,6 +740,9 @@ export default function RankingWorkflow({
               </p>
             )}
           </section>
+          {admin && !historical && detail.tournament_page && (
+            <TournamentRefreshPanel key={detail.tournament_page.code} code={detail.tournament_page.code} href={detail.tournament_page.href} disabled={busy || !!editing || hasJob} />
+          )}
           <p className={styles.hint} data-testid="ds-review">
             {revision.ds_review.status === "VALIDATED"
               ? `Validé par le DS · ${revision.ds_review.actor_name} · ${date(revision.ds_review.at ?? "")}`

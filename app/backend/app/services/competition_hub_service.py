@@ -21,30 +21,25 @@ from app.services.tournament_workbook_service import (
 )
 from app.services.tournament_round_robin import build_tournament_round_robins
 from app.services.player_identity_service import normalize_alias
+from app.services.tournament_page_service import all_tournaments
+from app.services.tournament_classification import (
+    COMMITTEE_RECOGNIZED_TOURNAMENTS,
+    tournament_classification as _tournament_classification,
+)
 
 
-COMMITTEE_RECOGNIZED_TOURNAMENTS: dict[str, dict[str, Any]] = {
-    "T5": {
-        "classification": "COMMITTEE_RECOGNIZED",
-        "classification_label": "Open de club reconnu",
-        "affects_committee_ranking": True,
-        "committee_event_key": "club-open-kaz-2026-09-13",
-        "ranking_status": "PUBLISHED",
-    },
-}
-
-
-def _tournament_classification(code: str) -> dict[str, Any]:
-    return COMMITTEE_RECOGNIZED_TOURNAMENTS.get(
-        code.upper(),
-        {
-            "classification": "FRIENDLY",
-            "classification_label": "Tournoi amical",
-            "affects_committee_ranking": False,
-            "committee_event_key": None,
-            "ranking_status": "NOT_APPLICABLE",
-        },
-    )
+def _public_tournament_cache(db: Client | None) -> tuple[dict[str, Any], set[str]]:
+    historical = load_tournament_cache()
+    visible = all_tournaments(db)
+    visible_codes = {str(row.get("code") or "").upper() for row in visible}
+    # Built-in placeholders must not resurrect a known source that the
+    # official workflow has reserved but has not published yet.
+    hidden_codes = {
+        str(row.get("code") or "").upper()
+        for row in historical.get("tournaments") or []
+        if str(row.get("code") or "").upper() not in visible_codes
+    }
+    return {**historical, "tournaments": visible}, hidden_codes
 
 
 def _rows(response: Any) -> list[dict[str, Any]]:
@@ -253,18 +248,14 @@ class CompetitionHubService:
 
     @staticmethod
     def _tournament_cards(db: Client | None = None) -> list[dict[str, Any]]:
-        cache = load_tournament_cache()
+        cache, hidden_codes = _public_tournament_cache(db)
         available = {
             str(item.get("code") or "").upper(): item
             for item in cache.get("tournaments") or []
         }
         cards = []
-        codes = available_tournament_codes(cache)
-        for code in sorted(
-            codes,
-            key=lambda value: int(value[1:]),
-            reverse=True,
-        ):
+        codes = (available_tournament_codes(cache) | set(available)) - hidden_codes
+        for code in sorted(codes, key=lambda value: (int(value[1:]) if value[1:].isdigit() else 0, value), reverse=True):
             tournament = available.get(code)
             summary = (
                 tournament.get("summary")
@@ -282,6 +273,10 @@ class CompetitionHubService:
             )
             cards.append({
                 **_tournament_classification(code),
+                **{key: tournament[key] for key in (
+                    "classification", "classification_label", "affects_committee_ranking",
+                    "committee_event_key", "ranking_status", "discipline", "source_url",
+                ) if tournament and key in tournament and key not in COMMITTEE_RECOGNIZED_TOURNAMENTS.get(code, {})},
                 "code": code,
                 "name": (
                     tournament.get("name")
@@ -320,6 +315,7 @@ class CompetitionHubService:
                 "summary": summary,
                 "href": f"/tournaments/{code.lower()}",
             })
+        cards.sort(key=lambda item: str(item.get("date") or ""), reverse=True)
         aliases = _canonical_display_aliases(
             db,
             [
@@ -348,7 +344,8 @@ class CompetitionHubService:
             "title": "Compétitions 974 Darts",
             "active_championship": active,
             "championships": seasons,
-            "tournaments": tournaments,
+            "tournaments": [t for t in tournaments if t.get("classification") == "FRIENDLY"],
+            "official_tournaments": [t for t in tournaments if t.get("classification") != "FRIENDLY"],
             "principles": {
                 "official_separation": True,
                 "friendly_tournaments_affect_official_ranking": False,
@@ -457,17 +454,20 @@ class CompetitionHubService:
 
     @staticmethod
     def tournaments(db: Client | None = None) -> dict[str, Any]:
+        cards = CompetitionHubService._tournament_cards(db)
         return {
             "contract_version": "14.1",
-            "tournaments": CompetitionHubService._tournament_cards(db),
+            "tournaments": [t for t in cards if t.get("classification") == "FRIENDLY"],
+            "official_tournaments": [t for t in cards if t.get("classification") != "FRIENDLY"],
             "official_separation": True,
         }
 
     @staticmethod
     def tournament(code: str, db: Client | None = None) -> dict[str, Any] | None:
         normalized = code.upper()
-        cache = load_tournament_cache()
-        if normalized not in available_tournament_codes(cache):
+        cache, hidden_codes = _public_tournament_cache(db)
+        visible_codes = {str(row.get("code") or "").upper() for row in cache.get("tournaments") or []}
+        if normalized in hidden_codes or normalized not in available_tournament_codes(cache) | visible_codes:
             return None
         tournament = next(
             (
@@ -483,6 +483,7 @@ class CompetitionHubService:
                 "official_separation": True,
                 **_tournament_classification(normalized),
                 **tournament,
+                **COMMITTEE_RECOGNIZED_TOURNAMENTS.get(normalized, {}),
             }
             names = [
                 str(value)

@@ -5,6 +5,7 @@ export type Metadata = {
   kind: string;
   category?: string;
   organizer: string;
+  location?: string;
   source_url: string;
   season_key: string;
 };
@@ -90,6 +91,7 @@ export type Event = {
   ds_review: DirectorReview;
 };
 export type Detail = {
+  tournament_page?: { code: string; href: string; status: string } | null;
   event: Event;
   revision: Revision;
   history: Omit<Revision, "snapshot" | "director_id" | "ds_review">[];

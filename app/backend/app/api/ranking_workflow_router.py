@@ -41,6 +41,11 @@ def enabled():
 def actor_context(authorization: str | None = Header(default=None)):
     if not enabled():
         raise HTTPException(503, "Le nouveau workflow n’est pas encore activé.")
+    return verified_actor_context(authorization)
+
+
+def verified_actor_context(authorization: str | None = Header(default=None)):
+    """Shared verified actor for Admin tools independent of workflow feature flag."""
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(401, "Authentification requise.")
     db = create_client(settings.supabase_url, settings.supabase_service_role_key)
@@ -264,6 +269,8 @@ def detail(event_id: str, ctx=Depends(actor_context)):
         ],
         "decisions": decisions,
     }
+    from app.services.tournament_page_service import page_status
+    response["tournament_page"] = page_status(db, event)
     if actor["role"] == "ADMIN":
         response["jobs"] = rows(
             db.table("ranking_workflow_jobs")

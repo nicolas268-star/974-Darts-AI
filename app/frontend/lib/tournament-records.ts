@@ -88,8 +88,10 @@ export async function getTournamentRecords(year?: string): Promise<TournamentRec
       signal: AbortSignal.timeout(5000),
     });
     if (!catalogResponse.ok) return [];
-    const catalog = (await catalogResponse.json()) as { tournaments?: TournamentCard[] };
-    const cards = (catalog.tournaments ?? []).filter((item) => item.status === "AVAILABLE");
+    const catalog = (await catalogResponse.json()) as { tournaments?: TournamentCard[]; official_tournaments?: TournamentCard[] };
+    const cards = [...new Map([...(catalog.tournaments ?? []), ...(catalog.official_tournaments ?? [])]
+      .filter((item) => item.status === "AVAILABLE")
+      .map((item) => [item.code.toLowerCase(), item])).values()];
     const tournaments = await Promise.all(
       cards.map(async (card) => {
         try {
@@ -105,7 +107,8 @@ export async function getTournamentRecords(year?: string): Promise<TournamentRec
     );
     const tournamentRows = tournaments.flatMap((tournament) =>
       tournament
-        ? tournament.players.map((player) => {
+        ? tournament.players.filter((player) => !Object.hasOwn(player, "identity_status") ||
+            (player.identity_status === "EXACT" && Boolean(player.canonical_player_id))).map((player) => {
             const alias =
               historicalTournamentAliases[tournament.code]?.[
                 normalizedPlayerName(player.name)

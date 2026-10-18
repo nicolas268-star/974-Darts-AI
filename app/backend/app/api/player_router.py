@@ -7,7 +7,7 @@ from fastapi import APIRouter, HTTPException, Query
 
 from app.services.player_dashboard_service import build_player_dashboard
 from app.services.player_statistics_engine import PlayerStatisticsEngine
-from app.services.tournament_workbook_service import load_tournament_cache
+from app.services.tournament_page_service import all_tournaments
 from app.services.player_transfer_service import affiliations_from_current, player_affiliations
 from app.services.player_identity_service import PlayerIdentityService
 
@@ -23,27 +23,35 @@ def _normalized_name(value: str | None) -> str:
 def _player_tournament_payload(player_id: str, season_id: str | None = None):
     from app.main import db_client
 
-    dashboard = build_player_dashboard(db_client(), player_id, season_id)
+    db = db_client()
+    dashboard = build_player_dashboard(db, player_id, season_id)
     if dashboard is None:
         return None
     player = dashboard.get("player") or {}
     player_name = str(player.get("name") or "")
     normalized = _normalized_name(player_name)
-    profile = PlayerIdentityService(db_client()).profile(player_id)
+    profile = PlayerIdentityService(db).profile(player_id)
     accepted_names = {normalized}
     if profile:
         accepted_names.update(
             _normalized_name(str(alias.get("alias_name") or ""))
             for alias in profile.get("aliases") or []
+            if alias.get("confirmed")
         )
     participations = []
-    for tournament in load_tournament_cache().get("tournaments") or []:
+    season_name = str((dashboard.get("season") or {}).get("name") or season_id or "")
+    requested_years = re.findall(r"20\d{2}", season_name) if season_id else []
+    for tournament in all_tournaments(db):
+        years = re.findall(r"20\d{2}", str(tournament.get("season") or tournament.get("date") or ""))
+        if requested_years and (not years or years[-1] != requested_years[-1]):
+            continue
         participant = next(
             (
                 item
                 for item in tournament.get("players") or []
                 if str(item.get("canonical_player_id") or "") == player_id
-                or _normalized_name(str(item.get("name") or "")) in accepted_names
+                or (not item.get("identity_status") and
+                    _normalized_name(str(item.get("name") or "")) in accepted_names)
             ),
             None,
         )
@@ -89,7 +97,7 @@ def player_affiliation_history(player_id: str):
 
 @router.get("/{player_id}/tournaments")
 def player_tournaments(player_id: str, season_id: str | None = Query(default=None)):
-    """Return friendly-tournament performances observed for one player."""
+    """Validated tournament statistics, separate from championship points and ELO."""
     payload = _player_tournament_payload(player_id, season_id)
     if payload is None:
         raise HTTPException(status_code=404, detail="Player not found")

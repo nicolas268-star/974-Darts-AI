@@ -53,6 +53,8 @@ app.include_router(season_registry_router)
 app.include_router(player_transfer_router)
 app.include_router(committee_ranking_router)
 app.include_router(ranking_workflow_router)
+from .api.tournament_page_router import router as tournament_page_router
+app.include_router(tournament_page_router)
 app.include_router(visibility_router)
 app.include_router(match_day_router)
 

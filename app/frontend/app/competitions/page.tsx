@@ -78,9 +78,10 @@ export default async function CompetitionsPage() {
   const nextBdcRound = BDC_ROUNDS.find((round) => round.date >= today && !BDC_ROUND_REPORTS[round.number]);
   const publishedBdcRounds = Object.keys(BDC_ROUND_REPORTS).length;
   const rankedBdcPlayers = bdcStandings(BDC_RESULTS).length;
-  const committeeTournaments = (data?.tournaments ?? []).filter(
-    (tournament) => tournament.classification === "COMMITTEE_RECOGNIZED",
-  );
+  const committeeTournaments = [...new Map([
+    ...(data?.official_tournaments ?? []),
+    ...(data?.tournaments ?? []).filter((tournament) => tournament.classification !== "FRIENDLY"),
+  ].map((tournament) => [tournament.code, tournament])).values()];
   const friendlyTournaments = (data?.tournaments ?? []).filter(
     (tournament) => tournament.classification === "FRIENDLY",
   );
@@ -212,14 +213,14 @@ export default async function CompetitionsPage() {
             <div className="competition-section-title">
               <div>
                 <span>COMPÉTITIONS COMITÉ</span>
-                <h2>Opens reconnus publiés</h2>
+                <h2>Compétitions officielles publiées</h2>
               </div>
               <p>Résultats validés et points intégrés au classement individuel.</p>
             </div>
             <div className="tournament-grid">
               {committeeTournaments.map((tournament) => (
                 <Link href={tournament.href} className="tournament-card" key={tournament.code}>
-                  <div><span>Points publiés</span><strong>{tournament.code}</strong></div>
+                  <div><span>{tournament.classification_label}</span><strong>{tournament.code}</strong></div>
                   <h3>{tournament.name}</h3>
                   <p className="tournament-event-name">{tournament.event_name}</p>
                   <div className="mini-kpis">
@@ -227,7 +228,7 @@ export default async function CompetitionsPage() {
                     <span><b>{tournament.summary.legs ?? 0}</b> legs</span>
                     <span><b>{tournament.summary.tracked_players ?? 0}</b> joueurs suivis</span>
                   </div>
-                  <small>Consulter les résultats reconnus →</small>
+                  <small>Consulter les résultats officiels →</small>
                 </Link>
               ))}
             </div>

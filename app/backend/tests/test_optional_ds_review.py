@@ -85,7 +85,9 @@ class OptionalDirectorReviewTests(unittest.TestCase):
         db.rpc.return_value.execute.return_value = SimpleNamespace(data=None)
         with patch.dict(os.environ, {'RANKING_EMAIL_ENABLED': 'false'}):
             worker.run_once(db)
-        db.rpc.assert_called_once_with('ranking_claim_work', {'p_queue': 'analysis'})
+        self.assertEqual(db.rpc.call_args_list[0].args, ('ranking_claim_work', {'p_queue': 'analysis'}))
+        self.assertEqual(db.rpc.call_args_list[1].args, ('tournament_page_claim', {}))
+        self.assertEqual(db.rpc.call_count, 2)
         db.table.assert_not_called()
 
     def test_analysis_worker_uses_shared_command_without_ds_approval(self):

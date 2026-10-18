@@ -248,6 +248,10 @@ services:
     command: ["python", "-m", "app.services.ranking_workflow_worker"]
     env_file:
       - /etc/974darts/production.env
+    # Preserve historical tournament URLs from the same cache as the API.
+    # This worker writes projections in Supabase and only reads local data.
+    volumes:
+      - /var/lib/974darts/backend-data:/app/data:ro
     restart: unless-stopped
     read_only: true
     tmpfs:

@@ -1,4 +1,5 @@
-import { ScoringRangeValue } from "@/components/stats/ScoringRangeValue";
+import { scoring120139Description } from "@/lib/player/scoring-ranges";
+import { tournamentBrackets, tournamentMetric } from "@/lib/tournament-presentation";
 import { StatsTable } from "@/components/stats/StatsTable";
 import Link from "next/link";
 import { Sidebar } from "@/components/Sidebar";
@@ -29,7 +30,7 @@ async function loadTournament(code: string): Promise<TournamentHub | null> {
 
 const decimal = (value: number | null | undefined) =>
   value == null
-    ? "—"
+    ? "Non disponible"
     : value.toLocaleString("fr-FR", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
@@ -97,7 +98,7 @@ function BracketPanel({
         </div>
         <p>{description}</p>
       </div>
-      <div className="bracket-scroll">
+      <div className="bracket-scroll" tabIndex={0} role="region" aria-label={`${title}, défilement horizontal`}>
         <div
           className="bracket-grid"
           style={{
@@ -117,8 +118,7 @@ function BracketPanel({
         </div>
       </div>
       <p className="bracket-coverage">
-        Tableau reconstruit à partir des résultats officiels disponibles dans
-        le tournoi N01.
+        Rencontres et scores disponibles dans la source Nakka du tournoi.
       </p>
     </section>
   );
@@ -150,28 +150,30 @@ function ParticipantTable({
             <th>Legs G/J</th>
             <th>Moy. 3 fl.</th>
             <th>First 9</th>
+            <th>Meilleur leg</th>
             <th>Finish</th>
             <th>100+</th>
             <th>120–139</th>
             <th>140+</th>
+            <th>170+</th>
             <th>180</th>
           </tr>
         </thead>
         <tbody>
           {participants.map((participant) => (
             <tr key={participant.name}>
-              <td><strong>{aliases[participant.name] ?? participant.name}</strong></td>
+              <td><strong>{participant.canonical_player_id ? <Link href={`/players/${encodeURIComponent(participant.canonical_player_id)}`}>{aliases[participant.name] ?? participant.name}</Link> : aliases[participant.name] ?? participant.name}</strong></td>
               <td>
                 {duo
                   ? participant.players?.join(" / ") || "—"
                   : participant.team || "—"}
               </td>
               <td>
-                {participant.matches_won ?? "—"}/{participant.matches_played ?? "—"}
+                {participant.matches_won == null || participant.matches_played == null ? "Non disponible" : `${participant.matches_won}/${participant.matches_played}`}
               </td>
               <td>
                 {participant.win_rate == null
-                  ? "—"
+                  ? "Non disponible"
                   : `${decimal(participant.win_rate)} %`}
               </td>
               <td>
@@ -179,11 +181,13 @@ function ParticipantTable({
               </td>
               <td>{decimal(participant.average_3_darts)}</td>
               <td>{decimal(participant.first_9)}</td>
-              <td>{participant.best_finish ?? "—"}</td>
-              <td>{participant.scores_100}</td>
-              <td><ScoringRangeValue data={participant} /></td>
-              <td>{participant.scores_140}</td>
-              <td>{participant.scores_180}</td>
+              <td>{tournamentMetric(participant.best_leg)}</td>
+              <td>{tournamentMetric(participant.best_finish)}</td>
+              <td>{tournamentMetric(participant.scores_100)}</td>
+              <td><span title={scoring120139Description(participant)}>{tournamentMetric(participant.scores_120_139)}</span></td>
+              <td>{tournamentMetric(participant.scores_140)}</td>
+              <td>{tournamentMetric(participant.scores_170)}</td>
+              <td>{tournamentMetric(participant.scores_180)}</td>
             </tr>
           ))}
         </tbody>
@@ -214,7 +218,7 @@ function RoundRobinTable({ group }: { group: TournamentRoundRobinGroup }) {
       </div>
 
       <p className="table-scroll-hint">Faites glisser le tableau horizontalement pour consulter toutes les confrontations.</p><div className="round-robin-scroll" tabIndex={0} role="region" aria-label={`Tableau de poule ${group.name}, défilement horizontal`}>
-        <StatsTable className="round-robin-table" mobileSummaryColumns={[group.matrix.length + 7, group.matrix.length + 8, group.matrix.length + 2, group.matrix.length + 3]}>
+        <StatsTable className="round-robin-table" mobileSummaryColumns={[group.matrix.length + 8, group.matrix.length + 9, group.matrix.length + 2, group.matrix.length + 3]}>
           <thead>
             <tr>
               <th className="rr-rank-index">#</th>
@@ -228,6 +232,7 @@ function RoundRobinTable({ group }: { group: TournamentRoundRobinGroup }) {
               <th>V</th>
               <th>N</th>
               <th>D</th>
+              <th>Legs G/P</th>
               <th>+/-</th>
               <th>Pts</th>
               <th>Rang</th>
@@ -269,19 +274,21 @@ function RoundRobinTable({ group }: { group: TournamentRoundRobinGroup }) {
                       </td>
                     ),
                   )}
-                  <td>{standing?.played ?? 0}</td>
-                  <td>{standing?.wins ?? 0}</td>
-                  <td>{standing?.draws ?? 0}</td>
-                  <td>{standing?.losses ?? 0}</td>
-                  <td className={(standing?.leg_difference ?? 0) >= 0 ? "rr-positive" : "rr-negative"}>
-                    {(standing?.leg_difference ?? 0) > 0 ? "+" : ""}
-                    {standing?.leg_difference ?? 0}
+                  <td>{tournamentMetric(standing?.played)}</td>
+                  <td>{tournamentMetric(standing?.wins)}</td>
+                  <td>{tournamentMetric(standing?.draws)}</td>
+                  <td>{tournamentMetric(standing?.losses)}</td>
+                  <td>{standing ? `${standing.legs_for}/${standing.legs_against}` : "Non disponible"}</td>
+                  <td className={standing && standing.leg_difference >= 0 ? "rr-positive" : "rr-negative"}>
+                    {standing && standing.leg_difference > 0 ? "+" : ""}
+                    {tournamentMetric(standing?.leg_difference)}
                   </td>
-                  <td><strong>{standing?.points ?? 0}</strong></td>
+                  <td><strong>{tournamentMetric(standing?.points)}</strong></td>
                   <td>
                     <span className={`rr-final-rank rank-${standing?.rank ?? 0}`}>
-                      {standing?.rank ?? "—"}
+                      {tournamentMetric(standing?.rank)}
                     </span>
+                    {standing?.qualified === true && <small className="rr-qualified">Qualifié</small>}
                   </td>
                 </tr>
               );
@@ -292,7 +299,9 @@ function RoundRobinTable({ group }: { group: TournamentRoundRobinGroup }) {
       <footer className="round-robin-legend">
         <span><i className="rr-legend-win" /> Victoire</span>
         <span><i className="rr-legend-loss" /> Défaite</span>
-        <span>Barème : {group.win_points} points par victoire</span>
+        <span>{group.points_available === false
+          ? "Classement selon les critères Nakka · aucun barème de points activé"
+          : <>Barème : {tournamentMetric(group.win_points)} pts / victoire · {tournamentMetric(group.draw_points)} / nul · {tournamentMetric(group.loss_points)} / défaite{group.include_leg_points ? " + points de legs" : ""}</>}</span>
       </footer>
     </article>
   );
@@ -314,14 +323,16 @@ export default async function TournamentPage({
   const bestFinish = data?.players
     .filter((player) => player.best_finish != null)
     .sort((a, b) => (b.best_finish ?? 0) - (a.best_finish ?? 0))[0];
-  const scorers180 = data?.players.filter((player) => player.scores_180 > 0) ?? [];
-  const total180 = scorers180.reduce((total, player) => total + player.scores_180, 0);
-  const loserBracket = data?.bracket?.filter((stage) =>
-    stage.code.startsWith("loser_"),
-  ) ?? [];
-  const winnerBracket = data?.bracket?.filter((stage) =>
-    !stage.code.startsWith("loser_"),
-  ) ?? [];
+  const best180 = data?.players.filter((player) => player.scores_180 != null)
+    .sort((a, b) => (b.scores_180 ?? 0) - (a.scores_180 ?? 0))[0];
+  const total180 = data?.players.length && data.players.every((player) => player.scores_180 != null)
+    ? data.players.reduce((total, player) => total + (player.scores_180 ?? 0), 0) : null;
+  const leaders180 = best180 && (best180.scores_180 ?? 0) > 0
+    ? data?.players.filter((player) => player.scores_180 === best180.scores_180) ?? [] : [];
+  const brackets = tournamentBrackets(data ?? { bracket: [] });
+  const official = data?.classification !== "FRIENDLY" && data?.ranking_status === "PUBLISHED";
+  const standings = official ? data?.official_results ?? [] : data?.final_standings ?? [];
+  const sourceUrl = data?.source_url ?? data?.matches.find((match) => match.source_url)?.source_url;
 
   return (
     <div className="dashboard">
@@ -341,15 +352,19 @@ export default async function TournamentPage({
             <header className="competition-hero">
               <div>
                 <span className="competition-eyebrow">
-                  {data.code} · {data.event_name}
+                  {data.code.length <= 8 ? data.code : data.classification_label} · {data.event_name}
                 </span>
-                <h1>{data.date_label ?? data.name}</h1>
+                <h1>{data.name}</h1>
+                <p>{[data.date_label ?? data.date, data.location ?? data.lieu, data.organizer, data.season].filter(Boolean).join(" · ")}</p>
                 <p>
-                  {data.format_label ?? "Phase de poules et tableau final"} ·
-                  {data.affects_committee_ranking
-                    ? " Résultats reconnus par le Comité."
-                    : " Analyse indépendante du championnat."}
+                  {data.format_label ?? "Format non disponible"} · {data.classification_label}
                 </p>
+                  {data.competition_type && <p>{data.competition_type}</p>}
+                {official && data.official_publication?.number != null && <p>Publication officielle · version {data.official_publication.number}</p>}
+                <div className="tournament-source-links">
+                  {sourceUrl && <a href={sourceUrl} target="_blank" rel="noopener noreferrer">Consulter la source Nakka ↗</a>}
+                  {official && <Link href="/competitions/classement-individuel">Classement du Comité →</Link>}
+                </div>
               </div>
               <span className="hub-status">
                 {data.status === "AVAILABLE"
@@ -360,11 +375,11 @@ export default async function TournamentPage({
 
             <div className="competition-notice">
               {data.affects_committee_ranking
-                ? "Open de club reconnu : les points validés sont publiés dans le classement individuel du Comité."
+                ? "Compétition officielle : les points affichés proviennent de la publication du classement individuel du Comité."
                 : "Tournoi amical : aucun résultat affiché ici ne modifie le classement individuel, le championnat interclubs ou l’ELO."}
             </div>
 
-            {data.editorial_summary && (
+            {(data.editorial_summary || data.winner || data.runner_up) && (
               <section className="hub-panel tournament-story-panel">
                 <div className="tournament-story-heading">
                   <div>
@@ -372,11 +387,11 @@ export default async function TournamentPage({
                     <h2>{data.event_name}</h2>
                   </div>
                   <div className="tournament-podium">
-                    <span>🏆 <strong>{data.winner}</strong></span>
-                    <span>🥈 {data.runner_up}</span>
+                    {data.winner && <span>🏆 <strong>{displayName(data, data.winner)}</strong></span>}
+                    {data.runner_up && <span>🥈 {displayName(data, data.runner_up)}</span>}
                   </div>
                 </div>
-                <p>{data.editorial_summary}</p>
+                {data.editorial_summary && <p>{data.editorial_summary}</p>}
               </section>
             )}
 
@@ -385,20 +400,22 @@ export default async function TournamentPage({
                 <div className="tournament-panel-heading">
                   <div>
                     <span>PERFORMANCES DU TOURNOI</span>
-                    <h2>Les distinctions de {data.code}</h2>
+                    <h2>Les distinctions du tournoi</h2>
                   </div>
                   <p>Calculées à partir des statistiques validées du tournoi.</p>
                 </div>
                 <div className="tournament-highlights-grid">
-                  <article><span>🎯 Meilleure moyenne</span><strong>{bestAverage ? displayName(data, bestAverage.name) : "—"}</strong><b>{decimal(bestAverage?.average_3_darts)}</b></article>
-                  <article><span>⚡ Meilleur First 9</span><strong>{bestFirst9 ? displayName(data, bestFirst9.name) : "—"}</strong><b>{decimal(bestFirst9?.first_9)}</b></article>
-                  <article><span>🔥 Plus haute sortie</span><strong>{bestFinish ? displayName(data, bestFinish.name) : "—"}</strong><b>{bestFinish?.best_finish ?? "—"}</b></article>
-                  <article><span>💥 180 réalisés</span><strong>{total180} au total</strong><b>{scorers180.map((player) => `${displayName(data, player.name)} (${player.scores_180})`).join(" · ") || "—"}</b></article>
+                  <article><span>🎯 Meilleure moyenne</span><strong>{bestAverage ? displayName(data, bestAverage.name) : "Non disponible"}</strong><b>{decimal(bestAverage?.average_3_darts)}</b></article>
+                  <article><span>⚡ Meilleur First 9</span><strong>{bestFirst9 ? displayName(data, bestFirst9.name) : "Non disponible"}</strong><b>{decimal(bestFirst9?.first_9)}</b></article>
+                  <article><span>🔥 Plus haute sortie</span><strong>{bestFinish ? displayName(data, bestFinish.name) : "Non disponible"}</strong><b>{tournamentMetric(bestFinish?.best_finish)}</b></article>
+                  <article><span>💥 Plus grand nombre de 180</span><strong>{leaders180.length ? leaders180.map((player) => displayName(data, player.name)).join(" · ") : total180 === 0 ? "Aucun 180 enregistré" : "Non disponible"}</strong><b>{tournamentMetric(leaders180.length || total180 === 0 ? best180?.scores_180 : null)}</b>{total180 != null && <small>{total180} au total</small>}</article>
                 </div>
               </section>
             )}
 
             <section className="hub-kpis">
+              <article><span>{data.duos.length && !data.players.length ? "Doublettes" : "Participants"}</span><strong>{data.summary.players ?? (data.duos.length && !data.players.length ? data.summary.tracked_duos : data.summary.tracked_players) ?? "Non disponible"}</strong></article>
+              <article><span>Rencontres</span><strong>{tournamentMetric(data.summary.matches)}</strong></article>
               <article>
                 <span>Matchs de poules</span>
                 <strong>{data.summary.pool_matches ?? 0}</strong>
@@ -423,28 +440,40 @@ export default async function TournamentPage({
 
             {data.status === "WAITING_DATA" && (
               <div className="competition-notice">
-                Les lignes {data.code} seront chargées automatiquement au
-                prochain passage de l’installateur avec le classeur qui les
-                contient.
+                Les résultats de ce tournoi seront affichés après validation de leur import.
               </div>
             )}
 
             <BracketPanel
-              stages={winnerBracket}
-              eyebrow="WINNER BRACKET · ÉLIMINATION DIRECTE"
+              stages={brackets.primary}
+              eyebrow={brackets.doubleElimination ? "WINNER BRACKET · DOUBLE ÉLIMINATION" : "TABLEAU PRINCIPAL · ÉLIMINATION DIRECTE"}
               title="Le chemin vers la finale"
               description="Le vainqueur de chaque rencontre est surligné."
             />
 
             <BracketPanel
-              stages={loserBracket}
-              eyebrow="LOSER BRACKET · ÉLIMINATION DIRECTE"
-              title="Le tableau de consolante"
-              description="Le parcours des joueurs qualifiés pour le tableau secondaire."
+              stages={brackets.loser}
+              eyebrow="LOSER BRACKET · DOUBLE ÉLIMINATION"
+              title="Le parcours en double élimination"
+              description="Le tableau des joueurs ayant subi une première défaite."
             />
 
+            <BracketPanel stages={brackets.secondary} eyebrow="TABLEAU SECONDAIRE" title="La consolante" description="Un parcours distinct du tableau principal." />
+            <BracketPanel stages={brackets.finals} eyebrow="FINALE DÉCISIVE · DOUBLE ÉLIMINATION" title="Grande finale" description="Le reset de finale est affiché lorsqu’il figure dans la source." />
+            <BracketPanel stages={brackets.thirdPlace} eyebrow="MATCH DE CLASSEMENT" title="La troisième place" description="Rencontre de classement confirmée par la source." />
+
+            {!!standings?.length && (
+              <section className="hub-panel tournament-results-panel">
+                <div className="tournament-panel-heading"><div><span>RÉSULTATS ET PALMARÈS</span><h2>Classement final</h2></div><p>{official ? "Points issus de la publication officielle." : "Places confirmées dans le tableau principal."}</p></div>
+                <div className="hub-table-scroll"><StatsTable className="hub-table"><thead><tr><th>Rang</th><th>Joueur</th><th>Résultat</th>{official && <th>Points Comité</th>}</tr></thead><tbody>
+                  {standings.map((standing, index) => <tr key={standing.source_ref ?? `${standing.name}-${index}`}><td>{tournamentMetric(standing.rank)}</td><td><strong>{standing.canonical_player_id ? <Link href={`/players/${encodeURIComponent(standing.canonical_player_id)}`}>{displayName(data, standing.name)}</Link> : displayName(data, standing.name)}</strong></td><td>{({ WINNER: "Vainqueur", RUNNER_UP: "Finaliste", SEMI_FINALIST: "Demi-finaliste", QUARTER_FINALIST: "Quart de finaliste", ROUND_OF_16: "Huitième de finaliste", OUTSIDE_POINTS: "Hors points" } as Record<string, string>)[standing.placement ?? ""] ?? standing.placement ?? "Non disponible"}</td>{official && <td>{tournamentMetric(standing.points)}</td>}</tr>)}
+                </tbody></StatsTable></div>
+                {official && <Link href="/competitions/classement-individuel">Consulter le classement officiel du Comité →</Link>}
+              </section>
+            )}
+
             {!!data.round_robin?.length && (
-              <details className="hub-panel tournament-disclosure">
+              <details className="hub-panel tournament-disclosure" suppressHydrationWarning>
                 <summary>
                   <span><b>Phase de poules</b><small>{data.round_robin.length} poule{data.round_robin.length > 1 ? "s" : ""} · matrices et classements</small></span>
                   <strong>Consulter</strong>
@@ -472,7 +501,7 @@ export default async function TournamentPage({
               </div>
             )}
 
-            <details className="hub-panel tournament-disclosure">
+            <details className="hub-panel tournament-disclosure" suppressHydrationWarning>
               <summary>
                 <span><b>Statistiques complètes</b><small>Joueurs et duos · mesures issues des matchs validés</small></span>
                 <strong>Consulter</strong>
@@ -506,7 +535,7 @@ export default async function TournamentPage({
               </div>
             )}
 
-            <details className="hub-panel tournament-disclosure">
+            <details className="hub-panel tournament-disclosure" suppressHydrationWarning>
               <summary>
                 <span><b>Détail complet des matchs</b><small>{data.matches.length} rencontre{data.matches.length > 1 ? "s" : ""} · scores, legs et qualité</small></span>
                 <strong>Consulter</strong>
@@ -537,7 +566,7 @@ export default async function TournamentPage({
                               {match.home_score} – {match.away_score}
                             </strong>
                           </td>
-                          <td>{match.winner ?? "Égalité"}</td>
+                          <td>{match.winner ?? (match.result_complete && match.home_score === match.away_score ? "Égalité" : "Non confirmé")}</td>
                           <td>{match.legs}</td>
                           <td>
                             {match.result_complete
