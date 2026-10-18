@@ -36,11 +36,11 @@ export default function VisibilityWorkspace({ bdcOptions }: { bdcOptions: BdcVis
   }
 
   return <main className={styles.page}>
-    <section className={styles.hero}><div><span>Communication · 974 Darts</span><h1>Visibilité 974 Darts</h1><p>La soirée pour le groupe WhatsApp. Les résultats pour Facebook.</p></div><Send size={64}/></section>
+    <section className={styles.hero}><div><span>Communication · 974 Darts</span><h1>Visibilité 974 Darts</h1><p>Les rencontres et tournois pour le groupe WhatsApp. Les résultats pour Facebook.</p></div><Send size={64}/></section>
     <EveningSummary bdcOptions={bdcOptions} onFacebookReady={(text) => { setFacebookText(text); setStatus(""); }}/>
     <section className={styles.composer} id="facebook-publication" aria-labelledby="facebook-title">
       <header><div><span>Réseaux sociaux · communication officielle</span><h2 id="facebook-title">Publication Facebook</h2></div><div className={styles.manual}><ShieldCheck size={17}/> Publication depuis ton compte</div></header>
-      <p className={styles.intro}>Charge la version courte de la soirée avec le bouton du bloc WhatsApp, ou rédige une annonce libre.</p>
+      <p className={styles.intro}>Charge la version courte de l’événement avec le bouton du bloc WhatsApp, ou rédige une annonce libre.</p>
       <div className={styles.composeGrid}>
         <form onSubmit={(event) => event.preventDefault()}>
           {facebookText !== null && <div className={styles.facebookLoaded}><b>Texte prêt à relire et à modifier</b><button type="button" className={styles.secondaryButton} onClick={() => setFacebookText(null)}>Revenir à la rédaction libre</button></div>}

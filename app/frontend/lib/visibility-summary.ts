@@ -1,11 +1,12 @@
 export type VisibilitySummary = {
+  kind?: "interclub" | "bdc" | "tournament";
   whatsapp: string;
   facebook: string;
   mode: "ai" | "statistics";
   note: string;
   ai_available: boolean;
   context?: string;
-  evening: { url: string; matches: number; legs: number; players: number; legsLabel?: string };
+  evening: { url: string; matches: number | null; legs: number | null; players: number | null; legsLabel?: string; playersLabel?: string; title?: string; date?: string | null; location?: string | null; discipline?: string };
   fingerprint: string;
 };
 
@@ -14,6 +15,24 @@ export type BdcVisibilityOption = {
   label: string;
   summary: VisibilitySummary;
 };
+
+export type TournamentVisibilityOption = {
+  id: string;
+  code: string;
+  label: string;
+  title: string;
+  date: string | null;
+  discipline: string;
+};
+
+export function visibilitySelection(id: string, bdcOptions: BdcVisibilityOption[]) {
+  const bdc = bdcOptions.find(option => option.id === id);
+  if (bdc) return { kind: "bdc" as const, summary: bdc.summary };
+  const tournament = /^tournament:([a-zA-Z0-9_-]{1,120})$/.exec(id);
+  if (tournament) return { kind: "tournament" as const, code: tournament[1] };
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) return { kind: "interclub" as const, result_id: id };
+  return null;
+}
 
 const VISIBILITY_SIGNATURE = "974Darts · NDX Performance Lab";
 const VISIBILITY_HASHTAGS = [
