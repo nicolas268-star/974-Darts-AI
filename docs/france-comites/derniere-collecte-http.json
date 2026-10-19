@@ -1,0 +1,65 @@
+{
+  "dry_run": false,
+  "trace": [
+    {
+      "url": "https://push.n01darts.com/api/v1/tournament/get?tdid=t_6KMK_0456",
+      "http": 200,
+      "result": 0,
+      "at": "2026-10-19T06:59:52.313134+00:00"
+    },
+    {
+      "url": "https://push.n01darts.com/api/v1/tournament/entry/list?tdid=t_6KMK_0456",
+      "http": 200,
+      "result": 0,
+      "at": "2026-10-19T06:59:53.028884+00:00"
+    },
+    {
+      "url": "https://push.n01darts.com/api/v1/tournament/stats?tdid=t_6KMK_0456",
+      "http": 200,
+      "result": 0,
+      "at": "2026-10-19T06:59:53.879947+00:00"
+    },
+    {
+      "url": "https://push.n01darts.com/api/v1/tournament/standings?tdid=t_6KMK_0456",
+      "http": 400,
+      "result": -51,
+      "at": "2026-10-19T06:59:54.536816+00:00"
+    },
+    {
+      "url": "https://push.n01darts.com/api/v1/match/list?count=100&skip=0&tdid=t_6KMK_0456&sort=startTime&order=asc",
+      "http": 200,
+      "result": 0,
+      "at": "2026-10-19T06:59:55.293631+00:00"
+    },
+    {
+      "url": "https://push.n01darts.com/api/v1/tournament/get?tdid=t_QEW6_9290",
+      "http": 200,
+      "result": 0,
+      "at": "2026-10-19T06:59:56.032825+00:00"
+    },
+    {
+      "url": "https://push.n01darts.com/api/v1/tournament/entry/list?tdid=t_QEW6_9290",
+      "http": 200,
+      "result": 0,
+      "at": "2026-10-19T06:59:56.788806+00:00"
+    },
+    {
+      "url": "https://push.n01darts.com/api/v1/tournament/stats?tdid=t_QEW6_9290",
+      "http": 200,
+      "result": 0,
+      "at": "2026-10-19T06:59:57.600543+00:00"
+    },
+    {
+      "url": "https://push.n01darts.com/api/v1/tournament/standings?tdid=t_QEW6_9290",
+      "http": 400,
+      "result": -51,
+      "at": "2026-10-19T06:59:58.290508+00:00"
+    },
+    {
+      "url": "https://push.n01darts.com/api/v1/match/list?count=100&skip=0&tdid=t_QEW6_9290&sort=startTime&order=asc",
+      "http": 200,
+      "result": 0,
+      "at": "2026-10-19T06:59:59.035717+00:00"
+    }
+  ]
+}

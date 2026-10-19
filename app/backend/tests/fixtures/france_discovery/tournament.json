@@ -1,0 +1,21 @@
+{
+  "_fixture": "SYNTHETIC TEST DATA. Never seed production or the real inventory.",
+  "result": 0,
+  "url": "https://n01darts.com/n01/league/season.php?id=t_FIXTURE_001",
+  "tournament": {
+    "tdid": "t_FIXTURE_001",
+    "lgid": "lg_FIXTURE_001",
+    "title": "Open Comité de test",
+    "t_date": 1792267200,
+    "updateTime": 1792329970167,
+    "status": 40,
+    "private": 0,
+    "kind": "darts",
+    "entry_list": [{"tpid": "TEST1", "name": "Participant fictif A"}],
+    "rr_setting": {"round_robin": 1},
+    "t_setting": {"tournament": 0},
+    "d_setting": {"tournament": 1},
+    "rr_table": [["TEST1"]],
+    "rr_result": [{}]
+  }
+}

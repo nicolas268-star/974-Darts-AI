@@ -1,0 +1,37 @@
+{
+  "checked_at": "2026-10-19T07:04:56.171250+00:00",
+  "trace": [
+    {
+      "url": "https://push.n01darts.com/api/v1/league/get?lgid=lg_z9w5_4962",
+      "http": 200,
+      "result": 0,
+      "at": "2026-10-19T07:04:55.332418+00:00"
+    },
+    {
+      "url": "https://push.n01darts.com/api/v1/league/get?lgid=lg_LLTj_7364",
+      "http": 200,
+      "result": 0,
+      "at": "2026-10-19T07:04:56.037757+00:00"
+    }
+  ],
+  "leagues": [
+    {
+      "n01_id": "lg_LLTj_7364",
+      "title": "Opens de Comité Aquitaine Sud",
+      "committee_id": "ffd-aqs",
+      "verification_status": "REVIEW_REQUIRED",
+      "reason": "Nom public N01 concordant ; preuve externe du rattachement manquante.",
+      "source_url": "https://n01darts.com/n01/league/portal.php?lgid=lg_LLTj_7364",
+      "last_synced_at": "2026-10-19T07:04:56.037757+00:00"
+    },
+    {
+      "n01_id": "lg_z9w5_4962",
+      "title": "Opens de Comité Aquitaine Nord",
+      "committee_id": "ffd-aqn",
+      "verification_status": "REVIEW_REQUIRED",
+      "reason": "Nom public N01 concordant ; preuve externe du rattachement manquante.",
+      "source_url": "https://n01darts.com/n01/league/portal.php?lgid=lg_z9w5_4962",
+      "last_synced_at": "2026-10-19T07:04:55.332418+00:00"
+    }
+  ]
+}

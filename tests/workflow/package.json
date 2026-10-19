@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "test:france": "node france-discovery.test.mjs",
     "test": "node x01-creation.test.mjs && node play-sync.test.mjs && node database.test.mjs && node optional-ds-review.test.mjs && node tournament-pages.test.mjs && node interclub.test.mjs && node interclub-j2.test.mjs && node scoring-120-139.test.mjs && node team-name-rename.test.mjs && node preview-bootstrap.test.mjs && python3 setup-preview.test.py",
     "test:browser": "node run-browser.mjs",
     "test:vision:browser": "node run-vision-production.browser.mjs",

@@ -14,3 +14,6 @@ artifacts/ui-tests/
 
 # Supabase CLI local metadata
 supabase/.temp/
+
+# Operational national inventory; reports and public-source catalogue are versioned.
+app/backend/data/france-inventory.sqlite*

@@ -1,0 +1,18 @@
+# Proposal only. Not installed/enabled by the repository or Compose.
+[Unit]
+Description=974Darts Comités France inventory update
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=darts974
+WorkingDirectory=/opt/974darts/app/backend
+EnvironmentFile=/etc/974darts/france-inventory.env
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/opt/974darts/.venv/bin/python -m app.scripts.france_inventory update --supabase --candidates-only --output /var/lib/974darts/france-reports
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/974darts/france-reports
+UMask=0077

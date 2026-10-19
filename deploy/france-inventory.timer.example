@@ -1,0 +1,12 @@
+# Proposal only. Production activation requires explicit validation.
+[Unit]
+Description=Daily proposed Comités France inventory update
+
+[Timer]
+OnCalendar=*-*-* 05:00:00 UTC
+RandomizedDelaySec=15m
+Persistent=true
+Unit=france-inventory.service
+
+[Install]
+WantedBy=timers.target
