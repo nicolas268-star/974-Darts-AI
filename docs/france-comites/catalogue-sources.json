@@ -1,0 +1,568 @@
+{
+  "source_checked_on": "2026-10-19",
+  "note": "Identités attestées par la FFD ; aucune association N01 vérifiée par le nom seul. Territoires administratifs non déduits des ligues sportives.",
+  "committees": [
+    {
+      "id": "ffd-aqn",
+      "name": "Comité Aquitaine Nord",
+      "normalized_name": "comite aquitaine nord",
+      "organism_type": "COMMITTEE",
+      "aliases": [
+        "Aquitaine Nord"
+      ],
+      "department": null,
+      "region": null,
+      "parent_organization": "Ligue Aquitaine",
+      "reference_url": "https://www.ffdarts.fr/ffd-comites/",
+      "verification_status": "VERIFIED",
+      "evidence": {
+        "target": "ffd-aqn",
+        "url": "https://www.ffdarts.fr/ffd-comites/",
+        "kind": "OFFICIAL_DIRECTORY",
+        "justification": "Annuaire FFD.",
+        "checked_at": "2026-10-19"
+      }
+    },
+    {
+      "id": "ffd-aqs",
+      "name": "Comité Aquitaine Sud",
+      "normalized_name": "comite aquitaine sud",
+      "organism_type": "COMMITTEE",
+      "aliases": [
+        "Aquitaine Sud"
+      ],
+      "department": null,
+      "region": null,
+      "parent_organization": "Ligue Aquitaine",
+      "reference_url": "https://www.ffdarts.fr/ffd-comites/",
+      "verification_status": "VERIFIED",
+      "evidence": {
+        "target": "ffd-aqs",
+        "url": "https://www.ffdarts.fr/ffd-comites/",
+        "kind": "OFFICIAL_DIRECTORY",
+        "justification": "Annuaire FFD.",
+        "checked_at": "2026-10-19"
+      }
+    },
+    {
+      "id": "ffd-cda",
+      "name": "Comité Côtes-d’Armor",
+      "normalized_name": "comite cotes d armor",
+      "organism_type": "COMMITTEE",
+      "aliases": [
+        "Côtes-d’Armor"
+      ],
+      "department": null,
+      "region": null,
+      "parent_organization": "Ligue Bretagne",
+      "reference_url": "https://www.ffdarts.fr/ffd-comites/",
+      "verification_status": "VERIFIED",
+      "evidence": {
+        "target": "ffd-cda",
+        "url": "https://www.ffdarts.fr/ffd-comites/",
+        "kind": "OFFICIAL_DIRECTORY",
+        "justification": "Annuaire FFD.",
+        "checked_at": "2026-10-19"
+      }
+    },
+    {
+      "id": "ffd-fin",
+      "name": "Comité Finistère",
+      "normalized_name": "comite finistere",
+      "organism_type": "COMMITTEE",
+      "aliases": [
+        "Finistère"
+      ],
+      "department": null,
+      "region": null,
+      "parent_organization": "Ligue Bretagne",
+      "reference_url": "https://www.ffdarts.fr/ffd-comites/",
+      "verification_status": "VERIFIED",
+      "evidence": {
+        "target": "ffd-fin",
+        "url": "https://www.ffdarts.fr/ffd-comites/",
+        "kind": "OFFICIAL_DIRECTORY",
+        "justification": "Annuaire FFD.",
+        "checked_at": "2026-10-19"
+      }
+    },
+    {
+      "id": "ffd-iev",
+      "name": "Comité Ile et Vilaine",
+      "normalized_name": "comite ile et vilaine",
+      "organism_type": "COMMITTEE",
+      "aliases": [
+        "Ile et Vilaine"
+      ],
+      "department": null,
+      "region": null,
+      "parent_organization": "Ligue Bretagne",
+      "reference_url": "https://www.ffdarts.fr/ffd-comites/",
+      "verification_status": "VERIFIED",
+      "evidence": {
+        "target": "ffd-iev",
+        "url": "https://www.ffdarts.fr/ffd-comites/",
+        "kind": "OFFICIAL_DIRECTORY",
+        "justification": "Annuaire FFD.",
+        "checked_at": "2026-10-19"
+      }
+    },
+    {
+      "id": "ffd-man",
+      "name": "Comité Manche",
+      "normalized_name": "comite manche",
+      "organism_type": "COMMITTEE",
+      "aliases": [
+        "Manche"
+      ],
+      "department": null,
+      "region": null,
+      "parent_organization": "Ligue Bretagne",
+      "reference_url": "https://www.ffdarts.fr/ffd-comites/",
+      "verification_status": "VERIFIED",
+      "evidence": {
+        "target": "ffd-man",
+        "url": "https://www.ffdarts.fr/ffd-comites/",
+        "kind": "OFFICIAL_DIRECTORY",
+        "justification": "Annuaire FFD.",
+        "checked_at": "2026-10-19"
+      }
+    },
+    {
+      "id": "ffd-mor",
+      "name": "Comité Morbihan",
+      "normalized_name": "comite morbihan",
+      "organism_type": "COMMITTEE",
+      "aliases": [
+        "Morbihan"
+      ],
+      "department": null,
+      "region": null,
+      "parent_organization": "Ligue Bretagne",
+      "reference_url": "https://www.ffdarts.fr/ffd-comites/",
+      "verification_status": "VERIFIED",
+      "evidence": {
+        "target": "ffd-mor",
+        "url": "https://www.ffdarts.fr/ffd-comites/",
+        "kind": "OFFICIAL_DIRECTORY",
+        "justification": "Annuaire FFD.",
+        "checked_at": "2026-10-19"
+      }
+    },
+    {
+      "id": "ffd-asl",
+      "name": "Comité Alsace",
+      "normalized_name": "comite alsace",
+      "organism_type": "COMMITTEE",
+      "aliases": [
+        "Alsace"
+      ],
+      "department": null,
+      "region": null,
+      "parent_organization": "Ligue Est",
+      "reference_url": "https://www.ffdarts.fr/ffd-comites/",
+      "verification_status": "VERIFIED",
+      "evidence": {
+        "target": "ffd-asl",
+        "url": "https://www.ffdarts.fr/ffd-comites/",
+        "kind": "OFFICIAL_DIRECTORY",
+        "justification": "Annuaire FFD.",
+        "checked_at": "2026-10-19"
+      }
+    },
+    {
+      "id": "ffd-cdo",
+      "name": "Comité Côte d’Or",
+      "normalized_name": "comite cote d or",
+      "organism_type": "COMMITTEE",
+      "aliases": [
+        "Côte d’Or"
+      ],
+      "department": null,
+      "region": null,
+      "parent_organization": "Ligue Est",
+      "reference_url": "https://www.ffdarts.fr/ffd-comites/",
+      "verification_status": "VERIFIED",
+      "evidence": {
+        "target": "ffd-cdo",
+        "url": "https://www.ffdarts.fr/ffd-comites/",
+        "kind": "OFFICIAL_DIRECTORY",
+        "justification": "Annuaire FFD.",
+        "checked_at": "2026-10-19"
+      }
+    },
+    {
+      "id": "ffd-nie",
+      "name": "Comité Nièvre",
+      "normalized_name": "comite nievre",
+      "organism_type": "COMMITTEE",
+      "aliases": [
+        "Nièvre"
+      ],
+      "department": null,
+      "region": null,
+      "parent_organization": "Ligue Est",
+      "reference_url": "https://www.ffdarts.fr/ffd-comites/",
+      "verification_status": "VERIFIED",
+      "evidence": {
+        "target": "ffd-nie",
+        "url": "https://www.ffdarts.fr/ffd-comites/",
+        "kind": "OFFICIAL_DIRECTORY",
+        "justification": "Annuaire FFD.",
+        "checked_at": "2026-10-19"
+      }
+    },
+    {
+      "id": "ffd-vos",
+      "name": "Comité Vosges",
+      "normalized_name": "comite vosges",
+      "organism_type": "COMMITTEE",
+      "aliases": [
+        "Vosges"
+      ],
+      "department": null,
+      "region": null,
+      "parent_organization": "Ligue Est",
+      "reference_url": "https://www.ffdarts.fr/ffd-comites/",
+      "verification_status": "VERIFIED",
+      "evidence": {
+        "target": "ffd-vos",
+        "url": "https://www.ffdarts.fr/ffd-comites/",
+        "kind": "OFFICIAL_DIRECTORY",
+        "justification": "Annuaire FFD.",
+        "checked_at": "2026-10-19"
+      }
+    },
+    {
+      "id": "ffd-npc",
+      "name": "Comité Nord-Pas-de-Calais",
+      "normalized_name": "comite nord pas de calais",
+      "organism_type": "COMMITTEE",
+      "aliases": [
+        "Nord-Pas-de-Calais"
+      ],
+      "department": null,
+      "region": null,
+      "parent_organization": "Ligue Nord",
+      "reference_url": "https://www.ffdarts.fr/ffd-comites/",
+      "verification_status": "VERIFIED",
+      "evidence": {
+        "target": "ffd-npc",
+        "url": "https://www.ffdarts.fr/ffd-comites/",
+        "kind": "OFFICIAL_DIRECTORY",
+        "justification": "Annuaire FFD.",
+        "checked_at": "2026-10-19"
+      }
+    },
+    {
+      "id": "ffd-par",
+      "name": "Comité Paris",
+      "normalized_name": "comite paris",
+      "organism_type": "COMMITTEE",
+      "aliases": [
+        "Paris"
+      ],
+      "department": null,
+      "region": null,
+      "parent_organization": "Ligue Nord",
+      "reference_url": "https://www.ffdarts.fr/ffd-comites/",
+      "verification_status": "VERIFIED",
+      "evidence": {
+        "target": "ffd-par",
+        "url": "https://www.ffdarts.fr/ffd-comites/",
+        "kind": "OFFICIAL_DIRECTORY",
+        "justification": "Annuaire FFD.",
+        "checked_at": "2026-10-19"
+      }
+    },
+    {
+      "id": "ffd-pic",
+      "name": "Comité Picardie",
+      "normalized_name": "comite picardie",
+      "organism_type": "COMMITTEE",
+      "aliases": [
+        "Picardie"
+      ],
+      "department": null,
+      "region": null,
+      "parent_organization": "Ligue Nord",
+      "reference_url": "https://www.ffdarts.fr/ffd-comites/",
+      "verification_status": "VERIFIED",
+      "evidence": {
+        "target": "ffd-pic",
+        "url": "https://www.ffdarts.fr/ffd-comites/",
+        "kind": "OFFICIAL_DIRECTORY",
+        "justification": "Annuaire FFD.",
+        "checked_at": "2026-10-19"
+      }
+    },
+    {
+      "id": "ffd-anj",
+      "name": "Comité Anjou",
+      "normalized_name": "comite anjou",
+      "organism_type": "COMMITTEE",
+      "aliases": [
+        "Anjou"
+      ],
+      "department": null,
+      "region": null,
+      "parent_organization": "Ligue Pays de la Loire",
+      "reference_url": "https://www.ffdarts.fr/ffd-comites/",
+      "verification_status": "VERIFIED",
+      "evidence": {
+        "target": "ffd-anj",
+        "url": "https://www.ffdarts.fr/ffd-comites/",
+        "kind": "OFFICIAL_DIRECTORY",
+        "justification": "Annuaire FFD.",
+        "checked_at": "2026-10-19"
+      }
+    },
+    {
+      "id": "ffd-cen",
+      "name": "Comité Centre",
+      "normalized_name": "comite centre",
+      "organism_type": "COMMITTEE",
+      "aliases": [
+        "Centre"
+      ],
+      "department": null,
+      "region": null,
+      "parent_organization": "Ligue Pays de la Loire",
+      "reference_url": "https://www.ffdarts.fr/ffd-comites/",
+      "verification_status": "VERIFIED",
+      "evidence": {
+        "target": "ffd-cen",
+        "url": "https://www.ffdarts.fr/ffd-comites/",
+        "kind": "OFFICIAL_DIRECTORY",
+        "justification": "Annuaire FFD.",
+        "checked_at": "2026-10-19"
+      }
+    },
+    {
+      "id": "ffd-lat",
+      "name": "Comité Loire-Atlantique",
+      "normalized_name": "comite loire atlantique",
+      "organism_type": "COMMITTEE",
+      "aliases": [
+        "Loire-Atlantique"
+      ],
+      "department": null,
+      "region": null,
+      "parent_organization": "Ligue Pays de la Loire",
+      "reference_url": "https://www.ffdarts.fr/ffd-comites/",
+      "verification_status": "VERIFIED",
+      "evidence": {
+        "target": "ffd-lat",
+        "url": "https://www.ffdarts.fr/ffd-comites/",
+        "kind": "OFFICIAL_DIRECTORY",
+        "justification": "Annuaire FFD.",
+        "checked_at": "2026-10-19"
+      }
+    },
+    {
+      "id": "ffd-mai",
+      "name": "Comité Maine",
+      "normalized_name": "comite maine",
+      "organism_type": "COMMITTEE",
+      "aliases": [
+        "Maine"
+      ],
+      "department": null,
+      "region": null,
+      "parent_organization": "Ligue Pays de la Loire",
+      "reference_url": "https://www.ffdarts.fr/ffd-comites/",
+      "verification_status": "VERIFIED",
+      "evidence": {
+        "target": "ffd-mai",
+        "url": "https://www.ffdarts.fr/ffd-comites/",
+        "kind": "OFFICIAL_DIRECTORY",
+        "justification": "Annuaire FFD.",
+        "checked_at": "2026-10-19"
+      }
+    },
+    {
+      "id": "ffd-ven",
+      "name": "Comité Vendée",
+      "normalized_name": "comite vendee",
+      "organism_type": "COMMITTEE",
+      "aliases": [
+        "Vendée"
+      ],
+      "department": null,
+      "region": null,
+      "parent_organization": "Ligue Pays de la Loire",
+      "reference_url": "https://www.ffdarts.fr/ffd-comites/",
+      "verification_status": "VERIFIED",
+      "evidence": {
+        "target": "ffd-ven",
+        "url": "https://www.ffdarts.fr/ffd-comites/",
+        "kind": "OFFICIAL_DIRECTORY",
+        "justification": "Annuaire FFD.",
+        "checked_at": "2026-10-19"
+      }
+    },
+    {
+      "id": "ffd-alp",
+      "name": "Comité Alpes",
+      "normalized_name": "comite alpes",
+      "organism_type": "COMMITTEE",
+      "aliases": [
+        "Alpes"
+      ],
+      "department": null,
+      "region": null,
+      "parent_organization": "Ligue Sud-Est",
+      "reference_url": "https://www.ffdarts.fr/ffd-comites/",
+      "verification_status": "VERIFIED",
+      "evidence": {
+        "target": "ffd-alp",
+        "url": "https://www.ffdarts.fr/ffd-comites/",
+        "kind": "OFFICIAL_DIRECTORY",
+        "justification": "Annuaire FFD.",
+        "checked_at": "2026-10-19"
+      }
+    },
+    {
+      "id": "ffd-auv",
+      "name": "Comité Auvergne",
+      "normalized_name": "comite auvergne",
+      "organism_type": "COMMITTEE",
+      "aliases": [
+        "Auvergne"
+      ],
+      "department": null,
+      "region": null,
+      "parent_organization": "Ligue Sud-Est",
+      "reference_url": "https://www.ffdarts.fr/ffd-comites/",
+      "verification_status": "VERIFIED",
+      "evidence": {
+        "target": "ffd-auv",
+        "url": "https://www.ffdarts.fr/ffd-comites/",
+        "kind": "OFFICIAL_DIRECTORY",
+        "justification": "Annuaire FFD.",
+        "checked_at": "2026-10-19"
+      }
+    },
+    {
+      "id": "ffd-mer",
+      "name": "Comité Méridional",
+      "normalized_name": "comite meridional",
+      "organism_type": "COMMITTEE",
+      "aliases": [
+        "Méridional"
+      ],
+      "department": null,
+      "region": null,
+      "parent_organization": "Ligue Sud-Est",
+      "reference_url": "https://www.ffdarts.fr/ffd-comites/",
+      "verification_status": "VERIFIED",
+      "evidence": {
+        "target": "ffd-mer",
+        "url": "https://www.ffdarts.fr/ffd-comites/",
+        "kind": "OFFICIAL_DIRECTORY",
+        "justification": "Annuaire FFD.",
+        "checked_at": "2026-10-19"
+      }
+    },
+    {
+      "id": "ffd-vdr",
+      "name": "Comité Vallée du Rhône",
+      "normalized_name": "comite vallee du rhone",
+      "organism_type": "COMMITTEE",
+      "aliases": [
+        "Vallée du Rhône"
+      ],
+      "department": null,
+      "region": null,
+      "parent_organization": "Ligue Sud-Est",
+      "reference_url": "https://www.ffdarts.fr/ffd-comites/",
+      "verification_status": "VERIFIED",
+      "evidence": {
+        "target": "ffd-vdr",
+        "url": "https://www.ffdarts.fr/ffd-comites/",
+        "kind": "OFFICIAL_DIRECTORY",
+        "justification": "Annuaire FFD.",
+        "checked_at": "2026-10-19"
+      }
+    },
+    {
+      "id": "ffd-mpy",
+      "name": "Comité Midi-Pyrénées",
+      "normalized_name": "comite midi pyrenees",
+      "organism_type": "COMMITTEE",
+      "aliases": [
+        "Midi-Pyrénées"
+      ],
+      "department": null,
+      "region": null,
+      "parent_organization": "Ligue Sud-Ouest",
+      "reference_url": "https://www.ffdarts.fr/ffd-comites/",
+      "verification_status": "VERIFIED",
+      "evidence": {
+        "target": "ffd-mpy",
+        "url": "https://www.ffdarts.fr/ffd-comites/",
+        "kind": "OFFICIAL_DIRECTORY",
+        "justification": "Annuaire FFD.",
+        "checked_at": "2026-10-19"
+      }
+    },
+    {
+      "id": "ffd-pya",
+      "name": "Comité Pyrénées-Atlantique",
+      "normalized_name": "comite pyrenees atlantique",
+      "organism_type": "COMMITTEE",
+      "aliases": [
+        "Pyrénées-Atlantique"
+      ],
+      "department": null,
+      "region": null,
+      "parent_organization": "Ligue Sud-Ouest",
+      "reference_url": "https://www.ffdarts.fr/ffd-comites/",
+      "verification_status": "VERIFIED",
+      "evidence": {
+        "target": "ffd-pya",
+        "url": "https://www.ffdarts.fr/ffd-comites/",
+        "kind": "OFFICIAL_DIRECTORY",
+        "justification": "Annuaire FFD.",
+        "checked_at": "2026-10-19"
+      }
+    },
+    {
+      "id": "ffd-tga",
+      "name": "Comité Tarn-et-Garonne",
+      "normalized_name": "comite tarn et garonne",
+      "organism_type": "COMMITTEE",
+      "aliases": [
+        "Tarn-et-Garonne"
+      ],
+      "department": null,
+      "region": null,
+      "parent_organization": "Ligue Sud-Ouest",
+      "reference_url": "https://www.ffdarts.fr/ffd-comites/",
+      "verification_status": "VERIFIED",
+      "evidence": {
+        "target": "ffd-tga",
+        "url": "https://www.ffdarts.fr/ffd-comites/",
+        "kind": "OFFICIAL_DIRECTORY",
+        "justification": "Annuaire FFD.",
+        "checked_at": "2026-10-19"
+      }
+    }
+  ],
+  "leagues": [
+    {
+      "n01_id": "lg_z9w5_4962",
+      "title": "Opens de Comité Aquitaine Nord",
+      "committee_id": "ffd-aqn",
+      "verification_status": "REVIEW_REQUIRED",
+      "reason": "Nom public N01 concordant ; preuve externe du rattachement manquante."
+    },
+    {
+      "n01_id": "lg_LLTj_7364",
+      "title": "Opens de Comité Aquitaine Sud",
+      "committee_id": "ffd-aqs",
+      "verification_status": "REVIEW_REQUIRED",
+      "reason": "Nom public N01 concordant ; preuve externe du rattachement manquante."
+    }
+  ]
+}

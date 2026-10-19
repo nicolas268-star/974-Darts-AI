@@ -9,6 +9,7 @@ const items = [
   { href: "/admin/identities", label: "Identity Hub", test: (p: string) => p.startsWith("/admin/identities") },
   { href: "/admin/player-identities", label: "Assistant IA", test: (p: string) => p.startsWith("/admin/player-identities") },
   { href: "/admin/nakka-sync", label: "Agent Nakka", test: (p: string) => p.startsWith("/admin/nakka-sync") },
+  { href: "/admin/comites-france", label: "Comités France", test: (p: string) => p.startsWith("/admin/comites-france") },
   { href: "/admin/seasons", label: "Saisons", test: (p: string) => p.startsWith("/admin/seasons") },
   { href: "/admin/transfers", label: "Transferts", test: (p: string) => p.startsWith("/admin/transfers") },
   { href: "/admin/calendar", label: "Calendrier", test: (p: string) => p.startsWith("/admin/calendar") },
@@ -28,6 +29,7 @@ function pageLabel(pathname: string) {
   if (pathname.startsWith("/admin/identities/")) return "Fiche identité";
   if (pathname.startsWith("/admin/player-identities")) return "Assistant IA";
   if (pathname.startsWith("/admin/nakka-sync")) return "Agent Nakka";
+  if (pathname.startsWith("/admin/comites-france")) return "Comités France";
   if (pathname.startsWith("/admin/seasons")) return "Saisons";
   if (pathname.startsWith("/admin/transfers")) return "Joueurs & transferts";
   if (pathname.startsWith("/admin/calendar")) return "Calendrier";

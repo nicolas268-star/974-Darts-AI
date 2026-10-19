@@ -1,0 +1,178 @@
+{
+  "checked_at": "2026-10-19T06:48:36.223234+00:00",
+  "anonymous": true,
+  "results": [
+    {
+      "endpoint": "tournament/list",
+      "params": {
+        "keyword": "comit",
+        "count": 2
+      },
+      "result": 0,
+      "keys": [
+        "list",
+        "result"
+      ],
+      "items": 2
+    },
+    {
+      "endpoint": "league/list",
+      "params": {
+        "keyword": "comit",
+        "count": 2
+      },
+      "result": 0,
+      "keys": [
+        "list",
+        "result"
+      ],
+      "items": 2
+    },
+    {
+      "endpoint": "league/get",
+      "params": {
+        "lgid": "lg_z9w5_4962"
+      },
+      "result": 0,
+      "keys": [
+        "league",
+        "result",
+        "url"
+      ],
+      "items": 0
+    },
+    {
+      "endpoint": "league/tournament/list",
+      "params": {
+        "lgid": "lg_z9w5_4962",
+        "count": 2
+      },
+      "result": 0,
+      "keys": [
+        "list",
+        "result"
+      ],
+      "items": 2
+    },
+    {
+      "endpoint": "tournament/get",
+      "params": {
+        "tdid": "t_aKyY_3246"
+      },
+      "result": 0,
+      "keys": [
+        "result",
+        "tournament",
+        "url"
+      ],
+      "items": 0
+    },
+    {
+      "endpoint": "tournament/entry/list",
+      "params": {
+        "tdid": "t_aKyY_3246"
+      },
+      "result": 0,
+      "keys": [
+        "list",
+        "result"
+      ],
+      "items": 35
+    },
+    {
+      "endpoint": "tournament/stats",
+      "params": {
+        "tdid": "t_aKyY_3246"
+      },
+      "result": 0,
+      "keys": [
+        "kind",
+        "result",
+        "stats"
+      ],
+      "items": 0
+    },
+    {
+      "endpoint": "tournament/standings",
+      "params": {
+        "tdid": "t_aKyY_3246"
+      },
+      "result": 0,
+      "keys": [
+        "groups",
+        "result",
+        "tdid"
+      ],
+      "items": 0
+    },
+    {
+      "endpoint": "match/list",
+      "params": {
+        "tdid": "t_aKyY_3246",
+        "count": 1
+      },
+      "result": 0,
+      "keys": [
+        "list",
+        "result"
+      ],
+      "items": 1
+    }
+  ],
+  "trace": [
+    {
+      "url": "https://push.n01darts.com/api/v1/tournament/list?keyword=comit&count=2",
+      "http": 200,
+      "result": 0,
+      "at": "2026-10-19T06:48:30.017927+00:00"
+    },
+    {
+      "url": "https://push.n01darts.com/api/v1/league/list?keyword=comit&count=2",
+      "http": 200,
+      "result": 0,
+      "at": "2026-10-19T06:48:30.678717+00:00"
+    },
+    {
+      "url": "https://push.n01darts.com/api/v1/league/get?lgid=lg_z9w5_4962",
+      "http": 200,
+      "result": 0,
+      "at": "2026-10-19T06:48:31.429876+00:00"
+    },
+    {
+      "url": "https://push.n01darts.com/api/v1/league/tournament/list?lgid=lg_z9w5_4962&count=2",
+      "http": 200,
+      "result": 0,
+      "at": "2026-10-19T06:48:32.181454+00:00"
+    },
+    {
+      "url": "https://push.n01darts.com/api/v1/tournament/get?tdid=t_aKyY_3246",
+      "http": 200,
+      "result": 0,
+      "at": "2026-10-19T06:48:33.090179+00:00"
+    },
+    {
+      "url": "https://push.n01darts.com/api/v1/tournament/entry/list?tdid=t_aKyY_3246",
+      "http": 200,
+      "result": 0,
+      "at": "2026-10-19T06:48:33.688445+00:00"
+    },
+    {
+      "url": "https://push.n01darts.com/api/v1/tournament/stats?tdid=t_aKyY_3246",
+      "http": 200,
+      "result": 0,
+      "at": "2026-10-19T06:48:34.779662+00:00"
+    },
+    {
+      "url": "https://push.n01darts.com/api/v1/tournament/standings?tdid=t_aKyY_3246",
+      "http": 200,
+      "result": 0,
+      "at": "2026-10-19T06:48:35.313858+00:00"
+    },
+    {
+      "url": "https://push.n01darts.com/api/v1/match/list?tdid=t_aKyY_3246&count=1",
+      "http": 200,
+      "result": 0,
+      "at": "2026-10-19T06:48:36.223234+00:00"
+    }
+  ]
+}

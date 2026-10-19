@@ -16,6 +16,7 @@ import {testConquestUltra} from './conquest-ultra.browser.mjs';
 import {testDartChess} from './dart-chess.browser.mjs';
 import {testDartChessV2} from './dart-chess-v2.browser.mjs';
 import {testVisionCalibration} from './vision-calibration.browser.mjs';
+import {testFrance} from './france.browser.mjs';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'../..');
 const output=resolve(root,'docs/ranking-workflow-preview');
 const sharp=createRequire(resolve(root,'app/frontend/package.json'))('sharp');
@@ -35,6 +36,7 @@ async function login(page,role){
 }
 try{
  await login(admin,'admin');
+ await testFrance(browser,admin,screenshot);
  if (!process.env.RANKING_BROWSER_ONLY) {
  await testVisionCalibration(admin,screenshot);
  await testPlayUniverse(admin,screenshot);

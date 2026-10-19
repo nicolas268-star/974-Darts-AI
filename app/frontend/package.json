@@ -13,6 +13,7 @@
     "test": "npm run lint && npm run typecheck && npm run test:tournaments && npm run test:visibility && npm run test:control && npm run check:release && npm run test:play && npm run test:vision && npm run test:player-card && npm run test:player-affiliations && npm run test:kpi-guide && npm run test:scoring-ranges && npm run test:mvp && npm run test:statistics-filters && npm run test:bdc && npm run test:match-day",
     "test:statistics-filters": "node scripts/test-statistics-filters.mjs",
     "test:tournaments": "node scripts/test-tournament-pages.mjs && node scripts/test-tournament-refresh.mjs",
+    "test:france": "node scripts/test-france.mjs",
     "test:tournaments:browser": "node scripts/test-tournament-browser.mjs",
     "test:mvp": "node scripts/test-mvp.mjs",
     "test:scoring-ranges": "node scripts/test-scoring-ranges.mjs",

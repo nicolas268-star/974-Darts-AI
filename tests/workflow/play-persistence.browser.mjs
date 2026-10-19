@@ -11,7 +11,12 @@ export async function testPlayPersistence(page, screenshot) {
   }, kind);
   const enter = async (target, value) => {
     const input = target.getByLabel("Fléchette", {exact:true});
-    await input.fill(value); await input.press("Enter");
+    // A pending persistence commit intentionally rejects another submission.
+    // Wait for the real form state; callers check the resulting counter or win.
+    await expect(target.locator("form.play-dart-entry")).toHaveAttribute("aria-busy", "false");
+    await input.fill(value);
+    await expect(target.getByRole("button", {name:"Ajouter",exact:true})).toBeEnabled();
+    await input.press("Enter");
   };
   const counter = (target, n) => expect(target.getByRole("region", {name:"Saisie de la volée"}).getByText(n + "/3 fléchettes jouées", {exact:true})).toBeVisible();
   const saved = target => expect(target.getByText("Partie sauvegardée sur ce navigateur", {exact:true})).toBeVisible();
