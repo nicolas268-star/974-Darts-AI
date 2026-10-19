@@ -6,6 +6,7 @@ import {readFileSync,readdirSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {resolve,dirname} from 'node:path';
 import {randomUUID} from 'node:crypto';
+import {franceFixture} from './france-preview-fixture.mjs';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'../..');
 const db=new PGlite();
 const ids={admin:'00000000-0000-0000-0000-000000000001',director:'00000000-0000-0000-0000-000000000002',player:'00000000-0000-0000-0000-000000000003'};
@@ -30,6 +31,7 @@ const metadata={title:'Open Club Double · Démonstration',event_date:'2026-09-1
 const source={sourceId:'t_preview',sourceUrl:metadata.source_url,format:'SINGLE_ELIMINATION',collectedAt:'2026-09-14T08:00:00Z',summary:{matches:1,completeMatches:1},blockingReasons:[],participants:[{sourceId:'a',name:'Alice / Bruno',matchesPlayed:1,matchesWon:1,average3Darts:52.4},{sourceId:'b',name:'Camille / David',matchesPlayed:1,matchesWon:0,average3Darts:49.1}],matches:[{id:'match-1',stage_label:'Finale',stage_code:'ko_1',home:'Alice / Bruno',away:'Camille / David',home_score:3,away_score:1,winner:'Alice / Bruno',result_complete:true}]};
 const snapshot={metadata,results,source,ruleset:'committee-2026-2027-v1-double-10-8-6-4-2',blockers:[],point_scale:[10,8,6,4,2],summary:{players:4,points:36},recognition:{declared_on:'2026-08-20',received_at:'2026-09-14T10:00:00+04:00',ended_at:'2026-09-13T18:00:00+04:00',logo_confirmed:true,format_confirmed:true,eligibility_confirmed:true,classification_confirmed:true,evidence:'Affiche et accusé de réception fictifs pour la démonstration.',classification_basis:'Classement de la finale fictive vérifié : 3–1.'}};
 await db.exec('set role service_role');
+const handleFrance = await franceFixture(db);
 const cmd=async(action,expected,payload)=>(await db.query('select ranking_workflow_command($1,$2,$3,$4,$5,$6::jsonb) as result',[ids.admin,'demo-double',expected,randomUUID(),action,JSON.stringify(payload)])).rows[0].result;
 const draft=await cmd('CREATE',null,{source_id:'t_preview',discipline:'DOUBLE',season_key:'2026-2027',snapshot,director_id:ids.director});
 await cmd('SAVE',draft.revision_id,{snapshot,director_id:ids.director,reason:'Préparation de la démonstration'});
@@ -48,6 +50,7 @@ const server=createServer(async(req,res)=>{
  const url=new URL(req.url,'http://localhost'), token=(req.headers.authorization||'').replace(/^Bearer /,'');
  const role=Object.keys(tokens).find(r=>tokens[r]===token), service=req.headers.apikey==='test-service-role-key';
  try{
+  if (await handleFrance({req,url,body,service,role,userId:ids[role],send})) return;
   if(url.pathname==='/auth/v1/token'){
    const r=String(body.email||'').split('@')[0];
    if(!ids[r]||body.password!=='preview-only')return send(400,{msg:'Identifiants fictifs invalides'});

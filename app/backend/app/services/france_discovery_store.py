@@ -214,3 +214,44 @@ class SupabaseStore:
             payload = copy.deepcopy(payload)
             payload["overrides"]["normalized_name"] = normalize_text(payload["overrides"]["name"])
         return self.client.rpc("france_inventory_command", {"p_action": action, "p_payload": payload}).execute().data
+
+
+def promote_initial_inventory(source, target) -> dict:
+    """Copy real collected sources to an empty/new target without overwriting it.
+
+    Manual association decisions are deliberately not promoted. Every proposed
+    association must pass the target's own validation workflow.
+    """
+    stats = {"committees": 0, "leagues": 0, "competitions": 0, "candidates": 0, "runs": 0}
+    for committee in source.rows("committees"):
+        if not target.get("committees", committee["id"]):
+            target.command("committee", committee)
+            stats["committees"] += 1
+    for league in source.rows("leagues"):
+        if not target.get("leagues", league["n01_id"]):
+            # A verified league mapping is a manual decision, not imported evidence.
+            payload = {**league, "verification_status": "REVIEW_REQUIRED"}
+            payload.pop("evidence", None)
+            target.command("league", payload)
+            stats["leagues"] += 1
+    for item in source.rows("sources"):
+        key = item["n01_id"]
+        if target.get("competitions", key):
+            continue
+        record = item.get("record")
+        if not isinstance(record, dict) or record.get("n01_id") != key:
+            raise ValueError("The collected source has no original normalized record")
+        target.command("observe", {"source": item, "record": record})
+        stats["competitions"] += 1
+    for candidate in source.rows("candidates"):
+        if candidate.get("status") != "REVIEW_REQUIRED":
+            continue
+        key = candidate["n01_id"] + ":" + candidate["committee_id"]
+        if not target.get("candidates", key):
+            target.command("suggest", candidate)
+            stats["candidates"] += 1
+    for run in source.rows("runs"):
+        if not target.get("runs", run["id"]):
+            target.command("run", run)
+            stats["runs"] += 1
+    return stats

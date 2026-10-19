@@ -1,6 +1,6 @@
 # Comités France — phase 1
 
-Le moteur est implémenté, la collecte publique a été exécutée et les sources restent distinctes des points, classements et résultats sportifs existants. Aucune migration partagée, publication de données nationales, planification ou mise en production n'a été activée.
+Le moteur et les écrans publics/administrateur sont implémentés. La collecte publique a été exécutée et les sources restent distinctes des points, classements et résultats sportifs existants. Le déploiement de production demandé est préparé dans [la procédure dédiée](deploiement.md) ; son exécution et sa vérification HTTPS doivent être consignées avant d'annoncer une mise en ligne. La synchronisation planifiée reste désactivée.
 
 ## Résultat réel du 19 octobre 2026
 
@@ -25,7 +25,8 @@ Les organismes attestés sans compétition N01 attribuée ne sont pas présenté
 | [Vérification des endpoints](verification-endpoints.json) | Neuf appels anonymes réels, paramètres et statuts. |
 | [Vérification des ligues Aquitaine](verification-ligues-aquitaine.json) | Identifiants, titres et URLs officiels réellement observés. |
 | [Exploitation](exploitation.md) | Commandes, reprise, dry-run, validation, corrections et Supabase. |
-| [Phase 2](phase-2.md) | Contrats et architecture proposés pour `/comites/france` et l'administration. |
+| [Interface](phase-2.md) | Contrats implémentés pour `/comites/france` et l'administration, puis évolutions restantes. |
+| [Déploiement](deploiement.md) | Promotion des sources réelles, contrôles, sauvegarde et retour arrière applicatif. |
 | [Bilan de validation](bilan-validation.md) | Tests, limites de l'environnement et fichiers livrés. |
 
 Les snapshots bruts publics, leurs hashes et les journaux privés sont conservés dans `app/backend/data/france-inventory.sqlite`, ignoré par Git. Le JSON portable suffit à régénérer le rapport avec `write_report`; il ne remplace pas la base de synchronisation privée contenant les sources complètes.

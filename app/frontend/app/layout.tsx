@@ -79,6 +79,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             <nav className="nav-links" aria-label="Domaines 974Darts">
               <Link className="nav-domain-link" href="/stats">Stats & Données</Link>
               <Link className="nav-domain-link" href="/play">Jeux</Link>
+              <Link className="nav-domain-link" href="/comites/france">Comités France</Link>
               <Link className="nav-domain-link" href="/admin">Admin</Link>
               <Link className="nav-account-link" href="/player">Mon espace</Link>
               <Link className="btn btn-primary" href="/login">Connexion</Link>

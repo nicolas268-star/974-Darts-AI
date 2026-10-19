@@ -12,18 +12,24 @@ L'exploration réelle du 1er janvier 2025 au 31 août 2027 a terminé après rep
 - CLI de catalogue, validation, corrections, synchronisation et rapport ; SQLite local pour l'exécution sans accès Supabase cible.
 - Inventaires Markdown/CSV/JSON réels, catalogue et vérification des sources, audit d'architecture, exploitation et proposition technique `/comites/france`.
 - Tests et intégration CI ; service/timer fournis uniquement comme exemples désactivés.
+- Annuaire `/comites/france`, fiches d'organismes et lien de navigation, avec recherche, filtre de ligue sportive, pagination et compteurs limités aux associations confirmées.
+- Administration privée `/admin/comites-france` : propositions, observations, organismes, imports et décisions auditées. Route serveur avec session administrateur unique, contrôle d'origine, taille bornée et preuve ciblée obligatoire avant publication ; clé service dans un module `server-only`.
+- Promotion initiale idempotente des vraies sources locales, sans recopier les décisions d'association locales, et script de déploiement dédié avec sauvegarde des images, contrôle des résultats sportifs et retour arrière applicatif.
 
 ## Validation
 
 - Compilation backend réussie.
-- 33 tests spécifiques au moteur ; 241 tests backend compatibles Windows réussis au total.
+- 34 tests spécifiques au moteur, dont promotion idempotente et préservation des décisions de la cible ; 241 tests backend compatibles Windows réussis lors de la première phase.
 - 41 contrôles PostgreSQL du nouveau périmètre réussis dans PGlite.
 - 51 contrôles de classement existants et 65 contrôles de fiches de tournois existants réussis.
 - Dry-run : fichier SQLite inchangé octet pour octet ; `git diff --check` réussi.
+- Build Next.js de production, TypeScript et tests frontend France réussis : filtres publics, projection de données, URLs, états vides, accès administrateur, CSRF, limite de taille, preuve et acteur vérifié côté serveur.
+- Promotion hors ligne de la base réelle : 26 organismes, 13 ligues, 262 observations, 31 propositions et 2 runs ; seconde exécution sans écriture et aucun rattachement publié.
+- Parcours navigateur France réussis avec Next.js et PostgreSQL isolé : recherche, pagination, confidentialité, accès protégé, rejet et validation avec preuve, publication ciblée, onglets et largeurs de 320 à 1 440 px.
 - Les deux modules backend existants dépendant de `fcntl` et les scripts Interclubs appelant `python3` nécessitent Linux ; la CI complète les vérifie.
 
 ## Limites et déploiement
 
-La migration n'est appliquée à aucun Supabase partagé ; son exécution et ses permissions ont été vérifiées dans PostgreSQL isolé. Aucun déploiement de production, aucune activation de planification et aucune interface publique nationale. Les preuves de rattachement doivent encore être contrôlées et validées avant publication. Les snapshots bruts restent dans la base locale ignorée par Git ; l'export versionné contient les métadonnées utiles à la revue, sans données de joueurs.
+La migration et ses permissions sont vérifiées dans PostgreSQL isolé. La mise en production est demandée et sa procédure est documentée dans `docs/france-comites/deploiement.md` ; le compte rendu d'exécution doit confirmer la migration cible, les images et les contrôles HTTPS. Les 31 preuves de rattachement restent à contrôler avant publication des compétitions. La planification reste désactivée. Les snapshots bruts restent privés ; l'export versionné contient les métadonnées utiles à la revue, sans données de joueurs.
 
 Documentation : `docs/france-comites/README.md`, `audit-architecture.md`, `inventaire-initial.md`, `exploitation.md`, `bilan-validation.md`, `phase-2.md`.

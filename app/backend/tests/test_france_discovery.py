@@ -14,7 +14,7 @@ from app.services.france_discovery_model import (
 )
 from app.services.france_discovery_report import render_report, safe_cell
 from app.services.france_discovery_service import DiscoveryService, sanitize
-from app.services.france_discovery_store import SQLiteStore, SupabaseStore
+from app.services.france_discovery_store import SQLiteStore, SupabaseStore, promote_initial_inventory
 from app.services.n01_public_client import N01Client, N01Error
 
 FIXTURE = json.loads((Path(__file__).parent / "fixtures/france_discovery/tournament.json").read_text(encoding="utf-8"))
@@ -401,6 +401,27 @@ class ServiceTests(unittest.TestCase):
         api.get = inaccessible
         DiscoveryService(api, self.store).collect(ID)
         self.assertEqual(public_competitions(self.store.snapshot()), [])
+
+
+class PromotionTests(unittest.TestCase):
+    def test_real_source_promotion_is_idempotent_and_does_not_publish_local_decisions(self):
+        source, target = SQLiteStore(), SQLiteStore()
+        self.addCleanup(source.close)
+        self.addCleanup(target.close)
+        source.command("committee", committee())
+        observation_ = observation()
+        observation_["source"]["record"] = observation_["record"]
+        source.command("observe", observation_)
+        source.command("decide", {"n01_id": ID, "committee_id": "fixture-committee", "status": "VERIFIED",
+            "actor": "test-only", "reason": "Test local decision", "evidence": evidence(ID)})
+        first = promote_initial_inventory(source, target)
+        self.assertEqual(first["competitions"], 1)
+        self.assertEqual(public_competitions(target.snapshot()), [])
+        self.assertEqual(target.get("sources", ID)["raw"], source.get("sources", ID)["raw"])
+        target.command("correct", {"n01_id": ID, "actor": "test", "reason": "Target correction", "overrides": {"title": "Target title"}})
+        second = promote_initial_inventory(source, target)
+        self.assertTrue(all(v == 0 for v in second.values()))
+        self.assertEqual(target.get("competitions", ID)["title"], "Target title")
 
 
 if __name__ == "__main__":

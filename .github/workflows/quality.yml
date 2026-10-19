@@ -26,6 +26,8 @@ jobs:
       - run: npm ci
       - name: Tests frontend et fiches de tournois
         run: npm run test
+      - name: Annuaire France et validation administrateur
+        run: npm run test:france
       - run: npm run build
       - run: npm audit --omit=dev --audit-level=high
 
@@ -104,6 +106,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Valider la syntaxe du déploiement des fiches
         run: bash -n deploy/deploy-tournament-pages.sh
+      - name: Valider le déploiement Comités France
+        run: bash -n deploy/deploy-france-inventory.sh
       - name: Préparer l'environnement Compose de CI
         run: |
           sudo install -d -m 755 /etc/974darts
@@ -130,6 +134,8 @@ jobs:
         run: docker compose -f deploy/compose.ranking-preview.yaml config --quiet
       - name: Construire l'image API sans navigateur
         run: docker build --target api -t darts974-api-ci app/backend
+      - name: Vérifier la commande d'inventaire dans le conteneur API
+        run: docker run --rm darts974-api-ci python -m app.scripts.france_inventory --help
       - name: Construire l'image worker légère
         run: docker build --target worker -t darts974-worker-ci app/backend
       - name: Construire l'image scraper avec Chromium

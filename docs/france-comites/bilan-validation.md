@@ -2,15 +2,19 @@
 
 ## Vérifications locales
 
-Python 3.12.14, dépendances backend préinstallées sous `.test-deps`, Node 24.18.0 et PGlite 0.3.14. Aucune dépendance ajoutée. Le frontend n'a pas été modifié ; aucune refonte ni nouvelle route publique.
+Python 3.12.14, dépendances backend préinstallées sous `.test-deps`, Node 24.18.0 et PGlite 0.3.14. Aucune dépendance ajoutée. Les écrans publics et administrateur ont ensuite été intégrés après validation du visuel provisoire et demande de déploiement. Le moteur compte désormais 34 tests spécifiques, avec promotion initiale idempotente sans reprise des décisions locales.
 
 - `python -m compileall -q app/backend/app` : réussi.
-- `python -m unittest discover -s app/backend/tests -p test_france_discovery.py` : 33 tests spécifiques, fixtures synthétiques isolées. Pagination, filtres, timestamps, statuts, HTTP 429/Retry-After, erreurs HTTP avec enveloppe N01, reprise, interruptions, idempotence, corrections, refus des preuves insuffisantes et confidentialité.
+- `python -m unittest discover -s app/backend/tests -p test_france_discovery.py` : 34 tests spécifiques, fixtures synthétiques isolées. Pagination, filtres, timestamps, statuts, HTTP 429/Retry-After, erreurs HTTP avec enveloppe N01, reprise, interruptions, idempotence, corrections, promotion, refus des preuves insuffisantes et confidentialité.
 - Suite backend sous Windows : 241 tests exécutables réussis ; deux modules existants ne sont pas importables sur Windows car ils importent `fcntl` (`test_interclub_analysis`, `test_match_day`). Ils restent dans la suite complète de CI Linux, sans remplacement fictif du verrou système.
 - `node tests/workflow/france-discovery.test.mjs` : 41 contrôles SQL réussis, incluant RLS, droits de fonctions, unicité, préservation des décisions et corrections, rejet, journal immuable, rollback transactionnel et invariant sur des données sportives témoins.
 - `node tests/workflow/database.test.mjs` : 51 contrôles existants réussis.
 - `node tests/workflow/tournament-pages.test.mjs` : 65 contrôles existants réussis.
 - `git diff --check` : réussi.
+- Build Next.js de production et TypeScript : réussis. La suite frontend France vérifie confidentialité, filtres, URLs, états vides et contrôles de la route de décision.
+- Navigateur Chrome avec Next.js, Auth fictive et vrai PostgreSQL isolé : recherche, pagination, fiche vide, refus sans session, rejet, validation avec preuve, publication après décision, onglets administrateur et largeurs 320/390/768/1440 réussis. Les captures et logs de test restent sous `test-results/france`, hors dépôt.
+- Promotion hors ligne de la base réelle réussie : 26 organismes, 13 ligues, 262 observations, 31 propositions et 2 runs ; seconde exécution sans nouvelle écriture, zéro rattachement publié.
+- La suite frontend complète atteint un ancien script `test-player-card.mjs` incompatible avec les chemins Windows. La CI Linux reste la validation complète ; aucun remplacement de ces tests existants.
 - `seed --dry-run --output test-results/france-dry-run` : réussi ; hash du fichier SQLite identique avant/après.
 
 Le bac à sable Windows bloque aussi la socket locale utilisée par Starlette TestClient. Les tests backend complets exécutables ont donc été relancés hors de cette restriction, sans accès à une base distante. Les scripts SQL Interclubs existants appellent `python3` et requièrent également les modules Linux ; ils restent à exécuter dans la CI Linux. Les imports et règles Interclubs n'ont pas été modifiés.
@@ -56,4 +60,4 @@ Les fichiers existants de scoring, imports Nakka, classement Comité, MVP, stati
 
 Aucun accès Supabase cible n'a été utilisé. La migration et la RPC ont été exécutées dans PostgreSQL embarqué isolé ; elles restent à appliquer puis tester dans un environnement Supabase de validation. Les droits publics concernent seulement les organismes documentés et les compétitions confirmées dont la source reste publique. Le contrôle du contenu d'une preuve reste humain.
 
-La préparation d'une planification et d'une Pull Request n'autorise pas un déploiement, l'application de migrations de production ou l'activation d'une tâche planifiée : aucune de ces actions n'est effectuée.
+La demande ultérieure de l'utilisateur autorise le déploiement de production. Sa procédure dédiée sauvegarde les images et les résultats publiés, ne remplace que backend/frontend et vérifie les empreintes sportives et la santé HTTPS. Son exécution réelle doit être consignée avant d'annoncer la mise en ligne. Les timers restent désactivés.

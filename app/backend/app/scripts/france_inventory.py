@@ -10,16 +10,19 @@ from pathlib import Path
 from app.services.france_discovery_model import now
 from app.services.france_discovery_report import write_report
 from app.services.france_discovery_service import DiscoveryService
-from app.services.france_discovery_store import SQLiteStore, SupabaseStore
+from app.services.france_discovery_store import SQLiteStore, SupabaseStore, promote_initial_inventory
 from app.services.n01_public_client import N01Client
 
-ROOT = Path(__file__).resolve().parents[4]
+ROOT = next((parent for parent in Path(__file__).resolve().parents
+             if (parent / "supabase").is_dir() and (parent / "app/backend").is_dir()),
+            Path(os.getenv("FRANCE_INVENTORY_ROOT", "/app")))
+DATA_DIRECTORY = ROOT / "app/backend/data" if (ROOT / "app/backend").is_dir() else ROOT / "data"
 
 
 def parser():
     p = argparse.ArgumentParser(description="Inventaire Comités France : lecture publique N01, aucun classement")
-    p.add_argument("mode", choices=("discover", "update", "seed", "validate", "correct", "correct-organism", "report", "probe"))
-    p.add_argument("--database", type=Path, default=ROOT / "app/backend/data/france-inventory.sqlite")
+    p.add_argument("mode", choices=("discover", "update", "seed", "validate", "correct", "correct-organism", "report", "probe", "promote"))
+    p.add_argument("--database", type=Path, default=DATA_DIRECTORY / "france-inventory.sqlite")
     p.add_argument("--supabase", action="store_true", help="Explicit opt-in, service role env required")
     p.add_argument("--dry-run", action="store_true", help="In-memory state clone, no database writes")
     p.add_argument("--catalog", type=Path, default=ROOT / "docs/france-comites/catalogue-sources.json")
@@ -44,6 +47,8 @@ def parser():
 
 def main(argv=None) -> int:
     args = parser().parse_args(argv)
+    if args.mode == "promote" and not args.supabase:
+        raise ValueError("Promotion requires an explicit --supabase target")
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     client = N01Client(interval=args.interval)
     if args.mode == "probe":
@@ -81,7 +86,13 @@ def main(argv=None) -> int:
             original.close()
     try:
         result = None
-        if args.mode == "seed":
+        if args.mode == "promote":
+            source = SQLiteStore(args.database, readonly=True)
+            try:
+                result = promote_initial_inventory(source, store)
+            finally:
+                source.close()
+        elif args.mode == "seed":
             catalog = json.loads(args.catalog.read_text(encoding="utf-8-sig"))
             for committee in catalog["committees"]:
                 store.command("committee", committee)

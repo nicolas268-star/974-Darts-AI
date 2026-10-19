@@ -7,6 +7,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "", "/flechettes-la-reunion", "/competitions", "/championships/2027",
     "/championships/2026", "/calendar", "/teams", "/players", "/duos",
     "/tournaments", "/records/180",
+    "/comites/france",
     "/records/finishes", "/records/mvp", "/records/mvp/2026", "/records/mvp/2027",
     "/mentions-legales", "/confidentialite", "/conditions-utilisation",
   ];
