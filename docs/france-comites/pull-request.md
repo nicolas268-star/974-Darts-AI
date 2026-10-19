@@ -26,6 +26,7 @@ L'exploration réelle du 1er janvier 2025 au 31 août 2027 a terminé après rep
 - Build Next.js de production, TypeScript et tests frontend France réussis : filtres publics, projection de données, URLs, états vides, accès administrateur, CSRF, limite de taille, preuve et acteur vérifié côté serveur.
 - Promotion hors ligne de la base réelle : 26 organismes, 13 ligues, 262 observations, 31 propositions et 2 runs ; seconde exécution sans écriture et aucun rattachement publié.
 - Parcours navigateur France réussis avec Next.js et PostgreSQL isolé : recherche, pagination, confidentialité, accès protégé, rejet et validation avec preuve, publication ciblée, onglets et largeurs de 320 à 1 440 px.
+- Stabilisation du test navigateur de persistance des jeux : attendre la fin du commit avant la prochaine saisie et vérifier que chaque fléchette est consommée. Le formulaire refuse volontairement une soumission pendant une sauvegarde ; le test ne doit pas l'ignorer.
 - Les deux modules backend existants dépendant de `fcntl` et les scripts Interclubs appelant `python3` nécessitent Linux ; la CI complète les vérifie.
 
 ## Limites et déploiement
