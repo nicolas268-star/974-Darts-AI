@@ -108,6 +108,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Valider le déploiement Captain Nico et effectifs
+        run: bash -n deploy/deploy-captain-roster.sh
       - name: Valider la syntaxe du déploiement des fiches
         run: bash -n deploy/deploy-tournament-pages.sh
       - name: Valider le déploiement Comités France
