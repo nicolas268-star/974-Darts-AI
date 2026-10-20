@@ -19,6 +19,7 @@ export const TEAM_ROSTERS_2027: TeamRoster2027[] = [
     { officialName: "Etienne BEAUR", nakkaName: "Etienne", license: "97402006" },
     { officialName: "Adrien LICHTENHAHN", nakkaName: "Adrien", license: "97402008" },
     { officialName: "Nicolas DUPONT", nakkaName: "Nico", license: "97402010" },
+    { officialName: "Matheo PREHU", nakkaName: "PrehuMatheo", license: "" },
   ] },
   { id: "tdc-zarboutan", name: "Tampon Darts Club - Zarboutan", club: "Tampon Darts Club", players: [
     { officialName: "Guillaume HOARAU", nakkaName: "Guillaume", license: "97404013" },

@@ -384,7 +384,7 @@ try {
     }
     await page.goto(base+"/players/affiliation-unlisted?season=2026");assert.equal(await sections().nth(0).locator("strong").textContent(),"Kazadarts A");assert.equal(await sections().nth(1).locator("small").textContent(),"Absent de la liste officielle 2027");
     await page.setViewportSize({width:1600,height:1000});await page.goto(base+"/players/affiliation-pierre?season=2027");assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);await page.screenshot({path:resolve(out,"profile-pierre-affiliations-desktop.png"),fullPage:true});
-    await page.goto(base+"/teams");assert.match(await page.locator(".teams-rosters-heading").textContent(),/Championnat 2027.*51 joueurs inscrits pour la saison 2027/);assert.doesNotMatch(await page.locator(".teams-rosters-heading").textContent(),/2026.2027/);
+    await page.goto(base+"/teams");assert.match(await page.locator(".teams-rosters-heading").textContent(),/Championnat 2027.*52 joueurs inscrits pour la saison 2027/);assert.doesNotMatch(await page.locator(".teams-rosters-heading").textContent(),/2026.2027/);
   });
   await test("public/private authorization and source failure retry without demo fallback",async()=>{
     const denied=await context.request.get(base+"/api/player-card/private-player");assert.equal(denied.status(),403);assert.doesNotMatch(await denied.text(),/Joueur de validation/);
