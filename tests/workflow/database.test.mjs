@@ -27,7 +27,7 @@ try {
  for (const [i,points] of [10,8,6,6,4,4,4,4,2,2,0,0,0,0,0,0].entries()) await query("insert into committee_ranking_results(event_id,player_name,club,gender,placement,points,display_order,identity_id) values('club-open-kaz-2026-09-13',$1,'Kaz A Darts 974','M','ROUND_OF_16',$2,$3,$4)",['Historique '+i,points,i+1,i<13?randomUUID():null]);
  await db.exec("insert into player_identities select identity_id,'Nom officiel historique','ACTIVE' from committee_ranking_results where display_order=1");
  // X01 and interclub have separate schemas, exercised by x01-creation.test.mjs and interclub.test.mjs.
-for(const file of readdirSync(resolve(root,'supabase/migrations')).sort().filter(file=>!['20260930121932_fix_x01_creation_returning.sql','20260930180153_interclub_evening_schedule.sql','20261014201802_interclub_j2_result_correction.sql','20261015052702_interclub_j2_statistics_attribution.sql','20261015103031_scoring_120_139.sql'].includes(file))) await db.exec(read('supabase/migrations/'+file));
+for(const file of readdirSync(resolve(root,'supabase/migrations')).sort().filter(file=>!['20260930121932_fix_x01_creation_returning.sql','20260930180153_interclub_evening_schedule.sql','20261014201802_interclub_j2_result_correction.sql','20261015052702_interclub_j2_statistics_attribution.sql','20261015103031_scoring_120_139.sql','20261021133209_admin_player_registration.sql'].includes(file))) await db.exec(read('supabase/migrations/'+file));
  const initial=await pub();
  check(initial.events[0].results.length===16 && initial.events[0].results.reduce((a,b)=>a+b.points,0)===50,'Historical 16 rows / 50 points preserved');
  check(initial.events[0].results[0].player_name==='Nom officiel historique','Previously displayed canonical name preserved');

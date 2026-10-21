@@ -31,7 +31,8 @@ export function tournamentRecordYear(record: { season?: string | null; date: str
 export function playersInCurrentTeam(players: PlayerOverview[], team: string | undefined, activeYear: number | undefined) {
   if (!team) return players;
   return players.filter(player => {
-    const currentTeam = activeYear === 2027 ? officialPlayerRoster2027(player.name)?.name : undefined;
+    const currentTeam = player.affiliation_source === "ADMIN_REGISTRATION" ? player.team
+      : activeYear === 2027 ? officialPlayerRoster2027(player.name)?.name : undefined;
     return canonicalTeamName(currentTeam ?? player.team) === canonicalTeamName(team);
   });
 }

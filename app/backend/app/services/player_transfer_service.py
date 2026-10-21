@@ -44,11 +44,22 @@ def player_directory(db: Any) -> list[dict[str, Any]]:
     players = _db_rows(db, "players", "id,display_name,team_id")
     teams = {str(row.get("id")): row for row in _db_rows(db, "teams", "id,name,club_id")}
     clubs = {str(row.get("id")): row for row in _db_rows(db, "clubs", "id,name")}
+    from .player_registration_service import registrations, today
+    registered = {}
+    entries = registrations(db, optional=True)
+    if entries:
+        identities = {str(i["id"]): str(i["canonical_player_id"]) for i in _db_rows(db, "player_identities", "id,canonical_player_id")}
+        active = {str(s["id"]) for s in _db_rows(db, "seasons", "id,is_active") if s.get("is_active")}
+        official_clubs = {c["code"]: c["name"] for c in _db_rows(db, "committee_clubs", "code,name")}
+        for entry in sorted(entries, key=lambda r: r["joined_on"]):
+            if str(entry["season_id"]) in active and entry["joined_on"] <= today():
+                registered[identities.get(str(entry["identity_id"]))] = {**entry, "club": official_clubs.get(entry["club_code"])}
     result = []
     for player in players:
-        team = teams.get(str(player.get("team_id")))
+        registration = registered.get(str(player.get("id")))
+        team = teams.get(str(registration["team_id"] if registration else player.get("team_id")))
         club = clubs.get(str((team or {}).get("club_id")))
-        result.append({"id": str(player.get("id")), "name": player.get("display_name"), "team": (team or {}).get("name"), "club": (club or {}).get("name")})
+        result.append({"id": str(player.get("id")), "name": player.get("display_name"), "team": (team or {}).get("name"), "club": registration["club"] if registration else (club or {}).get("name")})
     return sorted(result, key=lambda row: str(row.get("name") or "").casefold())
 
 def admin_status(db: Any) -> dict[str, Any]:

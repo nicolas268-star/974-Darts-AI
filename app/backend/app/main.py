@@ -14,6 +14,7 @@ from .api.audience_router import router as audience_router
 from .api.tournament_watch_router import router as tournament_watch_router
 from .api.season_registry_router import router as season_registry_router
 from .api.player_transfer_router import router as player_transfer_router
+from .api.player_registration_router import router as player_registration_router
 from .api.committee_ranking_router import router as committee_ranking_router
 from .api.ranking_workflow_router import router as ranking_workflow_router
 from .api.visibility_router import router as visibility_router
@@ -51,6 +52,7 @@ app.include_router(audience_router)
 app.include_router(tournament_watch_router)
 app.include_router(season_registry_router)
 app.include_router(player_transfer_router)
+app.include_router(player_registration_router)
 app.include_router(committee_ranking_router)
 app.include_router(ranking_workflow_router)
 from .api.tournament_page_router import router as tournament_page_router

@@ -63,7 +63,8 @@ export async function loadCaptainData({
   if (!players.length) return empty("Aucun joueur n’est encore disponible pour cette saison.", label);
   const affiliated = players.map(player => ({
     ...player,
-    team: active.year === 2027 ? officialPlayerRoster2027(player.name)?.name ?? player.team : player.team,
+    team: player.affiliation_source === "ADMIN_REGISTRATION" ? player.team
+      : active.year === 2027 ? officialPlayerRoster2027(player.name)?.name ?? player.team : player.team,
   }));
   const validDuos = object(duoPayload) && object(duoPayload.season) && duoPayload.season.id === active.id
     && Array.isArray(duoPayload.duos) && duoPayload.duos.every(validDuo);

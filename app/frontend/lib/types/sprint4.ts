@@ -49,6 +49,7 @@ export type RankingPayload = {
 };
 
 export type PlayerOverview = Scoring120139 & {
+  affiliation_source?: "ADMIN_REGISTRATION" | null;
   player_id: string;
   name: string;
   team: string;
