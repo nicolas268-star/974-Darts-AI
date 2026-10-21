@@ -9,7 +9,7 @@ const ds = '00000000-0000-0000-0000-000000000002';
 const player = '00000000-0000-0000-0000-000000000003';
 const otherDS = '00000000-0000-0000-0000-000000000004';
 const migration = '20261015172851_optional_ds_review.sql';
-const unrelated = ['20260930121932_fix_x01_creation_returning.sql','20260930180153_interclub_evening_schedule.sql','20261014201802_interclub_j2_result_correction.sql','20261015052702_interclub_j2_statistics_attribution.sql','20261015103031_scoring_120_139.sql'];
+const unrelated = ['20260930121932_fix_x01_creation_returning.sql','20260930180153_interclub_evening_schedule.sql','20261014201802_interclub_j2_result_correction.sql','20261015052702_interclub_j2_statistics_attribution.sql','20261015103031_scoring_120_139.sql','20261021133209_admin_player_registration.sql'];
 let checks = 0;
 const same = (a,b,message) => { assert.deepEqual(a,b,message); checks++; };
 const denied = async (fn,error) => { await assert.rejects(fn,error); checks++; };

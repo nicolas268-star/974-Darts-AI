@@ -119,6 +119,8 @@ jobs:
         run: bash -n deploy/deploy-tournament-pages.sh
       - name: Valider le déploiement Comités France
         run: bash -n deploy/deploy-france-inventory.sh
+      - name: Valider le déploiement des inscriptions joueurs
+        run: bash -n deploy/deploy-player-registration.sh
       - name: Préparer l'environnement Compose de CI
         run: |
           sudo install -d -m 755 /etc/974darts

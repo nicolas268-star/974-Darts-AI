@@ -19,7 +19,9 @@ Les pages lisent les inscriptions validées depuis une source commune et les cac
 
 Appliquer la migration additive `supabase/migrations/20261021133209_admin_player_registration.sql` sur le projet Supabase cible avant d’activer le nouveau formulaire. Elle crée la table privée `player_registrations`, la fonction transactionnelle `register_club_player(jsonb,uuid)` et complète le code club des deux lignes canoniques Kaz A Darts. Aucun joueur réel n’est créé par la migration.
 
-Déployer ensuite les images `backend`, `frontend` et `interclub-analysis` avec la procédure habituelle du dépôt. Conserver les paramètres et profils déjà actifs. `ADMIN_USER_ID` doit être présent côté backend et frontend ; l’accès est vérifié sur les deux services.
+Après le passage au commit fusionné, exécuter depuis `/opt/974darts/current` : `sudo bash deploy/deploy-player-registration.sh RELEASE_SHA PREVIOUS_SHA`. Le script sauvegarde l’environnement, le proxy et les images, conserve les options effectives, vérifie les lectures de production avant activation, puis remplace backend/frontend et le worker interclubs s’il était actif. Il conserve les autres services et ne démarre aucun worker précédemment arrêté. En cas d’échec après activation, il restaure les images précédentes.
+
+`ADMIN_USER_ID` doit correspondre entre frontend et backend ; le script reprend l’administrateur déjà configuré du frontend. Il vérifie l’API privée, l’effectif public, la santé HTTPS et la redirection anonyme de `/admin/players` sans créer de joueur de test en production.
 
 L’interface d’administration indique une indisponibilité tant que la migration manque. Les lectures publiques conservent l’effectif 2027 d’origine pendant une installation progressive. Ne pas supprimer la table lors d’un retour à une ancienne version applicative : elle contient les inscriptions et leur historique.
 
