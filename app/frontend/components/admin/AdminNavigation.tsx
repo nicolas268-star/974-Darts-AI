@@ -11,6 +11,7 @@ const items = [
   { href: "/admin/nakka-sync", label: "Agent Nakka", test: (p: string) => p.startsWith("/admin/nakka-sync") },
   { href: "/admin/comites-france", label: "Comités France", test: (p: string) => p.startsWith("/admin/comites-france") },
   { href: "/admin/seasons", label: "Saisons", test: (p: string) => p.startsWith("/admin/seasons") },
+  { href: "/admin/players", label: "Inscrire un joueur", test: (p: string) => p.startsWith("/admin/players") },
   { href: "/admin/transfers", label: "Transferts", test: (p: string) => p.startsWith("/admin/transfers") },
   { href: "/admin/calendar", label: "Calendrier", test: (p: string) => p.startsWith("/admin/calendar") },
   { href: "/admin/classement-individuel", label: "Classement individuel", test: (p: string) => p.startsWith("/admin/classement-individuel") },
@@ -31,6 +32,7 @@ function pageLabel(pathname: string) {
   if (pathname.startsWith("/admin/nakka-sync")) return "Agent Nakka";
   if (pathname.startsWith("/admin/comites-france")) return "Comités France";
   if (pathname.startsWith("/admin/seasons")) return "Saisons";
+  if (pathname.startsWith("/admin/players")) return "Inscription des joueurs";
   if (pathname.startsWith("/admin/transfers")) return "Joueurs & transferts";
   if (pathname.startsWith("/admin/calendar")) return "Calendrier";
   if (pathname.startsWith("/admin/classement-individuel")) return "Classement individuel";

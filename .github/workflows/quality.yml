@@ -76,11 +76,17 @@ jobs:
         run: npm test
       - name: Inventaire Comités France — preuves, isolation et RLS
         run: npm run test:france
+      - name: Inscription joueurs — transaction, doublons, permissions et pages publiques
+        run: npm run test:registration
       - run: npm ci --prefix ../../app/frontend
       - run: npx playwright install --with-deps chromium
       - name: Captain Nico — simulation et prévision avant match
         working-directory: app/frontend
         run: npm run test:captain:browser
+        timeout-minutes: 8
+      - name: Inscription joueurs — formulaire et pages sur mobile et ordinateur
+        working-directory: app/frontend
+        run: node scripts/test-player-registration-browser.mjs
         timeout-minutes: 8
       - run: npm run test:browser
         timeout-minutes: 20
@@ -101,6 +107,7 @@ jobs:
             docs/ranking-workflow-preview/
             test-results/tournaments/
             /tmp/974darts-*.log
+            /tmp/974darts-registration-qa/
           retention-days: 7
 
   containers:

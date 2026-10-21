@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authorizeAdminApi } from "@/lib/auth/session";
+import { revalidatePath } from "next/cache";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -24,6 +25,7 @@ const allowedGetPaths = [
   /^\/api\/v1\/tournament-watch\/status$/,
   /^\/api\/v1\/seasons\/admin$/,
   /^\/api\/v1\/player-transfers\/admin$/,
+  /^\/api\/v1\/player-registrations\/admin$/,
   /^\/api\/v1\/committee-ranking\/events\/[^/]+\/preview$/,
 ];
 
@@ -57,6 +59,7 @@ const allowedPostPaths = [
   /^\/api\/v1\/seasons\/calendar\/update-titles$/,
   /^\/api\/v1\/player-transfers\/upsert$/,
   /^\/api\/v1\/player-transfers\/cancel$/,
+  /^\/api\/v1\/player-registrations\/save$/,
 ];
 
 function jsonError(status: number, error: string) {
@@ -148,6 +151,9 @@ async function relay(
 
     const contentType =
       response.headers.get("content-type") ?? "application/json";
+    if (response.ok && request.method === "POST" && backendPath === "/api/v1/player-registrations/save") {
+      revalidatePath("/", "layout");
+    }
     return new NextResponse(await response.arrayBuffer(), {
       status: response.status,
       headers: { "Content-Type": contentType },

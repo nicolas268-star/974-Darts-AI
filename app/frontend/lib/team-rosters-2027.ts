@@ -1,4 +1,5 @@
 export type TeamRoster2027 = {
+  team_id?: string;
   id: string;
   name: string;
   club: string;

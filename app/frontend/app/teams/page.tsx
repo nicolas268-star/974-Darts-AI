@@ -4,7 +4,7 @@ import { officialTeamRoster, teamPlayers } from "@/lib/team-roster";
 import { getTeamTheme } from "@/lib/team-themes";
 import type { PlayerOverview } from "@/lib/types/sprint4";
 import type { ChampionshipHub, CompetitionCatalog } from "@/lib/types/sprint14";
-import { TEAM_ROSTERS_2027, TEAM_ROSTERS_2027_PLAYER_COUNT } from "@/lib/team-rosters-2027";
+import { getOfficialRosters } from "@/lib/official-rosters";
 import "./teams.css";
 
 const backend = process.env.PYTHON_API_URL ?? "http://127.0.0.1:8000";
@@ -31,9 +31,9 @@ async function getRanking(): Promise<TeamsPageData> {
   }
 }
 
-async function getPlayers(): Promise<PlayerOverview[]> {
+async function getPlayers(year?: number): Promise<PlayerOverview[]> {
   try {
-    const response = await fetch(`${backend}/api/v1/players`, {
+    const response = await fetch(`${backend}/api/v1/players${year ? `?season_id=${year}` : ""}`, {
       cache: "no-store",
       signal: AbortSignal.timeout(5000),
     });
@@ -46,7 +46,8 @@ async function getPlayers(): Promise<PlayerOverview[]> {
 }
 
 export default async function TeamsPage() {
-  const [{ ranking, activeSeason }, players] = await Promise.all([getRanking(), getPlayers()]);
+  const { ranking, activeSeason } = await getRanking();
+  const [players, rosters] = await Promise.all([getPlayers(activeSeason?.year), getOfficialRosters(activeSeason?.year)]);
   const standings = ranking?.standings ?? [];
 
   return (
@@ -60,7 +61,7 @@ export default async function TeamsPage() {
             <h1>Les équipes</h1>
             <p>Classement, bilan collectif et effectifs officiellement publiés pour la saison active.</p>
           </div>
-            <strong>{activeSeason?.year === 2027 ? TEAM_ROSTERS_2027.length : standings.length} équipe(s)</strong>
+            <strong>{rosters.length || standings.length} équipe(s)</strong>
         </header>
 
         {ranking?.data_quality_notes?.length ? (
@@ -73,17 +74,17 @@ export default async function TeamsPage() {
           </section>
         ) : null}
 
-        {activeSeason?.year === 2027 ? (
+        {rosters.length ? (
           <section className="teams-rosters-2027">
             <div className="teams-rosters-heading">
-              <div><strong>Championnat 2027</strong><h2>8 équipes officielles</h2><p>{TEAM_ROSTERS_2027_PLAYER_COUNT} joueurs inscrits pour la saison 2027.</p></div>
+              <div><strong>Championnat {activeSeason?.year}</strong><h2>{rosters.length} équipes officielles</h2><p>{rosters.reduce((n, t) => n + t.players.length, 0)} joueurs inscrits pour la saison {activeSeason?.year}.</p></div>
               <Link href="/championships/2026">Championnat 2026 historique →</Link>
             </div>
             <div className="teams-rosters-grid">
-              {TEAM_ROSTERS_2027.map((team) => (
+              {rosters.map((team) => (
                 <article className="team-roster-card" key={team.id}>
-                  <header><span>{team.club}</span><h3>{team.name}</h3><small>{team.players.length} joueur(s)</small></header>
-                  <ul>{team.players.map((player) => <li key={player.license}><span>{player.officialName}</span><small>Nakka : {player.nakkaName}</small></li>)}</ul>
+                  <header><span>{team.club}</span><h3>{team.team_id ? <Link href={`/teams/${team.team_id}`}>{team.name} →</Link> : team.name}</h3><small>{team.players.length} joueur(s)</small></header>
+                  <ul>{team.players.map((player) => <li key={player.officialName}><span>{player.officialName}</span><small>Nakka : {player.nakkaName}</small></li>)}</ul>
                 </article>
               ))}
             </div>
@@ -97,8 +98,8 @@ export default async function TeamsPage() {
         ) : (
           <section className="teams-grid">
             {standings.map((team) => {
-              const roster = teamPlayers(players, team.name, activeSeason?.year);
-              const rosterCount = officialTeamRoster(team.name, activeSeason?.year)?.players.length ?? roster.length;
+              const roster = teamPlayers(players, team.name, activeSeason?.year, rosters);
+              const rosterCount = Math.max(officialTeamRoster(team.name, activeSeason?.year, rosters)?.players.length ?? 0, roster.length);
               const theme = getTeamTheme(team.name);
 
               return (

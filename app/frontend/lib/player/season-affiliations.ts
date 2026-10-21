@@ -14,7 +14,9 @@ const CLUBS_2026: Record<string, string> = {
 
 export function playerSeasonAffiliations(player: PlayerDashboard["player"], historical: PlayerDashboard | null) {
   const roster = officialPlayerRoster2027(player.name);
-  const current: Affiliation | null = roster ? { team: roster.name, club: roster.club } : null;
+  const current: Affiliation | null = player.affiliation_source === "ADMIN_REGISTRATION" && player.team
+    ? { team: player.team, club: player.club }
+    : roster ? { team: roster.name, club: roster.club } : null;
   const historicalTeam = historical?.player.team;
   const canonicalTeam = canonicalTeamName(historicalTeam);
   // A dashboard without 2026 data may fall back to the database's current team: do not call it history.

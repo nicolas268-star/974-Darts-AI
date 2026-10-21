@@ -10,6 +10,7 @@ from .player_statistics_engine import PlayerStatisticsEngine
 from .interclub_publication_service import ROSTERS, CLUBS, name_key, resolve_team
 from .ranking_service import _all, build_ranking
 from .match_day_team_stats import team_statistics
+from .player_registration_service import official_rosters
 
 # Verified database UUIDs from the shared Player Card documentation; roster slugs stay separate.
 ROSTER_TEAM_IDS = dict(zip(
@@ -48,9 +49,10 @@ def load_source(db, season, stats_season):
         return {'id': str(p['id']), 'name': str(p['display_name']), 'dashboard': public_dashboard(d),
                 'warning': 'Données partielles ou faible échantillon.' if d and (d['kpis'].get('legs_played', 0) < 12 or d['meta'].get('data_quality', {}).get('player_stat_rows') == 0) else None}
     if season == '2027':
+        rosters = official_rosters(db)
         licensed = _all(db, 'committee_licensed_players', 'season_key,official_display_name,identity_id,license_status,club_code')
         identities = {i['id']: i for i in _all(db, 'player_identities', 'id,canonical_player_id,status') if i['status'] == 'ACTIVE'}
-        for roster in ROSTERS:
+        for roster in rosters:
             tid = ROSTER_TEAM_IDS[roster['id']]
             official_team = engine.team_by_id.get(tid)
             if not official_team:
@@ -60,7 +62,8 @@ def load_source(db, season, stats_season):
                 rows = [l for l in licensed if l['season_key'] == '2026-2027' and l['license_status'] == 'ACTIVE'
                         and l['club_code'] == CLUBS[roster['id'].split('-')[0]] and name_key(l['official_display_name']) == name_key(r['officialName'])]
                 identity = identities.get(rows[0].get('identity_id')) if len(rows) == 1 else None
-                players.append(member(identity['canonical_player_id'], r['officialName']) if identity else
+                pid = r.get('player_id') or (identity['canonical_player_id'] if identity else None)
+                players.append(member(pid, r['officialName']) if pid else
                                {'id': None, 'name': r['officialName'], 'dashboard': None, 'warning': 'Identité officielle à vérifier.'})
             teams.append({'id': tid, 'name': official_team['name'], 'club': roster['club'], 'players': players, 'roster_complete': True})
     else:
@@ -91,13 +94,14 @@ def load_source(db, season, stats_season):
         if stats_season == '2027':
             statistical_licenses = licensed if season == '2027' else _all(db, 'committee_licensed_players', 'season_key,official_display_name,identity_id,license_status,club_code')
             statistical_identities = identities if season == '2027' else {i['id']: i for i in _all(db, 'player_identities', 'id,canonical_player_id,status') if i['status'] == 'ACTIVE'}
-            for roster in ROSTERS:
+            for roster in (rosters if season == '2027' else official_rosters(db)):
                 members = set()
                 for player in roster['players']:
                     matches = [l for l in statistical_licenses if l['season_key'] == '2026-2027' and l['license_status'] == 'ACTIVE'
                                and l['club_code'] == CLUBS[roster['id'].split('-')[0]] and name_key(l['official_display_name']) == name_key(player['officialName'])]
                     identity = statistical_identities.get(matches[0].get('identity_id')) if len(matches) == 1 else None
-                    if identity: members.add(str(identity['canonical_player_id']))
+                    pid = player.get('player_id') or (identity['canonical_player_id'] if identity else None)
+                    if pid: members.add(str(pid))
                 statistical_members[ROSTER_TEAM_IDS[roster['id']]] = members
         else:
             statistical_identities = {i['id']: i for i in _all(db, 'player_identities', 'id,canonical_player_id,status') if i['status'] == 'ACTIVE'}

@@ -4,6 +4,7 @@ import { TEAM_ROSTERS_2027 } from "./team-rosters-2027";
 import { selectedStatisticsYear } from "./statistics-filters";
 import { getTournamentRecords } from "./tournament-records";
 import { playerForStatisticsSeason } from "./statistics-affiliations";
+import { getOfficialRosters } from "./official-rosters";
 
 const backend = process.env.PYTHON_API_URL ?? "http://127.0.0.1:8000";
 async function read(path: string) {
@@ -34,6 +35,8 @@ export async function getStatisticsPlayers(catalog: CompetitionCatalog | null, y
 export async function getCurrentChampionshipTeams(catalog: CompetitionCatalog | null): Promise<string[]> {
   const active = catalog?.active_championship;
   if (!active) return [];
+  const rosters = await getOfficialRosters(active.year);
+  if (rosters.length) return rosters.map(team => team.name).sort((a,b) => a.localeCompare(b,"fr"));
   // Same complete official list as /teams, including teams with no published match yet.
   if (active.year === 2027) return TEAM_ROSTERS_2027.map(team => team.name).sort((a,b) => a.localeCompare(b,"fr"));
   const data: ChampionshipHub | null = await read(`competitions/championships/${active.year}`);
@@ -46,7 +49,7 @@ export async function getRecordSeasonData(requested: string | string[] | undefin
   const [players, identities, tournamentRecords] = await Promise.all([getStatisticsPlayers(catalog, season), getPlayerIdentities(), getTournamentRecords(season)]);
   // Unscoped identities resolve names, not affiliations. Only a published roster
   // or a profile with play in the selected season can supply the displayed team.
-  const seasonIdentities = identities.map(player => playerForStatisticsSeason({ ...player, team: "" }, season));
+  const seasonIdentities = identities.map(player => playerForStatisticsSeason({ ...player, team: "", affiliation_source: null }, season));
   const knownPlayers = [...new Map([...seasonIdentities, ...players].map(player => [player.player_id, player])).values()];
   return { season, players, knownPlayers, tournamentRecords };
 }

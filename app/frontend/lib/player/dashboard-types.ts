@@ -2,6 +2,7 @@ import type { Scoring120139 } from "@/lib/player/scoring-ranges";
 
 export type PlayerDashboard = {
   player: {
+    affiliation_source?: "ADMIN_REGISTRATION" | null;
     id: string;
     name: string;
     public_profile: boolean;

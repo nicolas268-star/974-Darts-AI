@@ -46,7 +46,7 @@ def resolve_team(name):
     return found[0]
 
 
-def resolve_payload(details, licensed, identities, aliases):
+def resolve_payload(details, licensed, identities, aliases, official_rosters=None):
     payload = deepcopy(details)
     if payload["season"] != "2026-2027" or payload["league_id"] != "lg_EUoR_6095":
         raise SummaryUnavailable("Les effectifs de cette saison doivent être configurés.")
@@ -58,6 +58,8 @@ def resolve_payload(details, licensed, identities, aliases):
     rosters = {}
     for team in payload["teams"]:
         roster = resolve_team(team["name"])
+        if official_rosters is not None:
+            roster = next(r for r in official_rosters if r["id"] == roster["id"])
         team.update(name=roster["name"], club_code=CLUBS[roster["id"].split("-")[0]])
         rosters[team["source_id"]] = roster
     if len({t["name"] for t in payload["teams"]}) != 2:
@@ -104,10 +106,12 @@ def publish_collected(collected, *, db=None):
         from supabase import create_client
         from app.config import settings
         db = create_client(settings.supabase_url, settings.supabase_service_role_key)
+    from .player_registration_service import official_rosters
     payload = resolve_payload(collected["publication"],
                               _all(db, "committee_licensed_players", "season_key,official_display_name,official_source_name,club_code,identity_id,license_status"),
                               _all(db, "player_identities", "id,canonical_player_id,canonical_display_name,status"),
-                              _all(db, "player_aliases", "identity_id,alias_name,confirmed"))
+                              _all(db, "player_aliases", "identity_id,alias_name,confirmed"),
+                              official_rosters(db, collected["publication"]["season"], as_of=collected["publication"]["date"]))
     try:
         result = db.rpc("publish_interclub_scoring", {"p": payload}).execute().data
     except Exception as exc:

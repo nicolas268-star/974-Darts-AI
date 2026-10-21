@@ -16,16 +16,15 @@ export function officialPlayerRoster2027(name: string, rosters: TeamRoster2027[]
   return aliases.length === 1 ? aliases[0].team : undefined;
 }
 
-export function officialTeamRoster(teamName: string, year?: number) {
-  return year === 2027
-    ? TEAM_ROSTERS_2027.find((team) => sameTeam(team.name, teamName))
-    : undefined;
+export function officialTeamRoster(teamName: string, year?: number, rosters?: TeamRoster2027[]) {
+  return (rosters ?? (year === 2027 ? TEAM_ROSTERS_2027 : []))
+    .find((team) => sameTeam(team.name, teamName));
 }
 
-export function teamPlayers(players: PlayerOverview[], teamName: string, year?: number) {
-  const official = officialTeamRoster(teamName, year);
+export function teamPlayers(players: PlayerOverview[], teamName: string, year?: number, rosters?: TeamRoster2027[]) {
+  const official = officialTeamRoster(teamName, year, rosters);
   const names = official && new Set(official.players.map((player) => normalizedName(player.officialName)));
-  return players.filter((player) => names
+  return players.filter((player) => player.affiliation_source === "ADMIN_REGISTRATION" ? sameTeam(player.team, teamName) : names
     ? names.has(normalizedName(player.name))
     : sameTeam(player.team, teamName));
 }

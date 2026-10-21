@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Sidebar } from "@/components/Sidebar";
 import { officialTeamRoster, teamPlayers } from "@/lib/team-roster";
+import { getOfficialRosters } from "@/lib/official-rosters";
 import { getTeamTheme } from "@/lib/team-themes";
 import type { PlayerOverview } from "@/lib/types/sprint4";
 import type { ChampionshipHub, CompetitionCatalog } from "@/lib/types/sprint14";
@@ -22,9 +23,9 @@ async function getRanking(): Promise<ChampionshipHub | null> {
     });
     if (!catalogResponse.ok) return null;
     const catalog: CompetitionCatalog = await catalogResponse.json();
-    const championship = [...catalog.championships]
+    const championship = catalog.active_championship ?? [...catalog.championships]
       .filter((item) => item.has_data)
-      .sort((a, b) => b.year - a.year)[0] ?? catalog.active_championship;
+      .sort((a, b) => b.year - a.year)[0];
     if (!championship) return null;
     const response = await fetch(
       `${backend}/api/v1/competitions/championships/${championship.year}`,
@@ -101,17 +102,23 @@ export default async function TeamDetailPage({
     getRanking(),
     getTeamHistory(team_id),
   ]);
-  const team = ranking?.standings.find((item) => item.team_id === team_id);
+  const seasonYear = ranking?.championship.year;
+  const rosters = await getOfficialRosters(seasonYear);
+  const registeredTeam = rosters.find(r => r.team_id === team_id);
+  const team = ranking?.standings.find((item) => item.team_id === team_id) ?? (registeredTeam ? {
+    team_id, name: registeredTeam.name, rank: null, points: 0, played: 0, wins: 0, draws: 0, losses: 0,
+    sets_won: 0, sets_lost: 0, set_difference: 0,
+    collective_only_encounters: 0, detailed_encounters: 0,
+  } : null);
 
   if (!team) notFound();
 
   const theme = getTeamTheme(team.name);
 
-  const seasonYear = ranking?.championship.year;
   const players = await getPlayers(seasonYear);
-  const roster = teamPlayers(players, team.name, seasonYear)
+  const roster = teamPlayers(players, team.name, seasonYear, rosters)
     .sort((a, b) => (b.average_3_darts ?? 0) - (a.average_3_darts ?? 0));
-  const rosterCount = officialTeamRoster(team.name, seasonYear)?.players.length ?? roster.length;
+  const rosterCount = Math.max(officialTeamRoster(team.name, seasonYear, rosters)?.players.length ?? 0, roster.length);
 
   const average = roster.length
     ? roster
@@ -160,7 +167,7 @@ export default async function TeamDetailPage({
             </span>
             <h1>{team.name}</h1>
             <p>
-              Classement #{team.rank} · {team.points} points
+              Classement #{team.rank ?? "—"} · {team.points} points
             </p>
           </div>
           <aside>
@@ -343,7 +350,7 @@ export default async function TeamDetailPage({
               </div>
             </div>
             <p className="team-summary">
-              {team.name} occupe la place #{team.rank} avec {team.points}{" "}
+              {team.name} occupe la place #{team.rank ?? "—"} avec {team.points}{" "}
               points. L’équipe compte {team.wins} victoire(s), {team.draws}{" "}
               nul(s) et
               {team.losses} défaite(s), pour une différence de sets de{" "}

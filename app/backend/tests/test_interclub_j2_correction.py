@@ -167,7 +167,8 @@ class J2CorrectionTests(unittest.TestCase):
                 self.name, self.payload = name, args["p"]
                 return SimpleNamespace(execute=lambda: SimpleNamespace(data={"status": "PUBLISHED", "result_id": "db-j2"}))
         db = DB()
-        with patch("app.services.interclub_publication_service._all", side_effect=[licensed, identities, []]):
+        with patch("app.services.interclub_publication_service._all", side_effect=[licensed, identities, []]), \
+             patch("app.services.player_registration_service.official_rosters", return_value=None):
             result = publish_collected(collected, db=db)
         self.assertEqual(db.name, "publish_interclub_scoring")
         self.assertEqual(result["result_id"], "db-j2")

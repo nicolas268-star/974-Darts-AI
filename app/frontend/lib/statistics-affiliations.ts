@@ -3,6 +3,7 @@ import { officialPlayerRoster2027 } from "./team-roster";
 import type { PlayerOverview } from "./types/sprint4";
 
 export function playerForStatisticsSeason<T extends PlayerOverview>(player: T, year: string): T {
+  if (player.affiliation_source === "ADMIN_REGISTRATION") return player;
   // The published roster also covers registered players with tournament results
   // but no championship match yet. It belongs to 2027 only.
   const roster = year === "2027" ? officialPlayerRoster2027(player.name) : undefined;

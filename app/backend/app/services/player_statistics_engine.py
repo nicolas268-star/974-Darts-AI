@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date
 import re
 from typing import Any
@@ -352,6 +352,8 @@ class PlayerStatisticsDataset:
     profiles: list[dict[str, Any]]
     identities: list[dict[str, Any]]
     aliases: list[dict[str, Any]]
+    registrations: list[dict[str, Any]] = field(default_factory=list)
+    committee_clubs: list[dict[str, Any]] = field(default_factory=list)
 
     @classmethod
     def load(cls, db: Client) -> "PlayerStatisticsDataset":
@@ -369,6 +371,8 @@ class PlayerStatisticsDataset:
             profiles=_safe_all(db, "player_profiles", "id,player_id,season_id,legs_played,legs_won,average_3_darts,first_9,best_finish,elo"),
             identities=_safe_all(db, "player_identities", "id,canonical_player_id,status,merged_into_identity_id"),
             aliases=_safe_all(db, "player_aliases", "identity_id,source_player_id"),
+            registrations=_safe_all(db, "player_registrations", "identity_id,season_id,team_id,club_code,joined_on"),
+            committee_clubs=_safe_all(db, "committee_clubs", "code,name"),
         )
 
 
@@ -494,6 +498,8 @@ class PlayerStatisticsEngine:
         active = next((s for s in self.data.seasons if bool(s.get("is_active"))), None)
         if active and counts.get(str(active.get("id")), 0) > 0:
             return active, "active_with_data"
+        if active and any(str(r["season_id"]) == str(active["id"]) for r in self.data.registrations):
+            return active, "active_with_registrations"
 
         seasons_with_data = [s for s in self.data.seasons if counts.get(str(s.get("id")), 0) > 0]
         if seasons_with_data:
@@ -616,10 +622,12 @@ class PlayerStatisticsEngine:
         affiliation = self.played_team_by_season.get(
             (self._canonical_id(str(player.get("id"))), str((season or {}).get("id")))
         )
-        team_id = affiliation[1] if affiliation else str(player.get("team_id"))
+        registration = self._registration(str(player.get("id")), season)
+        team_id = str(registration["team_id"]) if registration else affiliation[1] if affiliation else str(player.get("team_id"))
         raw_team = self.team_by_id.get(team_id)
         team = self._canonical_team(raw_team, self._season_year(season))
         club = self.club_by_id.get(str(team.get("club_id"))) if team else None
+        registered_club = next((c for c in self.data.committee_clubs if registration and c["code"] == registration["club_code"]), None)
         return {
             "id": player.get("id"),
             "name": player.get("display_name"),
@@ -627,8 +635,18 @@ class PlayerStatisticsEngine:
             "team_id": team.get("id") if team else player.get("team_id"),
             "team": team.get("name") if team else None,
             "club_id": club.get("id") if club else None,
-            "club": club.get("name") if club else None,
+            "club": registered_club["name"] if registered_club else club.get("name") if club else None,
+            "affiliation_source": "ADMIN_REGISTRATION" if registration else None,
         }
+
+    def _registration(self, player_id, season):
+        from .player_registration_service import today
+        identities = {str(i["id"]) for i in self.data.identities
+                      if self._canonical_id(str(i.get("canonical_player_id"))) == self._canonical_id(player_id)}
+        rows = [r for r in self.data.registrations if str(r["identity_id"]) in identities
+                and (season is None or season.get("id") == "all" or str(r["season_id"]) == str(season.get("id")))
+                and r["joined_on"] <= today()]
+        return max(rows, key=lambda r: r["joined_on"], default=None)
 
     def _canonical_id(self, player_id: str) -> str:
         return self.canonical_by_player.get(player_id, player_id)
@@ -1399,6 +1417,13 @@ class PlayerStatisticsEngine:
                 for row in daily_by_player.get(member_id, [])
             ]
             profile = self._profile(canonical_id, season_id_value)
+            # Newcomers are listed before their first match in their registration
+            # season, without appearing as members of every historical season.
+            managed = any(str(r["identity_id"]) == str(i["id"])
+                          for r in self.data.registrations for i in self.data.identities
+                          if str(i.get("canonical_player_id")) in member_ids)
+            if managed and not self._registration(canonical_id, season) and not rows and not daily_rows and not profile:
+                continue
             kpis = self._aggregate(rows)
             if not rows and daily_rows:
                 played = sum(int(r.get("legs_played") or 0) for r in daily_rows)
@@ -1442,6 +1467,7 @@ class PlayerStatisticsEngine:
                 "name": identity["name"],
                 "team_id": identity["team_id"],
                 "team": identity["team"] or "—",
+                "affiliation_source": identity.get("affiliation_source"),
                 "season_id": season.get("id") if season else None,
                 "legs_played": kpis["legs_played"],
                 "legs_won": kpis["legs_won"],

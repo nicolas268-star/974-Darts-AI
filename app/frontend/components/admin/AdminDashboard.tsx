@@ -833,6 +833,13 @@ export default function AdminDashboard() {
 
   const quickActions: QuickActionItem[] = [
     {
+      key: "new-player",
+      label: "Inscrire un joueur",
+      description: "Ajouter un joueur au club et à l’équipe pour une saison.",
+      href: "/admin/players",
+      state: "online",
+    },
+    {
       key: "admin",
       label: "Dashboard Admin",
       description: "Revenir au cockpit administrateur.",
