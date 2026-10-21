@@ -51,7 +51,10 @@ class TournamentVisibilityTests(unittest.TestCase):
         facts = {fact["id"]: fact["text"] for fact in summary["evening"]["facts"]}
         self.assertIn("150 au total", facts["committee_points"])
         self.assertIn("30 pts Comité", facts["winner"])
+        self.assertIn("Stéphane A", facts["winner"])
+        self.assertNotIn("Stéphane ABROUSSE", facts["winner"])
         self.assertIn("24 pts Comité", facts["runner_up"])
+        self.assertIn("Jacky", facts["runner_up"])
         self.assertIn("6 poules", facts["format"])
         self.assertIn("consolante", facts["format"])
         self.assertIn("2 au total", facts["maximums"])
@@ -78,7 +81,8 @@ class TournamentVisibilityTests(unittest.TestCase):
         self.assertEqual(summary["evening"]["legs"], 232)
         facts = {fact["id"]: fact["text"] for fact in summary["evening"]["facts"]}
         self.assertIn(f"{sum(row['points'] for row in results)} au total", facts["committee_points"])
-        self.assertIn("Emmanuel GRASSET", facts["winner"])
+        self.assertIn("Manu", facts["winner"])
+        self.assertNotIn("Emmanuel GRASSET", facts["winner"])
         self.assertNotIn("PRIVATE-ADMIN", str(summary))
         self.assertNotIn("PRIVATE-MATCH-ADMIN", str(summary))
         self.assertEqual(summary["evening"]["url"], "https://974darts.re/tournaments/t5")
@@ -134,6 +138,25 @@ class TournamentVisibilityTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             visibility.list_tournaments(self.db)
 
+    def test_public_friendly_is_selectable_with_pseudonyms_and_without_committee_points(self):
+        friendly = {"code": "amical", "name": "Tournoi amical", "classification": "FRIENDLY", "status": "AVAILABLE",
+                    "source_tournament_id": "friendly-source", "source_url": "https://n01darts.com/n01/tournament/comp.php?id=friendly-source",
+                    "players": [{"name": "Nicolas DUPONT", "average_3_darts": 40}], "winner": "Nicolas DUPONT"}
+        before = deepcopy(friendly)
+        with patch.object(visibility, "all_tournaments", return_value=[friendly]):
+            catalog = visibility.list_tournaments(self.db)
+            summary = visibility.tournament_summary(self.db, "amical")
+        self.assertIn("Amical", catalog["tournaments"][0]["label"])
+        self.assertIn("Nico", summary["whatsapp"])
+        self.assertNotIn("pts Comité", summary["whatsapp"])
+        self.assertNotIn("Classement du Comité", summary["facebook"])
+        self.assertEqual(friendly, before)
+        self.assertFalse(self.db.commits)
+        for forbidden in ({**friendly, "status": "BLOCKED"},
+                          {**friendly, "source_tournament_id": self.db.event["source_id"]}):
+            with patch.object(visibility, "all_tournaments", return_value=[forbidden]):
+                self.assertEqual(visibility.list_tournaments(self.db)["tournaments"], [])
+
     def test_context_persists_by_tournament_without_collisions_or_ranking_writes(self):
         tournament = self.oc1()
         before = deepcopy(tournament)
@@ -167,7 +190,7 @@ class TournamentVisibilityTests(unittest.TestCase):
         facts = {fact["id"]: fact["text"] for fact in summary["evening"]["facts"]}
         self.assertEqual(summary["evening"]["players"], 2)
         self.assertEqual(summary["evening"]["playersLabel"], "doublettes")
-        self.assertIn("Duo confirmé A", facts["winner"])
+        self.assertIn("Alice / Bruno", facts["winner"])
         self.assertIn("Alice : 30 pts", facts["individual_points"])
         self.assertIn("100 au total", facts["committee_points"])
         self.assertIn("Performances collectives des doublettes", summary["whatsapp"])

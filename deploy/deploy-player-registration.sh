@@ -4,6 +4,8 @@ set -Eeuo pipefail
 umask 077
 release=${1:?Usage: deploy-player-registration.sh RELEASE_SHA PREVIOUS_SHA}
 previous=${2:?Previous production commit required}
+release_kind=${3:-player-registration}
+[[ "$release_kind" == player-registration || "$release_kind" == visibility-nakka ]]
 [[ "$release" =~ ^[0-9a-f]{40}$ && "$previous" =~ ^[0-9a-f]{40}$ ]]
 [[ "$EUID" -eq 0 && "$(pwd -P)" == "$(readlink -f /opt/974darts/current)" ]]
 production_env=/etc/974darts/production.env
@@ -16,7 +18,7 @@ git_repo diff --quiet "$previous" "$release" -- deploy/Caddyfile deploy/compose.
 [[ -z "$(git_repo status --porcelain -- . ':!deploy/Caddyfile' ':!deploy/Caddyfile.before-preview.e5lNZy')" ]]
 base_compose config --quiet
 stamp=$(date -u +%Y%m%dT%H%M%SZ)
-backup="/var/backups/974darts/player-registration-$stamp"
+backup="/var/backups/974darts/$release_kind-$stamp"
 install -d -m 700 "$backup"
 cp -p "$production_env" "$backup/production.env"
 cp -p deploy/Caddyfile "$backup/Caddyfile"
@@ -77,8 +79,8 @@ rollback() {
 trap rollback ERR
 # No registration or sporting publication is performed during verification.
 compose build backend frontend interclub-analysis </dev/null
-compose run --rm --no-deps -T backend python - <<'PY'
-import os
+compose run --rm --no-deps -T backend python - "$release_kind" <<'PY'
+import os,sys
 from urllib.parse import urlparse
 from supabase import create_client
 from app.services.player_registration_service import admin_options,official_rosters
@@ -87,14 +89,19 @@ db=create_client(os.environ['SUPABASE_URL'],os.environ['SUPABASE_SERVICE_ROLE_KE
 data=admin_options(db)
 assert data['seasons'] and data['clubs'] and data['teams']
 assert len(official_rosters(db))>=8
+if sys.argv[1]=='visibility-nakka':
+    from app.services.visibility_names import load_visibility_names
+    names=load_visibility_names(db)
+    assert names.by_name, 'Nakka visibility names unavailable'
+    print('Current Nakka visibility names loaded from production identities and rosters.')
 print('Registration schema and production read models verified.')
 PY
 cmp -s "$production_env" "$backup/production.env"
 cmp -s deploy/Caddyfile "$backup/Caddyfile"
 active=1
 compose up -d --no-deps --no-build --wait --wait-timeout 180 "${services[@]}" </dev/null
-compose exec -T backend python - <<'PY'
-import json,os,urllib.request,urllib.error
+compose exec -T backend python - "$release_kind" <<'PY'
+import json,os,sys,urllib.request,urllib.error
 base='http://127.0.0.1:8000/api/v1/player-registrations'
 headers={'X-Internal-Token':os.environ['INTERNAL_API_TOKEN'],'X-User-Id':os.environ['ADMIN_USER_ID']}
 with urllib.request.urlopen(urllib.request.Request(base+'/admin',headers=headers),timeout=30) as r:
@@ -106,6 +113,21 @@ else: raise AssertionError('Anonymous administrator access was accepted')
 with urllib.request.urlopen(base+'/rosters',timeout=30) as r:
     assert len(json.load(r)['rosters'])>=8
 print('Registration API, private access and public rosters verified.')
+if sys.argv[1]=='visibility-nakka':
+    base='http://127.0.0.1:8000/api/v1/visibility'
+    def read(path):
+        with urllib.request.urlopen(urllib.request.Request(base+path,headers=headers),timeout=90) as r:
+            return json.load(r)
+    evenings=read('/evenings')['evenings']
+    tournaments=read('/tournaments')['tournaments']
+    for path,version in ([('/summary?result_id='+evenings[0]['id'],3)] if evenings else []) + ([('/tournament-summary?code='+tournaments[0]['code'],2)] if tournaments else []):
+        summary=read(path)
+        assert summary['summary_version']==version
+        text='\n'.join(fact['text'] for fact in summary['evening']['facts'])
+        for original,nickname in summary['evening'].get('name_replacements',{}).items():
+            if original!=nickname and len(original.split())>=2:
+                assert original not in text, 'A resolved full name remains in a visibility fact'
+    print('Visibility catalogs and current Nakka sharing drafts verified.')
 PY
 curl -fsS --connect-timeout 10 --max-time 90 https://974darts.re/api/health > "$backup/health.json"
 curl -fsS --connect-timeout 10 --max-time 90 https://974darts.re/teams > "$backup/teams.html"
@@ -121,5 +143,9 @@ PY
 cmp -s "$production_env" "$backup/production.env"
 cmp -s deploy/Caddyfile "$backup/Caddyfile"
 trap - ERR
-printf 'Player registration deployed and verified: https://974darts.re/admin/players\nPrivate backup: %s\n' "$backup"
+if [[ "$release_kind" == visibility-nakka ]]; then
+  printf 'Nakka visibility deployed and verified: https://974darts.re/admin/visibility\nPrivate backup: %s\n' "$backup"
+else
+  printf 'Player registration deployed and verified: https://974darts.re/admin/players\nPrivate backup: %s\n' "$backup"
+fi
 compose ps "${services[@]}"

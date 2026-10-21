@@ -139,6 +139,7 @@ class TournamentVisibilityRouteTests(unittest.TestCase):
         tournament = {"code": "t5", "name": "Tournoi publié", "players": [], "matches": []}
         self.tournament.side_effect = service.tournament_summary
         with patch.object(service, "load_tournament", return_value=tournament) as loader, \
+                patch.object(service, "load_visibility_names", return_value=service.VisibilityNames()), \
                 patch.object(service, "load_context", return_value="Contexte déjà enregistré") as context, \
                 patch.object(service, "save_context") as save:
             response = self.request("GET", "/tournament-summary", params={"code": "t5", "context": "Ne pas enregistrer"})

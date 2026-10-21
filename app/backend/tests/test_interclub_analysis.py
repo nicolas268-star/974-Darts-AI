@@ -38,7 +38,7 @@ class SourceTests(unittest.TestCase):
         text = {f["id"]: f["text"] for f in facts["facts"]}
         self.assertIn("50,82 sur 14 legs", text["top_average"])
         self.assertIn("88", text["finish"])
-        self.assertIn("MARQUES Yoann × 1", text["maximums"])
+        self.assertIn("Yoann × 1", text["maximums"])
         self.assertIn("42,53", text["home_average"])
         # The erroneous shared source opid never merges Yoann and Yvan.
         self.assertEqual(facts["players"], 10)
@@ -179,6 +179,8 @@ class ScheduleTests(unittest.TestCase):
         patch.object(service, "registry_status", return_value={"seasons": [SEASON]}).start()
         p = json.loads(FIXTURE.read_text())
         self.facts = source_facts(EVENT, SEASON, service.event_key(EVENT), p["data"], p["sets"], p["players"], p["teams"])
+        patch.dict(sys.modules, {"app.main": types.SimpleNamespace(db_client=lambda: "db")}).start()
+        patch.object(service, "load_evening", side_effect=lambda *_: self.facts).start()
         self.collected = {"facts": self.facts, "publication": {"validated": True}}
         self.collect = Mock(return_value=self.collected)
         self.publisher = Mock(return_value={"status": "PUBLISHED", "result_id": "published-id"})
@@ -227,6 +229,15 @@ class ScheduleTests(unittest.TestCase):
         self.assertEqual(self.run_at(self.due + timedelta(minutes=4)), 0)
         self.assertEqual(self.run_at(self.due + timedelta(minutes=10)), 1)
         self.assertEqual(service.available_records()[0]["status"], "READY")
+
+    def test_current_worker_snapshot_still_refreshes_player_names_on_read(self):
+        self.run_at(self.due)
+        for fact in self.facts["facts"]:
+            fact["text"] = fact["text"].replace("Manu", "NewNakkaName")
+        with patch("app.services.visibility_service._ai_selection") as provider:
+            refreshed = service.automatic_summary(service.event_key(EVENT))
+        self.assertIn("NewNakkaName", refreshed["whatsapp"])
+        provider.assert_not_called()
 
     def test_all_ten_minute_slots_and_next_evening_cutoff(self):
         self.collect.side_effect = SummaryUnavailable("Match en cours")

@@ -1,4 +1,4 @@
-"""Deterministic sharing drafts for published Committee tournaments.
+"""Deterministic sharing drafts for public Nakka tournaments.
 
 The universal public tournament projection is the only sporting input. This
 module never publishes results, awards points, calls an AI provider or sends a
@@ -17,11 +17,13 @@ from .tournament_classification import tournament_classification
 from .tournament_page_service import all_tournaments, official_events, published_revision
 from .visibility_context import CONTEXT_LIMIT, load_context, save_context
 from .visibility_service import SummaryUnavailable
+from .visibility_names import VisibilityNames, load_visibility_names, render_context_names
+from .ranking_service import _all
 
 
 CODE_PATTERN = re.compile(r"^[A-Za-z0-9_-]{1,120}$")
 OFFICIAL_CLASSES = {"OFFICIAL", "COMMITTEE_OFFICIAL", "COMMITTEE_RECOGNIZED"}
-SUMMARY_VERSION = 1
+SUMMARY_VERSION = 2
 PUBLIC_ORIGIN = "https://974darts.re"
 COMMITTEE_URL = f"{PUBLIC_ORIGIN}/competitions/classement-individuel"
 
@@ -50,6 +52,8 @@ def _date_label(value):
 
 
 def _published_tournaments(db):
+    reserved = {(str(row["source_id"]), row["discipline"]) for row in
+                _all(db, "ranking_workflow_events", "source_id,discipline")}
     active = {}
     for event in official_events(db):
         published_revision(db, event)
@@ -62,6 +66,13 @@ def _published_tournaments(db):
             continue
         historical = tournament_classification(code)
         classification = tournament.get("classification") or historical["classification"]
+        if classification == "FRIENDLY":
+            if (tournament.get("status") == "AVAILABLE" and tournament.get("source_tournament_id")
+                    and _source_url(tournament) and not tournament.get("official_event_id")
+                    and not tournament.get("official_publication")
+                    and (str(tournament["source_tournament_id"]), tournament.get("discipline") or "SINGLE") not in reserved):
+                selected.append((code, tournament))
+            continue
         if classification not in OFFICIAL_CLASSES:
             continue
         status = tournament.get("ranking_status") or historical.get("ranking_status")
@@ -90,7 +101,8 @@ def list_tournaments(db):
         title = _text(tournament.get("event_name") or tournament.get("name") or code.upper())
         event_date = str(tournament["date"])[:10] if tournament.get("date") else None
         discipline = tournament.get("discipline") or "SINGLE"
-        label = " · ".join(filter(None, (title, _date_label(event_date), "Doublettes" if discipline == "DOUBLE" else "Individuel")))
+        label = " · ".join(filter(None, (title, _date_label(event_date), "Doublettes" if discipline == "DOUBLE" else "Individuel",
+                                         "Amical" if tournament.get("classification") == "FRIENDLY" else None)))
         tournaments.append({"id": f"tournament:{code}", "code": code, "label": label,
                             "title": title, "date": event_date, "discipline": discipline})
     tournaments.sort(key=lambda item: (item["date"] or "", item["code"]), reverse=True)
@@ -101,13 +113,12 @@ def load_tournament(db, code):
     normalized = _code(code)
     found = [tournament for candidate, tournament in _published_tournaments(db) if candidate == normalized]
     if len(found) != 1:
-        raise SummaryUnavailable("Tournoi officiel ou reconnu publié introuvable.")
+        raise SummaryUnavailable("Tournoi publié introuvable.")
     return found[0]
 
 
 def _name(tournament, value):
-    aliases = tournament.get("display_aliases") or {}
-    return _text(aliases.get(value, value))
+    return _text(tournament["visibility_names"].get(value, value))
 
 
 def _source_url(tournament):
@@ -199,7 +210,13 @@ def _performance_facts(tournament, participants):
     return facts
 
 
-def build_tournament_facts(tournament):
+def build_tournament_facts(tournament, *, names=None):
+    names = names or VisibilityNames()
+    display = names.tournament(tournament)
+    tournament = {**tournament, "visibility_names": display}
+    friendly = tournament.get("classification") == "FRIENDLY"
+    if friendly:
+        tournament["official_results"] = []
     code = _code(tournament.get("code"))
     double = tournament.get("discipline") == "DOUBLE"
     participants = tournament.get("duos" if double else "players") or []
@@ -232,7 +249,8 @@ def build_tournament_facts(tournament):
         facts.append({"id": "format", "text": "Format : " + " · ".join(phases) + "."})
     facts.extend(_podium(tournament, double))
     facts.extend(_performance_facts(tournament, participants))
-    return {"kind": "tournament", "result_id": f"tournament:{code}", "code": code,
+    return {"kind": "tournament", "result_id": f"tournament:{code}", "code": code, "name_replacements": display,
+            "friendly": friendly,
             "title": title, "round": code.upper(), "date": date_label, "location": location,
             "season": str(tournament.get("season_key") or tournament.get("season") or ""),
             "discipline": "DOUBLE" if double else "SINGLE", "facts": facts,
@@ -242,13 +260,14 @@ def build_tournament_facts(tournament):
             "committee_url": COMMITTEE_URL}
 
 
-def compose_tournament_summary(tournament, context=None):
-    evening = build_tournament_facts(tournament)
+def compose_tournament_summary(tournament, context=None, *, names=None):
+    evening = build_tournament_facts(tournament, names=names)
     if context is not None:
         if not isinstance(context, str) or len(context) > CONTEXT_LIMIT:
             raise ValueError("Le contexte doit contenir au maximum 1 600 caractères.")
         save_context(evening["result_id"], context)
     editorial_context = load_context(evening)
+    rendered_context = render_context_names(editorial_context, evening["name_replacements"])
     texts = {fact["id"]: fact["text"] for fact in evening["facts"]}
     heading = f"🎯 {evening['title']}"
     details = " · ".join(filter(None, (evening["date"], evening["location"])))
@@ -260,8 +279,10 @@ def compose_tournament_summary(tournament, context=None):
     podium = "\n".join("• " + texts[key] for key in ("winner", "runner_up", "semi_finalists", "individual_points", "committee_points") if key in texts)
     if podium:
         common += "\n\n🏆 Résultats publiés\n" + podium
-    around = f"\n\n🎯 Autour du tournoi\n{editorial_context}" if editorial_context else ""
-    links = f"\n\nFiche du tournoi : {evening['url']}\nClassement du Comité : {COMMITTEE_URL}"
+    around = f"\n\n🎯 Autour du tournoi\n{rendered_context}" if editorial_context else ""
+    links = f"\n\nFiche du tournoi : {evening['url']}"
+    if not evening["friendly"]:
+        links += f"\nClassement du Comité : {COMMITTEE_URL}"
     if evening["source_url"]:
         links += f"\nSource Nakka : {evening['source_url']}"
     whatsapp_insights = [texts[key] for key in ("top_average", "first9", "finish", "maximums") if key in texts]
@@ -284,4 +305,7 @@ def compose_tournament_summary(tournament, context=None):
 
 
 def tournament_summary(db, code, context=None):
-    return compose_tournament_summary(load_tournament(db, code), context=context)
+    tournament = load_tournament(db, code)
+    from .player_registration_service import season_key
+    season = str(tournament.get("season_key") or tournament.get("season") or "2026-2027")
+    return compose_tournament_summary(tournament, context=context, names=load_visibility_names(db, season_key(season)))
