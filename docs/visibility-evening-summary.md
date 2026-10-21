@@ -14,6 +14,20 @@ Les mêmes textes incluent automatiquement les hashtags demandés : `#flechettes
 
 L’application n’envoie pas de message directement et ne prétend pas connaître l’état de publication. Aucune intégration non officielle de WhatsApp Web n’est utilisée.
 
+### Pseudos Nakka
+
+Les textes préparés pour WhatsApp et Facebook utilisent automatiquement les pseudos Nakka connus : par exemple Nicolas DUPONT devient Nico, Christophe FERNANDEZ devient Stoo et Stéphane ABROUSSE devient Stéphane A. La règle s’applique aux rencontres interclubs, aux tournois officiels ou reconnus, aux tournois amicaux publiés et aux manches BDC, pour les podiums, finales, classements et performances.
+
+Le service reprend les pseudos des effectifs et inscriptions Admin, puis les rattache aux identités actives et aux alias confirmés. Il accepte un nom complet dans les deux ordres ; il ne rapproche pas approximativement deux personnes à partir d’un prénom. Un identifiant confirmé prime sur un nom ambigu. Sans correspondance unique, le nom Nakka du tournoi est conservé, ou le nom disponible à défaut. Les doublettes utilisent les deux membres explicitement associés à la publication, sans découper arbitrairement le nom d’une équipe.
+
+Les noms complets reconnus des participants sont aussi rendus avec leur pseudo dans le contexte partagé. Le texte de contexte saisi reste conservé pour l’édition. Les modifications manuelles des brouillons restent inchangées lors du partage.
+
+Les anciens résumés du worker sont reconstruits à l’ouverture depuis les résultats publiés et les identités actuelles. Une modification du pseudo dans l’Admin est prise en compte à la prochaine préparation du texte ; le cache éditorial suit les faits actualisés. Les statistiques, résultats, points et identités enregistrés ne sont pas modifiés par cet affichage.
+
+Les tournois amicaux déjà disponibles sur le site apparaissent également dans la liste des événements. Ils n’affichent ni points ni lien vers le classement du Comité. Les compétitions officielles continuent à nécessiter leur version publiée ; une source réservée au workflow officiel ne devient pas un tournoi amical.
+
+Déploiement : reconstruire `backend frontend interclub-analysis`. Aucune migration ni nouvelle variable de configuration.
+
 ### Blind Draw Championship
 
 La liste « Rencontre ou manche BDC » regroupe les rencontres interclubs et les manches BDC publiées, avec M2 puis M1 dans le groupe « Blind Draw Championship ». La dernière rencontre interclubs reste sélectionnée à l’ouverture ; sans rencontre disponible, M2 est proposée. Les manches BDC restent utilisables si le service interclubs est indisponible.
@@ -56,7 +70,7 @@ Chaque résumé interclubs, WhatsApp comme Facebook, contient désormais un para
 
 Le champ « Contexte de la rencontre » permet d’ajouter jusqu’à 1 600 caractères confirmés par l’organisateur : participation exceptionnelle, prestation remarquée, ambiance, incident technique. « Enregistrer le contexte et actualiser » conserve ce texte pour cette rencontre et régénère les deux versions ; le résumé WhatsApp modifié manuellement est alors remplacé, comme indiqué près du bouton. Le bouton Facebook charge ensuite la nouvelle version dans le bloc de publication. Aucun partage n’est déclenché par l’enregistrement. Tant que le contexte est modifié mais non enregistré, les boutons de partage et de préparation Facebook sont désactivés.
 
-Ce témoignage est reproduit tel quel, séparément des faits calculés, sans être transmis comme instruction à l’IA. Il est conservé par identifiant de résultat publié dans le sous-dossier `context` de `VISIBILITY_CACHE_DIR` (par défaut `/app/data/visibility`, sur le volume existant). Une saisie vide supprime le contexte de cette rencontre. Le cache éditorial inclut le contexte et la version du générateur. Les anciens résumés du worker sont reconstruits à la lecture depuis les résultats publiés et corrigés ; une consultation ne déclenche pas d’appel au fournisseur IA.
+Ce témoignage est affiché séparément des faits calculés, avec les pseudos connus des participants, sans être transmis comme instruction à l’IA. La saisie originale est conservée par identifiant de résultat publié dans le sous-dossier `context` de `VISIBILITY_CACHE_DIR` (par défaut `/app/data/visibility`, sur le volume existant). Une saisie vide supprime le contexte de cette rencontre. Le cache éditorial inclut le contexte et la version du générateur. Les anciens résumés du worker sont reconstruits à la lecture depuis les résultats publiés et corrigés ; une consultation ne déclenche pas d’appel au fournisseur IA.
 
 Pour la seule J2 du 14/10/2026 associée à `t_uAfU_5679`, le témoignage confirmé de Nicolas est prérempli : belle prestation de Benoit BRUNET, renfort exceptionnel de Brune (équipe B) vers Ambrée (équipe A), bonne ambiance et léger retard dû à un souci technique Nakka. Les faits calculés continuent à utiliser le résultat officiel corrigé Ambrée 5–15 Fournaise et l’attribution corrigée du simple 16. Ce contexte peut être modifié ou effacé et ne s’applique à aucune autre rencontre.
 

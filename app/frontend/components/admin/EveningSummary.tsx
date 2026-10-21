@@ -79,7 +79,7 @@ export default function EveningSummary({ bdcOptions, onFacebookReady }: { bdcOpt
       if (committee.status === "fulfilled") {
         catalogs.current.tournaments = committee.value.tournaments;
         setTournaments(committee.value.tournaments);
-      } else errors.push("Les tournois Comité n’ont pas pu être chargés. Les autres événements restent disponibles.");
+      } else errors.push("Les tournois n’ont pas pu être chargés. Les autres événements restent disponibles.");
       setCatalogErrors(errors);
       const current = selectedRef.current;
       const { evenings: nextEvenings, tournaments: nextTournaments } = catalogs.current;
@@ -175,18 +175,18 @@ export default function EveningSummary({ bdcOptions, onFacebookReady }: { bdcOpt
 
   return <section className={`${styles.composer} ${styles.whatsapp}`} aria-labelledby="evening-title">
     <header><div><span>Groupe interne · Fléchettes Réunion</span><h2 id="evening-title"><MessageCircle size={26}/> {isTournament ? "Résumé de tournoi WhatsApp" : isBdc ? "Résumé de manche WhatsApp" : "Résumé de soirée WhatsApp"}</h2></div><span className={styles.badge}>{summary?.mode === "ai" ? "Synthèse IA" : "Analyse statistique"}</span></header>
-    <p className={styles.intro}>Choisis une rencontre interclubs, une manche BDC terminée ou un tournoi Comité publié. Retrouve le résultat, les temps forts et les performances à partager au groupe.</p>
+    <p className={styles.intro}>Choisis une rencontre interclubs, une manche BDC terminée ou un tournoi publié, officiel ou amical. Les commentaires utilisent automatiquement les pseudos Nakka connus des joueurs.</p>
     {automation && selection?.kind === "interclub" && <div className={styles.automation}>
       <b>Championnat automatique · à partir de 22 h · suivi pendant 24 h · heure de La Réunion</b>
       <p>{automation.running && automation.publication_enabled ? "Actif : les soirs de match du calendrier, résultats, classement et statistiques des joueurs et des équipes sont mis à jour sans intervention. Le résumé est ensuite préparé." : "La publication automatique n’a pas confirmé son activité récemment."}
         {automation.next_at && <> Prochaine soirée : {new Date(automation.next_at).toLocaleDateString("fr-FR", { timeZone: "Indian/Reunion" })}.</>}</p>
       {automation.recent.filter((item) => item.status !== "READY").map((item) => <p key={item.title}><strong>{item.title}</strong> — {item.message} {item.published_result_id ? (item.retry_expired ? "Résumé à préparer manuellement." : "Résultat publié · nouvelle préparation du résumé toutes les 5 minutes.") : (item.retry_expired ? "Vérifications arrêtées après 24 h · contrôle nécessaire." : "Nouvelle vérification toutes les 10 minutes jusqu’à 22 h le lendemain.")}</p>)}
     </div>}
-    <div className={styles.eventChoice}><label htmlFor="visibility-evening">Rencontre, manche BDC ou tournoi Comité<select id="visibility-evening" value={selected} disabled={!evenings.length && !tournaments.length && !bdcOptions.length} onChange={(event) => selectEvent(event.target.value)}>
+    <div className={styles.eventChoice}><label htmlFor="visibility-evening">Rencontre, manche BDC ou tournoi<select id="visibility-evening" value={selected} disabled={!evenings.length && !tournaments.length && !bdcOptions.length} onChange={(event) => selectEvent(event.target.value)}>
       {(!selected || (!evenings.length && !tournaments.length && !bdcOptions.length)) && <option value="">{loading ? "Chargement…" : "Aucun événement publié disponible"}</option>}
       {!!evenings.length && <optgroup label="Rencontres interclubs">{evenings.map((evening) => <option key={evening.id} value={evening.id}>{evening.round} · {evening.date ? new Date(`${evening.date}T12:00:00`).toLocaleDateString("fr-FR") : "Date à confirmer"} · {evening.home} {evening.home_score}–{evening.away_score} {evening.away}</option>)}</optgroup>}
       {!!bdcOptions.length && <optgroup label="Blind Draw Championship">{bdcOptions.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}</optgroup>}
-      {!!tournaments.length && <optgroup label="Tournois Comité">{tournaments.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}</optgroup>}
+      {!!tournaments.length && <optgroup label="Tournois officiels et amicaux">{tournaments.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}</optgroup>}
     </select></label><button className={styles.secondaryButton} onClick={() => { resetPreview(); setLoading(true); setReload((value) => value + 1); }} disabled={busy || loading} aria-label="Actualiser les événements"><RefreshCw size={18}/></button></div>
     {summary && <div className={styles.summaryNumbers}><span><b>{summary.evening.matches ?? "Non disponible"}</b> matchs</span><span><b>{summary.evening.legs ?? "Non disponible"}</b> {summary.evening.legsLabel ?? "legs"}</span><span><b>{summary.evening.players ?? "Non disponible"}</b> {summary.evening.playersLabel ?? "joueurs"}</span><a href={summary.evening.url} target="_blank" rel="noopener noreferrer">Voir les statistiques <ExternalLink size={14}/></a></div>}
     {busy && <p className={styles.progress} role="status"><LoaderCircle className={styles.spin} size={18}/> Préparation du résumé…</p>}

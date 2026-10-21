@@ -57,6 +57,7 @@ class Query:
     def __init__(self, db, table):
         self.db, self.name = db, table
         self.filters, self.operation, self.value, self.maximum = [], "select", None, None
+        self.offset = 0
 
     def select(self, _="*"):
         return self
@@ -71,6 +72,10 @@ class Query:
 
     def limit(self, count):
         self.maximum = count
+        return self
+
+    def range(self, start, end):
+        self.offset, self.maximum = start, end - start + 1
         return self
 
     def insert(self, value):
@@ -93,6 +98,7 @@ class Query:
             if self.operation == "update":
                 for row in result:
                     row.update(self.value)
+        result = result[self.offset:]
         return SimpleNamespace(data=deepcopy(result[:self.maximum] if self.maximum is not None else result))
 
 
@@ -111,6 +117,7 @@ class Database:
             "player_identities": [{"id": row["identity_id"], "canonical_player_id": f"player-{index}", "status": "ACTIVE"}
                                   for index, row in enumerate(snapshot["results"]) if row.get("identity_id")],
             "tournament_pages": [], "tournament_page_previews": [],
+            "teams": [], "player_aliases": [], "player_registrations": [],
         }
         self.operations, self.commits = [], []
 

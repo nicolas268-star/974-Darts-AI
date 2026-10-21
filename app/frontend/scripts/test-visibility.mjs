@@ -27,6 +27,41 @@ assert.deepEqual(visibilitySelection('bdc-manche-2',[{id:'bdc-manche-2',summary}
 const signed=signVisibilitySummary(summary);
 assert.deepEqual(signVisibilitySummary(signed),signed);
 assert.equal(signed.evening.matches,null);
+// Exercise real audited BDC results and identity spellings, including a later
+// nickname update from the public registration roster.
+const projectModules=new Map();
+function projectModule(path) {
+  const file=resolve(root,path);
+  if(file.endsWith('.json'))return JSON.parse(readFileSync(file,'utf8'));
+  if(projectModules.has(file))return projectModules.get(file).exports;
+  const mod={exports:{}};projectModules.set(file,mod);
+  const code=ts.transpileModule(readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText;
+  new Function('require','module','exports',code)(name=>{
+    if(!name.startsWith('.')&&!name.startsWith('@/'))return nativeRequire(name);
+    const target=name.startsWith('@/')?resolve(root,name.slice(2)):resolve(dirname(file),name);
+    return projectModule(target.endsWith('.json')?target:target+'.ts');
+  },mod,mod.exports);
+  return mod.exports;
+}
+const {buildBdcVisibilityOptions}=projectModule('lib/bdc-visibility.ts');
+const {TEAM_ROSTERS_2027}=projectModule('lib/team-rosters-2027.ts');
+const bdcBefore=structuredClone(TEAM_ROSTERS_2027);
+const bdcOptions=buildBdcVisibilityOptions();
+const second=bdcOptions.find(option=>option.id==='bdc-manche-2').summary;
+for(const channel of ['whatsapp','facebook']) {
+  assert.match(second[channel],/Kozu \/ Vincent G/);
+  assert.match(second[channel],/Kevin \/ Alex/);
+  assert.doesNotMatch(second[channel],/Alexandre \(PDC\)|Vincent \(TDC\)/);
+  assert.match(second[channel],/sous réserve/);
+}
+const changedRoster=structuredClone(TEAM_ROSTERS_2027);
+changedRoster.flatMap(team=>team.players).find(member=>member.officialName==='Vincent GUILLAUMOND').nakkaName='VincentDarts';
+changedRoster.flatMap(team=>team.players).find(member=>member.officialName==='Yoann MARQUES').nakkaName='YoannDarts';
+const changedBdc=buildBdcVisibilityOptions(changedRoster).find(option=>option.id==='bdc-manche-2').summary;
+assert.match(changedBdc.whatsapp,/Kozu \/ VincentDarts/);
+assert.match(changedBdc.whatsapp,/Plus haut finish : YoannDarts, 125/);
+assert.notEqual(changedBdc.fingerprint,second.fingerprint);
+assert.deepEqual(TEAM_ROSTERS_2027,bdcBefore);
 const route=load('app/api/admin/visibility/[action]/route.ts',{
   '@/lib/auth/session':{authorizeAdminApi:async()=>authorized===200?{ok:true}:{ok:false,response:NextResponse.json({error:'Interdit'},{status:authorized})}},
   '@/lib/site-url':{getSiteOrigin:()=> 'https://974darts.re'},

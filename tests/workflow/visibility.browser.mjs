@@ -4,7 +4,7 @@ import {expect} from '@playwright/test';
 export async function testVisibility(admin, director, screenshot, {origin='http://127.0.0.1:3008',checkApiGuards=true}={}) {
   const id='f678a113-699e-496e-ae0a-944d37d25893';
   const evening={id,round:'J1',date:'2026-09-28',home:'Kaz A Darts - A',away:'Kaz A Darts - B',home_score:17,away_score:3};
-  const summary={whatsapp:'🎯 Kaz A Darts - A 17–3 Kaz A Darts - B\n45 legs · 10 joueurs\nPlus haut finish : Emmanuel GRASSET, 88.',facebook:'🎯 J1 · Kaz A Darts - A 17–3 Kaz A Darts - B\nBravo aux deux équipes !',mode:'statistics',note:'Résumé statistique prêt.',ai_available:true,fingerprint:'fixture',evening:{url:`https://974darts.re/matches/${id}`,matches:20,legs:45,players:10}};
+  const summary={whatsapp:'🎯 Kaz A Darts - A 17–3 Kaz A Darts - B\n45 legs · 10 joueurs\nPlus haut finish : Manu, 88.',facebook:'🎯 J1 · Kaz A Darts - A 17–3 Kaz A Darts - B\nBravo aux deux équipes !',mode:'statistics',note:'Résumé statistique prêt.',ai_available:true,fingerprint:'fixture',evening:{url:`https://974darts.re/matches/${id}`,matches:20,legs:45,players:10}};
   const signature='974Darts · NDX Performance Lab';
   const hashtags='#flechettes974 #dartsreunion #comiteflechettes974 #darts #lareunion #stleu #darts974 #TamponDartsClub #KazADarts974 #PapangueDartsClub #3BDartsClub';
   const signedWhatsApp=summary.whatsapp+'\n\n'+hashtags+'\n\n'+signature;
@@ -100,7 +100,7 @@ export async function testVisibility(admin, director, screenshot, {origin='http:
   // BDC uses the published round data, without sending tournament IDs to the interclub API.
   const previousRequests=summaryRequests;
   const choice=admin.locator('#visibility-evening');
-  await expect(choice.locator('optgroup[label="Tournois Comité"] option')).toHaveCount(1);
+  await expect(choice.locator('optgroup[label="Tournois officiels et amicaux"] option')).toHaveCount(1);
   await choice.selectOption(tournament.id);
   await expect(admin.getByRole('heading',{name:'Résumé de tournoi WhatsApp'})).toBeVisible();
   await expect(admin.locator('#whatsapp-draft')).toHaveValue(/Open de Comité #1 · 29 joueurs · 83 matchs/);
@@ -137,8 +137,10 @@ export async function testVisibility(admin, director, screenshot, {origin='http:
   expect(bdcDraft.endsWith(signature)).toBe(true);
   expect(bdcDraft.match(/NDX Performance Lab/g)).toHaveLength(1);
   expect(bdcDraft).toContain('7 doublettes · 14 joueurs · 25 matchs · 64 legs vérifiés');
-  expect(bdcDraft).toContain('Kozu / Vincent s’imposent 3–2');
-  expect(bdcDraft).toContain('Vincent (TDC) — 19 pts');
+  expect(bdcDraft).toContain('Kozu / Vincent G s’imposent 3–2');
+  expect(bdcDraft).toContain('Vincent G — 19 pts');
+  expect(bdcDraft).toContain('Kevin / Alex');
+  expect(bdcDraft).not.toContain('Vincent (TDC)');
   expect(bdcDraft).toContain('sous réserve de validation du directeur sportif');
   await expect(admin.getByRole('link',{name:'Voir les statistiques'})).toHaveAttribute('href','https://974darts.re/tournaments/blind-draw-championship#resultats-manche-2');
   await admin.getByRole('button',{name:'Ouvrir dans WhatsApp',exact:true}).click();
@@ -221,7 +223,7 @@ export async function testVisibility(admin, director, screenshot, {origin='http:
   await expect(admin.getByRole('button',{name:'Ouvrir dans WhatsApp',exact:true})).toBeEnabled();
   unavailableEvenings=false; noEvenings=false; unavailableTournaments=true;
   await admin.reload();
-  await expect(admin.locator('main').getByRole('alert')).toContainText('Les tournois Comité n’ont pas pu être chargés.');
+  await expect(admin.locator('main').getByRole('alert')).toContainText('Les tournois n’ont pas pu être chargés.');
   await expect(choice).toHaveValue(id);
   await expect(choice.locator('optgroup[label="Blind Draw Championship"] option')).toHaveCount(2);
   await expect(admin.locator('#whatsapp-draft')).toHaveValue(new RegExp(matchContext));

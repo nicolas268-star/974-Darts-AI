@@ -12,9 +12,10 @@ import urllib.request
 
 from .ranking_service import _all, _rules_for_season_name
 from .visibility_context import load_context, save_context
+from .visibility_names import VisibilityNames, load_visibility_names, render_context_names
 
 _AI_LOCK = threading.Lock()
-SUMMARY_VERSION = 2
+SUMMARY_VERSION = 3
 
 
 class SummaryUnavailable(ValueError):
@@ -74,7 +75,8 @@ def load_evening(db, result_id):
     legs = _rows_in(db, "legs", "id,match_id,status,winner_team_id", "match_id", [m["id"] for m in matches])
     stats = _rows_in(db, "player_leg_stats", "leg_id,player_id,team_id,score,darts_thrown,finish,scores_180,leg_won", "leg_id", [l["id"] for l in legs])
     players = {p["id"]: p["display_name"] for p in _rows_in(db, "players", "id,display_name", "id", {s["player_id"] for s in stats})}
-    return build_facts(result, round_row, seasons[0], teams, matches, legs, stats, players)
+    return build_facts(result, round_row, seasons[0], teams, matches, legs, stats, players,
+                       names=load_visibility_names(db, seasons[0]["name"]))
 
 
 def _avg(rows):
@@ -86,7 +88,15 @@ def _number(value):
     return f"{value:.2f}".replace(".", ",")
 
 
-def build_facts(result, round_row, season, teams, matches, legs, stats, players):
+def build_facts(result, round_row, season, teams, matches, legs, stats, players, *, names=None):
+    names = names or VisibilityNames()
+    display = {pid: names.name(name, pid) for pid, name in players.items()}
+    replacements = {}
+    for name in set(players.values()):
+        candidates = {display[pid] for pid, original in players.items() if original == name}
+        if len(candidates) == 1:
+            replacements[name] = next(iter(candidates))
+    players = display
     home, away = result["home_team_id"], result["away_team_id"]
     scores = [int(result["home_score"]), int(result["away_score"])]
     expected = Counter({home: scores[0], away: scores[1]})
@@ -201,7 +211,7 @@ def build_facts(result, round_row, season, teams, matches, legs, stats, players)
     return {"result_id": result["id"], "round": round_row["code"], "season": season["name"], "date": date_label,
             "home": home_name, "away": away_name, "facts": facts, "matches": len(matches), "legs": len(legs),
             "players": len(players), "url": f"https://974darts.re/matches/{result['id']}",
-            "source_url": result.get("source_sheet")}
+            "source_url": result.get("source_sheet"), "name_replacements": replacements}
 
 
 def _default_selection(facts):
@@ -242,6 +252,7 @@ def compose_summary(evening, use_ai=True, context=None):
     if context is not None:
         save_context(evening["result_id"], context)
     editorial_context = load_context(evening)
+    rendered_context = render_context_names(editorial_context, evening.get("name_replacements") or {})
     facts = evening["facts"]
     selection = _default_selection(facts)
     mode, note = "statistics", "Résumé statistique ; l’analyse IA n’est pas activée."
@@ -273,7 +284,7 @@ def compose_summary(evening, use_ai=True, context=None):
     team_paragraphs = "\n\n".join(texts[key] for key in ("home_highlight", "away_highlight") if key in texts)
     shared = (f"\n\n🤝 Les deux équipes\n{team_paragraphs}" if team_paragraphs else "")
     if editorial_context:
-        shared += f"\n\n🎯 Autour de la rencontre\n{editorial_context}"
+        shared += f"\n\n🎯 Autour de la rencontre\n{rendered_context}"
     heading = f"🎯 {evening['round']} · Championnat interclubs {evening['season']}\n📅 {evening['date']}"
     whatsapp = heading + f"\n\n*{texts['score']}*\n{texts['volume']}" + shared + "\n\n📊 Ce qu’on retient\n" + "\n".join("• " + texts[key] for key in selection["whatsapp"]) + f"\n\nBravo aux deux équipes ! 🎯\nDétail de la soirée : {evening['url']}"
     facebook = heading + f"\n\n{texts['score']}" + shared + "\n\n" + "\n".join("• " + texts[key] for key in selection["facebook"]) + f"\n\nBravo aux deux équipes pour cette rencontre !\n📊 Résultats et statistiques : {evening['url']}\n\n#974Darts #FlechettesReunion #LaReunion"
