@@ -11,6 +11,7 @@ from .interclub_publication_service import ROSTERS, CLUBS, name_key, resolve_tea
 from .ranking_service import _all, build_ranking
 from .match_day_team_stats import team_statistics
 from .player_registration_service import official_rosters
+from .visibility_service import SummaryUnavailable
 
 # Verified database UUIDs from the shared Player Card documentation; roster slugs stay separate.
 ROSTER_TEAM_IDS = dict(zip(
@@ -112,10 +113,24 @@ def load_source(db, season, stats_season):
                     statistical_members.setdefault(str(member['team_id']), set()).add(str(identity['canonical_player_id']))
             for (pid, sid), affiliation in engine.played_team_by_season.items():
                 if sid == str(stats_card['id']): statistical_members.setdefault(str(affiliation[1]), set()).add(pid)
+    standings = (ranking or {}).get('standings', [])
+    ranked_team_ids = {str(row['team_id']) for row in standings}
+    ranked_ids_by_roster = {}
+    if stats_season == '2027':
+        # Published results can use a different team UUID from the Studio roster.
+        for row in standings:
+            try:
+                roster_id = resolve_team(row['name'])['id']
+            except SummaryUnavailable:
+                continue
+            ranked_ids_by_roster.setdefault(ROSTER_TEAM_IDS[roster_id], []).append(str(row['team_id']))
     for team in teams:
-        members = statistical_members.get(team['id'], set())
-        applicable = team['id'] in statistical_members or any(str(row['team_id']) == team['id'] for row in (ranking or {}).get('standings', []))
-        team['team_stats'] = team_statistics(team['id'], ranking if applicable else None, [row for row in overview if row['player_id'] in members])
+        team_id = team['id']
+        candidates = ranked_ids_by_roster.get(team_id, [])
+        ranking_id = candidates[0] if team_id not in ranked_team_ids and len(candidates) == 1 else team_id
+        members = statistical_members.get(team_id, set())
+        applicable = team_id in statistical_members or ranking_id in ranked_team_ids
+        team['team_stats'] = team_statistics(ranking_id, ranking if applicable else None, [row for row in overview if row['player_id'] in members])
     events = []
     source_seasons = {str(e.get('url')): str(s['key']).split('-')[-1] for s in registry_status()['seasons'] for e in s.get('events', [])}
     by_name = {t['name']: t['id'] for t in teams}
