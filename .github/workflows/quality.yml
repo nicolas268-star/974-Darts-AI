@@ -54,7 +54,7 @@ jobs:
 
   ranking-workflow:
     name: Classement et tournois — intégrité transactionnelle
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: tests/workflow
