@@ -240,12 +240,18 @@ class FakeDB:
 
 def test_official_source_2026_2027_private_new_season_and_calendar(monkeypatch,tmp_path):
     a=source.ROSTER_TEAM_IDS['pdc-fournaise'];b=source.ROSTER_TEAM_IDS['pdc-neige']
+    ranked_fournaise='published-fournaise'
     db=FakeDB({'players':[{'id':'nico','display_name':'Nicolas DUPONT','public_profile':True,'team_id':a},
                           {'id':'pierre','display_name':'Pierre BERLET','public_profile':True,'team_id':a}],
-               'teams':[{'id':a,'name':'Papangue Darts Club - Fournaise','club_id':'pdc'},{'id':b,'name':'Papangue Darts Club - Neige','club_id':'pdc'}],
+               'teams':[{'id':a,'name':'PDC Fournaise','club_id':'pdc'},
+                        {'id':b,'name':'Papangue Darts Club - Neige','club_id':'pdc'},
+                        {'id':ranked_fournaise,'name':'Papangue Darts Club - Fournaise','club_id':'pdc'}],
                'clubs':[{'id':'pdc','name':'Papangue Darts Club'}],
                'seasons':[{'id':'s26','name':'2026','is_active':False},{'id':'s27','name':'2026-2027','is_active':True}],
-               'rounds':[{'id':'r26','season_id':'s26','code':'J1','played_on':'2026-04-01','published':True}],
+               'rounds':[{'id':'r26','season_id':'s26','code':'J1','played_on':'2026-04-01','published':True},
+                         {'id':'r27','season_id':'s27','code':'J1','played_on':'2026-10-20','published':True}],
+               'championship_results':[{'id':'published-match','season_id':'s27','round_id':'r27',
+                                        'home_team_id':b,'away_team_id':ranked_fournaise,'home_score':17,'away_score':3}],
                'player_daily_stats':[{'id':'d','player_id':'pierre','round_id':'r26','team_id':a,'legs_played':4,'legs_won':0,'average_3_darts':40,'first_9':50,'best_finish':60}],
                'player_team_memberships':[{'identity_id':'ip','team_id':a,'season_id':'s26'}],
                'player_identities':[{'id':'ip','canonical_player_id':'pierre','canonical_display_name':'Pierre BERLET','status':'ACTIVE'},{'id':'in','canonical_player_id':'nico','status':'ACTIVE'}],
@@ -259,6 +265,10 @@ def test_official_source_2026_2027_private_new_season_and_calendar(monkeypatch,t
     new=source.load_source(db,'2027','2027')
     pierre=next(p for t in new['teams'] if t['id']==b for p in t['players'] if p['id']=='pierre')
     assert pierre['dashboard']['meta']['has_data'] is False # does not borrow 2026 average
+    fournaise_stats=next(t for t in new['teams'] if t['id']==a)['team_stats']
+    assert (fournaise_stats['rank'], fournaise_stats['points'], fournaise_stats['played']) == (2, 1, 1)
+    neige_stats=next(t for t in new['teams'] if t['id']==b)['team_stats']
+    assert (neige_stats['rank'], neige_stats['points']) == (1, 4)
     assert new['events'][0]['team_ids']==[b,a] and new['events'][0]['round']=='J2'
     source.check_event({'event':new['events'][0]}) # derived IDs don't change the raw calendar fingerprint
     old=source.load_source(db,'2026','2026');assert len(old['teams'])==1 and old['teams'][0]['id']==a
